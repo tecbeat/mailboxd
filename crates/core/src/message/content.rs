@@ -49,7 +49,8 @@ pub struct AttachmentInfo {
     /// Hash of the content.
     pub content_hash: String,
     pub is_message: bool,
-    /// Text extracted from the attachment body (Pro/Enterprise feature).
+    /// Text extracted from the attachment body (populated when a text
+    /// extractor is registered — see crates/core/src/ext/text_extractor.rs).
     /// Populated during IMAP sync; None for inline attachments and unsupported file types.
     pub extracted_text: Option<String>,
     /// Page count reported by the extractor, if any.

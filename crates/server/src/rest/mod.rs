@@ -24,7 +24,6 @@ use crate::common::log::Tracing;
 use crate::common::tls::rustls_config;
 use crate::common::timeout::{Timeout, TIMEOUT_HEADER};
 use crate::error::handler::error_handler;
-use crate::rest::public::features::get_features;
 use crate::rest::public::login::login;
 use crate::rest::public::status::get_status;
 use mailboxd_core::common::signal::SIGNAL_MANAGER;
@@ -58,8 +57,8 @@ pub type ApiResult<T, E = ApiErrorResponse> = std::result::Result<T, E>;
 
 use super::error::ApiErrorResponse;
 
-/// Build the community route tree. Pro/Enterprise servers can call this
-/// and then add their own routes before passing the tree to the server.
+/// Build the route tree. Callers can add their own routes before passing
+/// the tree to the server.
 pub fn build_routes() -> impl Endpoint {
     let api_service = create_openapi_service()
         .summary("A lightweight, high-performance Rust email archiver with WebUI");
@@ -113,7 +112,6 @@ pub fn build_routes() -> impl Endpoint {
         .nest("/api-docs/spec.json", spec_json)
         .nest("/api-docs/spec.yaml", spec_yaml)
         .nest("/oauth2/callback", get(oauth2_callback))
-        .nest("/api/v1/features", get(get_features))
         .nest("/api/status", get(get_status))
         .nest("/api/login", post(login))
         .nest_no_strip("/api/v1", open_api_route);
