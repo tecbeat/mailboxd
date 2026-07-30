@@ -1,0 +1,21 @@
+services:
+  mailboxd:
+    container_name: mailboxd
+    image: hub.teccave.de/tecbeat/mailboxd:latest
+    restart: unless-stopped
+    ports:
+      - "15630:15630"
+    environment:
+      MAILBOXD_ROOT_DIR: /data
+      MAILBOXD_ENCRYPT_PASSWORD: change-me-in-production
+    volumes:
+      - mailboxd-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:15630/api/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mailboxd-data:
