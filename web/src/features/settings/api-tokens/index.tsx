@@ -72,7 +72,7 @@ export function APITokens() {
             <img
               src={Logo}
               className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-              alt="mailboxd Logo"
+              alt="mailboxd icon"
             />
             <h3 className="mt-4 text-lg font-semibold">{t('apiTokens.page.emptyTitle')}</h3>
             <p className="mb-4 mt-2 text-sm text-muted-foreground">

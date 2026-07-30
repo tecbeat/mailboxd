@@ -49,7 +49,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 src={Logo}
                 width={open ? 60 : 40}
                 height={open ? 60 : 40}
-                alt='Logo'
+                alt='mailboxd icon'
               />
             </div>
             <div className='grid flex-1 text-left text-lg leading-tight'>

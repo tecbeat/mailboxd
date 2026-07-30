@@ -33,7 +33,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             src={Logo}
             width={150}
             height={150}
-            alt='mailboxd Logo'
+            alt='mailboxd icon'
           />
         </div>
         {children}
