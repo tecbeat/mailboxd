@@ -17,7 +17,7 @@ export const Route = createFileRoute('/_authenticated/attachment/')({
     return {
       ...result,
       page: result.page ?? 1,
-      pageSize: result.pageSize ?? (Number(localStorage.getItem('bichon_search_attachment_page_size')) || 30),
+      pageSize: result.pageSize ?? (Number(localStorage.getItem('mailboxd_search_attachment_page_size')) || 30),
     }
   }
 })

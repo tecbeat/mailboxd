@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +21,7 @@
 use crate::{
     raise_error,
     {
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         imap::session::SessionStream,
     },
 };
@@ -34,7 +36,7 @@ pub async fn establish_tls_stream(
     alpn_protocols: &[&str],
     stream: impl SessionStream + 'static,
     dangerous: bool,
-) -> BichonResult<impl SessionStream> {
+) -> MailboxdResult<impl SessionStream> {
     let tls_stream =
         establish_rustls_stream(server_hostname, alpn_protocols, stream, dangerous).await?;
     let boxed_stream: Box<dyn SessionStream> = Box::new(tls_stream);
@@ -46,7 +48,7 @@ async fn establish_rustls_stream(
     alpn_protocols: &[&str],
     stream: impl SessionStream,
     dangerous: bool,
-) -> BichonResult<impl SessionStream> {
+) -> MailboxdResult<impl SessionStream> {
     // Create a root certificate store and add default trusted roots
     let root_store = RootCertStore {
         roots: webpki_roots::TLS_SERVER_ROOTS.into(),

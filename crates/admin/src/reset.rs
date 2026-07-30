@@ -9,7 +9,7 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 
 pub fn handle_reset_password(theme: &ColorfulTheme) {
     let root_dir_str: String = Input::with_theme(theme)
-        .with_prompt("Enter the absolute path for 'bichon_root_dir'")
+        .with_prompt("Enter the absolute path for 'mailboxd_root_dir'")
         .validate_with(|input: &String| -> Result<(), &str> {
             let path = Path::new(input);
             if !path.is_absolute() {
@@ -111,10 +111,10 @@ pub fn handle_reset_password(theme: &ColorfulTheme) {
                 Do you want to continue?",
             style(&raw_key).cyan().bold(),
             style("IMPORTANT").yellow().bold(),
-            style("--bichon_encrypt_password").italic(),
-            style("--bichon_encrypt_password_file").italic(),
-            style("BICHON_ENCRYPT_PASSWORD").green(),
-            style("BICHON_ENCRYPT_PASSWORD_FILE").green()
+            style("--mailboxd_encrypt_password").italic(),
+            style("--mailboxd_encrypt_password_file").italic(),
+            style("MAILBOXD_ENCRYPT_PASSWORD").green(),
+            style("MAILBOXD_ENCRYPT_PASSWORD_FILE").green()
         );
 
         if Confirm::with_theme(theme)

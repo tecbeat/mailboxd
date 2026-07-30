@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,20 +21,20 @@
 use crate::account::entity::AuthType;
 use crate::account::migration::{AccountModel, AccountType};
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::imap::capabilities::{capability_to_string, check_capabilities, fetch_capabilities};
 use crate::imap::client::Client;
 use crate::imap::oauth2::OAuth2;
 use crate::imap::session::SessionStream;
 use crate::oauth2::token::OAuth2AccessToken;
-use crate::{bichon_version, decrypt, raise_error};
+use crate::{mailboxd_version, decrypt, raise_error};
 use async_imap::Session;
 use tracing::{error, warn};
 
 pub struct ImapConnectionManager;
 
 impl ImapConnectionManager {
-    async fn create_client(account: &AccountModel) -> BichonResult<Client> {
+    async fn create_client(account: &AccountModel) -> MailboxdResult<Client> {
         assert_eq!(account.account_type, AccountType::IMAP);
         let imap = account.imap.as_ref().unwrap();
         Client::connection(
@@ -48,7 +50,7 @@ impl ImapConnectionManager {
     async fn authenticate(
         client: Client,
         account: &AccountModel,
-    ) -> BichonResult<Session<Box<dyn SessionStream>>> {
+    ) -> MailboxdResult<Session<Box<dyn SessionStream>>> {
         assert_eq!(account.account_type, AccountType::IMAP);
         let imap = account.imap.as_ref().unwrap();
         let login_name = account.login_name.clone().unwrap_or(account.email.clone());
@@ -93,7 +95,7 @@ impl ImapConnectionManager {
         }
     }
 
-    pub async fn build(account_id: u64) -> BichonResult<Session<Box<dyn SessionStream>>> {
+    pub async fn build(account_id: u64) -> MailboxdResult<Session<Box<dyn SessionStream>>> {
         let account = AccountModel::get(account_id)?;
         let account_email = account.email.clone();
 
@@ -150,9 +152,9 @@ impl ImapConnectionManager {
                 if capabilities.has_str("ID") || capabilities.has_str("id") {
                     if let Err(e) = session
                         .id([
-                            ("name", Some("bichon")),
-                            ("version", Some(bichon_version!())),
-                            ("vendor", Some("rustmailer")),
+                            ("name", Some("mailboxd")),
+                            ("version", Some(mailboxd_version!())),
+                            ("vendor", Some("tecbeat")),
                         ])
                         .await
                     {

@@ -114,42 +114,42 @@ export interface ProxyTestResult {
 }
 
 export type ServerConfigurations = {
-    bichon_log_level: string
-    bichon_http_port: number
-    bichon_bind_ip?: string | null
-    bichon_base_url: string
-    bichon_public_url: string
-    bichon_enable_rest_https: boolean
-    bichon_http_compression_enabled: boolean
+    mailboxd_log_level: string
+    mailboxd_http_port: number
+    mailboxd_bind_ip?: string | null
+    mailboxd_base_url: string
+    mailboxd_public_url: string
+    mailboxd_enable_rest_https: boolean
+    mailboxd_http_compression_enabled: boolean
 
-    bichon_cors_origins?: string[] | null
-    bichon_cors_max_age: number
+    mailboxd_cors_origins?: string[] | null
+    mailboxd_cors_max_age: number
 
-    bichon_ansi_logs: boolean
-    bichon_log_to_file: boolean
-    bichon_json_logs: boolean
-    bichon_max_server_log_files: number
+    mailboxd_ansi_logs: boolean
+    mailboxd_log_to_file: boolean
+    mailboxd_json_logs: boolean
+    mailboxd_max_server_log_files: number
 
-    bichon_encrypt_password_set: boolean
-    bichon_webui_token_expiration_hours: number
+    mailboxd_encrypt_password_set: boolean
+    mailboxd_webui_token_expiration_hours: number
 
-    bichon_root_dir: string
-    bichon_index_dir?: string | null
-    bichon_data_dir?: string | null
-    bichon_metadata_cache_size: number
-    bichon_envelope_cache_size: number
+    mailboxd_root_dir: string
+    mailboxd_index_dir?: string | null
+    mailboxd_data_dir?: string | null
+    mailboxd_metadata_cache_size: number
+    mailboxd_envelope_cache_size: number
 
-    bichon_sync_concurrency?: number | null
-    bichon_enable_smtp: boolean
-    bichon_smtp_port: number
-    bichon_smtp_encryption: "none" | "starttls" | "tls"
-    bichon_smtp_auth_required: boolean
-    bichon_smtp_tls_key_path?: string | null
-    bichon_smtp_tls_cert_path?: string | null
+    mailboxd_sync_concurrency?: number | null
+    mailboxd_enable_smtp: boolean
+    mailboxd_smtp_port: number
+    mailboxd_smtp_encryption: "none" | "starttls" | "tls"
+    mailboxd_smtp_auth_required: boolean
+    mailboxd_smtp_tls_key_path?: string | null
+    mailboxd_smtp_tls_cert_path?: string | null
 
-    bichon_upload_body_limit_mb: number
-    bichon_web_mbox_upload_limit_mb: number
-    bichon_web_pst_upload_limit_mb: number
+    mailboxd_upload_body_limit_mb: number
+    mailboxd_web_mbox_upload_limit_mb: number
+    mailboxd_web_pst_upload_limit_mb: number
 }
 
 export const get_dashboard_stats = async () => {

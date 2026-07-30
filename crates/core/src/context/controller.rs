@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{cache::imap::task::SYNC_TASKS, error::BichonResult};
+use crate::{cache::imap::task::SYNC_TASKS, error::MailboxdResult};
 use std::{sync::LazyLock, time::Duration};
 use tokio::sync::mpsc;
 use tracing::{error, info};
@@ -59,7 +61,7 @@ impl DownloadController {
         }
     }
 
-    async fn start_download(account_id: u64, email: String) -> BichonResult<()> {
+    async fn start_download(account_id: u64, email: String) -> MailboxdResult<()> {
         info!(
             "Account download starting for account: {}-{}.",
             account_id, email

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +26,7 @@ use reqwest::Client;
 use serde::Deserialize;
 
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::raise_error;
 
 /// Parsed result from Thunderbird-style autoconfig XML or DNS SRV fallback.
@@ -170,7 +172,7 @@ async fn lookup_srv(domain: &str) -> Option<MailConfig> {
 /// 7. MX lookup → ISPDB for MX domain
 /// 8. MX lookup → ISP autoconfig for MX domain
 /// 9. GuessConfig — probe common hostnames + ports
-pub async fn fetch(domain: &str) -> BichonResult<MailConfig> {
+pub async fn fetch(domain: &str) -> MailboxdResult<MailConfig> {
     let client = Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -31,11 +33,11 @@ use std::collections::HashSet;
 use tantivy::{schema::Value, TantivyDocument};
 
 use crate::{
-    bichon_version, raise_error,
+    mailboxd_version, raise_error,
     {
         account::migration::AccountModel,
         common::auth::ClientContext,
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         settings::dir::DATA_DIR_MANAGER,
         utils::get_total_size,
     },
@@ -61,7 +63,7 @@ pub struct DashboardStats {
 }
 
 impl DashboardStats {
-    pub async fn get(context: ClientContext) -> BichonResult<Self> {
+    pub async fn get(context: ClientContext) -> MailboxdResult<Self> {
         let has_all_accounts = context.has_permission(None, Permission::ACCOUNT_MANAGE_ALL);
         let authorized_ids: Option<HashSet<u64>> = if has_all_accounts {
             None
@@ -89,7 +91,7 @@ impl DashboardStats {
         stat.index_usage_bytes = get_total_size(&&DATA_DIR_MANAGER.envelope_dir)
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
-        stat.system_version = bichon_version!().to_string();
+        stat.system_version = mailboxd_version!().to_string();
 
         Ok(stat)
     }
@@ -118,7 +120,7 @@ pub struct LargestEmail {
 }
 
 impl LargestEmail {
-    pub fn from_tantivy_doc(document: &TantivyDocument) -> BichonResult<Self> {
+    pub fn from_tantivy_doc(document: &TantivyDocument) -> MailboxdResult<Self> {
         let fields = SchemaTools::email_fields();
         let value = document.get_first(fields.f_size).ok_or_else(|| {
             raise_error!(
@@ -172,7 +174,7 @@ pub struct LargestAttachment {
 }
 
 impl LargestAttachment {
-    pub fn from_tantivy_doc(document: &TantivyDocument) -> BichonResult<Self> {
+    pub fn from_tantivy_doc(document: &TantivyDocument) -> MailboxdResult<Self> {
         let fields = SchemaTools::attachment_fields();
         let value = document.get_first(fields.f_size).ok_or_else(|| {
             raise_error!(

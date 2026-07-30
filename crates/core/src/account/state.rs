@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +20,7 @@
 
 use crate::{
     database::{delete_impl, find_impl, manager::DB_MANAGER, update_impl, upsert_impl, MemDbModel},
-    error::BichonResult,
+    error::MailboxdResult,
     utc_now,
 };
 use serde::{Deserialize, Serialize};
@@ -110,7 +112,7 @@ impl DownloadState {
         }
     }
 
-    pub async fn init(account_id: u64) -> BichonResult<()> {
+    pub async fn init(account_id: u64) -> MailboxdResult<()> {
         let now = utc_now!();
         let state = DownloadState {
             account_id,
@@ -127,11 +129,11 @@ impl DownloadState {
         upsert_impl(DB_MANAGER.db(), state)
     }
 
-    pub fn get(account_id: u64) -> BichonResult<Option<DownloadState>> {
+    pub fn get(account_id: u64) -> MailboxdResult<Option<DownloadState>> {
         find_impl::<DownloadState>(DB_MANAGER.db(), &account_id.to_string())
     }
 
-    pub fn start_new_session(account_id: u64, trigger: TriggerType) -> BichonResult<()> {
+    pub fn start_new_session(account_id: u64, trigger: TriggerType) -> MailboxdResult<()> {
         Self::update_state(account_id, move |current| {
             let mut updated = current.clone();
             updated.last_trigger_at = utc_now!();
@@ -164,7 +166,7 @@ impl DownloadState {
         account_id: u64,
         status: DownloadStatus,
         message: Option<String>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         Self::update_state(account_id, move |current| {
             let mut updated = current.clone();
             if let Some(mut session) = updated.active_session.take() {
@@ -196,7 +198,7 @@ impl DownloadState {
         current: u64,
         status: FolderStatus,
         message: Option<String>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         Self::update_state(account_id, move |state| {
             let mut updated = state.clone();
             if let Some(ref mut session) = updated.active_session {
@@ -220,7 +222,7 @@ impl DownloadState {
         })
     }
 
-    pub fn init_folder_details(account_id: u64, folders: Vec<String>) -> BichonResult<()> {
+    pub fn init_folder_details(account_id: u64, folders: Vec<String>) -> MailboxdResult<()> {
         Self::update_state(account_id, move |state| {
             let mut updated = state.clone();
             if let Some(ref mut session) = updated.active_session {
@@ -241,7 +243,7 @@ impl DownloadState {
         })
     }
 
-    pub fn append_session_error(account_id: u64, error: String) -> BichonResult<()> {
+    pub fn append_session_error(account_id: u64, error: String) -> MailboxdResult<()> {
         Self::update_state(account_id, move |current| {
             let mut updated = current.clone();
             let new_error = AccountError {
@@ -265,15 +267,15 @@ impl DownloadState {
 
     fn update_state(
         account_id: u64,
-        updater: impl FnOnce(DownloadState) -> BichonResult<DownloadState> + Send + 'static,
-    ) -> BichonResult<()> {
+        updater: impl FnOnce(DownloadState) -> MailboxdResult<DownloadState> + Send + 'static,
+    ) -> MailboxdResult<()> {
         if Self::get(account_id)?.is_some() {
             update_impl(DB_MANAGER.db(), &account_id.to_string(), updater)?;
         }
         Ok(())
     }
 
-    pub fn delete(account_id: u64) -> BichonResult<()> {
+    pub fn delete(account_id: u64) -> MailboxdResult<()> {
         if Self::get(account_id)?.is_none() {
             return Ok(());
         }

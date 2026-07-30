@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// Part of mailboxd, a fork of the Bichon email archiving project.
+// Modifications by tecbeat, 2026.
 
 use crate::database::MemDbModel;
 use crate::import::{ImportProgress, ImportStatus};
@@ -72,7 +74,7 @@ impl ImportHistory {
 }
 
 /// Prune old entries for a user so only the latest `MAX_HISTORY_PER_USER` remain.
-pub fn prune_user_history(user_id: u64) -> crate::error::BichonResult<()> {
+pub fn prune_user_history(user_id: u64) -> crate::error::MailboxdResult<()> {
     use crate::database::manager::DB_MANAGER;
     use crate::database::batch_delete_impl;
     use crate::raise_error;

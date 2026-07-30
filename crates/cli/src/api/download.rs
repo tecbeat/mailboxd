@@ -1,12 +1,12 @@
-use crate::BichonCliConfig;
-use mailboxd_core::{base64_encode, envelope::meta::BichonMetadata, store::envelope::Envelope};
+use crate::MailboxdCliConfig;
+use mailboxd_core::{base64_encode, envelope::meta::MailboxdMetadata, store::envelope::Envelope};
 use chrono::{TimeZone, Utc};
 use reqwest::Client;
 use tokio::io::AsyncWriteExt;
 
 pub async fn download_and_export_with_json_header(
     client: &Client,
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     envelope: Envelope,
     file: &mut tokio::fs::File,
 ) -> bool {
@@ -53,7 +53,7 @@ pub async fn download_and_export_with_json_header(
     let date_str = date_dt.format("%a %b %e %H:%M:%S %Y").to_string();
     let from_line = format!("From {} {}\n", envelope.from.clone(), date_str);
 
-    let custom_header = build_metadata_header(BichonMetadata {
+    let custom_header = build_metadata_header(MailboxdMetadata {
         account_email: envelope.account_email,
         mailbox_name: envelope.mailbox_name,
         tags: envelope.tags,
@@ -74,8 +74,8 @@ pub async fn download_and_export_with_json_header(
     true
 }
 
-fn build_metadata_header(meta: BichonMetadata) -> String {
+fn build_metadata_header(meta: MailboxdMetadata) -> String {
     let json_str = serde_json::to_string(&meta).ok().unwrap();
     let encoded = base64_encode!(json_str);
-    format!("X-Bichon-Metadata: {}\r\n", encoded)
+    format!("X-Mailboxd-Metadata: {}\r\n", encoded)
 }

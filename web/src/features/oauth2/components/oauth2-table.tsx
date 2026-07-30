@@ -77,7 +77,7 @@ export function Oauth2Table({ columns, data }: DataTableProps) {
     initialState: {
       pagination: {
         pageIndex: 0,
-        pageSize: Number(localStorage.getItem('bichon_oauth2_page_size')) || 10
+        pageSize: Number(localStorage.getItem('mailboxd_oauth2_page_size')) || 10
       }
     },
     enableRowSelection: true,

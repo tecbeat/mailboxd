@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +32,7 @@ use tracing_subscriber::layer::SubscriberExt;
 pub static LOG_WORKER_GUARD: OnceLock<Vec<WorkerGuard>> = OnceLock::new();
 
 pub fn setup_file_logger(level: Level) -> Result<(), tracing::dispatcher::SetGlobalDefaultError> {
-    let with_ansi = SETTINGS.bichon_ansi_logs;
+    let with_ansi = SETTINGS.mailboxd_ansi_logs;
 
     let (server_nonb, server_guard) = server_log_writer();
     LOG_WORKER_GUARD.set(vec![server_guard]).unwrap();
@@ -54,7 +56,7 @@ fn server_log_writer() -> (NonBlocking, WorkerGuard) {
     let rolling = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
         .filename_prefix("server")
-        .max_log_files(SETTINGS.bichon_max_server_log_files)
+        .max_log_files(SETTINGS.mailboxd_max_server_log_files)
         .build(DATA_DIR_MANAGER.log_dir.clone())
         .expect("failed to initialize rolling file appender");
     let (nb, wg) = tracing_appender::non_blocking(rolling);

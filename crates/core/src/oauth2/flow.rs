@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::oauth2::{entity::OAuth2, pending::OAuth2PendingEntity, token::OAuth2AccessToken};
 use crate::settings::proxy::Proxy;
 use crate::utils::net::parse_proxy_url;
@@ -63,7 +65,7 @@ impl OAuth2Flow {
         Self { oauth2_id }
     }
 
-    pub fn authorize_url(&self, account_id: u64) -> BichonResult<String> {
+    pub fn authorize_url(&self, account_id: u64) -> MailboxdResult<String> {
         // Fetch OAuth2 entity or return a custom error if not found
         let entity = self.fetch_oauth2_entity()?;
 
@@ -115,7 +117,7 @@ impl OAuth2Flow {
         account_id: u64,
         code_verifier: &str,
         code: &str,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         let entity = self.fetch_oauth2_entity()?;
         let client = self.build_oauth2_client(&entity)?;
         let http_client = build_http_client(entity.use_proxy)?;
@@ -148,7 +150,7 @@ impl OAuth2Flow {
         account_id: u64,
         access_token: String,
         refresh_token: String,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         let token =
             OAuth2AccessToken::create(account_id, self.oauth2_id, access_token, refresh_token)?;
         token.save_or_update()
@@ -159,7 +161,7 @@ impl OAuth2Flow {
         account_id: u64,
         access_token: String,
         refresh_token: String,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         OAuth2AccessToken::set_access_token(
             account_id,
             encrypt!(&access_token)?,
@@ -167,7 +169,7 @@ impl OAuth2Flow {
         )
     }
 
-    pub async fn refresh_access_token(&self, token: &OAuth2AccessToken) -> BichonResult<()> {
+    pub async fn refresh_access_token(&self, token: &OAuth2AccessToken) -> MailboxdResult<()> {
         let entity = self.fetch_oauth2_entity()?;
         if !entity.enabled {
             OAuth2AccessToken::delete_by_oauth2_id(token.oauth2_id)?;
@@ -217,7 +219,7 @@ impl OAuth2Flow {
     }
 
     // Helper function to fetch the OAuth2 entity
-    fn fetch_oauth2_entity(&self) -> BichonResult<OAuth2> {
+    fn fetch_oauth2_entity(&self) -> MailboxdResult<OAuth2> {
         OAuth2::get(self.oauth2_id)?.ok_or_else(|| {
             raise_error!(
                 format!("OAuth2 entity with id '{}' not found", self.oauth2_id),
@@ -227,7 +229,7 @@ impl OAuth2Flow {
     }
 
     // Helper function to build the OAuth2 client
-    fn build_oauth2_client(&self, entity: &OAuth2) -> BichonResult<OAuth2Client> {
+    fn build_oauth2_client(&self, entity: &OAuth2) -> MailboxdResult<OAuth2Client> {
         let auth_url = AuthUrl::new(entity.auth_url.clone())
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
         let token_url = TokenUrl::new(entity.token_url.clone())
@@ -251,7 +253,7 @@ impl OAuth2Flow {
         account_id: u64,
         csrf_state: &str,
         pkce_code_verifier: &str,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         OAuth2PendingEntity::new(
             self.oauth2_id,
             account_id,
@@ -263,7 +265,7 @@ impl OAuth2Flow {
 }
 
 // Helper function to build the HTTP client
-fn build_http_client(use_proxy: Option<u64>) -> BichonResult<reqwest::Client> {
+fn build_http_client(use_proxy: Option<u64>) -> MailboxdResult<reqwest::Client> {
     if let Some(proxy_id) = use_proxy {
         let proxy = Proxy::get(proxy_id)?;
         let proxy_url = parse_proxy_url(&proxy.url)?.standard_url();

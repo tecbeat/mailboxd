@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +33,7 @@ use crate::{
             },
             SEMAPHORE,
         },
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         imap::executor::{
             compress_uid_list, generate_uid_sequence_hashset, ImapExecutor, DEFAULT_BATCH_SIZE,
         },
@@ -57,7 +59,7 @@ pub async fn fetch_and_save_by_date(
     mailbox: &MailBox,
     direction: FetchDirection,
     token: CancellationToken,
-) -> BichonResult<Option<u32>> {
+) -> MailboxdResult<Option<u32>> {
     let account_id = account.id;
     let mut session = match ImapExecutor::create_connection(account_id).await {
         Ok(session) => session,
@@ -258,7 +260,7 @@ pub async fn fetch_and_save_full_mailbox(
     account: &AccountModel,
     mailbox: &MailBox,
     token: CancellationToken,
-) -> BichonResult<Option<u32>> {
+) -> MailboxdResult<Option<u32>> {
     let mailbox_id = mailbox.id;
     let account_id = account.id;
 
@@ -447,7 +449,7 @@ async fn fetch_uid_validity_with_retry(
     account_id: u64,
     mailbox_name: &str,
     max_retries: u32,
-) -> BichonResult<Option<u32>> {
+) -> MailboxdResult<Option<u32>> {
     let mailbox_name = mailbox_name.to_string();
     fetch_uid_validity_with_retry_inner(max_retries, move || {
         let account_id = account_id;
@@ -475,10 +477,10 @@ async fn fetch_uid_validity_with_retry(
 async fn fetch_uid_validity_with_retry_inner<F, Fut>(
     max_retries: u32,
     mut fetch_fn: F,
-) -> BichonResult<Option<u32>>
+) -> MailboxdResult<Option<u32>>
 where
     F: FnMut() -> Fut,
-    Fut: std::future::Future<Output = BichonResult<Option<u32>>>,
+    Fut: std::future::Future<Output = MailboxdResult<Option<u32>>>,
 {
     for attempt in 0..max_retries {
         if attempt > 0 {
@@ -515,7 +517,7 @@ async fn reconcile_uid_validity_change(
     local_mailbox: &MailBox,
     remote_mailbox: &MailBox,
     token: CancellationToken,
-) -> BichonResult<Option<u32>> {
+) -> MailboxdResult<Option<u32>> {
     let account_id = account.id;
 
     // Phase 1: connect + examine
@@ -711,7 +713,7 @@ pub async fn reconcile_mailboxes(
     remote_mailboxes: &[MailBox],
     local_mailboxes: &[MailBox],
     token: CancellationToken,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     let start_time = Instant::now();
     let existing_mailboxes = find_intersecting_mailboxes(local_mailboxes, remote_mailboxes);
     let account_id = account.id;
@@ -919,7 +921,7 @@ async fn perform_incremental_sync(
     local_mailbox: &MailBox,
     remote_mailbox: &MailBox,
     token: CancellationToken,
-) -> BichonResult<Option<u32>> {
+) -> MailboxdResult<Option<u32>> {
     if remote_mailbox.exists > 0 {
         // Use stored highest_uid if available; otherwise fall back to Tantivy
         // query once (backward compatibility with pre-existing databases).
@@ -1047,7 +1049,7 @@ mod tests {
     // Integration tests (real IMAP server required)
     // ============================================================
     // Fill in your IMAP server details below to run these tests.
-    // cargo test -p bichon-core -- --ignored
+    // cargo test -p mailboxd-core -- --ignored
 
     const TEST_IMAP_HOST: &str = "imap.zoho.com";
     const TEST_IMAP_PORT: u16 = 993;
@@ -1321,8 +1323,8 @@ mod tests {
 
     /// Mock helper: returns the given results in sequence, then always None.
     fn mock_results(
-        results: Vec<BichonResult<Option<u32>>>,
-    ) -> impl FnMut() -> std::future::Ready<BichonResult<Option<u32>>> {
+        results: Vec<MailboxdResult<Option<u32>>>,
+    ) -> impl FnMut() -> std::future::Ready<MailboxdResult<Option<u32>>> {
         let mut iter = results.into_iter();
         move || std::future::ready(iter.next().unwrap_or(Ok(None)))
     }

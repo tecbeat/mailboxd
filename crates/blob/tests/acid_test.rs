@@ -1,4 +1,4 @@
-/// Crash-consistency and ACID property tests for bichon-blob.
+/// Crash-consistency and ACID property tests for mailboxd-blob.
 ///
 /// Since we can't kill the process mid-write in an inline test, we simulate crashes
 /// by dropping the Engine without calling any cleanup (close/drop is the "crash"),

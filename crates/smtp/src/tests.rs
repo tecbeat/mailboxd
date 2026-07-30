@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -25,15 +27,15 @@ use lettre::{Message, SmtpTransport, Transport};
 #[tokio::test]
 async fn test_smtp_archiving_flow() {
     let email = Message::builder()
-        .from("tester@bichon.local".parse().unwrap())
-        .to("archive@bichon.local".parse().unwrap())
+        .from("tester@mailboxd.local".parse().unwrap())
+        .to("archive@mailboxd.local".parse().unwrap())
         .subject("Integration Test")
-        .body(String::from("Checking if Bichon saves this!"))
+        .body(String::from("Checking if mailboxd saves this!"))
         .unwrap();
 
     let envelope = Envelope::new(
         Some("sender@example.com".parse().unwrap()),
-        vec!["placeholder@example.com".parse().unwrap()], // the email of a bichon account
+        vec!["placeholder@example.com".parse().unwrap()], // the email of a mailboxd account
     )
     .unwrap();
     let mailer = SmtpTransport::builder_dangerous("127.0.0.1")
@@ -50,7 +52,7 @@ async fn test_smtp_archiving_flow() {
 }
 
 #[test]
-fn test_bichon_smtp_logic() -> Result<(), Box<dyn Error>> {
+fn test_mailboxd_smtp_logic() -> Result<(), Box<dyn Error>> {
     let smtp_host = "127.0.0.1";
     let smtp_port = 2525;
 
@@ -71,14 +73,14 @@ fn test_bichon_smtp_logic() -> Result<(), Box<dyn Error>> {
         .build();
 
     // If RCPT TO is not explicitly specified in the envelope, the addresses in the 'To' header
-    // will be treated as envelope recipients. Bichon enforces a single-recipient policy per
+    // will be treated as envelope recipients. mailboxd enforces a single-recipient policy per
     // transaction; if multiple recipients are detected, it will reject with:
     // "452 4.5.3 Too many recipients, try again in a new transaction".
     let email = Message::builder()
-        .from("sender@bichon.com".parse()?)
+        .from("sender@mailboxd.dev".parse()?)
         .to("placeholder@example.com".parse()?)
         .subject("TLS Test")
-        .body(String::from("Hello Bichon with TLS!"))?;
+        .body(String::from("Hello mailboxd with TLS!"))?;
 
     let result = mailer.send(&email);
     assert!(

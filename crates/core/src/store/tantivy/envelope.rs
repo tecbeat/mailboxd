@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +30,7 @@ use crate::{
     account::{migration::AccountModel, stats::AccountStats},
     common::{paginated::DataPage, signal::SIGNAL_MANAGER},
     dashboard::{DashboardStats, Group, LargestEmail, TimeBucket},
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     message::{
         search::{EmailSearchFilter, SortBy},
         tags::{TagAction, TagCount, TagsRequest},
@@ -94,7 +96,7 @@ impl IndexManager {
         &self.index_writer
     }
 
-    pub(crate) fn create_reader(&self) -> BichonResult<IndexReader> {
+    pub(crate) fn create_reader(&self) -> MailboxdResult<IndexReader> {
         self.index
             .reader()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
@@ -285,7 +287,7 @@ impl IndexManager {
         &self,
         account_id: u64,
         mailbox_id: u64,
-    ) -> BichonResult<HashSet<String>> {
+    ) -> MailboxdResult<HashSet<String>> {
         let query = self.mailbox_query(account_id, mailbox_id);
         let fields = SchemaTools::email_fields();
         let searcher = self.create_searcher()?;
@@ -320,7 +322,7 @@ impl IndexManager {
         account_id: u64,
         mailbox_id: u64,
         message_id: &str,
-    ) -> BichonResult<bool> {
+    ) -> MailboxdResult<bool> {
         let fields = SchemaTools::email_fields();
         let query = BooleanQuery::new(vec![
             (
@@ -372,7 +374,7 @@ impl IndexManager {
         &self,
         accounts: Option<HashSet<u64>>,
         filter: EmailSearchFilter,
-    ) -> BichonResult<Box<dyn Query>> {
+    ) -> MailboxdResult<Box<dyn Query>> {
         let f = SchemaTools::email_fields();
         let mut subqueries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
@@ -681,7 +683,7 @@ impl IndexManager {
         &self,
         account_id: u64,
         envelope_id: &str,
-    ) -> BichonResult<Option<EnvelopeWithAttachments>> {
+    ) -> MailboxdResult<Option<EnvelopeWithAttachments>> {
         let searcher = self.create_searcher()?;
         let f = SchemaTools::email_fields();
 
@@ -720,7 +722,7 @@ impl IndexManager {
     pub fn top_10_largest_emails(
         &self,
         accounts: &Option<HashSet<u64>>,
-    ) -> BichonResult<Vec<LargestEmail>> {
+    ) -> MailboxdResult<Vec<LargestEmail>> {
         self.reader
             .reload()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
@@ -760,7 +762,7 @@ impl IndexManager {
         Ok(result)
     }
 
-    pub fn total_emails(&self, accounts: &Option<HashSet<u64>>) -> BichonResult<u64> {
+    pub fn total_emails(&self, accounts: &Option<HashSet<u64>>) -> MailboxdResult<u64> {
         let searcher = self.create_searcher()?;
 
         match accounts {
@@ -784,7 +786,7 @@ impl IndexManager {
         }
     }
 
-    pub fn get_max_uid(&self, account_id: u64, mailbox_id: u64) -> BichonResult<Option<u64>> {
+    pub fn get_max_uid(&self, account_id: u64, mailbox_id: u64) -> MailboxdResult<Option<u64>> {
         let searcher = self.create_searcher()?;
 
         let query = self.mailbox_query(account_id, mailbox_id);
@@ -813,7 +815,7 @@ impl IndexManager {
         Ok(result)
     }
 
-    pub fn get_account_stats(&self, account_id: u64) -> BichonResult<AccountStats> {
+    pub fn get_account_stats(&self, account_id: u64) -> MailboxdResult<AccountStats> {
         let searcher = self.create_searcher()?;
         let query = self.account_query(account_id);
 
@@ -869,7 +871,7 @@ impl IndexManager {
         })
     }
 
-    pub async fn delete_account_envelopes(&self, account_id: u64) -> BichonResult<()> {
+    pub async fn delete_account_envelopes(&self, account_id: u64) -> MailboxdResult<()> {
         let query = self.account_query(account_id);
         let (eml_content_hashes, attachments_content_hashes) =
             self.collect_content_hashes(query)?;
@@ -904,7 +906,7 @@ impl IndexManager {
         &self,
         account_id: u64,
         mailbox_ids: Vec<u64>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         if mailbox_ids.is_empty() {
             return Ok(());
         }
@@ -951,7 +953,7 @@ impl IndexManager {
     fn collect_content_hashes(
         &self,
         query: Box<dyn Query>,
-    ) -> BichonResult<(HashSet<String>, HashSet<String>)> {
+    ) -> MailboxdResult<(HashSet<String>, HashSet<String>)> {
         let (eml_with_mailbox, attachments_content_hashes) =
             self.collect_content_hashes_with_mailbox(query)?;
 
@@ -966,7 +968,7 @@ impl IndexManager {
     fn collect_content_hashes_with_mailbox(
         &self,
         query: Box<dyn Query>,
-    ) -> BichonResult<(HashSet<(String, u64)>, HashSet<String>)> {
+    ) -> MailboxdResult<(HashSet<(String, u64)>, HashSet<String>)> {
         let mut eml_content_hashes = HashSet::new();
         let mut attachments_content_hashes = HashSet::new();
 
@@ -1010,7 +1012,7 @@ impl IndexManager {
         writer: &mut IndexWriter,
         eml_content_hashes: HashSet<String>,
         attachments_content_hashes: HashSet<String>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         // Reference-count barrier: commit the writer and reload the reader so the
         // `Count` below is evaluated against a fully committed, freshly-reloaded
         // index state. Without this, an envelope that shares a content hash but
@@ -1056,7 +1058,7 @@ impl IndexManager {
     pub async fn delete_envelopes_multi_account(
         &self,
         deletes: HashMap<u64, Vec<String>>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         if deletes.is_empty() {
             tracing::warn!("delete_envelopes_multi_account: deletes is empty, nothing to delete");
             return Ok(());
@@ -1128,7 +1130,7 @@ impl IndexManager {
         searcher: &Searcher,
         parent_facet: &str,
         all_facets: &mut Vec<TagCount>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         let mut facet_collector = FacetCollector::for_field(F_TAGS);
         facet_collector.add_facet(parent_facet);
 
@@ -1147,7 +1149,7 @@ impl IndexManager {
         Ok(())
     }
 
-    pub fn get_all_tags(&self, accounts: Option<HashSet<u64>>) -> BichonResult<Vec<TagCount>> {
+    pub fn get_all_tags(&self, accounts: Option<HashSet<u64>>) -> MailboxdResult<Vec<TagCount>> {
         let searcher = self.reader.searcher();
 
         let query: Box<dyn Query> = match accounts {
@@ -1174,7 +1176,7 @@ impl IndexManager {
     pub fn get_all_contacts(
         &self,
         accounts: Option<HashSet<u64>>,
-    ) -> BichonResult<HashSet<String>> {
+    ) -> MailboxdResult<HashSet<String>> {
         let searcher = self.create_searcher()?;
 
         let query: Box<dyn Query> = match accounts {
@@ -1211,7 +1213,7 @@ impl IndexManager {
         Ok(contacts_set)
     }
 
-    pub async fn update_envelope_tags(&self, request: TagsRequest) -> BichonResult<()> {
+    pub async fn update_envelope_tags(&self, request: TagsRequest) -> MailboxdResult<()> {
         if request.updates.is_empty() {
             tracing::warn!("update_envelope_tags: request is empty, nothing to update");
             return Ok(());
@@ -1402,7 +1404,7 @@ impl IndexManager {
         page_size: u64,
         desc: bool,
         sort_by: SortBy,
-    ) -> BichonResult<DataPage<Envelope>> {
+    ) -> MailboxdResult<DataPage<Envelope>> {
         assert!(page > 0, "Page number must be greater than 0");
         assert!(page_size > 0, "Page size must be greater than 0");
         let query = self.filter_query(accounts, filter)?;
@@ -1504,7 +1506,7 @@ impl IndexManager {
         })
     }
 
-    fn create_searcher(&self) -> BichonResult<Searcher> {
+    fn create_searcher(&self) -> MailboxdResult<Searcher> {
         self.reader
             .reload()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
@@ -1516,7 +1518,7 @@ impl IndexManager {
         searcher: &Searcher,
         account_id: u64,
         thread_id: &str,
-    ) -> BichonResult<u64> {
+    ) -> MailboxdResult<u64> {
         let query = self.thread_query(account_id, thread_id);
 
         let agg_req: Aggregations = serde_json::from_value(json!({
@@ -1535,7 +1537,7 @@ impl IndexManager {
         Self::extract_value_count(&agg_res, "thread_count")
     }
 
-    fn extract_value_count(agg_res: &AggregationResults, name: &str) -> BichonResult<u64> {
+    fn extract_value_count(agg_res: &AggregationResults, name: &str) -> MailboxdResult<u64> {
         let Some(result) = agg_res.0.get(name) else {
             return Err(raise_error!(
                 format!("Missing aggregation result: '{}'", name),
@@ -1566,7 +1568,7 @@ impl IndexManager {
         page: u64,
         page_size: u64,
         desc: bool,
-    ) -> BichonResult<DataPage<Envelope>> {
+    ) -> MailboxdResult<DataPage<Envelope>> {
         assert!(page > 0, "Page number must be greater than 0");
         assert!(page_size > 0, "Page size must be greater than 0");
         let searcher = self.create_searcher()?;
@@ -1624,7 +1626,7 @@ impl IndexManager {
     pub fn get_dashboard_stats(
         &self,
         accounts: &Option<HashSet<u64>>,
-    ) -> BichonResult<DashboardStats> {
+    ) -> MailboxdResult<DashboardStats> {
         let searcher = self.create_searcher()?;
         let now_ms = utc_now!();
         let week_ago_ms = (Utc::now() - Duration::from_secs(60 * 60 * 24 * 30)).timestamp_millis();

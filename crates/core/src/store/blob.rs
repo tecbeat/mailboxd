@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +21,7 @@
 use crate::{
     common::signal::SIGNAL_MANAGER,
     envelope::extractor::reattach_eml_content_self_healing,
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     settings::dir::DATA_DIR_MANAGER,
 };
 use crate::raise_error;
@@ -212,14 +214,14 @@ impl BlobManager {
         }
     }
 
-    pub fn get_email(&self, content_hash: &str) -> BichonResult<Option<Bytes>> {
+    pub fn get_email(&self, content_hash: &str) -> MailboxdResult<Option<Bytes>> {
         self.email_keyspace
             .get(content_hash)
             .map(|user_value| user_value.map(|s| s.into()))
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
     }
 
-    pub fn get_attachment(&self, content_hash: &str) -> BichonResult<Option<Bytes>> {
+    pub fn get_attachment(&self, content_hash: &str) -> MailboxdResult<Option<Bytes>> {
         self.attachments_keyspace
             .get(content_hash)
             .map(|user_value| user_value.map(|s| s.into()))
@@ -230,7 +232,7 @@ impl BlobManager {
         &self,
         email_content_hashes: I1,
         attachment_content_hashes: I2,
-    ) -> BichonResult<()>
+    ) -> MailboxdResult<()>
     where
         I1: IntoIterator,
         I1::Item: AsRef<str>,
@@ -256,7 +258,7 @@ impl BlobManager {
 /// on demand from the IMAP server, persisted, and returned (self-healing). The
 /// underlying "content not found" error is only surfaced if that on-demand
 /// fetch itself fails.
-pub async fn get_reader(account_id: u64, eid: String) -> BichonResult<Cursor<Bytes>> {
+pub async fn get_reader(account_id: u64, eid: String) -> MailboxdResult<Cursor<Bytes>> {
     let (_, data) = reattach_eml_content_self_healing(account_id, eid).await?;
     Ok(Cursor::new(data))
 }

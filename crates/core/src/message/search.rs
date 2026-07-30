@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +24,7 @@ use std::collections::HashSet;
 
 use crate::{
     common::paginated::DataPage,
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
     store::{
         envelope::Envelope,
@@ -53,9 +55,9 @@ pub struct EmailSearchFilter {
     pub internal_date_since: Option<i64>,
     /// Upper bound (inclusive) on the IMAP server INTERNALDATE timestamp.
     pub internal_date_before: Option<i64>,
-    /// Lower bound (inclusive) on Bichon's archival (ingest) timestamp.
+    /// Lower bound (inclusive) on mailboxd's archival (ingest) timestamp.
     pub ingest_since: Option<i64>,
-    /// Upper bound (inclusive) on Bichon's archival (ingest) timestamp.
+    /// Upper bound (inclusive) on mailboxd's archival (ingest) timestamp.
     pub ingest_before: Option<i64>,
     pub account_ids: Option<HashSet<u64>>,
     pub mailbox_ids: Option<HashSet<u64>>,
@@ -80,7 +82,7 @@ pub enum SortBy {
     #[serde(rename = "INTERNAL_DATE")]
     #[cfg_attr(feature = "web-api", oai(rename = "INTERNAL_DATE"))]
     InternalDate,
-    /// Sort by Bichon's archival (ingest) timestamp.
+    /// Sort by mailboxd's archival (ingest) timestamp.
     #[serde(rename = "INGEST_AT")]
     #[cfg_attr(feature = "web-api", oai(rename = "INGEST_AT"))]
     IngestAt,
@@ -96,7 +98,7 @@ pub struct EmailSearchRequest {
     pub desc: Option<bool>,
 }
 impl EmailSearchRequest {
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         if self.page == 0 || self.page_size == 0 {
             return Err(raise_error!(
                 "Both page and page_size must be greater than 0.".into(),
@@ -117,7 +119,7 @@ impl EmailSearchRequest {
 pub fn search_messages_impl(
     accounts: Option<HashSet<u64>>,
     request: EmailSearchRequest,
-) -> BichonResult<DataPage<Envelope>> {
+) -> MailboxdResult<DataPage<Envelope>> {
     request.validate()?;
     ENVELOPE_MANAGER.search(
         accounts,
@@ -169,7 +171,7 @@ pub struct AttachmentSearchRequest {
     desc: Option<bool>,
 }
 impl AttachmentSearchRequest {
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         if self.page == 0 || self.page_size == 0 {
             return Err(raise_error!(
                 "Both page and page_size must be greater than 0.".into(),
@@ -190,7 +192,7 @@ impl AttachmentSearchRequest {
 pub fn search_attachment_impl(
     accounts: Option<HashSet<u64>>,
     request: AttachmentSearchRequest,
-) -> BichonResult<DataPage<AttachmentModel>> {
+) -> MailboxdResult<DataPage<AttachmentModel>> {
     request.validate()?;
     ATTACHMENT_MANAGER.search(
         accounts,

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -208,19 +210,19 @@ impl OAuth2Api {
     /// Configures an external OAuth2 token for a specified account.
     ///
     /// This endpoint allows two usage modes:
-    /// 1. If only an `access_token` is provided, Bichon will store it directly.
-    ///    - In this mode, Bichon **cannot refresh** the token, since it has no
+    /// 1. If only an `access_token` is provided, mailboxd will store it directly.
+    ///    - In this mode, mailboxd **cannot refresh** the token, since it has no
     ///      associated OAuth2 configuration or refresh token.
     ///    - The caller is responsible for periodically updating the access token
     ///      by calling this endpoint again.
     /// 2. If both `oauth2_id` and `refresh_token` are provided, it means the external
-    ///    OAuth2 authorization flow has been completed outside Bichon.
+    ///    OAuth2 authorization flow has been completed outside mailboxd.
     ///    - Since the OAuth2 configuration (including client_id and client_secret)
-    ///      is already stored in Bichon, the service can use the refresh token
+    ///      is already stored in mailboxd, the service can use the refresh token
     ///      to obtain new access tokens automatically.
     ///
     /// Note: The `oauth2_id` must reference a valid OAuth2 configuration
-    /// already created in Bichon.
+    /// already created in mailboxd.
     #[oai(
         path = "/store-external-oauth2-token/:account_id",
         method = "post",

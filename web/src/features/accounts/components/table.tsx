@@ -65,7 +65,7 @@ export function AccountTable({ columns, data }: DataTableProps) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>(() => {
-    const saved = localStorage.getItem('bichon_accounts_sorting');
+    const saved = localStorage.getItem('mailboxd_accounts_sorting');
     return saved ? JSON.parse(saved) : [];
   })
 
@@ -73,7 +73,7 @@ export function AccountTable({ columns, data }: DataTableProps) {
   const prevSortingRef = useRef(sorting);
   useEffect(() => {
     if (prevSortingRef.current !== sorting) {
-      localStorage.setItem('bichon_accounts_sorting', JSON.stringify(sorting));
+      localStorage.setItem('mailboxd_accounts_sorting', JSON.stringify(sorting));
       prevSortingRef.current = sorting;
     }
   }, [sorting]);
@@ -90,7 +90,7 @@ export function AccountTable({ columns, data }: DataTableProps) {
     initialState: {
       pagination: {
         pageIndex: 0,
-        pageSize: Number(localStorage.getItem('bichon_accounts_page_size')) || 10
+        pageSize: Number(localStorage.getItem('mailboxd_accounts_page_size')) || 10
       }
     },
     enableRowSelection: true,

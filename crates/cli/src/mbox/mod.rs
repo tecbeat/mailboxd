@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,9 +24,9 @@ use std::path::PathBuf;
 use crate::api::sender::send_batch_request;
 use crate::mbox::gmail::determine_folder;
 use mailboxd_core::import::reader::MboxFile;
-use crate::BichonCliConfig;
+use crate::MailboxdCliConfig;
 use mailboxd_core::base64_encode_url_safe;
-use mailboxd_core::envelope::meta::{parse_bichon_metadata, BichonMetadata};
+use mailboxd_core::envelope::meta::{parse_mailboxd_metadata, MailboxdMetadata};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
 use dialoguer::{Confirm, Select};
@@ -39,7 +41,7 @@ const MAX_BUFFER_BYTES: usize = 200 * 1024 * 1024;
 pub mod gmail;
 
 pub async fn handle_mbox_single_file_import(
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     account_id: u64,
     theme: &ColorfulTheme,
 ) {
@@ -63,7 +65,7 @@ pub async fn handle_mbox_single_file_import(
     let options = vec![
         "Use labels from mail headers (X-Gmail-Labels)",
         "Specify a single target folder for all emails",
-        "Use X-Bichon-Metadata header (Automatic)",
+        "Use X-Mailboxd-Metadata header (Automatic)",
     ];
 
     let selection = Select::with_theme(theme)
@@ -123,7 +125,7 @@ pub async fn handle_mbox_single_file_import(
 pub async fn run_import(
     account_id: u64,
     mbox_path: &PathBuf,
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     target_folder: Option<String>,
 ) {
     let client = Client::new();
@@ -177,9 +179,9 @@ pub async fn run_import(
             }
         };
 
-        let mut metadata: Option<BichonMetadata> = None;
-        if let Some(meta_header) = message.header_raw("X-Bichon-Metadata") {
-            metadata = parse_bichon_metadata(meta_header);
+        let mut metadata: Option<MailboxdMetadata> = None;
+        if let Some(meta_header) = message.header_raw("X-Mailboxd-Metadata") {
+            metadata = parse_mailboxd_metadata(meta_header);
         }
 
         let get_default_folder = || {

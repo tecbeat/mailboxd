@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,10 +21,10 @@
 use crate::account::migration::AccountModel;
 use crate::cache::imap::mailbox::MailBox;
 use crate::common::AddrVec;
-use crate::envelope::meta::parse_bichon_metadata;
+use crate::envelope::meta::parse_mailboxd_metadata;
 use crate::envelope::utils::normalize_subject;
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::imap::executor::ImapExecutor;
 use crate::message::content::AttachmentInfo;
 use crate::store::blob::{DetachedEmail, BLOB_MANAGER};
@@ -46,7 +48,7 @@ pub async fn extract_envelope_and_store_it(
     fetch: Fetch,
     account_id: u64,
     mailbox_id: u64,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     let internal_date = fetch
         .internal_date()
         .map(|d| d.timestamp_millis())
@@ -71,7 +73,7 @@ pub async fn extract_envelope_from_eml(
     body: &[u8],
     account_id: u64,
     mailbox_id: u64,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     extract_envelope_core(body, 0, body.len() as u32, 0, account_id, mailbox_id).await
 }
 
@@ -79,7 +81,7 @@ pub async fn extract_envelope_from_smtp(
     body: &[u8],
     account_id: u64,
     mailbox_id: u64,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     extract_envelope_core(
         body,
         0,
@@ -98,7 +100,7 @@ async fn extract_envelope_core(
     internal_date: i64,
     account_id: u64,
     mailbox_id: u64,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     //The content hash of the original raw EML
     let email_content_hash = compute_content_hash(body);
     if DEDUP_CACHE.contains(account_id, mailbox_id, &email_content_hash) {
@@ -210,8 +212,8 @@ async fn extract_envelope_core(
 
     let mut final_tags = Vec::new();
 
-    if let Some(meta_header) = message.header_raw("X-Bichon-Metadata") {
-        if let Some(bmd) = parse_bichon_metadata(meta_header) {
+    if let Some(meta_header) = message.header_raw("X-Mailboxd-Metadata") {
+        if let Some(bmd) = parse_mailboxd_metadata(meta_header) {
             if let Some(tags) = bmd.tags {
                 let validated_tags: Result<Vec<String>, _> = tags
                     .iter()
@@ -323,7 +325,7 @@ async fn extract_envelope_core(
 pub fn extract_envelope_from_nested_message(
     message: Message<'_>,
     account_id: u64,
-) -> BichonResult<Envelope> {
+) -> MailboxdResult<Envelope> {
     let text = if let Some(text) = message.body_text(0).map(|cow| cow.into_owned()) {
         text
     } else if let Some(html) = message.body_html(0).map(|cow| cow.into_owned()) {
@@ -413,7 +415,7 @@ pub fn compute_thread_id(
 pub fn generate_message_id() -> String {
     let ts = utc_now!();
     let pid = std::process::id();
-    format!("<{:016x}.{}.{}@{}>", id!(128), ts, pid, "bichon")
+    format!("<{:016x}.{}.{}@{}>", id!(128), ts, pid, "mailboxd")
 }
 
 pub fn extract_references(message: &Message<'_>) -> Option<Vec<String>> {
@@ -495,7 +497,7 @@ pub async fn detach_and_store_attachments(
             attachments.push((content_hash.clone(), Bytes::copy_from_slice(raw_bytes)));
 
             // Replace raw attachment content with a hash-based placeholder
-            let placeholder = format!("<<BICHON_DETACH_HASH:{}>>", &content_hash);
+            let placeholder = format!("<<MAILBOXD_DETACH_HASH:{}>>", &content_hash);
             stripped_eml.splice(raw_start..raw_end, placeholder.as_bytes().iter().cloned());
         } else {
             // Invalid range: store a zero-length blob so the consistency
@@ -611,7 +613,7 @@ pub async fn detach_and_store_attachments(
 pub fn reattach_eml_content(
     account_id: u64,
     envelope_id: String,
-) -> BichonResult<(Envelope, Bytes)> {
+) -> MailboxdResult<(Envelope, Bytes)> {
     let e = ENVELOPE_MANAGER
         .get_envelope_by_id(account_id, &envelope_id)
         ?
@@ -656,7 +658,7 @@ pub fn reattach_eml_content(
 
     let mut tasks = Vec::new();
     for detail in e.attachments.unwrap() {
-        let placeholder_str = format!("<<BICHON_DETACH_HASH:{}>>", &detail.content_hash);
+        let placeholder_str = format!("<<MAILBOXD_DETACH_HASH:{}>>", &detail.content_hash);
         let pattern = placeholder_str.as_bytes();
         let pattern_len = pattern.len();
 
@@ -701,7 +703,7 @@ pub fn reattach_eml_content(
 pub async fn reattach_eml_content_self_healing(
     account_id: u64,
     envelope_id: String,
-) -> BichonResult<(Envelope, Bytes)> {
+) -> MailboxdResult<(Envelope, Bytes)> {
     let envelope = ENVELOPE_MANAGER
         .get_envelope_by_id(account_id, &envelope_id)?
         .ok_or_else(|| {
@@ -750,8 +752,8 @@ pub async fn reattach_eml_content_self_healing(
 /// (in detached form) into the blob store so subsequent requests hit the cache.
 /// Fails if the message cannot be fetched, or if the fetched bytes do not match
 /// the archived `content_hash` (the server-side message no longer matches what
-/// Bichon archived, so it cannot be treated as a recovery of that blob).
-async fn recover_message_blob(envelope: &Envelope) -> BichonResult<Bytes> {
+/// mailboxd archived, so it cannot be treated as a recovery of that blob).
+async fn recover_message_blob(envelope: &Envelope) -> MailboxdResult<Bytes> {
     let mailbox = MailBox::find_mailbox(envelope.account_id, envelope.mailbox_id)?
         .ok_or_else(|| {
             raise_error!(

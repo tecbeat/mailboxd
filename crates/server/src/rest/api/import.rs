@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -158,8 +160,8 @@ impl ImportApi {
         }
 
         // Check disk space (fail fast before streaming)
-        let max_mbox = SETTINGS.bichon_web_mbox_upload_limit_mb as usize * 1024 * 1024;
-        let max_pst = SETTINGS.bichon_web_pst_upload_limit_mb as usize * 1024 * 1024;
+        let max_mbox = SETTINGS.mailboxd_web_mbox_upload_limit_mb as usize * 1024 * 1024;
+        let max_pst = SETTINGS.mailboxd_web_pst_upload_limit_mb as usize * 1024 * 1024;
         let min_required = if is_mbox_ext {
             max_mbox
         } else if is_pst_ext {
@@ -213,8 +215,8 @@ impl ImportApi {
             FileFormat::Pst => "pst".to_string(),
         };
 
-        let max_mbox = SETTINGS.bichon_web_mbox_upload_limit_mb as usize * 1024 * 1024;
-        let max_pst = SETTINGS.bichon_web_pst_upload_limit_mb as usize * 1024 * 1024;
+        let max_mbox = SETTINGS.mailboxd_web_mbox_upload_limit_mb as usize * 1024 * 1024;
+        let max_pst = SETTINGS.mailboxd_web_pst_upload_limit_mb as usize * 1024 * 1024;
         let max_size = match format {
             FileFormat::Mbox => max_mbox,
             FileFormat::Pst => max_pst,
@@ -325,8 +327,8 @@ async fn stream_body_to_temp(
     is_mbox_ext: bool,
     is_pst_ext: bool,
 ) -> ApiResult<(Option<FileFormat>, usize)> {
-    let max_mbox = SETTINGS.bichon_web_mbox_upload_limit_mb as usize * 1024 * 1024;
-    let max_pst = SETTINGS.bichon_web_pst_upload_limit_mb as usize * 1024 * 1024;
+    let max_mbox = SETTINGS.mailboxd_web_mbox_upload_limit_mb as usize * 1024 * 1024;
+    let max_pst = SETTINGS.mailboxd_web_pst_upload_limit_mb as usize * 1024 * 1024;
     let max_stream = if is_mbox_ext {
         max_mbox
     } else if is_pst_ext {

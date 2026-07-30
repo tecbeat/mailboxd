@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -52,7 +54,7 @@ pub fn build_eml_base64(message: Rc<dyn Message>) -> Option<String> {
     if let Some(cid_val) = properties.get(0x3013) {
         if let PropertyValue::Binary(bin) = cid_val {
             builder = builder.header(
-                "X-Bichon-Conversation-ID",
+                "X-Mailboxd-Conversation-ID",
                 Text::new(hex::encode(bin.buffer())),
             );
         }
@@ -260,7 +262,7 @@ fn extract_i64_property(properties: &MessageProperties, prop_ids: &[u16]) -> Opt
 
 /// Open a PST file and count total messages across all folders.
 /// Called from the web upload flow to get the total before processing.
-pub fn count_pst_messages(pst_path: &std::path::Path) -> crate::error::BichonResult<usize> {
+pub fn count_pst_messages(pst_path: &std::path::Path) -> crate::error::MailboxdResult<usize> {
     let pst_store = outlook_pst::open_store(pst_path).map_err(|e| {
         crate::raise_error!(
             format!("Failed to open PST file: {:?}", e),

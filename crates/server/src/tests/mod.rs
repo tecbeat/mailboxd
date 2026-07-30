@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// Part of mailboxd, a fork of the Bichon email archiving project.
+// Modifications by tecbeat, 2026.
 
 pub mod access_token_tests;
 pub mod account_tests;
@@ -21,7 +23,7 @@ use std::{
 
 use mailboxd_core::{
     common::signal::SignalManager,
-    context::{executors::BichonContext, Initialize},
+    context::{executors::MailboxdContext, Initialize},
     settings::{
         cli::SETTINGS,
         dir::DataDirManager,
@@ -55,7 +57,7 @@ pub async fn setup() {
         return;
     }
 
-    let root = PathBuf::from(&SETTINGS.bichon_root_dir);
+    let root = PathBuf::from(&SETTINGS.mailboxd_root_dir);
     if root.exists() {
         let _ = std::fs::remove_dir_all(&root);
     }
@@ -63,7 +65,7 @@ pub async fn setup() {
     SignalManager::initialize().await.unwrap();
     DataDirManager::initialize().await.unwrap();
     UserManager::initialize().await.unwrap();
-    BichonContext::initialize().await.unwrap();
+    MailboxdContext::initialize().await.unwrap();
     LazyLock::force(&BLOB_MANAGER);
     LazyLock::force(&ENVELOPE_MANAGER);
     LazyLock::force(&ATTACHMENT_MANAGER);
@@ -123,7 +125,7 @@ pub async fn admin_token() -> String {
         .post("/api/login")
         .body_json(&LoginPayload {
             username: "admin".into(),
-            password: "admin@bichon".into(),
+            password: "admin@mailboxd".into(),
         })
         .send()
         .await;

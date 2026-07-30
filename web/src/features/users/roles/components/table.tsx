@@ -78,7 +78,7 @@ export function RolesTable({ columns, data }: DataTableProps) {
     initialState: {
       pagination: {
         pageIndex: 0,
-        pageSize: Number(localStorage.getItem('bichon_roles_page_size')) || 10
+        pageSize: Number(localStorage.getItem('mailboxd_roles_page_size')) || 10
       }
     },
     enableRowSelection: true,

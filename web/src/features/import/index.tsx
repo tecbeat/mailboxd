@@ -142,10 +142,10 @@ export default function ImportPage() {
     retry: false,
   });
   const maxMbox = sysConfig
-    ? sysConfig.bichon_web_mbox_upload_limit_mb * 1024 * 1024
+    ? sysConfig.mailboxd_web_mbox_upload_limit_mb * 1024 * 1024
     : DEFAULT_MAX_MBOX;
   const maxPst = sysConfig
-    ? sysConfig.bichon_web_pst_upload_limit_mb * 1024 * 1024
+    ? sysConfig.mailboxd_web_pst_upload_limit_mb * 1024 * 1024
     : DEFAULT_MAX_PST;
 
   // Import history

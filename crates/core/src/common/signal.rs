@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +20,7 @@
 
 use std::sync::LazyLock;
 
-use crate::{context::Initialize, error::BichonResult, utils::shutdown::shutdown_signal};
+use crate::{context::Initialize, error::MailboxdResult, utils::shutdown::shutdown_signal};
 use tokio::sync::broadcast;
 
 pub static SIGNAL_MANAGER: LazyLock<SignalManager> = LazyLock::new(SignalManager::new);
@@ -39,7 +41,7 @@ impl SignalManager {
 }
 
 impl Initialize for SignalManager {
-    async fn initialize() -> BichonResult<()> {
+    async fn initialize() -> MailboxdResult<()> {
         tokio::spawn({
             async move {
                 shutdown_signal().await;

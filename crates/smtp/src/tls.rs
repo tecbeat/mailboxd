@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -29,8 +31,8 @@ use mailboxd_core::settings::cli::SETTINGS;
 
 pub async fn create_acceptor() -> io::Result<TlsAcceptor> {
     let (certs, key) = if let (Some(key_path), Some(cert_path)) = (
-        &SETTINGS.bichon_tls_key_path,
-        &SETTINGS.bichon_tls_cert_path,
+        &SETTINGS.mailboxd_tls_key_path,
+        &SETTINGS.mailboxd_tls_cert_path,
     ) {
         load_certs_from_files(key_path, cert_path).await?
     } else {

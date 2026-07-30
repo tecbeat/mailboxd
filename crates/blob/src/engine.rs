@@ -433,7 +433,7 @@ impl Engine {
         self.shared.bucket_store.compact_all()?;
 
         inner.meta.save(&inner.root)?;
-        tracing::info!("bichon-blob shut down cleanly");
+        tracing::info!("mailboxd-blob shut down cleanly");
         Ok(())
     }
 }
@@ -441,7 +441,7 @@ impl Engine {
 impl Drop for Engine {
     fn drop(&mut self) {
         if let Err(e) = self.shutdown() {
-            tracing::error!("bichon-blob shutdown error: {}", e);
+            tracing::error!("mailboxd-blob shutdown error: {}", e);
         }
     }
 }

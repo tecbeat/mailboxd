@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,14 +18,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use mailboxd_core::error::{code::ErrorCode, BichonError};
+use mailboxd_core::error::{code::ErrorCode, MailboxdError};
 use poem::IntoResponse;
 use poem_openapi::payload::Json;
 
 use crate::error::{ApiError, ApiErrorResponse, code::IntoStatusCode};
 
 pub async fn error_handler(error: poem::Error) -> impl poem::IntoResponse {
-    if error.is::<BichonError>() {
+    if error.is::<MailboxdError>() {
         return error.into_response();
     }
 

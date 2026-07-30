@@ -1,7 +1,7 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use crate::{
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     migrate::{
         legacy::schema::SchemaTools,
         store::{LegacyDirs, NewIndexWriter},
@@ -49,7 +49,7 @@ pub fn is_tantivy_index_dir(dir: &PathBuf) -> std::io::Result<bool> {
 
 /// Return the number of segments in the legacy EML Tantivy index.
 /// Each segment can be passed to `do_migrate_segment` for bounded-memory batch migration.
-pub fn count_eml_segments(legacy: &LegacyDirs) -> BichonResult<usize> {
+pub fn count_eml_segments(legacy: &LegacyDirs) -> MailboxdResult<usize> {
     let eml_index = Index::open_in_dir(&legacy.eml_dir)
         .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
     let reader = eml_index
@@ -60,21 +60,21 @@ pub fn count_eml_segments(legacy: &LegacyDirs) -> BichonResult<usize> {
 }
 
 pub fn check_data_status() -> std::io::Result<bool> {
-    let root_dir = PathBuf::from(&SETTINGS.bichon_root_dir);
+    let root_dir = PathBuf::from(&SETTINGS.mailboxd_root_dir);
 
     let new_indices_base = SETTINGS
-        .bichon_index_dir
+        .mailboxd_index_dir
         .as_ref()
         .map(PathBuf::from)
         .unwrap_or_else(|| root_dir.clone());
-    let new_indices_path = new_indices_base.join("bichon-indices");
+    let new_indices_path = new_indices_base.join("mailboxd-indices");
 
     let new_data_base = SETTINGS
-        .bichon_data_dir
+        .mailboxd_data_dir
         .as_ref()
         .map(PathBuf::from)
         .unwrap_or_else(|| root_dir.clone());
-    let new_storage_path = new_data_base.join("bichon-storage");
+    let new_storage_path = new_data_base.join("mailboxd-storage");
 
     let has_new_indices = is_tantivy_index_dir(&new_indices_path.join("attachment_metadata"))?
         && is_tantivy_index_dir(&new_indices_path.join("mail_metadata"))?;
@@ -85,12 +85,12 @@ pub fn check_data_status() -> std::io::Result<bool> {
     }
 
     let legacy_index_root = SETTINGS
-        .bichon_index_dir
+        .mailboxd_index_dir
         .as_ref()
         .map(PathBuf::from)
         .unwrap_or_else(|| root_dir.join("envelope"));
     let legacy_data_root = SETTINGS
-        .bichon_data_dir
+        .mailboxd_data_dir
         .as_ref()
         .map(PathBuf::from)
         .unwrap_or_else(|| root_dir.join("eml"));
@@ -124,7 +124,7 @@ pub fn do_migrate_segment<F>(
     writer: &mut NewIndexWriter,
     segment_index: usize,
     mut on_progress: F,
-) -> BichonResult<()>
+) -> MailboxdResult<()>
 where
     F: FnMut(&str),
 {

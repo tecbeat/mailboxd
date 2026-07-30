@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +20,7 @@
 
 use crate::account::entity::Encryption;
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::imap::session::SessionStream;
 use crate::imap::stats::StatsWrapper;
 use crate::utils::net::establish_tcp_connection_with_timeout;
@@ -91,7 +93,7 @@ impl Client {
         self,
         username: &str,
         password: &str,
-    ) -> BichonResult<ImapSession<Box<dyn SessionStream>>> {
+    ) -> MailboxdResult<ImapSession<Box<dyn SessionStream>>> {
         let Client { inner, .. } = self;
         let session = inner.login(username, password).await.map_err(|(e, _)| {
             raise_error!(format!("{:#?}", e), ErrorCode::ImapAuthenticationFailed)
@@ -102,7 +104,7 @@ impl Client {
     pub(crate) async fn authenticate(
         self,
         authenticator: impl async_imap::Authenticator,
-    ) -> BichonResult<ImapSession<Box<dyn SessionStream>>> {
+    ) -> MailboxdResult<ImapSession<Box<dyn SessionStream>>> {
         let Client { inner, .. } = self;
         let session = inner
             .authenticate("XOAUTH2", authenticator)
@@ -119,7 +121,7 @@ impl Client {
         port: u16,
         use_proxy: Option<u64>,
         dangerous: bool,
-    ) -> BichonResult<Self> {
+    ) -> MailboxdResult<Self> {
         let resolved_addr = Self::resolve_to_socket_addr(domain, port)?;
         debug!("Attempting IMAP connection to {domain} ({resolved_addr}).");
         match encryption {
@@ -139,7 +141,7 @@ impl Client {
         server_hostname: &str,
         use_proxy: Option<u64>,
         dangerous: bool,
-    ) -> BichonResult<Self> {
+    ) -> MailboxdResult<Self> {
         // Establish the TLS connection with the specified parameters
         let tls_stream = establish_tls_connection(
             address,
@@ -175,7 +177,7 @@ impl Client {
     async fn establish_insecure_connection(
         address: SocketAddr,
         use_proxy: Option<u64>,
-    ) -> BichonResult<Self> {
+    ) -> MailboxdResult<Self> {
         // Establish the TCP connection without encryption
         let tcp_stream = establish_tcp_connection_with_timeout(address, use_proxy).await?;
         let stats_stream = StatsWrapper::new(tcp_stream);
@@ -207,7 +209,7 @@ impl Client {
         server_hostname: &str,
         use_proxy: Option<u64>,
         dangerous: bool,
-    ) -> BichonResult<Self> {
+    ) -> MailboxdResult<Self> {
         // Establish the initial TCP connection
         let tcp_stream = establish_tcp_connection_with_timeout(address, use_proxy).await?;
         let stats_stream = StatsWrapper::new(tcp_stream);
@@ -255,7 +257,7 @@ impl Client {
         Ok(client)
     }
 
-    fn resolve_to_socket_addr(domain: &str, port: u16) -> BichonResult<SocketAddr> {
+    fn resolve_to_socket_addr(domain: &str, port: u16) -> MailboxdResult<SocketAddr> {
         if domain.is_empty() || domain.contains(|c: char| !c.is_ascii() && c != '.') {
             return Err(raise_error!(
                 "Invalid domain format".into(),

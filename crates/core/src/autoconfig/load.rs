@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +24,7 @@ use crate::autoconfig::entity::{MailServerConfig, ServerConfig};
 use crate::autoconfig::oauth2_providers::lookup_oauth2;
 use crate::autoconfig::CachedMailSettings;
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::raise_error;
 use email_address::EmailAddress;
 use std::str::FromStr;
@@ -69,7 +71,7 @@ pub(crate) fn mail_config_to_server_config(config: &MailConfig) -> Option<MailSe
     })
 }
 
-pub async fn resolve_autoconfig(email: impl AsRef<str>) -> BichonResult<Option<MailServerConfig>> {
+pub async fn resolve_autoconfig(email: impl AsRef<str>) -> MailboxdResult<Option<MailServerConfig>> {
     let email = email.as_ref();
     let email_address = EmailAddress::from_str(email).map_err(|error| {
         raise_error!(

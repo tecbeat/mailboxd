@@ -27,7 +27,7 @@ import { Separator } from "./ui/separator";
 export default function APIDocs() {
   const { t } = useTranslation()
 
-  const rawBase: string = (window as any).__BICHON_BASE__ || '';
+  const rawBase: string = (window as any).__MAILBOXD_BASE__ || '';
   const normalized = rawBase.replace(/\/+$/, '');
   const base_url = normalized.startsWith('http')
     ? normalized

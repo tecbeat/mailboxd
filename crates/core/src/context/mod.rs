@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,16 +18,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{common::periodic::TaskHandle, error::BichonResult};
+use crate::{common::periodic::TaskHandle, error::MailboxdResult};
 
 pub mod controller;
 pub mod executors;
 
 #[allow(async_fn_in_trait)]
 pub trait Initialize {
-    async fn initialize() -> BichonResult<()>;
+    async fn initialize() -> MailboxdResult<()>;
 }
 
-pub trait BichonTask {
+pub trait MailboxdTask {
     fn start() -> TaskHandle;
 }

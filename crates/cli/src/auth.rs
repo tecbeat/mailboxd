@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +29,7 @@ use mailboxd_core::{
     users::{permissions::Permission, view::UserView},
 };
 
-use crate::BichonCliConfig;
+use crate::MailboxdCliConfig;
 
 async fn fetch_json<T: serde::de::DeserializeOwned>(
     client: &Client,
@@ -46,7 +48,7 @@ async fn fetch_json<T: serde::de::DeserializeOwned>(
             eprintln!(
                 "\n{} {}",
                 style("✘ Network Error:").red().bold(),
-                "Could not connect to Bichon service."
+                "Could not connect to mailboxd service."
             );
             eprintln!("{} {}", style("Details:").dim(), e);
             eprintln!(
@@ -111,7 +113,7 @@ async fn fetch_json<T: serde::de::DeserializeOwned>(
 }
 
 pub async fn verify_user_and_get_account(
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     theme: &ColorfulTheme,
     only_nosync: bool,
 ) -> MinimalAccount {
@@ -148,7 +150,7 @@ pub async fn verify_user_and_get_account(
             style("Mail import is only supported for 'nosync' type accounts.").dim()
         );
         println!(
-            "Please create a new {} account in the Bichon web interface first.",
+            "Please create a new {} account in the mailboxd web interface first.",
             style("Nosync").bold().yellow()
         );
         process::exit(1);

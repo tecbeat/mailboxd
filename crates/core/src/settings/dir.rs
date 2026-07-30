@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,17 +21,17 @@
 use crate::context::Initialize;
 use crate::settings::cli::SETTINGS;
 use crate::{
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
 };
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
 const MEMDB_DIR: &str = "memdb";
-const INDICES: &str = "bichon-indices";
+const INDICES: &str = "mailboxd-indices";
 const MAIL_METADATA: &str = "mail_metadata";
 const ATTACHMENT_METADATA: &str = "attachment_metadata";
-const STORAGE: &str = "bichon-storage";
+const STORAGE: &str = "mailboxd-storage";
 const TMP_DIR: &str = "tmp";
 const LOG_DIR: &str = "logs";
 
@@ -37,7 +39,7 @@ const TLS_CERT: &str = "cert.pem";
 const TLS_KEY: &str = "key.pem";
 
 pub static DATA_DIR_MANAGER: LazyLock<DataDirManager> =
-    LazyLock::new(|| DataDirManager::new(PathBuf::from(&SETTINGS.bichon_root_dir)));
+    LazyLock::new(|| DataDirManager::new(PathBuf::from(&SETTINGS.mailboxd_root_dir)));
 
 #[derive(Debug)]
 pub struct DataDirManager {
@@ -53,7 +55,7 @@ pub struct DataDirManager {
 }
 
 impl Initialize for DataDirManager {
-    async fn initialize() -> BichonResult<()> {
+    async fn initialize() -> MailboxdResult<()> {
         std::fs::create_dir_all(&DATA_DIR_MANAGER.root_dir)
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         std::fs::create_dir_all(&DATA_DIR_MANAGER.log_dir)
@@ -68,13 +70,13 @@ impl Initialize for DataDirManager {
 
 impl DataDirManager {
     pub fn new(root_dir: PathBuf) -> Self {
-        let index_dir = if let Some(ref index_dir) = SETTINGS.bichon_index_dir {
+        let index_dir = if let Some(ref index_dir) = SETTINGS.mailboxd_index_dir {
             PathBuf::from(index_dir).join(INDICES)
         } else {
             root_dir.join(INDICES)
         };
 
-        let storage_dir = if let Some(ref data_dir) = SETTINGS.bichon_data_dir {
+        let storage_dir = if let Some(ref data_dir) = SETTINGS.mailboxd_data_dir {
             PathBuf::from(data_dir).join(STORAGE)
         } else {
             root_dir.join(STORAGE)

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +22,7 @@ use crate::account::migration::{AccountModel, AccountType};
 use crate::cache::imap::mailbox::{Attribute, AttributeEnum, MailBox};
 use crate::cache::imap::mailbox_cache::{self, FetchStatus};
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::imap::executor::ImapExecutor;
 use crate::imap::session::SessionStream;
 use crate::raise_error;
@@ -44,7 +46,7 @@ pub struct MailboxListResponse {
 pub async fn get_account_mailboxes(
     account_id: u64,
     remote: bool,
-) -> BichonResult<MailboxListResponse> {
+) -> MailboxdResult<MailboxListResponse> {
     let account = AccountModel::check_account_exists(account_id)?;
     if remote {
         if matches!(account.account_type, AccountType::IMAP) {
@@ -140,7 +142,7 @@ fn spawn_fetch_task(account_id: u64) {
     });
 }
 
-async fn fetch_remote_with_progress(account_id: u64) -> BichonResult<Vec<MailBox>> {
+async fn fetch_remote_with_progress(account_id: u64) -> MailboxdResult<Vec<MailBox>> {
     let mut session = ImapExecutor::create_connection(account_id).await?;
     let names = ImapExecutor::list_all_mailboxes(&mut session).await?;
     let total = names.len();
@@ -179,7 +181,7 @@ async fn fetch_remote_with_progress(account_id: u64) -> BichonResult<Vec<MailBox
     Ok(mailboxes)
 }
 
-pub async fn request_imap_all_mailbox_list(account_id: u64) -> BichonResult<Vec<MailBox>> {
+pub async fn request_imap_all_mailbox_list(account_id: u64) -> MailboxdResult<Vec<MailBox>> {
     let mut session = ImapExecutor::create_connection(account_id).await?;
     let names = ImapExecutor::list_all_mailboxes(&mut session).await?;
     let result = convert_names_to_mailboxes(account_id, &mut session, names.iter()).await?;
@@ -197,7 +199,7 @@ pub async fn convert_names_to_mailboxes(
     account_id: u64,
     session: &mut Session<Box<dyn SessionStream>>,
     names: impl IntoIterator<Item = &Name>,
-) -> BichonResult<Vec<MailBox>> {
+) -> MailboxdResult<Vec<MailBox>> {
     let mut mailboxes = Vec::new();
 
     for name in names {

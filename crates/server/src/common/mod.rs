@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +21,7 @@
 use std::fmt;
 
 use mailboxd_core::error::code::ErrorCode;
-use mailboxd_core::error::BichonError;
+use mailboxd_core::error::MailboxdError;
 use poem::error::ResponseError;
 use poem::Body;
 use poem::{http::StatusCode, Error, Response};
@@ -36,25 +38,25 @@ pub mod tls;
 pub mod validator;
 
 #[derive(Debug)]
-pub struct BichonServerError(pub BichonError);
+pub struct MailboxdServerError(pub MailboxdError);
 
-impl fmt::Display for BichonServerError {
+impl fmt::Display for MailboxdServerError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Internal Server Error: {:?}", self.0)
     }
 }
 
-impl std::error::Error for BichonServerError {}
+impl std::error::Error for MailboxdServerError {}
 
-impl From<BichonError> for BichonServerError {
-    fn from(err: BichonError) -> Self {
-        BichonServerError(err)
+impl From<MailboxdError> for MailboxdServerError {
+    fn from(err: MailboxdError) -> Self {
+        MailboxdServerError(err)
     }
 }
 
 #[inline]
-fn create_rust_mailer_error(message: &str, code: ErrorCode) -> BichonServerError {
-    BichonError::Generic {
+fn create_rust_mailer_error(message: &str, code: ErrorCode) -> MailboxdServerError {
+    MailboxdError::Generic {
         message: message.into(),
         location: snafu::location!(),
         code,
@@ -68,10 +70,10 @@ pub fn create_api_error_response(message: &str, code: ErrorCode) -> Error {
     rust_mailer_error.into()
 }
 
-impl ResponseError for BichonServerError {
+impl ResponseError for MailboxdServerError {
     fn status(&self) -> StatusCode {
         match self.0 {
-            BichonError::Generic {
+            MailboxdError::Generic {
                 message: _,
                 location: _,
                 code,
@@ -84,7 +86,7 @@ impl ResponseError for BichonServerError {
         Self: std::error::Error + Send + Sync + 'static,
     {
         match &self.0 {
-            BichonError::Generic {
+            MailboxdError::Generic {
                 message,
                 location,
                 code,

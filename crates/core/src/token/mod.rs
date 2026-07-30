@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +30,7 @@ use crate::settings::cli::SETTINGS;
 use crate::token::view::AccessTokenResp;
 use crate::users::UserModel;
 use crate::{
-    error::BichonResult, generate_token, token::payload::AccessTokenCreateRequest, utc_now,
+    error::MailboxdResult, generate_token, token::payload::AccessTokenCreateRequest, utc_now,
 };
 //use poem_openapi::{Enum, Object};
 use serde::{Deserialize, Serialize};
@@ -107,7 +109,7 @@ impl AccessTokenModel {
         }
     }
 
-    pub fn reset_webui_token(user_id: u64) -> BichonResult<String> {
+    pub fn reset_webui_token(user_id: u64) -> MailboxdResult<String> {
         let old_token = Self::get_user_webui_token(user_id)?;
         let new_token = Self::new_webui_token(user_id);
         let new_token_str = new_token.token.clone();
@@ -128,7 +130,7 @@ impl AccessTokenModel {
         Ok(new_token_str)
     }
 
-    pub fn get_user_webui_token(user_id: u64) -> BichonResult<Option<AccessTokenModel>> {
+    pub fn get_user_webui_token(user_id: u64) -> MailboxdResult<Option<AccessTokenModel>> {
         let tokens =
             filter_impl::<AccessTokenModel, _>(DB_MANAGER.db(), move |t| t.user_id == user_id)?;
         Ok(tokens
@@ -136,7 +138,7 @@ impl AccessTokenModel {
             .find(|t| t.token_type == TokenType::WebUI))
     }
 
-    pub fn get_user_api_tokens(user_id: u64) -> BichonResult<Vec<AccessTokenModel>> {
+    pub fn get_user_api_tokens(user_id: u64) -> MailboxdResult<Vec<AccessTokenModel>> {
         let tokens =
             filter_impl::<AccessTokenModel, _>(DB_MANAGER.db(), move |t| t.user_id == user_id)?;
         Ok(tokens
@@ -145,7 +147,7 @@ impl AccessTokenModel {
             .collect())
     }
 
-    pub fn resolve_user_from_token(token: &str) -> BichonResult<UserModel> {
+    pub fn resolve_user_from_token(token: &str) -> MailboxdResult<UserModel> {
         let token_str = token.to_string();
         let token_model = find_impl::<AccessTokenModel>(DB_MANAGER.db(), &token_str)?
             .ok_or_else(|| {
@@ -163,7 +165,7 @@ impl AccessTokenModel {
                 token_model.created_at
             };
             let idle = utc_now!() - last_active;
-            let max_life = SETTINGS.bichon_webui_token_expiration_hours as i64 * 60 * 60 * 1000;
+            let max_life = SETTINGS.mailboxd_webui_token_expiration_hours as i64 * 60 * 60 * 1000;
 
             if idle > max_life {
                 return Err(raise_error!(
@@ -200,7 +202,7 @@ impl AccessTokenModel {
     pub fn create_api_token(
         user_id: u64,
         request: AccessTokenCreateRequest,
-    ) -> BichonResult<String> {
+    ) -> MailboxdResult<String> {
         // Validate request parameters first
         request.validate()?;
         let expire_at = request
@@ -213,11 +215,11 @@ impl AccessTokenModel {
         Ok(token)
     }
 
-    pub fn delete(token: &str) -> BichonResult<()> {
+    pub fn delete(token: &str) -> MailboxdResult<()> {
         delete_impl::<AccessTokenModel>(DB_MANAGER.db(), token)
     }
 
-    pub fn get_token(token: &str) -> BichonResult<AccessTokenModel> {
+    pub fn get_token(token: &str) -> MailboxdResult<AccessTokenModel> {
         find_impl::<AccessTokenModel>(DB_MANAGER.db(), token)?.ok_or_else(|| {
             raise_error!(
                 format!("Access token '{}' not found", token),
@@ -226,7 +228,7 @@ impl AccessTokenModel {
         })
     }
 
-    pub fn list_all_api_tokens() -> BichonResult<Vec<AccessTokenResp>> {
+    pub fn list_all_api_tokens() -> MailboxdResult<Vec<AccessTokenResp>> {
         let users = UserModel::list_all()?;
         let all = list_all_impl::<AccessTokenModel>(DB_MANAGER.db())?;
 

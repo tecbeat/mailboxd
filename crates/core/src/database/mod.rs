@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +20,7 @@
 
 use crate::common::paginated::Paginated;
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::raise_error;
 use mailboxd_memdb::{MemDb, Transaction};
 use serde::de::DeserializeOwned;
@@ -36,14 +38,14 @@ pub trait MemDbModel: Serialize + DeserializeOwned + Clone + Send + 'static {
 
 // ─── Insert ───────────────────────────────────────────────────────────────
 
-pub fn insert_impl<M: MemDbModel>(db: &MemDb, item: M) -> BichonResult<()> {
+pub fn insert_impl<M: MemDbModel>(db: &MemDb, item: M) -> MailboxdResult<()> {
     let coll = db.collection(M::collection());
     let key = item.key();
     coll.insert(key, &item)
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
 }
 
-pub fn batch_insert_impl<M: MemDbModel>(db: &MemDb, items: Vec<M>) -> BichonResult<()> {
+pub fn batch_insert_impl<M: MemDbModel>(db: &MemDb, items: Vec<M>) -> MailboxdResult<()> {
     let txn = db.transaction();
     let mut txn = txn;
     for item in &items {
@@ -57,13 +59,13 @@ pub fn batch_insert_impl<M: MemDbModel>(db: &MemDb, items: Vec<M>) -> BichonResu
 
 // ─── Upsert ────────────────────────────────────────────────────────────────
 
-pub fn upsert_impl<M: MemDbModel>(db: &MemDb, item: M) -> BichonResult<()> {
+pub fn upsert_impl<M: MemDbModel>(db: &MemDb, item: M) -> MailboxdResult<()> {
     let coll = db.collection(M::collection());
     coll.upsert(item.key(), &item)
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
 }
 
-pub fn batch_upsert_impl<M: MemDbModel>(db: &MemDb, items: Vec<M>) -> BichonResult<()> {
+pub fn batch_upsert_impl<M: MemDbModel>(db: &MemDb, items: Vec<M>) -> MailboxdResult<()> {
     let txn = db.transaction();
     let mut txn = txn;
     for item in &items {
@@ -77,7 +79,7 @@ pub fn batch_upsert_impl<M: MemDbModel>(db: &MemDb, items: Vec<M>) -> BichonResu
 
 // ─── Find ──────────────────────────────────────────────────────────────────
 
-pub fn find_impl<M: MemDbModel>(db: &MemDb, key: &str) -> BichonResult<Option<M>> {
+pub fn find_impl<M: MemDbModel>(db: &MemDb, key: &str) -> MailboxdResult<Option<M>> {
     let coll = db.collection(M::collection());
     coll.get(key)
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
@@ -85,7 +87,7 @@ pub fn find_impl<M: MemDbModel>(db: &MemDb, key: &str) -> BichonResult<Option<M>
 
 // ─── Filter (replaces secondary key queries) ──────────────────────────────
 
-pub fn filter_impl<M, F>(db: &MemDb, predicate: F) -> BichonResult<Vec<M>>
+pub fn filter_impl<M, F>(db: &MemDb, predicate: F) -> MailboxdResult<Vec<M>>
 where
     M: MemDbModel,
     F: Fn(&M) -> bool + Send + 'static,
@@ -100,8 +102,8 @@ where
 pub fn update_impl<M: MemDbModel>(
     db: &MemDb,
     key: &str,
-    update_fn: impl FnOnce(M) -> BichonResult<M> + Send + 'static,
-) -> BichonResult<M> {
+    update_fn: impl FnOnce(M) -> MailboxdResult<M> + Send + 'static,
+) -> MailboxdResult<M> {
     let coll = db.collection(M::collection());
     let current: M = coll
         .get_required(key)
@@ -114,7 +116,7 @@ pub fn update_impl<M: MemDbModel>(
 
 // ─── Delete ────────────────────────────────────────────────────────────────
 
-pub fn delete_impl<M: MemDbModel>(db: &MemDb, key: &str) -> BichonResult<()> {
+pub fn delete_impl<M: MemDbModel>(db: &MemDb, key: &str) -> MailboxdResult<()> {
     let coll = db.collection(M::collection());
     let existed = coll
         .delete(key)
@@ -128,7 +130,7 @@ pub fn delete_impl<M: MemDbModel>(db: &MemDb, key: &str) -> BichonResult<()> {
     Ok(())
 }
 
-pub fn batch_delete_impl<M: MemDbModel>(db: &MemDb, keys: Vec<String>) -> BichonResult<usize> {
+pub fn batch_delete_impl<M: MemDbModel>(db: &MemDb, keys: Vec<String>) -> MailboxdResult<usize> {
     let txn = db.transaction();
     let mut txn = txn;
     let mut count = 0usize;
@@ -143,13 +145,13 @@ pub fn batch_delete_impl<M: MemDbModel>(db: &MemDb, keys: Vec<String>) -> Bichon
 
 // ─── List / Count ──────────────────────────────────────────────────────────
 
-pub fn list_all_impl<M: MemDbModel>(db: &MemDb) -> BichonResult<Vec<M>> {
+pub fn list_all_impl<M: MemDbModel>(db: &MemDb) -> MailboxdResult<Vec<M>> {
     let coll = db.collection(M::collection());
     coll.list_all()
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
 }
 
-pub fn count_impl<M: MemDbModel>(db: &MemDb) -> BichonResult<usize> {
+pub fn count_impl<M: MemDbModel>(db: &MemDb) -> MailboxdResult<usize> {
     let coll = db.collection(M::collection());
     Ok(coll.count())
 }
@@ -161,7 +163,7 @@ pub fn paginate_impl<M: MemDbModel>(
     page: Option<u64>,
     page_size: Option<u64>,
     desc: Option<bool>,
-) -> BichonResult<Paginated<M>> {
+) -> MailboxdResult<Paginated<M>> {
     let coll = db.collection(M::collection());
     let total_items = coll.count() as u64;
 
@@ -216,8 +218,8 @@ pub fn paginate_impl<M: MemDbModel>(
 /// Execute operations within a single atomic transaction (one WAL entry).
 pub fn with_transaction(
     db: &MemDb,
-    f: impl FnOnce(Transaction) -> BichonResult<Transaction> + Send + 'static,
-) -> BichonResult<()> {
+    f: impl FnOnce(Transaction) -> MailboxdResult<Transaction> + Send + 'static,
+) -> MailboxdResult<()> {
     let txn = db.transaction();
     let txn = f(txn)?;
     txn.commit()

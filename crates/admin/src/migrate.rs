@@ -11,7 +11,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 pub fn handle_migration(theme: &ColorfulTheme) {
     println!(
         "\n{}",
-        style("MIGRATION: Bichon v0.3.7 Storage Architecture → v1.x")
+        style("MIGRATION: Legacy v0.3.7 Storage Architecture → v1.x")
             .bold()
             .yellow()
     );
@@ -45,14 +45,14 @@ pub fn handle_migration(theme: &ColorfulTheme) {
         "\n{} {}",
         style("IMPORTANT:").yellow().bold(),
         style(
-            "The paths below must exactly match what your old bichon server was configured with."
+            "The paths below must exactly match what your old server was configured with."
         )
         .yellow()
     );
 
-    // --- bichon-root-dir ---
+    // --- mailboxd-root-dir ---
     let root_dir_str: String = Input::with_theme(theme)
-        .with_prompt("Enter --bichon-root-dir (same value used by the old server)")
+        .with_prompt("Enter --mailboxd-root-dir (same value used by the old server)")
         .validate_with(|input: &String| -> Result<(), &str> {
             let path = Path::new(input);
             if !path.is_absolute() {
@@ -68,12 +68,12 @@ pub fn handle_migration(theme: &ColorfulTheme) {
 
     let root_path = PathBuf::from(&root_dir_str);
 
-    // --- bichon-index-dir ---
+    // --- mailboxd-index-dir ---
     let default_index = root_path.join("envelope");
-    let default_new_index = root_path.join("bichon-indices");
+    let default_new_index = root_path.join("mailboxd-indices");
     let index_dir_str: String = Input::with_theme(theme)
         .with_prompt(format!(
-            "Enter --bichon-index-dir (leave blank to use default: {})",
+            "Enter --mailboxd-index-dir (leave blank to use default: {})",
             style(default_index.display()).cyan()
         ))
         .allow_empty(true)
@@ -103,15 +103,15 @@ pub fn handle_migration(theme: &ColorfulTheme) {
     let new_index_path = if index_dir_str.is_empty() {
         default_new_index
     } else {
-        PathBuf::from(&index_dir_str).join("bichon-indices")
+        PathBuf::from(&index_dir_str).join("mailboxd-indices")
     };
 
-    // --- bichon-data-dir ---
+    // --- mailboxd-data-dir ---
     let default_data = root_path.join("eml");
-    let default_new_data = root_path.join("bichon-storage");
+    let default_new_data = root_path.join("mailboxd-storage");
     let data_dir_str: String = Input::with_theme(theme)
         .with_prompt(format!(
-            "Enter --bichon-data-dir (leave blank to use default: {})",
+            "Enter --mailboxd-data-dir (leave blank to use default: {})",
             style(default_data.display()).cyan()
         ))
         .allow_empty(true)
@@ -140,24 +140,24 @@ pub fn handle_migration(theme: &ColorfulTheme) {
     let new_data_path = if data_dir_str.is_empty() {
         default_new_data
     } else {
-        PathBuf::from(&data_dir_str).join("bichon-storage")
+        PathBuf::from(&data_dir_str).join("mailboxd-storage")
     };
 
     println!("\n{}", style("Paths to be migrated:").bold());
     println!("----------------------------------------");
     println!(
         "{:<20} : {}",
-        "bichon-root-dir",
+        "mailboxd-root-dir",
         style(root_path.display()).cyan()
     );
     println!(
         "{:<20} : {}",
-        "bichon-index-dir",
+        "mailboxd-index-dir",
         style(index_path.display()).cyan()
     );
     println!(
         "{:<20} : {}",
-        "bichon-data-dir",
+        "mailboxd-data-dir",
         style(data_path.display()).cyan()
     );
     println!("----------------------------------------");

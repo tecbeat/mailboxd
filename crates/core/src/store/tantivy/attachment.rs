@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +29,7 @@ use std::{
 use crate::{
     common::{paginated::DataPage, signal::SIGNAL_MANAGER},
     dashboard::{Group, LargestAttachment},
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     message::{
         attachment::AttachmentMetadata,
         search::{AttachmentSearchFilter, SortBy},
@@ -277,7 +279,7 @@ impl IndexManager {
         Box::new(boolean_query)
     }
 
-    pub fn total_attachments(&self, accounts: &Option<HashSet<u64>>) -> BichonResult<u64> {
+    pub fn total_attachments(&self, accounts: &Option<HashSet<u64>>) -> MailboxdResult<u64> {
         let searcher = self.create_searcher()?;
 
         match accounts {
@@ -305,7 +307,7 @@ impl IndexManager {
         &self,
         accounts: Option<HashSet<u64>>,
         filter: AttachmentSearchFilter,
-    ) -> BichonResult<Box<dyn Query>> {
+    ) -> MailboxdResult<Box<dyn Query>> {
         let f = SchemaTools::attachment_fields();
         let mut subqueries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
@@ -516,7 +518,7 @@ impl IndexManager {
         &self,
         account_id: u64,
         id: &str,
-    ) -> BichonResult<Option<AttachmentModel>> {
+    ) -> MailboxdResult<Option<AttachmentModel>> {
         let searcher = self.create_searcher()?;
         let f = SchemaTools::attachment_fields();
 
@@ -555,7 +557,7 @@ impl IndexManager {
     pub fn top_10_largest_attachments(
         &self,
         accounts: &Option<HashSet<u64>>,
-    ) -> BichonResult<Vec<LargestAttachment>> {
+    ) -> MailboxdResult<Vec<LargestAttachment>> {
         self.reader
             .reload()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
@@ -603,7 +605,7 @@ impl IndexManager {
         Ok(result)
     }
 
-    pub async fn delete_account_attachments(&self, account_id: u64) -> BichonResult<()> {
+    pub async fn delete_account_attachments(&self, account_id: u64) -> MailboxdResult<()> {
         let query = self.account_query(account_id);
         let mut writer = self.index_writer.lock().await;
         writer
@@ -619,7 +621,7 @@ impl IndexManager {
         &self,
         account_id: u64,
         mailbox_ids: Vec<u64>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         if mailbox_ids.is_empty() {
             return Ok(());
         }
@@ -643,7 +645,7 @@ impl IndexManager {
     pub async fn delete_attachments_multi_account(
         &self,
         deletes: HashMap<u64, Vec<String>>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         if deletes.is_empty() {
             tracing::warn!("delete_envelopes_multi_account: deletes is empty, nothing to delete");
             return Ok(());
@@ -674,7 +676,7 @@ impl IndexManager {
         parent_facet: &str,
         all_facets: &mut Vec<TagCount>,
         field_name: &str,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         let mut facet_collector = FacetCollector::for_field(field_name);
         facet_collector.add_facet(parent_facet);
 
@@ -699,7 +701,7 @@ impl IndexManager {
         Ok(())
     }
 
-    pub fn get_all_tags(&self, accounts: Option<HashSet<u64>>) -> BichonResult<Vec<TagCount>> {
+    pub fn get_all_tags(&self, accounts: Option<HashSet<u64>>) -> MailboxdResult<Vec<TagCount>> {
         let searcher = self.reader.searcher();
 
         let query: Box<dyn Query> = match accounts {
@@ -724,7 +726,7 @@ impl IndexManager {
         Ok(all_facets)
     }
 
-    pub async fn update_attachment_tags(&self, request: TagsRequest) -> BichonResult<()> {
+    pub async fn update_attachment_tags(&self, request: TagsRequest) -> MailboxdResult<()> {
         if request.updates.is_empty() {
             tracing::warn!("update_attachment_tags: request is empty, nothing to update");
             return Ok(());
@@ -814,7 +816,7 @@ impl IndexManager {
         page_size: u64,
         desc: bool,
         sort_by: SortBy,
-    ) -> BichonResult<DataPage<AttachmentModel>> {
+    ) -> MailboxdResult<DataPage<AttachmentModel>> {
         assert!(page > 0, "Page number must be greater than 0");
         assert!(page_size > 0, "Page size must be greater than 0");
         let query = self.filter_query(accounts, filter)?;
@@ -915,14 +917,14 @@ impl IndexManager {
         })
     }
 
-    fn create_searcher(&self) -> BichonResult<Searcher> {
+    fn create_searcher(&self) -> MailboxdResult<Searcher> {
         self.reader
             .reload()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         Ok(self.reader.searcher())
     }
 
-    pub fn get_all_senders(&self, accounts: Option<HashSet<u64>>) -> BichonResult<HashSet<String>> {
+    pub fn get_all_senders(&self, accounts: Option<HashSet<u64>>) -> MailboxdResult<HashSet<String>> {
         let searcher = self.create_searcher()?;
 
         let query: Box<dyn Query> = match accounts {
@@ -963,7 +965,7 @@ impl IndexManager {
     pub fn collect_attachment_metadata(
         &self,
         accounts: Option<HashSet<u64>>,
-    ) -> BichonResult<AttachmentMetadata> {
+    ) -> MailboxdResult<AttachmentMetadata> {
         let searcher = self.create_searcher()?;
         let aggregations: Aggregations = serde_json::from_value(json!({
             "exts": {

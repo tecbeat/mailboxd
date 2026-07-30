@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +27,7 @@ use crate::{
         delete_impl, find_impl, insert_impl, list_all_impl, manager::DB_MANAGER, update_impl,
         MemDbModel,
     },
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     id, raise_error, utc_now,
     utils::net::parse_proxy_url,
 };
@@ -97,7 +99,7 @@ impl Proxy {
         }
     }
 
-    pub fn get(id: u64) -> BichonResult<Proxy> {
+    pub fn get(id: u64) -> MailboxdResult<Proxy> {
         let key = id.to_string();
         find_impl::<Proxy>(DB_MANAGER.db(), &key)?.ok_or_else(|| {
             raise_error!(
@@ -107,15 +109,15 @@ impl Proxy {
         })
     }
 
-    pub fn list_all() -> BichonResult<Vec<Proxy>> {
+    pub fn list_all() -> MailboxdResult<Vec<Proxy>> {
         list_all_impl::<Proxy>(DB_MANAGER.db())
     }
 
-    pub fn delete(id: u64) -> BichonResult<()> {
+    pub fn delete(id: u64) -> MailboxdResult<()> {
         delete_impl::<Proxy>(DB_MANAGER.db(), &id.to_string())
     }
 
-    pub fn update(id: u64, url: String) -> BichonResult<()> {
+    pub fn update(id: u64, url: String) -> MailboxdResult<()> {
         update_impl(DB_MANAGER.db(), &id.to_string(), move |current: Proxy| {
             let mut updated = current;
             updated.url = url;
@@ -126,28 +128,28 @@ impl Proxy {
         Ok(())
     }
 
-    pub fn save(&self) -> BichonResult<()> {
+    pub fn save(&self) -> MailboxdResult<()> {
         self.validate()?;
         insert_impl(DB_MANAGER.db(), self.to_owned())
     }
 
     /// Validate that the URL is a valid proxy URL.
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         parse_proxy_url(&self.url)?;
         Ok(())
     }
 
-    pub async fn test_connectivity(&self) -> BichonResult<ProxyTestResult> {
+    pub async fn test_connectivity(&self) -> MailboxdResult<ProxyTestResult> {
         test_proxy_url(&self.url).await
     }
 
-    pub async fn test(id: u64) -> BichonResult<ProxyTestResult> {
+    pub async fn test(id: u64) -> MailboxdResult<ProxyTestResult> {
         let proxy = Self::get(id)?;
         proxy.test_connectivity().await
     }
 }
 
-async fn test_proxy_url(url: &str) -> BichonResult<ProxyTestResult> {
+async fn test_proxy_url(url: &str) -> MailboxdResult<ProxyTestResult> {
     let proxy_url = parse_proxy_url(url)?.standard_url();
     let client = reqwest::Client::builder()
         .timeout(PROXY_TEST_TIMEOUT)
@@ -180,7 +182,7 @@ async fn test_proxy_url(url: &str) -> BichonResult<ProxyTestResult> {
 async fn test_geo_provider(
     client: &reqwest::Client,
     provider: &GeoProvider,
-) -> BichonResult<ProxyTestResult> {
+) -> MailboxdResult<ProxyTestResult> {
     let value = client
         .get(provider.url)
         .send()
@@ -222,7 +224,7 @@ async fn test_geo_provider(
 fn proxy_test_result_from_value(
     provider: &str,
     value: &serde_json::Value,
-) -> BichonResult<ProxyTestResult> {
+) -> MailboxdResult<ProxyTestResult> {
     if provider == "ip-api.com" && value["status"].as_str() == Some("fail") {
         return Err(raise_error!(
             format!(

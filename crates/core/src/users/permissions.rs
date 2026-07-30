@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +26,7 @@ use std::{
 use crate::{
     raise_error,
     {
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         users::role::RoleType,
     },
 };
@@ -221,7 +223,7 @@ impl Permission {
     pub fn validate_role_permissions(
         role_type: &RoleType,
         permissions: &BTreeSet<String>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         for p in permissions {
             match role_type {
                 RoleType::Global => {

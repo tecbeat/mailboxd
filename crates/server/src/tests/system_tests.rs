@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// Part of mailboxd, a fork of the Bichon email archiving project.
+// Modifications by tecbeat, 2026.
 
 use poem::test::TestClient;
 use serde::Deserialize;
@@ -14,9 +16,9 @@ fn api_client(route: impl poem::Endpoint) -> TestClient<impl poem::Endpoint> {
 
 #[derive(Debug, Deserialize)]
 struct SystemConfig {
-    bichon_root_dir: String,
-    bichon_http_port: i32,
-    bichon_version: Option<String>,
+    mailboxd_root_dir: String,
+    mailboxd_http_port: i32,
+    mailboxd_version: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

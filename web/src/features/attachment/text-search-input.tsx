@@ -25,7 +25,7 @@ import { useAttachmentContext } from "./context"
 import { useTranslation } from "react-i18next"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const STORAGE_KEY = "bichon_attachment_search_history"
+const STORAGE_KEY = "mailboxd_attachment_search_history"
 const MAX_HISTORY = 20
 
 

@@ -81,7 +81,7 @@ export function useSearchAttachments() {
     const setPage = (p: number) => updateParams({ page: p });
 
     const setSearchPageSize = (size: number) => {
-        localStorage.setItem('bichon_search_attachment_page_size', size.toString());
+        localStorage.setItem('mailboxd_search_attachment_page_size', size.toString());
         updateParams({ pageSize: size, page: 1 });
     };
 

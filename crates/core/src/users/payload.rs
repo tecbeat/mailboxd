@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +22,7 @@ use crate::{
     raise_error,
     {
         account::migration::AccountModel,
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         users::{
             acl::AccessControl,
             permissions::{Permission, VALID_PERMISSION_SET},
@@ -65,7 +67,7 @@ fn validate_option_in_set(
     value: &Option<String>,
     allowed: &std::collections::HashSet<&'static str>,
     field_name: &str,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     if let Some(v) = value {
         if !allowed.contains(v.as_str()) {
             return Err(raise_error!(
@@ -77,11 +79,11 @@ fn validate_option_in_set(
     Ok(())
 }
 
-fn validate_theme(theme: &Option<String>) -> BichonResult<()> {
+fn validate_theme(theme: &Option<String>) -> MailboxdResult<()> {
     validate_option_in_set(theme, &allowed_themes(), "theme")
 }
 
-fn validate_language(language: &Option<String>) -> BichonResult<()> {
+fn validate_language(language: &Option<String>) -> MailboxdResult<()> {
     validate_option_in_set(language, &allowed_languages(), "language")
 }
 
@@ -95,7 +97,7 @@ pub struct RoleCreateRequest {
 }
 
 impl RoleCreateRequest {
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         let trimmed_name = self.name.trim();
         if trimmed_name.is_empty() {
             return Err(raise_error!(
@@ -148,7 +150,7 @@ pub struct RoleUpdateRequest {
 }
 
 impl RoleUpdateRequest {
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         // 1. Ensure at least one field is provided for the update
         if self.name.is_none() && self.description.is_none() && self.permissions.is_none() {
             return Err(raise_error!(
@@ -239,7 +241,7 @@ pub struct UserCreateRequest {
 }
 
 impl UserCreateRequest {
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         let username_len = self.username.len();
 
         // 1. Username constraints
@@ -373,7 +375,7 @@ pub struct UserUpdateRequest {
 }
 
 impl UserUpdateRequest {
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         if let Some(username) = &self.username {
             let len = username.len();
             if len < 3 || len > 32 {

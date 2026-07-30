@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -24,28 +26,28 @@ pub static SETTINGS: LazyLock<Settings> = LazyLock::new(Settings::init);
 
 #[derive(Debug, Parser)]
 #[clap(
-    name = "bichon",
+    name = "mailboxd",
     about = "A self-hosted email synchronization and backup tool built in Rust",
     version = env!("CARGO_PKG_VERSION")
 )]
 pub struct Settings {
-    /// bichon log level (default: "info")
+    /// mailboxd log level (default: "info")
     #[clap(
         long,
         default_value = "info",
         env,
-        help = "Set the log level for bichon"
+        help = "Set the log level for mailboxd"
     )]
-    pub bichon_log_level: String,
+    pub mailboxd_log_level: String,
 
-    /// bichon HTTP port (default: 15630)
+    /// mailboxd HTTP port (default: 15630)
     #[clap(
         long,
         default_value = "15630",
         env,
-        help = "Set the HTTP port for bichon"
+        help = "Set the HTTP port for mailboxd"
     )]
-    pub bichon_http_port: i32,
+    pub mailboxd_http_port: i32,
 
     /// The IP address that the node binds to, in IPv4 or IPv6 format (e.g., 192.168.1.1 or ::1).
     #[clap(
@@ -63,26 +65,26 @@ pub struct Settings {
             Ok(s.to_string())
         })
     )]
-    pub bichon_bind_ip: Option<String>,
+    pub mailboxd_bind_ip: Option<String>,
 
-    /// bichon public URL (default: "http://localhost:15630")
+    /// mailboxd public URL (default: "http://localhost:15630")
     #[clap(
         long,
         default_value = "http://localhost:15630",
         env,
-        help = "Set the public URL for bichon"
+        help = "Set the public URL for mailboxd"
     )]
-    pub bichon_public_url: String,
+    pub mailboxd_public_url: String,
 
-    /// bichon base URL path (default: "/")
+    /// mailboxd base URL path (default: "/")
     #[clap(
         long,
         default_value = "/",
         env,
-        help = "Set the base UI path for bichon (e.g., '/bichon' or '/bichon/'). Must start with /",
+        help = "Set the base UI path for mailboxd (e.g., '/mailboxd' or '/mailboxd/'). Must start with /",
         value_parser = validate_base_url
     )]
-    pub bichon_base_url: String,
+    pub mailboxd_base_url: String,
 
     /// CORS allowed origins (default: "*")
     #[clap(
@@ -97,7 +99,7 @@ pub struct Settings {
             Ok(set)
         })
     )]
-    pub bichon_cors_origins: Option<HashSet<String>>,
+    pub mailboxd_cors_origins: Option<HashSet<String>>,
 
     /// CORS max age in seconds (default: 86400)
     #[clap(
@@ -106,11 +108,11 @@ pub struct Settings {
         env,
         help = "Set the CORS max age in seconds"
     )]
-    pub bichon_cors_max_age: i32,
+    pub mailboxd_cors_max_age: i32,
 
     /// Enable ANSI logs (default: false)
     #[clap(long, default_value = "true", env, help = "Enable ANSI formatted logs")]
-    pub bichon_ansi_logs: bool,
+    pub mailboxd_ansi_logs: bool,
 
     /// Enable log file output (default: false)
     /// If false, logs will be printed to stdout
@@ -120,7 +122,7 @@ pub struct Settings {
         env,
         help = "Enable log file output (otherwise logs go to stdout)"
     )]
-    pub bichon_log_to_file: bool,
+    pub mailboxd_log_to_file: bool,
 
     /// Enable JSON logs (default: false)
     #[clap(
@@ -129,7 +131,7 @@ pub struct Settings {
         env,
         help = "Enable JSON formatted logs"
     )]
-    pub bichon_json_logs: bool,
+    pub mailboxd_json_logs: bool,
 
     /// Maximum number of log files (default: 5)
     #[clap(
@@ -138,23 +140,23 @@ pub struct Settings {
         env,
         help = "Set the maximum number of server log files"
     )]
-    pub bichon_max_server_log_files: usize,
+    pub mailboxd_max_server_log_files: usize,
 
-    /// bichon encryption password
+    /// mailboxd encryption password
     #[clap(
         long,
         env,
         default_value = "change-this-default-password-now",
-        help = "Set the encryption password for bichon. Alternatively, you can use --bichon-encrypt-password-file. If both are set, this parameter takes precedence over the file."
+        help = "Set the encryption password for mailboxd. Alternatively, you can use --mailboxd-encrypt-password-file. If both are set, this parameter takes precedence over the file."
     )]
-    pub bichon_encrypt_password: Option<String>,
+    pub mailboxd_encrypt_password: Option<String>,
 
     #[clap(
         long,
         env,
-        help = "The file containing the encryption password. An alternative to --bichon-encrypt-password."
+        help = "The file containing the encryption password. An alternative to --mailboxd-encrypt-password."
     )]
-    pub bichon_encrypt_password_file: Option<String>,
+    pub mailboxd_encrypt_password_file: Option<String>,
 
     /// WebUI token expiration time in seconds (default: 7 days)
     #[clap(
@@ -163,24 +165,24 @@ pub struct Settings {
         env,
         help = "Set the WebUI token expiration time in hours"
     )]
-    pub bichon_webui_token_expiration_hours: u32,
+    pub mailboxd_webui_token_expiration_hours: u32,
 
     #[clap(
         long,
         env,
-        help = "Set the file path for bichon database",
+        help = "Set the file path for mailboxd database",
         value_parser = ValueParser::new(|s: &str| {
             let path = PathBuf::from(s);
 
             if !path.is_absolute() {
-                return Err("'bichon_root_dir' must be an absolute directory path".to_string());
+                return Err("'mailboxd_root_dir' must be an absolute directory path".to_string());
             }
 
             check_dir_read_write(&path)?;
             Ok(s.to_string())
         })
     )]
-    pub bichon_root_dir: String,
+    pub mailboxd_root_dir: String,
     #[clap(
         long,
         env,
@@ -189,14 +191,14 @@ pub struct Settings {
             let path = PathBuf::from(s);
 
             if !path.is_absolute() {
-                return Err("'bichon_index_dir' must be an absolute directory path".to_string());
+                return Err("'mailboxd_index_dir' must be an absolute directory path".to_string());
             }
 
             check_dir_read_write(&path)?;
             Ok(s.to_string())
         })
     )]
-    pub bichon_index_dir: Option<String>,
+    pub mailboxd_index_dir: Option<String>,
     #[clap(
         long,
         env,
@@ -205,14 +207,14 @@ pub struct Settings {
             let path = PathBuf::from(s);
 
             if !path.is_absolute() {
-                return Err("'bichon_data_dir' must be an absolute directory path".to_string());
+                return Err("'mailboxd_data_dir' must be an absolute directory path".to_string());
             }
 
             check_dir_read_write(&path)?;
             Ok(s.to_string())
         })
     )]
-    pub bichon_data_dir: Option<String>,
+    pub mailboxd_data_dir: Option<String>,
     /// Enables or disables HTTPS for REST API endpoints.
     ///
     /// When set to `true`, the REST API will use HTTPS with a valid SSL/TLS certificate for secure communication.
@@ -224,7 +226,7 @@ pub struct Settings {
         env,
         help = "Enables or disables HTTPS for REST API endpoints."
     )]
-    pub bichon_enable_rest_https: bool,
+    pub mailboxd_enable_rest_https: bool,
 
     #[clap(
         long,
@@ -232,7 +234,7 @@ pub struct Settings {
         env,
         help = "Enable compression for the open api server"
     )]
-    pub bichon_http_compression_enabled: bool,
+    pub mailboxd_http_compression_enabled: bool,
 
     #[clap(
         long,
@@ -240,7 +242,7 @@ pub struct Settings {
         help = "Maximum number of concurrent email sync tasks (default: number of CPU cores x 2)",
         value_parser = clap::value_parser!(u16).range(1..)
     )]
-    pub bichon_sync_concurrency: Option<u16>,
+    pub mailboxd_sync_concurrency: Option<u16>,
 
     #[clap(
         long,
@@ -248,7 +250,7 @@ pub struct Settings {
         default_value = "false",
         help = "Enable the embedded SMTP server for real-time email receiving"
     )]
-    pub bichon_enable_smtp: bool,
+    pub mailboxd_enable_smtp: bool,
 
     #[clap(
         long,
@@ -257,7 +259,7 @@ pub struct Settings {
         value_parser = ValueParser::new(|s: &str| {
             let path = PathBuf::from(s);
             if !path.is_absolute() {
-                return Err("'bichon_smtp_tls_key_path' must be an absolute path".to_string());
+                return Err("'mailboxd_smtp_tls_key_path' must be an absolute path".to_string());
             }
             if !path.exists() {
                 return Err(format!("SMTP TLS key file not found: {}", s));
@@ -265,7 +267,7 @@ pub struct Settings {
             Ok(s.to_string())
         })
     )]
-    pub bichon_tls_key_path: Option<String>,
+    pub mailboxd_tls_key_path: Option<String>,
 
     #[clap(
         long,
@@ -274,7 +276,7 @@ pub struct Settings {
         value_parser = ValueParser::new(|s: &str| {
             let path = PathBuf::from(s);
             if !path.is_absolute() {
-                return Err("'bichon_smtp_tls_cert_path' must be an absolute path".to_string());
+                return Err("'mailboxd_smtp_tls_cert_path' must be an absolute path".to_string());
             }
             if !path.exists() {
                 return Err(format!("SMTP TLS certificate file not found: {}", s));
@@ -282,16 +284,16 @@ pub struct Settings {
             Ok(s.to_string())
         })
     )]
-    pub bichon_tls_cert_path: Option<String>,
+    pub mailboxd_tls_cert_path: Option<String>,
 
     #[clap(
         long,
         default_value = "2525",
         env,
-        help = "Set the SMTP port for Bichon (e.g., 25 or 2525). Note: Port 25 may require root privileges.",
+        help = "Set the SMTP port for mailboxd (e.g., 25 or 2525). Note: Port 25 may require root privileges.",
         value_parser = clap::value_parser!(u16).range(1..)
     )]
-    pub bichon_smtp_port: u16,
+    pub mailboxd_smtp_port: u16,
 
     #[clap(
         long,
@@ -299,7 +301,7 @@ pub struct Settings {
         default_value = "starttls",
         help = "Set the encryption mode for SMTP: 'none', 'starttls', or 'tls'"
     )]
-    pub bichon_smtp_encryption: EncryptionMode,
+    pub mailboxd_smtp_encryption: EncryptionMode,
 
     #[clap(
         long,
@@ -307,7 +309,7 @@ pub struct Settings {
         default_value = "true",
         help = "Enable SMTP authentication requirement"
     )]
-    pub bichon_smtp_auth_required: bool,
+    pub mailboxd_smtp_auth_required: bool,
 
     /// Enable the built-in IMAP server for read-only email access via standard
     /// email clients (Thunderbird, Outlook, Apple Mail, etc.).
@@ -317,7 +319,7 @@ pub struct Settings {
         env,
         help = "Enable the embedded IMAP server"
     )]
-    pub bichon_enable_imap: bool,
+    pub mailboxd_enable_imap: bool,
 
     #[clap(
         long,
@@ -326,7 +328,7 @@ pub struct Settings {
         help = "Set the IMAP port (STARTTLS or plaintext)",
         value_parser = clap::value_parser!(u16).range(1..)
     )]
-    pub bichon_imap_port: u16,
+    pub mailboxd_imap_port: u16,
 
     #[clap(
         long,
@@ -335,7 +337,7 @@ pub struct Settings {
         help = "Set the IMAPS port (implicit TLS)",
         value_parser = clap::value_parser!(u16).range(1..)
     )]
-    pub bichon_imaps_port: u16,
+    pub mailboxd_imaps_port: u16,
 
     #[clap(
         long,
@@ -343,27 +345,27 @@ pub struct Settings {
         default_value = "none",
         help = "Set the encryption mode for IMAP: 'none', 'starttls', or 'tls'"
     )]
-    pub bichon_imap_encryption: EncryptionMode,
+    pub mailboxd_imap_encryption: EncryptionMode,
 
     /// Enable OIDC-based Single Sign-On (Pro/Enterprise feature).
     #[clap(long, default_value = "false", env, help = "Enable OpenID Connect SSO")]
-    pub bichon_oidc_enabled: bool,
+    pub mailboxd_oidc_enabled: bool,
 
     /// OIDC issuer URL (e.g. https://keycloak.example.com/realms/myorg).
     #[clap(long, env, help = "OpenID Connect issuer URL")]
-    pub bichon_oidc_issuer_url: Option<String>,
+    pub mailboxd_oidc_issuer_url: Option<String>,
 
     /// OIDC client ID registered with the IdP.
     #[clap(long, env, help = "OpenID Connect client ID")]
-    pub bichon_oidc_client_id: Option<String>,
+    pub mailboxd_oidc_client_id: Option<String>,
 
     /// OIDC client secret registered with the IdP.
     #[clap(long, env, help = "OpenID Connect client secret")]
-    pub bichon_oidc_client_secret: Option<String>,
+    pub mailboxd_oidc_client_secret: Option<String>,
 
     /// OIDC redirect URI (must match what's registered with the IdP).
     #[clap(long, env, help = "OpenID Connect redirect URI")]
-    pub bichon_oidc_redirect_uri: Option<String>,
+    pub mailboxd_oidc_redirect_uri: Option<String>,
 
     /// Maximum HTTP request body size in MB for file uploads (default: 1100 MB).
     /// Requests exceeding this limit are rejected at the framework level before
@@ -374,7 +376,7 @@ pub struct Settings {
         env,
         help = "Maximum HTTP request body size in MB for file uploads"
     )]
-    pub bichon_upload_body_limit_mb: u64,
+    pub mailboxd_upload_body_limit_mb: u64,
 
     /// Maximum per-file size in MB for MBOX uploads via the web UI (default: 1024 MB = 1 GB).
     /// Individual EML files are always capped at 100 MB regardless of this setting.
@@ -384,7 +386,7 @@ pub struct Settings {
         env,
         help = "Maximum per-file size in MB for MBOX uploads via the web UI"
     )]
-    pub bichon_web_mbox_upload_limit_mb: u64,
+    pub mailboxd_web_mbox_upload_limit_mb: u64,
 
     /// Maximum per-file size in MB for PST uploads via the web UI (default: 2048 MB = 2 GB).
     #[clap(
@@ -393,7 +395,7 @@ pub struct Settings {
         env,
         help = "Maximum per-file size in MB for PST uploads via the web UI"
     )]
-    pub bichon_web_pst_upload_limit_mb: u64,
+    pub mailboxd_web_pst_upload_limit_mb: u64,
 }
 
 impl Settings {
@@ -405,9 +407,9 @@ impl Settings {
         let args: Vec<String> = std::env::args().collect();
         let s = Self::try_parse_from(&args)
             .unwrap_or_else(|_| Self::parse_from(std::iter::once(args[0].clone())));
-        if s.bichon_encrypt_password.is_none() && s.bichon_encrypt_password_file.is_none() {
+        if s.mailboxd_encrypt_password.is_none() && s.mailboxd_encrypt_password_file.is_none() {
             panic!(
-                "One of --bichon_encrypt_password or --bichon_encrypt_password_file has to be set"
+                "One of --mailboxd_encrypt_password or --mailboxd_encrypt_password_file has to be set"
             );
         }
         s
@@ -420,7 +422,7 @@ fn validate_base_url(s: &str) -> Result<String, String> {
     }
     if !s.starts_with('/') {
         return Err(String::from(
-            "Base URL must start with '/' (e.g., '/bichon')",
+            "Base URL must start with '/' (e.g., '/mailboxd')",
         ));
     }
     Ok(s.to_string())
