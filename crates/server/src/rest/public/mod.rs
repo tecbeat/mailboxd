@@ -21,4 +21,6 @@
 
 pub mod login;
 pub mod oauth2;
+pub mod oidc;
+pub mod oidc_config;
 pub mod status;

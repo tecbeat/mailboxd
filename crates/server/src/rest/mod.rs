@@ -25,6 +25,8 @@ use crate::common::tls::rustls_config;
 use crate::common::timeout::{Timeout, TIMEOUT_HEADER};
 use crate::error::handler::error_handler;
 use crate::rest::public::login::login;
+use crate::rest::public::oidc::{oidc_callback, oidc_handoff, oidc_login};
+use crate::rest::public::oidc_config::get_oidc_config;
 use crate::rest::public::status::get_status;
 use mailboxd_core::common::signal::SIGNAL_MANAGER;
 use mailboxd_core::error::code::ErrorCode;
@@ -114,6 +116,10 @@ pub fn build_routes() -> impl Endpoint {
         .nest("/oauth2/callback", get(oauth2_callback))
         .nest("/api/status", get(get_status))
         .nest("/api/login", post(login))
+        .nest("/api/auth/oidc/login", get(oidc_login))
+        .nest("/api/auth/oidc/callback", get(oidc_callback))
+        .nest("/api/auth/oidc/handoff", post(oidc_handoff))
+        .nest("/api/auth/oidc/config", get(get_oidc_config))
         .nest_no_strip("/api/v1", open_api_route);
 
     let app_logic = add_web_assets(app_logic);
