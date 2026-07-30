@@ -33,10 +33,12 @@ RUN apt-get update \
 
 WORKDIR /build
 
-# Passed as --build-arg by the teccave pipeline; consumed by
-# crates/server/build.rs and baked into every binary as MAILBOXD_VERSION.
+# Passed as --build-arg by the teccave pipeline. MAILBOXD_VERSION must be
+# visible to every crate during compilation (option_env! reads the env of
+# the specific crate being built), not only to crates/server/build.rs.
 ARG VERSION=v0.0.0-dev
 ENV VERSION=${VERSION}
+ENV MAILBOXD_VERSION=${VERSION}
 
 COPY . .
 COPY --from=web-builder /build/dist ./web/dist
