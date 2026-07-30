@@ -3,7 +3,7 @@
 [changelog]
 # changelog header
 header = """
-# Bichon Changelog\n
+# mailboxd Changelog\n
 """
 # template for the changelog body
 # https://tera.netlify.app/docs/#introduction
@@ -34,7 +34,7 @@ conventional_commits = false
 filter_unconventional = false
 # regex for preprocessing the commit messages
 commit_preprocessors = [
-    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/rustmailer/bichon/issues/${2}))"},
+    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://git.teccave.de/tecbeat/mailboxd/-/issues/${2}))"},
 ]
 # regex for parsing and grouping commits
 commit_parsers = [

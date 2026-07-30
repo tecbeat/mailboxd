@@ -1,21 +1,21 @@
 [Unit]
-Description=Bichon Email Service
+Description=mailboxd — self-hosted email archiving server
 After=network.target
 Wants=network.target
 
 [Service]
 Type=simple
-User=bichon
-Group=bichon
-WorkingDirectory=/opt/bichon
-ExecStart=/opt/bichon/bichon
+User=mailboxd
+Group=mailboxd
+WorkingDirectory=/opt/mailboxd
+ExecStart=/opt/mailboxd/mailboxd-server
 Restart=always
 RestartSec=5s
-EnvironmentFile=/etc/bichon.conf
+EnvironmentFile=/etc/mailboxd.conf
 
 StandardOutput=null
 StandardError=null
-LogsDirectory=bichon
+LogsDirectory=mailboxd
 LogsDirectoryMode=0755
 
 LimitNOFILE=65536
