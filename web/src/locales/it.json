@@ -486,7 +486,8 @@
     "somethingWentWrong": "Qualcosa è andato storto",
     "username": "Nome utente",
     "welcome": "Benvenuto in mailboxd",
-    "youWillNeedToLogInAgain": "Dovrai accedere nuovamente per accedere al tuo account."
+    "youWillNeedToLogInAgain": "Dovrai accedere nuovamente per accedere al tuo account.",
+    "ssoLogin": "Accedi con SSO"
   },
   "command": {
     "dark": "Scuro",

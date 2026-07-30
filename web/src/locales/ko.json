@@ -486,7 +486,8 @@
     "somethingWentWrong": "문제가 발생했습니다",
     "username": "사용자 이름",
     "welcome": "mailboxd에 오신 것을 환영합니다",
-    "youWillNeedToLogInAgain": "계정에 접근하려면 다시 로그인해야 합니다."
+    "youWillNeedToLogInAgain": "계정에 접근하려면 다시 로그인해야 합니다.",
+    "ssoLogin": "SSO로 로그인"
   },
   "command": {
     "dark": "어둡게",

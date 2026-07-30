@@ -486,7 +486,8 @@
     "somethingWentWrong": "Quelque chose s'est mal passé",
     "username": "Nom d'utilisateur",
     "welcome": "Bienvenue sur mailboxd",
-    "youWillNeedToLogInAgain": "Vous devrez vous reconnecter pour accéder à votre compte."
+    "youWillNeedToLogInAgain": "Vous devrez vous reconnecter pour accéder à votre compte.",
+    "ssoLogin": "Se connecter avec SSO"
   },
   "command": {
     "dark": "Sombre",
