@@ -20,6 +20,7 @@
 
 
 use mailboxd_core::context::executors::MAILBOXD_CONTEXT;
+use mailboxd_core::mailboxd_version;
 use chrono::Local;
 use poem_openapi::Object;
 use serde::Deserialize;
@@ -35,7 +36,7 @@ pub struct MailboxdStatus {
     pub timeago: String,
     /// The timezone in which the service is operating (e.g., "UTC" or "Asia/Tokyo").
     pub timezone: String,
-    /// The version of the RustMailer service currently running.
+    /// The version of the mailboxd service currently running.
     pub version: String,
 }
 
@@ -46,7 +47,7 @@ impl MailboxdStatus {
             timeago: Formatter::new()
                 .convert(Duration::from_millis(MAILBOXD_CONTEXT.uptime_ms() as u64)),
             timezone: Local::now().offset().to_string(),
-            version: env!("CARGO_PKG_VERSION").into(),
+            version: mailboxd_version!().into(),
         }
     }
 }
