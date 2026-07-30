@@ -2,4 +2,4 @@
 include:
   - project: 'maintenance/teccave_pipeline'
     ref: main
-    file: '/.pipeline_defs/.default_pipeline.yml'
+    file: '/.pipeline_defs/.build_image.yml'
