@@ -53,7 +53,7 @@ export function AccountAccessList() {
                     <img
                         src={Logo}
                         className="max-h-[100px] w-auto opacity-20 saturate-0 object-contain"
-                        alt="mailboxd Logo"
+                        alt="mailboxd icon"
                     />
                     <h3 className="mt-4 text-lg font-semibold">{t('settings.access.empty.title')}</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
