@@ -1,0 +1,157 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+//use poem_openapi::Object;
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    raise_error, utc_now,
+    {
+        account::migration::AccountModel,
+        common::auth::ClientContext,
+        database::{manager::DB_MANAGER, with_transaction, MemDbModel},
+        error::{code::ErrorCode, MailboxdResult},
+        users::{
+            permissions::Permission,
+            role::{RoleType, UserRole},
+            UserModel,
+        },
+    },
+};
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
+pub struct BatchAccountRoleRequest {
+    pub account_ids: Vec<u64>,
+    pub user_ids: Vec<u64>,
+    pub role_id: u64,
+}
+
+impl BatchAccountRoleRequest {
+    pub fn validate_existence(&self) -> MailboxdResult<()> {
+        let role = UserRole::find(self.role_id)?.ok_or_else(|| {
+            raise_error!(
+                format!("Role ID {} not found", self.role_id),
+                ErrorCode::ResourceNotFound
+            )
+        })?;
+
+        if !matches!(role.role_type, RoleType::Account) {
+            return Err(raise_error!(
+                "Only Account roles can be assigned to individual account".into(),
+                ErrorCode::InvalidParameter
+            ));
+        }
+
+        for id in &self.account_ids {
+            let exists = AccountModel::find(*id)?; // Assuming an exists helper
+            if exists.is_none() {
+                return Err(raise_error!(
+                    format!("Account ID {} not found", id),
+                    ErrorCode::ResourceNotFound
+                ));
+            }
+        }
+
+        for id in &self.user_ids {
+            let exists = UserModel::find(*id)?; // Assuming an exists helper
+            if exists.is_none() {
+                return Err(raise_error!(
+                    format!("User ID {} not found", id),
+                    ErrorCode::ResourceNotFound
+                ));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn grant_batch_account_access(
+        account_ids: Vec<u64>,
+        user_ids: Vec<u64>,
+        role_id: u64,
+    ) -> MailboxdResult<()> {
+        with_transaction(DB_MANAGER.db(), move |txn| {
+            let mut txn = txn;
+            for &uid in &user_ids {
+                let db = DB_MANAGER.db();
+                let coll = db.collection(UserModel::collection());
+                let key = uid.to_string();
+                let user: UserModel = coll
+                    .get_required(&key)
+                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+
+                let mut updated_user = user.clone();
+
+                for &aid in &account_ids {
+                    updated_user.account_access_map.insert(aid, role_id);
+                }
+
+                updated_user.updated_at = utc_now!();
+
+                txn = txn
+                    .upsert(UserModel::collection(), key, &updated_user)
+                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+            }
+            Ok(txn)
+        })
+    }
+
+    pub fn do_assign(self, context: &ClientContext) -> MailboxdResult<()> {
+        for account_id in &self.account_ids {
+            // Get the user's specific access for this account
+            let assigned_role_id =
+                context
+                    .user
+                    .account_access_map
+                    .get(account_id)
+                    .ok_or_else(|| {
+                        raise_error!(
+                            format!("No access to account {}", account_id),
+                            ErrorCode::Forbidden
+                        )
+                    })?;
+
+            // Fetch the role definition from the database
+            let user_scoped_role = UserRole::find(*assigned_role_id)?.ok_or_else(|| {
+                raise_error!(
+                    "Assigned account role no longer exists".into(),
+                    ErrorCode::InternalError
+                )
+            })?;
+
+            // Critical Check: Does this role grant management/sharing rights?
+            if !user_scoped_role
+                .permissions
+                .contains(Permission::ACCOUNT_MANAGE)
+            {
+                return Err(raise_error!(
+                    format!("Your role on account {} does not allow sharing", account_id),
+                    ErrorCode::Forbidden
+                ));
+            }
+
+            // Optional: Ensure manager isn't giving away perms they don't have
+            // This is where you'd compare target_role.permissions vs manager's perms
+        }
+
+        Self::grant_batch_account_access(self.account_ids, self.user_ids, self.role_id)
+    }
+}

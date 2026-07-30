@@ -1,0 +1,62 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+pub struct SystemSetting {
+    pub key: String,
+    pub value: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+impl SystemSetting {
+    // pub fn new(key: String, value: String) -> Self {
+    //     Self {
+    //         key,
+    //         value,
+    //         created_at: utc_now!(),
+    //         updated_at: utc_now!(),
+    //     }
+    // }
+    //overwrite
+    // pub async fn set(&self) -> MailboxdResult<()> {
+    //     upsert_impl(DB_MANAGER.meta_db(), self.to_owned()).await
+    // }
+
+    // pub fn get(key: &str) -> MailboxdResult<Option<SystemSetting>> {
+    //     find_impl(DB_MANAGER.meta_db(), key)
+    // }
+
+    // pub async fn list() -> MailboxdResult<Vec<SystemSetting>> {
+    //     list_all_impl(DB_MANAGER.metadata_db()).await
+    // }
+
+    // pub fn get_existing_value(key: &str) -> MailboxdResult<Option<String>> {
+    //     let setting = Self::get(key)?;
+    //     Ok(setting.map(|s| s.value))
+    // }
+
+    // pub async fn set_value(key: &str, value: String) -> MailboxdResult<()> {
+    //     let setting = Self::new(key.to_string(), value);
+    //     setting.set().await
+    // }
+}

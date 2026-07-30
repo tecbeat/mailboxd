@@ -1,0 +1,724 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use crate::{
+    database::{
+        delete_impl, filter_impl, find_impl, list_all_impl, manager::DB_MANAGER, update_impl,
+        with_transaction, MemDbModel,
+    },
+    decrypt, encrypt,
+    error::{code::ErrorCode, MailboxdResult},
+    generate_token, id, raise_error,
+    token::{AccessTokenModel, TokenType},
+    users::{
+        acl::AccessControl,
+        payload::{UserCreateRequest, UserUpdateRequest},
+        permissions::Permission,
+        role::{UserRole, DEFAULT_ADMIN_ROLE_ID},
+        view::UserView,
+    },
+    utc_now,
+};
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
+use tracing::warn;
+
+pub mod acl;
+pub mod manager;
+pub mod minimal;
+pub mod payload;
+pub mod permissions;
+pub mod role;
+pub mod view;
+
+pub type UserModel = MailboxdUserV2;
+
+fn derive_username_base(email: &str, display_name: Option<&str>) -> String {
+    if let Some(name) = display_name.map(str::trim).filter(|s| !s.is_empty()) {
+        let sanitized: String = name
+            .chars()
+            .map(|c| {
+                if c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.' {
+                    c
+                } else {
+                    '_'
+                }
+            })
+            .collect();
+        if !sanitized.is_empty() {
+            return sanitized;
+        }
+    }
+    email
+        .split('@')
+        .next()
+        .unwrap_or("user")
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect()
+}
+
+fn allocate_unique_username(base: &str) -> MailboxdResult<String> {
+    let base = if base.is_empty() { "user" } else { base };
+    let base_owned = base.to_string();
+    let candidate_taken = |candidate: &str| -> MailboxdResult<bool> {
+        let c = candidate.to_string();
+        let existing = filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| u.username == c)?;
+        Ok(existing.into_iter().next().is_some())
+    };
+    if !candidate_taken(&base_owned)? {
+        return Ok(base_owned);
+    }
+    for i in 2..1000 {
+        let candidate = format!("{}{}", base_owned, i);
+        if !candidate_taken(&candidate)? {
+            return Ok(candidate);
+        }
+    }
+    Err(raise_error!(
+        "Failed to allocate a unique username for auto-provisioned OIDC user".into(),
+        ErrorCode::InternalError
+    ))
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct LoginResult {
+    pub success: bool,
+    pub error_message: Option<String>,
+    pub access_token: Option<String>,
+    pub theme: Option<String>,
+    pub language: Option<String>,
+}
+
+pub const DEFAULT_ADMIN_USER_ID: u64 = 100000000000000;
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct MailboxdUserV2 {
+    pub id: u64,
+    pub username: String,
+    pub email: String,
+
+    pub password: Option<String>,
+
+    /// Scoped Access: Defines per-account permissions.
+    /// Example:
+    /// { account_id: 1, role_id: role_manager_id } -> Manager on Account 1
+    /// { account_id: 2, role_id: role_viewer_id }  -> Viewer on Account 2
+    pub account_access_map: BTreeMap<u64, u64>,
+
+    pub description: Option<String>,
+
+    /// System Roles: Permissions that apply to the whole system
+    /// (e.g., system settings, creating new users).
+    pub global_roles: Vec<u64>,
+
+    pub avatar: Option<String>,
+    pub created_at: i64,
+    pub updated_at: i64,
+    /// Optional access control settings
+    pub acl: Option<AccessControl>,
+
+    pub theme: Option<String>,
+    pub language: Option<String>,
+
+    /// SSO identity: unique subject ID from the external IdP (e.g. OIDC `sub` claim).
+    pub sso_id: Option<String>,
+    /// SSO provider identifier: `"oidc"` or future `"saml"` / `"ldap"`.
+    pub sso_provider: Option<String>,
+}
+
+impl MemDbModel for MailboxdUserV2 {
+    fn collection() -> &'static str {
+        "users"
+    }
+    fn key(&self) -> String {
+        self.id.to_string()
+    }
+}
+
+impl MailboxdUserV2 {
+    pub fn is_using_role(&self, role_id: u64) -> bool {
+        if self.global_roles.contains(&role_id) {
+            return true;
+        }
+
+        if self.account_access_map.values().any(|&id| id == role_id) {
+            return true;
+        }
+        false
+    }
+
+    pub fn list_all() -> MailboxdResult<Vec<UserModel>> {
+        Ok(list_all_impl::<UserModel>(DB_MANAGER.db())?)
+    }
+
+    fn get_all_permissions(&self) -> HashSet<String> {
+        let mut all_perms = HashSet::new();
+
+        for &role_id in &self.global_roles {
+            if let Ok(Some(role)) = UserRole::find(role_id) {
+                for perm in role.permissions {
+                    all_perms.insert(perm);
+                }
+            }
+        }
+
+        all_perms
+    }
+
+    pub fn to_view(self, role_lookup: &BTreeMap<u64, UserRole>) -> UserView {
+        let global_roles_names = self
+            .global_roles
+            .iter()
+            .filter_map(|role_id| role_lookup.get(role_id))
+            .map(|role| role.name.clone())
+            .collect();
+
+        let account_roles_summary = self
+            .account_access_map
+            .iter()
+            .map(|(acc_id, role_id)| {
+                let role_name = role_lookup
+                    .get(role_id)
+                    .map(|r| r.name.clone())
+                    .unwrap_or_else(|| "Unknown Role".to_string());
+                (*acc_id, role_name)
+            })
+            .collect();
+
+        let global_permissions = {
+            let mut perms = BTreeSet::new();
+
+            for role_id in &self.global_roles {
+                if let Some(role) = role_lookup.get(role_id) {
+                    perms.extend(role.permissions.iter().cloned());
+                }
+            }
+
+            perms.into_iter().collect()
+        };
+
+        let account_permissions = {
+            let mut map: BTreeMap<u64, BTreeSet<String>> = BTreeMap::new();
+
+            for (account_id, role_id) in &self.account_access_map {
+                if let Some(role) = role_lookup.get(role_id) {
+                    let entry = map.entry(*account_id).or_default();
+                    entry.extend(role.permissions.iter().cloned());
+                }
+            }
+
+            map.into_iter()
+                .map(|(acc_id, perms)| (acc_id, perms.into_iter().collect()))
+                .collect()
+        };
+        UserView {
+            id: self.id,
+            username: self.username,
+            email: self.email,
+            password: self.password.map(|_| "************".to_string()),
+            account_access_map: self.account_access_map,
+            account_roles_summary,
+            description: self.description,
+            global_roles: self.global_roles,
+            global_roles_names,
+            avatar: self.avatar,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            acl: self.acl,
+            account_permissions,
+            global_permissions,
+            theme: self.theme,
+            language: self.language,
+            sso_id: self.sso_id,
+            sso_provider: self.sso_provider,
+        }
+    }
+
+    pub fn is_admin(&self) -> bool {
+        self.get_all_permissions().contains(Permission::ROOT)
+    }
+
+    pub fn ensure_default_admin_exists() -> MailboxdResult<()> {
+        let now = utc_now!();
+
+        // 1. Try to get the existing admin user
+        let admin = find_impl::<UserModel>(DB_MANAGER.db(), &DEFAULT_ADMIN_USER_ID.to_string())?;
+
+        if admin.is_none() {
+            // 2. Insert the MailboxdUser with the updated schema
+            let user = UserModel {
+                id: DEFAULT_ADMIN_USER_ID,
+                username: "admin".into(),
+                email: "placeholder@example.com".into(),
+                password: Some(encrypt!("admin@mailboxd")?),
+
+                // Use global_roles as defined in our new schema
+                global_roles: vec![DEFAULT_ADMIN_ROLE_ID],
+
+                // Admin usually doesn't need specific scoped access
+                account_access_map: BTreeMap::new(),
+
+                avatar: None,
+                created_at: now,
+                updated_at: now,
+                description: Some("System default administrator".into()),
+                acl: None,
+                theme: None,
+                language: None,
+                sso_id: None,
+                sso_provider: None,
+            };
+
+            // 3. Generate and insert an initial access token for the first-time setup
+            let access_token = AccessTokenModel {
+                token: generate_token!(128),
+                created_at: now,
+                updated_at: now,
+                last_access_at: Default::default(),
+                name: Some("Initial Setup Token".into()),
+                user_id: DEFAULT_ADMIN_USER_ID,
+                token_type: TokenType::WebUI,
+                expire_at: None, // Admin setup token usually persistent until changed
+            };
+
+            with_transaction(DB_MANAGER.db(), move |txn| {
+                let txn = txn
+                    .insert("users", DEFAULT_ADMIN_USER_ID.to_string(), &user)
+                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?
+                    .upsert("tokens", access_token.token.clone(), &access_token)
+                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+                Ok(txn)
+            })?;
+        }
+
+        Ok(())
+    }
+
+    pub fn authenticate_user(username: String, password: String) -> MailboxdResult<LoginResult> {
+        // Find by username
+        let username_for_first = username.clone();
+        let users = filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| {
+            u.username == username_for_first
+        })?;
+        let user = match users.into_iter().next() {
+            Some(u) => u,
+            None => {
+                // Fallback: find by email
+                let users =
+                    filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| u.email == username)?;
+                match users.into_iter().next() {
+                    Some(u) => u,
+                    None => {
+                        return Ok(LoginResult {
+                            success: false,
+                            error_message: Some("User or email not found.".to_string()),
+                            access_token: None,
+                            theme: None,
+                            language: None,
+                        });
+                    }
+                }
+            }
+        };
+
+        match user.password.as_ref() {
+            Some(encrypted_password) => {
+                let decrypted = decrypt!(encrypted_password)?;
+                if password == decrypted {
+                    let new_token = AccessTokenModel::reset_webui_token(user.id)?;
+                    Ok(LoginResult {
+                        success: true,
+                        error_message: None,
+                        access_token: Some(new_token),
+                        theme: user.theme,
+                        language: user.language,
+                    })
+                } else {
+                    warn!(
+                        "Login failed: Incorrect password for user '{}'.",
+                        user.username
+                    );
+                    Ok(LoginResult {
+                        success: false,
+                        error_message: Some("Incorrect password.".to_string()),
+                        access_token: None,
+                        theme: None,
+                        language: None,
+                    })
+                }
+            }
+            None => {
+                warn!(
+                    "Login failed: User '{}' has no password set.",
+                    user.username
+                );
+                Ok(LoginResult {
+                    success: false,
+                    error_message: Some(
+                        format!(
+                            "User '{}' has no password set. Please try logging in with an alternative method (e.g., OAuth/SSO).",
+                            user.username
+                        )
+                    ),
+                    access_token: None,
+                    theme: None,
+                    language: None,
+                })
+            }
+        }
+    }
+
+    pub fn find(user_id: u64) -> MailboxdResult<Option<UserModel>> {
+        find_impl::<UserModel>(DB_MANAGER.db(), &user_id.to_string())
+    }
+
+    /// Resolve or auto-provision a mailboxd user for an OIDC login.
+    ///
+    /// Resolution order:
+    ///   1. Match on `(sso_provider, sso_id)` — same subject that logged in before.
+    ///   2. Match on `email` — bind the existing user to this SSO identity.
+    ///   3. Auto-provision a new user with the configured default global role.
+    ///
+    /// Returns the resolved/created user. The caller is expected to issue a
+    /// WebUI access token for that user.
+    pub fn find_or_provision_sso_user(
+        provider: &str,
+        subject: &str,
+        email: &str,
+        display_name: Option<&str>,
+        default_role_id: u64,
+    ) -> MailboxdResult<UserModel> {
+        let subject_owned = subject.to_string();
+        let provider_owned = provider.to_string();
+
+        let matches_by_sso = filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| {
+            u.sso_id.as_deref() == Some(&subject_owned)
+                && u.sso_provider.as_deref() == Some(&provider_owned)
+        })?;
+        if let Some(user) = matches_by_sso.into_iter().next() {
+            return Ok(user);
+        }
+
+        let email_owned = email.to_string();
+        let matches_by_email =
+            filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| u.email == email_owned)?;
+        if let Some(mut user) = matches_by_email.into_iter().next() {
+            let now = utc_now!();
+            user.sso_id = Some(subject.to_string());
+            user.sso_provider = Some(provider.to_string());
+            user.updated_at = now;
+            let user_clone = user.clone();
+            update_impl(DB_MANAGER.db(), &user.id.to_string(), move |_current: UserModel| {
+                Ok(user_clone.clone())
+            })?;
+            return Ok(user);
+        }
+
+        let now = utc_now!();
+        let base = derive_username_base(email, display_name);
+        let username = allocate_unique_username(&base)?;
+        let new_user = UserModel {
+            id: id!(96),
+            username,
+            email: email.to_string(),
+            password: None,
+            account_access_map: BTreeMap::new(),
+            description: Some(format!("Auto-provisioned via OIDC ({})", provider)),
+            global_roles: vec![default_role_id],
+            avatar: None,
+            created_at: now,
+            updated_at: now,
+            acl: None,
+            theme: None,
+            language: None,
+            sso_id: Some(subject.to_string()),
+            sso_provider: Some(provider.to_string()),
+        };
+
+        let user_clone = new_user.clone();
+        with_transaction(DB_MANAGER.db(), move |txn| {
+            txn.insert("users", new_user.key(), &new_user)
+                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
+        })?;
+        Ok(user_clone)
+    }
+
+    pub fn check_username_conflict(username: &str) -> MailboxdResult<()> {
+        let username_clone = username.to_string();
+        let users =
+            filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| u.username == username_clone)?;
+
+        if users.into_iter().next().is_some() {
+            return Err(raise_error!(
+                format!("Username '{}' is already taken.", username).into(),
+                ErrorCode::AlreadyExists
+            ));
+        }
+
+        Ok(())
+    }
+
+    pub fn check_email_conflict(email: &str) -> MailboxdResult<()> {
+        let email_clone = email.to_string();
+        let users = filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| u.email == email_clone)?;
+
+        if users.into_iter().next().is_some() {
+            return Err(raise_error!(
+                format!("Email '{}' is already registered.", email).into(),
+                ErrorCode::AlreadyExists
+            ));
+        }
+
+        Ok(())
+    }
+
+    pub fn create(request: UserCreateRequest) -> MailboxdResult<UserModel> {
+        request.validate()?;
+        Self::check_username_conflict(&request.username)?;
+        Self::check_email_conflict(&request.email)?;
+
+        let password_hash = Some(encrypt!(&request.password)?);
+        let now = utc_now!();
+
+        let user = UserModel {
+            id: id!(96),
+            username: request.username,
+            email: request.email,
+            password: password_hash,
+            global_roles: request.global_roles,
+            avatar: request.avatar_base64,
+            description: request.description,
+            acl: request.acl,
+            created_at: now,
+            updated_at: now,
+            account_access_map: request.account_access_map,
+            theme: request.theme,
+            language: request.language,
+            sso_id: None,
+            sso_provider: None,
+        };
+
+        let user_clone = user.clone();
+
+        // 4. Atomic transaction for User and Initial Token
+        let access_token = AccessTokenModel {
+            token: generate_token!(128),
+            created_at: now,
+            updated_at: now,
+            last_access_at: Default::default(),
+            name: Some("Default WebUI Token".into()),
+            user_id: user.id,
+            token_type: TokenType::WebUI,
+            expire_at: None,
+        };
+
+        with_transaction(DB_MANAGER.db(), move |txn| {
+            let txn = txn
+                .insert("users", user.key(), &user)
+                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?
+                .insert("tokens", access_token.token.clone(), &access_token)
+                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+            Ok(txn)
+        })?;
+
+        Ok(user_clone)
+    }
+
+    //delete user，
+    pub fn remove(id: u64) -> MailboxdResult<()> {
+        if DEFAULT_ADMIN_USER_ID == id {
+            return Err(raise_error!(
+                format!("The default admin user (id={}) cannot be removed", id),
+                ErrorCode::PermissionDenied
+            ));
+        }
+
+        delete_impl::<UserModel>(DB_MANAGER.db(), &id.to_string())?;
+
+        // Find and delete tokens belonging to this user
+        let uid = id;
+
+        let coll = DB_MANAGER.db().collection("tokens");
+        let all_tokens: Vec<AccessTokenModel> = coll
+            .list_all()
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+
+        let token_keys: Vec<String> = all_tokens
+            .into_iter()
+            .filter(|t| t.user_id == uid)
+            .map(|t| t.token)
+            .collect();
+
+        if !token_keys.is_empty() {
+            with_transaction(DB_MANAGER.db(), move |txn| {
+                let mut txn = txn;
+                for key in token_keys {
+                    txn = txn.delete("tokens", key);
+                }
+                Ok(txn)
+            })?;
+        }
+
+        Ok(())
+    }
+
+    pub fn update(id: u64, request: UserUpdateRequest) -> MailboxdResult<()> {
+        let _ = &request.validate()?;
+        let password_changed = request.password.is_some();
+        let is_default_admin = id == DEFAULT_ADMIN_USER_ID;
+
+        if is_default_admin {
+            if let Some(roles) = request.global_roles.as_deref() {
+                let is_valid = matches!(
+                    roles,
+                    [role] if *role == DEFAULT_ADMIN_ROLE_ID
+                );
+
+                if !is_valid {
+                    return Err(raise_error!(
+                        format!(
+                            "The role assignments for default admin (id={}) are immutable to ensure system accessibility.",
+                            id
+                        ),
+                        ErrorCode::Forbidden
+                    ));
+                }
+            }
+        }
+
+        if let Some(username) = &request.username {
+            let username_clone = username.clone();
+            let users = filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| {
+                u.username == username_clone
+            })?;
+
+            if let Some(u) = users.into_iter().next() {
+                if u.id != id {
+                    return Err(raise_error!(
+                        format!("Username '{}' is already taken.", username).into(),
+                        ErrorCode::AlreadyExists
+                    ));
+                }
+            }
+        }
+
+        if let Some(email) = &request.email {
+            let email_clone = email.clone();
+            let users =
+                filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| u.email == email_clone)?;
+
+            if let Some(u) = users.into_iter().next() {
+                if u.id != id {
+                    return Err(raise_error!(
+                        format!("Email '{}' is already registered.", email).into(),
+                        ErrorCode::AlreadyExists
+                    ));
+                }
+            }
+        }
+
+        update_impl::<UserModel>(DB_MANAGER.db(), &id.to_string(), move |current| {
+            let mut updated = current.clone();
+            if let Some(username) = request.username {
+                updated.username = username;
+            }
+            if let Some(email) = request.email {
+                updated.email = email;
+            }
+            if let Some(desc) = request.description {
+                updated.description = Some(desc);
+            }
+            if let Some(password) = request.password {
+                updated.password = Some(encrypt!(&password)?);
+            }
+
+            if let Some(global_roles) = request.global_roles {
+                updated.global_roles = global_roles;
+            }
+
+            if let Some(acl) = request.acl {
+                updated.acl = Some(acl);
+            }
+
+            if let Some(account_access_map) = request.account_access_map {
+                updated.account_access_map = account_access_map;
+            }
+
+            if let Some(avatar_base64) = request.avatar_base64 {
+                updated.avatar = Some(avatar_base64);
+            }
+
+            if let Some(theme) = request.theme {
+                updated.theme = Some(theme);
+            }
+
+            if let Some(language) = request.language {
+                updated.language = Some(language);
+            }
+
+            updated.updated_at = utc_now!();
+
+            Ok(updated)
+        })?;
+
+        if password_changed {
+            AccessTokenModel::reset_webui_token(id)?;
+        }
+
+        Ok(())
+    }
+
+    fn list_authorized_users(account_id: u64) -> MailboxdResult<Vec<UserModel>> {
+        let all = Self::list_all()?;
+        let result: Vec<UserModel> = all
+            .into_iter()
+            .filter(|e| e.account_access_map.contains_key(&account_id))
+            .collect();
+        Ok(result)
+    }
+
+    pub fn cleanup_account(account_id: u64) -> MailboxdResult<()> {
+        let users = Self::list_authorized_users(account_id)?;
+        if users.is_empty() {
+            return Ok(());
+        }
+
+        let now = utc_now!();
+        for user in users {
+            let key = user.id.to_string();
+            update_impl::<UserModel>(DB_MANAGER.db(), &key, move |current| {
+                let mut updated = current.clone();
+                if updated.account_access_map.remove(&account_id).is_some() {
+                    updated.updated_at = now;
+                }
+                Ok(updated)
+            })?;
+        }
+
+        Ok(())
+    }
+}

@@ -1,24 +1,25 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-.eggs/
+# Rust
+/target
+crates/*/target
 
-# Virtual environments
-.venv/
-venv/
-
-# Tools
-.mypy_cache/
-.ruff_cache/
-.pytest_cache/
+# Node / frontend
+node_modules
+web/dist
 
 # IDE
-.idea/
-.vscode/
+.vscode
+.idea
 *.swp
 
 # OS
 .DS_Store
+
+# Local scratch
+.tmp/
+.playwright-mcp/
+dedup_report.txt
+
+# Local docker overrides
+docker/.env
+docker/docker-compose.local.yml
+docker/mailboxd/

@@ -1,0 +1,25 @@
+# Keep the build context small and reproducible.
+# Note: .git IS included on purpose so crates/server/build.rs can call
+# `git rev-parse --short HEAD` at compile time.
+
+# Rust build artefacts (rebuilt inside the container)
+target
+crates/*/target
+
+# Node build artefacts (rebuilt inside the container)
+node_modules
+web/node_modules
+web/dist
+
+# IDE and OS
+.vscode
+.idea
+.DS_Store
+*.swp
+
+# Local scratch
+.tmp
+.playwright-mcp
+docker/.env
+dedup_report.txt
+*.log
