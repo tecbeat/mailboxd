@@ -3,6 +3,7 @@
   "name": "mailboxd-ui",
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "pnpm@11.4.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
