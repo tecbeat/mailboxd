@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -42,7 +44,7 @@ export default function SignIn() {
           <p className="text-muted-foreground px-8 text-center text-sm">
             {t('common.project_description')}
             <a
-              href="https://github.com/rustmailer/bichon"
+              href="https://git.teccave.de/tecbeat/mailboxd"
               className="hover:text-primary underline underline-offset-4 ml-1"
             >
               {t('common.view_on_github_button')}

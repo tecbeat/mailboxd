@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// Part of mailboxd, a fork of the Bichon email archiving project.
+// Modifications by tecbeat, 2026.
 
 import axiosInstance from '@/api/axiosInstance';
 import { list_accounts } from '@/api/account/api';

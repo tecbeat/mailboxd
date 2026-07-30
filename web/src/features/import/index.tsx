@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// Part of mailboxd, a fork of the Bichon email archiving project.
+// Modifications by tecbeat, 2026.
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -88,7 +90,7 @@ function formatSize(bytes: number) {
 function folderHintLabel(hint: FolderHint): string {
   switch (hint.source) {
     case 'gmail-labels': return 'X-Gmail-Labels';
-    case 'bichon-metadata': return 'X-Bichon-Metadata';
+    case 'mailboxd-metadata': return 'X-mailboxd-Metadata';
     case 'filename': return 'filename';
     case 'mbox-filename': return 'mbox filename';
     case 'pst-filename': return 'PST filename';
@@ -426,7 +428,7 @@ export default function ImportPage() {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {t('import.modeHeaderDesc', 'Read X-Gmail-Labels / X-Bichon-Metadata from the uploaded file. Falls back to filename.')}
+                      {t('import.modeHeaderDesc', 'Read X-Gmail-Labels / X-mailboxd-Metadata from the uploaded file. Falls back to filename.')}
                     </p>
                     {folderMode === 'header' && (
                       <div className="mt-2 flex items-center gap-2">

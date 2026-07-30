@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// Part of mailboxd, a fork of the Bichon email archiving project.
+// Modifications by tecbeat, 2026.
 
 /**
  * Parse raw EML/MBOX headers from the first few KB of a file and return a
@@ -74,9 +76,9 @@ function folderFromGmailLabels(raw: string): string | null {
   return business ?? filtered[0];
 }
 
-/** Try to read mailbox_name from X-Bichon-Metadata JSON header. */
-function folderFromBichonMetadata(raw: string): string | null {
-  const metaRaw = getHeader(raw, 'X-Bichon-Metadata');
+/** Try to read mailbox_name from X-mailboxd-Metadata JSON header. */
+function folderFromMailboxdMetadata(raw: string): string | null {
+  const metaRaw = getHeader(raw, 'X-mailboxd-Metadata');
   if (!metaRaw) return null;
   try {
     const meta = JSON.parse(metaRaw);
@@ -104,7 +106,7 @@ export interface FolderHint {
   /** The suggested folder name. */
   name: string;
   /** Where the hint came from. */
-  source: 'gmail-labels' | 'bichon-metadata' | 'filename' | 'mbox-filename' | 'pst-filename';
+  source: 'gmail-labels' | 'mailboxd-metadata' | 'filename' | 'mbox-filename' | 'pst-filename';
 }
 
 /**
@@ -125,9 +127,9 @@ export async function extractFolderHint(file: File): Promise<FolderHint | null> 
     ? raw.replace(/^From [^\n]*\n/, '') // strip MBOX "From " separator
     : raw;
 
-  // 1. X-Bichon-Metadata (highest priority, explicit)
-  const bichonFolder = folderFromBichonMetadata(headers);
-  if (bichonFolder) return { name: bichonFolder, source: 'bichon-metadata' };
+  // 1. X-mailboxd-Metadata (highest priority, explicit)
+  const mailboxdFolder = folderFromMailboxdMetadata(headers);
+  if (mailboxdFolder) return { name: mailboxdFolder, source: 'mailboxd-metadata' };
 
   // 2. X-Gmail-Labels
   const gmailFolder = folderFromGmailLabels(headers);
