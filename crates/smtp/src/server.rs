@@ -651,7 +651,7 @@ async fn parse_email(data: &[u8], session: &Session) -> MailboxdResult<()> {
             delimiter: Some("/".to_string()),
             attributes: vec![Attribute {
                 attr: AttributeEnum::Extension,
-                extension: Some("CreatedByBichon".into()),
+                extension: Some("CreatedByMailboxd".into()),
             }],
             exists: 0,
             unseen: None,

@@ -117,7 +117,7 @@ impl ImportEmls {
                     delimiter: Some("/".to_string()),
                     attributes: vec![Attribute {
                         attr: AttributeEnum::Extension,
-                        extension: Some("CreatedByBichon".into()),
+                        extension: Some("CreatedByMailboxd".into()),
                     }],
                     exists: 0,
                     unseen: None,
@@ -408,7 +408,7 @@ pub(super) fn resolve_mailbox(account: &AccountModel, folder: &str) -> MailboxdR
                 delimiter: Some("/".to_string()),
                 attributes: vec![Attribute {
                     attr: AttributeEnum::Extension,
-                    extension: Some("CreatedByBichon".into()),
+                    extension: Some("CreatedByMailboxd".into()),
                 }],
                 exists: 0,
                 unseen: None,

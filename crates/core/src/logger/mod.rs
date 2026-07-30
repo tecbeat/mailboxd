@@ -72,7 +72,7 @@ fn validate_log_level(value: &String) -> Level {
         Err(_) => {
             eprintln!(
                 "Invalid log level specified. Use one of: error, warn, info, debug, trace. 
-                The log level you currently specified is 'rustmailer_log_level'='{}'",
+                The log level you currently specified is 'mailboxd_log_level'='{}'",
                 value
             );
             process::exit(1);

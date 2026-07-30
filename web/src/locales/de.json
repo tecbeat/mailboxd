@@ -373,7 +373,8 @@
     "useProxyField": "Proxy verwenden",
     "value": "Wert",
     "viewDetails": "Details anzeigen",
-    "years": "Jahre"
+    "years": "Jahre",
+    "useProxyOptional": "Proxy verwenden (Optional):"
   },
   "apiDocs": {
     "choosePreferredType": "Wählen Sie den bevorzugten Typ der API-Dokumentation",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Erneut versuchen",
     "update": "Aktualisieren",
-    "view_on_github_button": "Auf GitHub anzeigen",
-    "yes": "Ja"
+    "yes": "Ja",
+    "view_source_button": "Quellcode anzeigen"
   },
   "dashboard": {
     "account": "Konto",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Statusaktualisierung fehlgeschlagen, bitte versuchen Sie es später erneut",
     "success": "Erfolg",
     "successMessage": "Ihr E-Mail-Konto wurde erfolgreich über OAuth2 authentifiziert. Das Zugriffstoken wurde vom System gespeichert und wird bei Bedarf automatisch aktualisiert.",
-    "theRedirectUrlAfterAuthorization": "Der Weiterleitungs-URI nach der Autorisierung. Er muss mit dem beim OAuth-Anbieter registrierten übereinstimmen. Verwenden Sie das Format http://[host]:[port]/oauth2/callback (oder https://), wobei [host] und [port] mit Ihrer RustMailer-Bereitstellung übereinstimmen. Der Pfad /oauth2/callback ist fest.",
+    "theRedirectUrlAfterAuthorization": "Der Weiterleitungs-URI nach der Autorisierung. Er muss mit dem beim OAuth-Anbieter registrierten übereinstimmen. Verwenden Sie das Format http://[host]:[port]/oauth2/callback (oder https://), wobei [host] und [port] mit Ihrer mailboxd-Bereitstellung übereinstimmen. Der Pfad /oauth2/callback ist fest.",
     "theUniqueIdentifierForYourApplication": "Der eindeutige Bezeichner für Ihre Anwendung, bereitgestellt vom OAuth-Anbieter.",
     "theUrlUsedToExchange": "Die URL, die verwendet wird, um den Autorisierungscode gegen ein Zugriffstoken auszutauschen.",
     "theUrlWhereUsersWillBeRedirected": "Die URL, zu der Benutzer weitergeleitet werden, um Ihre Anwendung zu autorisieren.",

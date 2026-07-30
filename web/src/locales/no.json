@@ -373,7 +373,8 @@
     "useProxyField": "bruk proxy",
     "value": "Verdi",
     "viewDetails": "se detaljer",
-    "years": "År"
+    "years": "År",
+    "useProxyOptional": "Bruk Proxy (valgfritt):"
   },
   "apiDocs": {
     "choosePreferredType": "Velg foretrukket API-dokumentasjonstype",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Prøv igjen",
     "update": "Oppdater",
-    "view_on_github_button": "Vis på GitHub",
-    "yes": "Ja"
+    "yes": "Ja",
+    "view_source_button": "Vis kildekode"
   },
   "dashboard": {
     "account": "Konto",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Statusoppdatering mislyktes, vennligst prøv igjen senere",
     "success": "Suksess",
     "successMessage": "E-postkontoen din er autentisert via OAuth2. Tilgangstokenet er lagret av systemet og vil bli automatisk oppdatert ved behov.",
-    "theRedirectUrlAfterAuthorization": "Omdirigerings-URL-en etter autorisasjon. Den må samsvare med den som er registrert hos OAuth-leverandøren. Bruk formatet http://[vert]:[port]/oauth2/callback (eller https://), der [vert] og [port] samsvarer med din RustMailer-utrulling. Banen /oauth2/callback er fast.",
+    "theRedirectUrlAfterAuthorization": "Omdirigerings-URL-en etter autorisasjon. Den må samsvare med den som er registrert hos OAuth-leverandøren. Bruk formatet http://[vert]:[port]/oauth2/callback (eller https://), der [vert] og [port] samsvarer med din mailboxd-utrulling. Banen /oauth2/callback er fast.",
     "theUniqueIdentifierForYourApplication": "Den unike identifikatoren for applikasjonen din, levert av OAuth-leverandøren.",
     "theUrlUsedToExchange": "URL-en som brukes til å veksle autorisasjonskoden mot et tilgangstoken.",
     "theUrlWhereUsersWillBeRedirected": "URL-en brukerne blir omdirigert til for å autorisere applikasjonen din.",
