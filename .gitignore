@@ -18,4 +18,8 @@ web/dist
 .tmp/
 .playwright-mcp/
 dedup_report.txt
+
+# Local docker overrides
 docker/.env
+docker/docker-compose.local.yml
+docker/mailboxd/

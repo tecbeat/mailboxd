@@ -50,7 +50,7 @@ in the web UI footer and on the sign-in screen.
 Third-party components
 ----------------------
 
-mailboxd depends on a number of third-party libraries. Their
-respective licenses are recorded via `cargo-about` (see
-`about.toml`, `about.hbs`) and can be generated with
-`cargo about generate about.hbs > licenses.html`.
+mailboxd depends on a number of third-party Rust and JavaScript
+libraries. Their respective licenses can be inspected in the
+Cargo.lock file, the web/pnpm-lock.yaml file, or generated on demand
+with tools such as `cargo about` or `pnpm licenses list`.
