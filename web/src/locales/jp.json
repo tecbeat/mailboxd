@@ -486,7 +486,8 @@
     "somethingWentWrong": "問題が発生しました",
     "username": "ユーザー名",
     "welcome": "mailboxd へようこそ",
-    "youWillNeedToLogInAgain": "アカウントにアクセスするには、再度ログインする必要があります。"
+    "youWillNeedToLogInAgain": "アカウントにアクセスするには、再度ログインする必要があります。",
+    "ssoLogin": "SSOでサインイン"
   },
   "command": {
     "dark": "ダーク",

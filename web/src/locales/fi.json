@@ -486,7 +486,8 @@
     "somethingWentWrong": "Jotain meni vikaan",
     "username": "Käyttäjänimi",
     "welcome": "Tervetuloa mailboxdiin",
-    "youWillNeedToLogInAgain": "Sinun on kirjauduttava sisään uudelleen päästäksesi tilillesi."
+    "youWillNeedToLogInAgain": "Sinun on kirjauduttava sisään uudelleen päästäksesi tilillesi.",
+    "ssoLogin": "Kirjaudu SSO:lla"
   },
   "command": {
     "dark": "Tumma",

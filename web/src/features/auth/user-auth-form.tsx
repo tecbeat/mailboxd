@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { HTMLAttributes, useState } from 'react'
+import { HTMLAttributes, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { cn, toSearchParams } from '@/lib/utils'
@@ -43,20 +43,52 @@ import { useLocation, useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/button'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
-import { Loader2, LogIn } from 'lucide-react'
+import { Loader2, LogIn, Shield } from 'lucide-react'
 import { login } from '@/api/users/api'
 import { useTheme } from '@/context/theme-context'
+import { useOidcConfig } from '@/hooks/use-oidc-config'
 
 type UserAuthFormProps = HTMLAttributes<HTMLDivElement>
+
+function buildOidcLoginUrl(redirectTo: string): string {
+  const injectedBase = (window as unknown as { __MAILBOXD_BASE__?: string }).__MAILBOXD_BASE__
+  const base = !injectedBase || injectedBase === '/' ? '' : injectedBase.replace(/\/$/, '')
+  const params = new URLSearchParams()
+  if (redirectTo && redirectTo !== '/') {
+    params.set('redirect_to', redirectTo)
+  }
+  const qs = params.toString()
+  return `${base}/api/auth/oidc/login${qs ? `?${qs}` : ''}`
+}
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { setTheme } = useTheme();
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { oidcEnabled, oidcAutoRedirect } = useOidcConfig()
 
   const { search } = useLocation();
-  const redirect = toSearchParams(search).get('redirect') || '/';
+  const searchParams = toSearchParams(search);
+  const redirect = searchParams.get('redirect') || '/';
+  const localOnly = searchParams.get('local') === '1';
+  const ssoError = searchParams.get('sso_error');
+
+  useEffect(() => {
+    if (ssoError) {
+      toast({
+        variant: 'destructive',
+        title: t('auth.loginFailed'),
+        description: ssoError,
+      })
+    }
+  }, [ssoError, t])
+
+  useEffect(() => {
+    if (oidcEnabled && oidcAutoRedirect && !localOnly && !ssoError) {
+      window.location.href = buildOidcLoginUrl(redirect)
+    }
+  }, [oidcEnabled, oidcAutoRedirect, localOnly, ssoError, redirect])
 
   const formSchema = getFormSchema(t)
   const form = useForm<LoginFormValues>({
@@ -158,6 +190,20 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               {isLoading ? <Loader2 className='animate-spin' /> : <LogIn size={16} className='mr-2' />}
               {t('auth.login')}
             </Button>
+
+            {oidcEnabled && (
+              <Button
+                variant='outline'
+                className='mt-2'
+                type='button'
+                onClick={() => {
+                  window.location.href = buildOidcLoginUrl(redirect)
+                }}
+              >
+                <Shield size={16} className='mr-2' />
+                {t('auth.ssoLogin')}
+              </Button>
+            )}
           </div>
         </form>
       </Form>

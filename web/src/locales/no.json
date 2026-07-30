@@ -486,7 +486,8 @@
     "somethingWentWrong": "Noe gikk galt",
     "username": "Brukernavn",
     "welcome": "Velkommen til mailboxd",
-    "youWillNeedToLogInAgain": "Du må logge inn på nytt for å få tilgang til kontoen din."
+    "youWillNeedToLogInAgain": "Du må logge inn på nytt for å få tilgang til kontoen din.",
+    "ssoLogin": "Logg inn med SSO"
   },
   "command": {
     "dark": "Mørk",

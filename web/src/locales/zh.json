@@ -496,7 +496,8 @@
     "somethingWentWrong": "出错了",
     "username": "用户名",
     "welcome": "欢迎使用 mailboxd",
-    "youWillNeedToLogInAgain": "您需要重新登录才能访问您的账户。"
+    "youWillNeedToLogInAgain": "您需要重新登录才能访问您的账户。",
+    "ssoLogin": "使用 SSO 登录"
   },
   "command": {
     "dark": "深色",

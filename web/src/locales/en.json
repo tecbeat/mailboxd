@@ -497,7 +497,8 @@
     "somethingWentWrong": "Something went wrong",
     "username": "Username",
     "welcome": "Welcome to mailboxd",
-    "youWillNeedToLogInAgain": "You will need to log in again to access your account."
+    "youWillNeedToLogInAgain": "You will need to log in again to access your account.",
+    "ssoLogin": "Sign in with SSO"
   },
   "command": {
     "dark": "Dark",

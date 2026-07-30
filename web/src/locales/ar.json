@@ -486,7 +486,8 @@
     "somethingWentWrong": "حدث خطأ ما",
     "username": "اسم المستخدم",
     "welcome": "مرحبًا بك في بيشون",
-    "youWillNeedToLogInAgain": "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك."
+    "youWillNeedToLogInAgain": "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.",
+    "ssoLogin": "تسجيل الدخول عبر SSO"
   },
   "command": {
     "dark": "داكن",
