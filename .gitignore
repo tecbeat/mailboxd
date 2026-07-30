@@ -1,7 +1,21 @@
+# Rust
 /target
+crates/*/target
+
+# Node / frontend
+node_modules
+web/dist
+
+# IDE
 .vscode
 .idea
-config.toml
-node_modules
+*.swp
+
+# OS
+.DS_Store
+
+# Local scratch
+.tmp/
+.playwright-mcp/
 dedup_report.txt
-crates/*/target
+docker/.env
