@@ -18,6 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use mailboxd_core::mailboxd_version;
 use poem::{handler, web::Json, IntoResponse};
 use serde::Serialize;
 
@@ -33,6 +34,6 @@ pub async fn get_features() -> impl IntoResponse {
     Json(FeaturesResponse {
         features: vec![],
         edition: "community",
-        version: env!("CARGO_PKG_VERSION").to_string(),
+        version: mailboxd_version!().to_string(),
     })
 }

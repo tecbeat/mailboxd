@@ -37,7 +37,9 @@ pub mod tls;
 #[macro_export]
 macro_rules! mailboxd_version {
     () => {
-        env!("CARGO_PKG_VERSION")
+        // Set by crates/server/build.rs. Prefers the VERSION env var injected
+        // by the teccave pipeline; falls back to CARGO_PKG_VERSION locally.
+        option_env!("MAILBOXD_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))
     };
 }
 

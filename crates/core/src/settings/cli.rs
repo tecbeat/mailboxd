@@ -28,7 +28,7 @@ pub static SETTINGS: LazyLock<Settings> = LazyLock::new(Settings::init);
 #[clap(
     name = "mailboxd",
     about = "A self-hosted email synchronization and backup tool built in Rust",
-    version = env!("CARGO_PKG_VERSION")
+    version = crate::mailboxd_version!()
 )]
 pub struct Settings {
     /// mailboxd log level (default: "info")

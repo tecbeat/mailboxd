@@ -33,6 +33,11 @@ RUN apt-get update \
 
 WORKDIR /build
 
+# Passed as --build-arg by the teccave pipeline; consumed by
+# crates/server/build.rs and baked into every binary as MAILBOXD_VERSION.
+ARG VERSION=v0.0.0-dev
+ENV VERSION=${VERSION}
+
 COPY . .
 COPY --from=web-builder /build/dist ./web/dist
 
