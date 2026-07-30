@@ -18,14 +18,4 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Event bus extension point.
-//
-// Community edition: NoopEventBus — all events are discarded.
-// Pro edition: AuditEventBus — events are persisted to audit database.
-// Enterprise edition: adds SIEM webhook to the same trait impl.
-//
-// The open-source server emits events at key points (login, view, delete, search).
-// It never reads from the event bus — events are fire-and-forget.
-
-pub mod event_bus;
 pub mod text_extractor;

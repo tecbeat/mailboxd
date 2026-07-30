@@ -20,8 +20,9 @@
 
 // Attachment text extraction extension point.
 //
-// Community edition: NoopExtractor — no attachments are text-indexed.
-// Pro edition: PdfExtractor — extracts text from PDF, Word, etc.
+// Default: NoopExtractor — no attachments are text-indexed. Register a
+// concrete implementation (e.g. a PDF/DOCX extractor) via set_extractor()
+// during startup to enable attachment full-text indexing.
 //
 // Used in: crates/core/src/envelope/extractor.rs
 
@@ -50,7 +51,7 @@ impl AttachmentTextExtractor for NoopExtractor {
 static EXTRACTOR: LazyLock<RwLock<Box<dyn AttachmentTextExtractor>>> =
     LazyLock::new(|| RwLock::new(Box::new(NoopExtractor)));
 
-/// Called by Pro/Enterprise at startup to replace the noop default.
+/// Register a concrete extractor at startup to replace the noop default.
 pub fn set_extractor(extractor: Box<dyn AttachmentTextExtractor>) {
     *EXTRACTOR.write().unwrap() = extractor;
 }

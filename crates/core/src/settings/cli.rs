@@ -347,7 +347,7 @@ pub struct Settings {
     )]
     pub mailboxd_imap_encryption: EncryptionMode,
 
-    /// Enable OIDC-based Single Sign-On (Pro/Enterprise feature).
+    /// Enable OIDC-based Single Sign-On.
     #[clap(long, default_value = "false", env, help = "Enable OpenID Connect SSO")]
     pub mailboxd_oidc_enabled: bool,
 
