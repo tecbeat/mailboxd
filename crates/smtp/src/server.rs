@@ -21,14 +21,14 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use base64::{prelude::BASE64_STANDARD, Engine as _};
-use bichon_core::account::migration::AccountType;
-use bichon_core::cache::imap::mailbox::{Attribute, AttributeEnum};
-use bichon_core::common::signal::SIGNAL_MANAGER;
-use bichon_core::envelope::extractor::extract_envelope_from_smtp;
-use bichon_core::error::BichonResult;
-use bichon_core::settings::cli::{EncryptionMode, SETTINGS};
-use bichon_core::utils::create_hash;
-use bichon_core::{
+use mailboxd_core::account::migration::AccountType;
+use mailboxd_core::cache::imap::mailbox::{Attribute, AttributeEnum};
+use mailboxd_core::common::signal::SIGNAL_MANAGER;
+use mailboxd_core::envelope::extractor::extract_envelope_from_smtp;
+use mailboxd_core::error::BichonResult;
+use mailboxd_core::settings::cli::{EncryptionMode, SETTINGS};
+use mailboxd_core::utils::create_hash;
+use mailboxd_core::{
     account::migration::AccountModel,
     cache::imap::mailbox::MailBox,
     common::auth::ClientContext,

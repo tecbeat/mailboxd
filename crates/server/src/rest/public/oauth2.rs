@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use bichon_core::oauth2::{flow::OAuth2Flow, pending::OAuth2PendingEntity};
+use mailboxd_core::oauth2::{flow::OAuth2Flow, pending::OAuth2PendingEntity};
 use poem::{
     handler,
     web::{Query, Redirect},

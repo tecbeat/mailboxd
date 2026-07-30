@@ -4,7 +4,7 @@ use std::{
     sync::{Arc, LazyLock},
 };
 
-use bichon_core::{
+use mailboxd_core::{
     account::{
         entity::ImapConfig,
         migration::{AccountModel, AccountType},
@@ -18,7 +18,7 @@ use bichon_core::{
     token::TokenType,
     users::{acl::AccessControl, role::RoleType},
 };
-use bichon_memdb::{Durability, MemDb};
+use mailboxd_memdb::{Durability, MemDb};
 use console::style;
 use itertools::Itertools;
 use native_db::*;
@@ -37,7 +37,7 @@ pub struct CachedMailSettings {
     pub created_at: i64,
 }
 
-impl From<CachedMailSettings> for bichon_core::autoconfig::CachedMailSettings {
+impl From<CachedMailSettings> for mailboxd_core::autoconfig::CachedMailSettings {
     fn from(value: CachedMailSettings) -> Self {
         Self {
             domain: value.domain,
@@ -311,7 +311,7 @@ impl OAuth2 {
     }
 }
 
-impl From<OAuth2> for bichon_core::oauth2::entity::OAuth2 {
+impl From<OAuth2> for mailboxd_core::oauth2::entity::OAuth2 {
     fn from(value: OAuth2) -> Self {
         Self {
             id: value.id,
@@ -350,7 +350,7 @@ pub struct OAuth2PendingEntity {
     pub created_at: i64,
 }
 
-impl From<OAuth2PendingEntity> for bichon_core::oauth2::pending::OAuth2PendingEntity {
+impl From<OAuth2PendingEntity> for mailboxd_core::oauth2::pending::OAuth2PendingEntity {
     fn from(value: OAuth2PendingEntity) -> Self {
         Self {
             oauth2_id: value.oauth2_id,
@@ -382,7 +382,7 @@ pub struct OAuth2AccessToken {
     pub updated_at: i64,
 }
 
-impl From<OAuth2AccessToken> for bichon_core::oauth2::token::OAuth2AccessToken {
+impl From<OAuth2AccessToken> for mailboxd_core::oauth2::token::OAuth2AccessToken {
     fn from(value: OAuth2AccessToken) -> Self {
         Self {
             account_id: value.account_id,
@@ -413,7 +413,7 @@ pub struct Proxy {
     pub updated_at: i64,
 }
 
-impl From<Proxy> for bichon_core::settings::proxy::Proxy {
+impl From<Proxy> for mailboxd_core::settings::proxy::Proxy {
     fn from(value: Proxy) -> Self {
         Self {
             id: value.id,
@@ -439,7 +439,7 @@ pub struct UserRole {
     pub updated_at: i64,
 }
 
-impl From<UserRole> for bichon_core::users::role::UserRole {
+impl From<UserRole> for mailboxd_core::users::role::UserRole {
     fn from(value: UserRole) -> Self {
         Self {
             id: value.id,
@@ -559,7 +559,7 @@ impl From<BichonUser> for BichonUserV2 {
     }
 }
 
-impl From<BichonUserV2> for bichon_core::users::BichonUserV2 {
+impl From<BichonUserV2> for mailboxd_core::users::BichonUserV2 {
     fn from(value: BichonUserV2) -> Self {
         Self {
             id: value.id,
@@ -606,7 +606,7 @@ pub struct AccessTokenModel {
     pub last_access_at: i64,
 }
 
-impl From<AccessTokenModel> for bichon_core::token::AccessTokenModel {
+impl From<AccessTokenModel> for mailboxd_core::token::AccessTokenModel {
     fn from(value: AccessTokenModel) -> Self {
         Self {
             user_id: value.user_id,
@@ -653,7 +653,7 @@ pub struct MailBox {
     pub uid_validity: Option<u32>,
 }
 
-impl From<MailBox> for bichon_core::cache::imap::mailbox::MailBox {
+impl From<MailBox> for mailboxd_core::cache::imap::mailbox::MailBox {
     fn from(value: MailBox) -> Self {
         Self {
             id: value.id,
@@ -839,7 +839,7 @@ pub fn migrate_metadata(root_path: &PathBuf) -> Result<(), Box<dyn std::error::E
     migrate_collection!(
         "Mail Settings",
         CachedMailSettings,
-        bichon_core::autoconfig::CachedMailSettings,
+        mailboxd_core::autoconfig::CachedMailSettings,
         &meta_db
     );
 
@@ -848,49 +848,49 @@ pub fn migrate_metadata(root_path: &PathBuf) -> Result<(), Box<dyn std::error::E
     migrate_collection!(
         "OAuth2 Entities",
         OAuth2,
-        bichon_core::oauth2::entity::OAuth2,
+        mailboxd_core::oauth2::entity::OAuth2,
         &meta_db
     );
 
     migrate_collection!(
         "OAuth2 Pending",
         OAuth2PendingEntity,
-        bichon_core::oauth2::pending::OAuth2PendingEntity,
+        mailboxd_core::oauth2::pending::OAuth2PendingEntity,
         &meta_db
     );
 
     migrate_collection!(
         "OAuth2 Access Tokens",
         OAuth2AccessToken,
-        bichon_core::oauth2::token::OAuth2AccessToken,
+        mailboxd_core::oauth2::token::OAuth2AccessToken,
         &meta_db
     );
 
     migrate_collection!(
         "Proxy Settings",
         Proxy,
-        bichon_core::settings::proxy::Proxy,
+        mailboxd_core::settings::proxy::Proxy,
         &meta_db
     );
 
     migrate_collection!(
         "User Roles",
         UserRole,
-        bichon_core::users::role::UserRole,
+        mailboxd_core::users::role::UserRole,
         &meta_db
     );
 
     migrate_collection!(
         "Users",
         BichonUserV2,
-        bichon_core::users::BichonUserV2,
+        mailboxd_core::users::BichonUserV2,
         &meta_db
     );
 
     migrate_collection!(
         "Access Tokens",
         AccessTokenModel,
-        bichon_core::token::AccessTokenModel,
+        mailboxd_core::token::AccessTokenModel,
         &meta_db
     );
 
@@ -898,7 +898,7 @@ pub fn migrate_metadata(root_path: &PathBuf) -> Result<(), Box<dyn std::error::E
     migrate_collection!(
         "Mailboxes",
         MailBox,
-        bichon_core::cache::imap::mailbox::MailBox,
+        mailboxd_core::cache::imap::mailbox::MailBox,
         &envelope_db
     );
 

@@ -25,11 +25,11 @@ use crate::error::handler::error_handler;
 use crate::rest::public::features::get_features;
 use crate::rest::public::login::login;
 use crate::rest::public::status::get_status;
-use bichon_core::common::signal::SIGNAL_MANAGER;
-use bichon_core::error::code::ErrorCode;
-use bichon_core::error::BichonResult;
-use bichon_core::raise_error;
-use bichon_core::settings::cli::SETTINGS;
+use mailboxd_core::common::signal::SIGNAL_MANAGER;
+use mailboxd_core::error::code::ErrorCode;
+use mailboxd_core::error::BichonResult;
+use mailboxd_core::raise_error;
+use mailboxd_core::settings::cli::SETTINGS;
 
 use api::create_openapi_service;
 use http::Method;

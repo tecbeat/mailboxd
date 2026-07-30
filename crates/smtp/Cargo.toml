@@ -1,11 +1,11 @@
 [package]
-name = "bichon-smtp"
+name = "mailboxd-smtp"
 version.workspace = true
 edition.workspace = true
 
 
 [dependencies]
-bichon-core = { path = "../core" }
+mailboxd-core = { path = "../core" }
 rcgen.workspace = true
 rustls-pemfile.workspace = true
 tokio-util.workspace = true

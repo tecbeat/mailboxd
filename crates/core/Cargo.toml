@@ -1,5 +1,5 @@
 [package]
-name = "bichon-core"
+name = "mailboxd-core"
 version.workspace = true
 edition.workspace = true
 
@@ -19,7 +19,7 @@ poem-openapi = { version = "5.1.16", features = [
 ], optional = true }
 chrono.workspace = true
 clap.workspace = true
-bichon-memdb.workspace = true
+mailboxd-memdb.workspace = true
 itertools.workspace = true
 ring.workspace = true
 serde.workspace = true

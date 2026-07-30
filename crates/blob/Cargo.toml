@@ -1,5 +1,5 @@
 [package]
-name = "bichon-blob"
+name = "mailboxd-blob"
 version = "0.1.0"
 edition = "2021"
 description = "Embedded KV storage engine for email"

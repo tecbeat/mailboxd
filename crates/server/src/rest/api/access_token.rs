@@ -19,9 +19,9 @@
 use crate::common::auth::WrappedContext;
 use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
-use bichon_core::token::view::AccessTokenResp;
-use bichon_core::users::permissions::Permission;
-use bichon_core::{token::payload::AccessTokenCreateRequest, token::AccessTokenModel};
+use mailboxd_core::token::view::AccessTokenResp;
+use mailboxd_core::users::permissions::Permission;
+use mailboxd_core::{token::payload::AccessTokenCreateRequest, token::AccessTokenModel};
 use poem_openapi::payload::PlainText;
 use poem_openapi::{param::Path, payload::Json, OpenApi};
 

@@ -2,7 +2,7 @@ use criterion::{criterion_group, criterion_main, BatchSize, Criterion, Throughpu
 use std::time::Duration;
 use tempfile::TempDir;
 
-use bichon_blob::{Codec, Config, Engine};
+use mailboxd_blob::{Codec, Config, Engine};
 
 fn make_key(seed: u64) -> [u8; 32] {
     let mut key = [0u8; 32];

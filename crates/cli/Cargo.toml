@@ -1,11 +1,11 @@
 [package]
-name = "bichon-cli"
+name = "mailboxd-cli"
 version.workspace = true
 edition.workspace = true
 
 
 [dependencies]
-bichon-core = { path = "../core" }
+mailboxd-core = { path = "../core" }
 tokio.workspace = true
 serde.workspace = true
 clap.workspace = true

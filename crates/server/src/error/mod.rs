@@ -17,7 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::error::code::IntoStatusCode;
-use bichon_core::error::BichonError;
+use mailboxd_core::error::BichonError;
 use poem::http::StatusCode;
 use poem_openapi::{payload::Json, ApiResponse, Object};
 use std::{fmt::Formatter, u32};

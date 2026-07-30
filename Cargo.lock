@@ -298,185 +298,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
-name = "bichon-admin"
-version = "1.6.2"
-dependencies = [
- "bichon-core",
- "bichon-memdb",
- "console",
- "dialoguer",
- "indicatif",
- "itertools 0.15.0",
- "native_db",
- "native_model",
- "serde",
- "serde_json",
- "snafu",
- "tokio",
-]
-
-[[package]]
-name = "bichon-blob"
-version = "0.1.0"
-dependencies = [
- "bincode_reloaded",
- "crc32fast",
- "criterion",
- "lz4_flex",
- "memmap2",
- "rand 0.10.2",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tracing",
- "zstd",
-]
-
-[[package]]
-name = "bichon-cli"
-version = "1.6.2"
-dependencies = [
- "base64 0.22.1",
- "bichon-core",
- "chrono",
- "clap",
- "console",
- "dialoguer",
- "indicatif",
- "mail-parser",
- "memmap2",
- "outlook-pst",
- "reqwest",
- "serde",
- "serde_json",
- "sysinfo",
- "tokio",
- "toml",
-]
-
-[[package]]
-name = "bichon-core"
-version = "1.6.2"
-dependencies = [
- "async-imap",
- "base64 0.22.1",
- "bichon-memdb",
- "blake3",
- "bytes 1.12.0",
- "chrono",
- "clap",
- "codepage-strings",
- "compressed-rtf",
- "cron",
- "dashmap",
- "deunicode",
- "email_address",
- "encoding_rs",
- "fjall",
- "futures",
- "governor",
- "hex",
- "hickory-resolver",
- "html2text",
- "itertools 0.15.0",
- "itoa",
- "lru 0.18.0",
- "mail-parser",
- "mail-send",
- "memmap2",
- "murmur3",
- "num_cpus",
- "oauth2",
- "outlook-pst",
- "poem-openapi",
- "quick-xml 0.41.0",
- "rand 0.10.2",
- "regex",
- "reqwest",
- "ring",
- "rustls",
- "rustls-pki-types",
- "scopeguard",
- "serde",
- "serde_json",
- "snafu",
- "sysinfo",
- "tantivy",
- "time",
- "tokio",
- "tokio-io-timeout",
- "tokio-rustls",
- "tokio-socks",
- "tokio-util",
- "tracing",
- "tracing-appender",
- "tracing-log",
- "tracing-subscriber",
- "utf7-imap",
- "uuid",
- "webpki-roots",
- "whichlang",
-]
-
-[[package]]
-name = "bichon-memdb"
-version = "0.1.0"
-dependencies = [
- "rand 0.9.2",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
-name = "bichon-server"
-version = "1.6.2"
-dependencies = [
- "bichon-core",
- "bichon-smtp",
- "chrono",
- "email_address",
- "futures",
- "governor",
- "http",
- "poem",
- "poem-derive",
- "poem-openapi",
- "rust-embed",
- "serde",
- "serde_json",
- "snafu",
- "tempfile",
- "timeago",
- "tokio",
- "tracing",
- "urlencoding",
-]
-
-[[package]]
-name = "bichon-smtp"
-version = "1.6.2"
-dependencies = [
- "base64 0.22.1",
- "bichon-core",
- "lettre",
- "rcgen",
- "rustls",
- "rustls-pemfile",
- "rustls-pki-types",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
- "tokio-rustls",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
 name = "bincode"
 version = "1.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2616,6 +2437,185 @@ dependencies = [
  "smtp-proto",
  "tokio",
  "tokio-rustls",
+]
+
+[[package]]
+name = "mailboxd-admin"
+version = "1.6.2"
+dependencies = [
+ "console",
+ "dialoguer",
+ "indicatif",
+ "itertools 0.15.0",
+ "mailboxd-core",
+ "mailboxd-memdb",
+ "native_db",
+ "native_model",
+ "serde",
+ "serde_json",
+ "snafu",
+ "tokio",
+]
+
+[[package]]
+name = "mailboxd-blob"
+version = "0.1.0"
+dependencies = [
+ "bincode_reloaded",
+ "crc32fast",
+ "criterion",
+ "lz4_flex",
+ "memmap2",
+ "rand 0.10.2",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tracing",
+ "zstd",
+]
+
+[[package]]
+name = "mailboxd-cli"
+version = "1.6.2"
+dependencies = [
+ "base64 0.22.1",
+ "chrono",
+ "clap",
+ "console",
+ "dialoguer",
+ "indicatif",
+ "mail-parser",
+ "mailboxd-core",
+ "memmap2",
+ "outlook-pst",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tokio",
+ "toml",
+]
+
+[[package]]
+name = "mailboxd-core"
+version = "1.6.2"
+dependencies = [
+ "async-imap",
+ "base64 0.22.1",
+ "blake3",
+ "bytes 1.12.0",
+ "chrono",
+ "clap",
+ "codepage-strings",
+ "compressed-rtf",
+ "cron",
+ "dashmap",
+ "deunicode",
+ "email_address",
+ "encoding_rs",
+ "fjall",
+ "futures",
+ "governor",
+ "hex",
+ "hickory-resolver",
+ "html2text",
+ "itertools 0.15.0",
+ "itoa",
+ "lru 0.18.0",
+ "mail-parser",
+ "mail-send",
+ "mailboxd-memdb",
+ "memmap2",
+ "murmur3",
+ "num_cpus",
+ "oauth2",
+ "outlook-pst",
+ "poem-openapi",
+ "quick-xml 0.41.0",
+ "rand 0.10.2",
+ "regex",
+ "reqwest",
+ "ring",
+ "rustls",
+ "rustls-pki-types",
+ "scopeguard",
+ "serde",
+ "serde_json",
+ "snafu",
+ "sysinfo",
+ "tantivy",
+ "time",
+ "tokio",
+ "tokio-io-timeout",
+ "tokio-rustls",
+ "tokio-socks",
+ "tokio-util",
+ "tracing",
+ "tracing-appender",
+ "tracing-log",
+ "tracing-subscriber",
+ "utf7-imap",
+ "uuid",
+ "webpki-roots",
+ "whichlang",
+]
+
+[[package]]
+name = "mailboxd-memdb"
+version = "0.1.0"
+dependencies = [
+ "rand 0.9.2",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+]
+
+[[package]]
+name = "mailboxd-server"
+version = "1.6.2"
+dependencies = [
+ "chrono",
+ "email_address",
+ "futures",
+ "governor",
+ "http",
+ "mailboxd-core",
+ "mailboxd-smtp",
+ "poem",
+ "poem-derive",
+ "poem-openapi",
+ "rust-embed",
+ "serde",
+ "serde_json",
+ "snafu",
+ "tempfile",
+ "timeago",
+ "tokio",
+ "tracing",
+ "urlencoding",
+]
+
+[[package]]
+name = "mailboxd-smtp"
+version = "1.6.2"
+dependencies = [
+ "base64 0.22.1",
+ "lettre",
+ "mailboxd-core",
+ "rcgen",
+ "rustls",
+ "rustls-pemfile",
+ "rustls-pki-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tokio-rustls",
+ "tokio-util",
+ "tracing",
 ]
 
 [[package]]

@@ -17,7 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use poem::listener::{RustlsCertificate, RustlsConfig};
-use bichon_core::{
+use mailboxd_core::{
     raise_error,
     {
         error::{code::ErrorCode, BichonResult},

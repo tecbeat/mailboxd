@@ -17,7 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-use bichon_core::context::executors::BICHON_CONTEXT;
+use mailboxd_core::context::executors::BICHON_CONTEXT;
 use chrono::Local;
 use poem_openapi::Object;
 use serde::Deserialize;

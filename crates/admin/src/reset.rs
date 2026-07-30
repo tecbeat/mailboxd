@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use bichon_core::{
+use mailboxd_core::{
     admin::meta::{find_admin, open_database, update_admin_password},
     utils::encrypt::internal_decrypt_string,
 };

@@ -1,4 +1,4 @@
-use bichon_core::{
+use mailboxd_core::{
     common::paginated::DataPage,
     message::search::{EmailSearchFilter, EmailSearchRequest, SortBy},
     store::envelope::Envelope,

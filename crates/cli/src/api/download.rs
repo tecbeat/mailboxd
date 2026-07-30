@@ -1,5 +1,5 @@
 use crate::BichonCliConfig;
-use bichon_core::{base64_encode, envelope::meta::BichonMetadata, store::envelope::Envelope};
+use mailboxd_core::{base64_encode, envelope::meta::BichonMetadata, store::envelope::Envelope};
 use chrono::{TimeZone, Utc};
 use reqwest::Client;
 use tokio::io::AsyncWriteExt;

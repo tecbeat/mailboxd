@@ -1,5 +1,5 @@
 [package]
-name = "bichon-server"
+name = "mailboxd-server"
 version.workspace = true
 edition.workspace = true
 
@@ -9,8 +9,8 @@ embed-web = ["dep:rust-embed"]
 
 
 [dependencies]
-bichon-core = { path = "../core", features = ["web-api"] }
-bichon-smtp = { path = "../smtp" }
+mailboxd-core = { path = "../core", features = ["web-api"] }
+mailboxd-smtp = { path = "../smtp" }
 poem = { version = "3.1.12", features = ["embed", "compression", "rustls"] }
 poem-derive = "3.1.12"
 poem-openapi = { version = "5.1.16", features = [

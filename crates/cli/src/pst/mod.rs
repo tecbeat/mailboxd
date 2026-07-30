@@ -18,7 +18,7 @@
 
 use crate::api::sender::send_batch_request;
 use crate::BichonCliConfig;
-use bichon_core::import::pst::build_eml_base64;
+use mailboxd_core::import::pst::build_eml_base64;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Input};
 use outlook_pst::messaging::folder::Folder;

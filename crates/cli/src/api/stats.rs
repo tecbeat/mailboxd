@@ -1,4 +1,4 @@
-use bichon_core::account::stats::AccountStats;
+use mailboxd_core::account::stats::AccountStats;
 use reqwest::Client;
 
 use crate::BichonCliConfig;
