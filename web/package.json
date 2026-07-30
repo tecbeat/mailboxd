@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "bichon-ui",
+  "name": "mailboxd-ui",
   "version": "1.0.0",
   "type": "module",
   "scripts": {

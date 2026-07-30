@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -91,7 +93,7 @@ export function MailListTable({
       cell: ({ row }) => {
         const { from, account_email, account_name, mailbox_name, account_id, mailbox_id } = row.original;
         const { setFilter } = useSearchMessages();
-        const accountPrefix = account_name ?? account_email.split('@')[0];//https://github.com/rustmailer/bichon/issues/306
+        const accountPrefix = account_name ?? account_email.split('@')[0];
 
         return (
           <div className="flex flex-col py-1.5 min-w-0 group">

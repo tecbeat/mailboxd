@@ -1,7 +1,9 @@
 //
-// Copyright (c) 2025-2026 rustmailer.com[](https://rustmailer.com)
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -577,18 +579,20 @@ export default function MailArchiveDashboard() {
         <p>
           © 2025-2026{" "}
           <a
-            href="https://github.com/rustmailer/bichon"
+            href="https://git.teccave.de/tecbeat/mailboxd"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline font-medium"
           >
-            Bichon Email Archiving Project
+            mailboxd
           </a>
+          <span className="mx-2 opacity-50">•</span>
+          <span>AGPL-3.0 — a fork of Bichon by rustmailer.com</span>
           {stats1.system_version && (
             <>
               <span className="mx-2 opacity-50">•</span>
               <a
-                href={`https://github.com/rustmailer/bichon/releases/tag/${stats1.system_version}`}
+                href={`https://git.teccave.de/tecbeat/mailboxd/-/releases/${stats1.system_version}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline font-mono"
