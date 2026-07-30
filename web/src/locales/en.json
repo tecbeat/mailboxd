@@ -383,7 +383,8 @@
     "useProxyField": "use proxy",
     "value": "Value",
     "viewDetails": "view details",
-    "years": "Years"
+    "years": "Years",
+    "useProxyOptional": "Use Proxy (optional):"
   },
   "apiDocs": {
     "choosePreferredType": "Choose your preferred API documentation type",
@@ -553,8 +554,8 @@
     },
     "tryAgain": "Try Again",
     "update": "Update",
-    "view_on_github_button": "View on GitHub",
-    "yes": "Yes"
+    "yes": "Yes",
+    "view_source_button": "View source"
   },
   "dashboard": {
     "account": "Account",
@@ -907,7 +908,7 @@
     "statusUpdateFailed": "Status update failed, please try again later",
     "success": "Success",
     "successMessage": "Your email account has been successfully authenticated via OAuth2. The Access Token has been saved by the system and will be automatically updated as needed.",
-    "theRedirectUrlAfterAuthorization": "The redirect URL after authorization. It must match the one registered with the OAuth provider. Use the format http://[host]:[port]/oauth2/callback (or https://), where [host] and [port] match your RustMailer deployment. The path /oauth2/callback is fixed.",
+    "theRedirectUrlAfterAuthorization": "The redirect URL after authorization. It must match the one registered with the OAuth provider. Use the format http://[host]:[port]/oauth2/callback (or https://), where [host] and [port] match your mailboxd deployment. The path /oauth2/callback is fixed.",
     "theUniqueIdentifierForYourApplication": "The unique identifier for your application, provided by the OAuth provider.",
     "theUrlUsedToExchange": "The URL used to exchange the authorization code for an access token.",
     "theUrlWhereUsersWillBeRedirected": "The URL where users will be redirected to authorize your application.",

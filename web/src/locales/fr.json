@@ -373,7 +373,8 @@
     "useProxyField": "utiliser un proxy",
     "value": "Valeur",
     "viewDetails": "voir les détails",
-    "years": "Années"
+    "years": "Années",
+    "useProxyOptional": "Utiliser un Proxy (facultatif) :"
   },
   "apiDocs": {
     "choosePreferredType": "Choisissez votre type de documentation API préféré",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Réessayer",
     "update": "Mettre à jour",
-    "view_on_github_button": "Voir sur GitHub",
-    "yes": "Oui"
+    "yes": "Oui",
+    "view_source_button": "Voir la source"
   },
   "dashboard": {
     "account": "Compte",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Échec de la mise à jour du statut, veuillez réessayer plus tard",
     "success": "Succès",
     "successMessage": "Votre compte e-mail a été authentifié avec succès via OAuth2. Le jeton d'accès a été enregistré par le système et sera rafraîchi automatiquement si nécessaire.",
-    "theRedirectUrlAfterAuthorization": "L'URI de redirection après autorisation. Doit correspondre à celui enregistré auprès du fournisseur OAuth. Utilise le format http://[host]:[port]/oauth2/callback (ou https://), où [host] et [port] doivent correspondre à votre déploiement RustMailer. Le chemin /oauth2/callback est fixe.",
+    "theRedirectUrlAfterAuthorization": "L'URI de redirection après autorisation. Doit correspondre à celui enregistré auprès du fournisseur OAuth. Utilise le format http://[host]:[port]/oauth2/callback (ou https://), où [host] et [port] doivent correspondre à votre déploiement mailboxd. Le chemin /oauth2/callback est fixe.",
     "theUniqueIdentifierForYourApplication": "L'identifiant unique de votre application, fourni par le fournisseur OAuth.",
     "theUrlUsedToExchange": "L'URL utilisée pour échanger le code d'autorisation contre un jeton d'accès.",
     "theUrlWhereUsersWillBeRedirected": "L'URL vers laquelle les utilisateurs seront redirigés pour autoriser votre application.",

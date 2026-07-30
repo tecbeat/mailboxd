@@ -373,7 +373,8 @@
     "useProxyField": "使用代理",
     "value": "值",
     "viewDetails": "檢視詳細資訊",
-    "years": "年"
+    "years": "年",
+    "useProxyOptional": "使用代理 (選填)："
   },
   "apiDocs": {
     "choosePreferredType": "選擇您偏好的 API 文件類型",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "重試",
     "update": "更新",
-    "view_on_github_button": "在 GitHub 上查看",
-    "yes": "是"
+    "yes": "是",
+    "view_source_button": "檢視原始碼"
   },
   "dashboard": {
     "account": "帳號",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "狀態更新失敗，請稍後再試",
     "success": "成功",
     "successMessage": "電子郵件帳號已透過 OAuth2 成功授權。存取權杖已儲存於系統中，並將根據需要自動更新。",
-    "theRedirectUrlAfterAuthorization": "授權後的重新導向 URL。必須與在 OAuth 服務供應商處註冊的 URL 相符。請使用 http://[host]:[port]/oauth2/callback (或 https://) 格式，其中 [host] 和 [port] 應與您的 RustMailer 部署相符。路徑 `/oauth2/callback` 是固定的。",
+    "theRedirectUrlAfterAuthorization": "授權後的重新導向 URL。必須與在 OAuth 服務供應商處註冊的 URL 相符。請使用 http://[host]:[port]/oauth2/callback (或 https://) 格式，其中 [host] 和 [port] 應與您的 mailboxd 部署相符。路徑 `/oauth2/callback` 是固定的。",
     "theUniqueIdentifierForYourApplication": "由 OAuth 服務供應商提供給您的應用程式的唯一識別碼。",
     "theUrlUsedToExchange": "用於將授權碼換取存取權杖的 URL。",
     "theUrlWhereUsersWillBeRedirected": "使用者將被重新導向以進行授權的 URL。",

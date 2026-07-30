@@ -373,7 +373,8 @@
     "useProxyField": "käytä välityspalvelinta",
     "value": "Arvo",
     "viewDetails": "katso tiedot",
-    "years": "Vuotta"
+    "years": "Vuotta",
+    "useProxyOptional": "Käytä välityspalvelinta (valinnainen):"
   },
   "apiDocs": {
     "choosePreferredType": "Valitse haluamasi API-dokumentaation tyyppi",
@@ -484,7 +485,7 @@
     "sessionExpiredDesc": "Istuntosi on päättynyt toimettomuuden vuoksi. Kirjaudu sisään jatkaaksesi.",
     "somethingWentWrong": "Jotain meni vikaan",
     "username": "Käyttäjänimi",
-    "welcome": "Tervetuloa Bichoniin",
+    "welcome": "Tervetuloa mailboxdiin",
     "youWillNeedToLogInAgain": "Sinun on kirjauduttava sisään uudelleen päästäksesi tilillesi."
   },
   "command": {
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Yritä uudelleen",
     "update": "Päivitä",
-    "view_on_github_button": "Näytä GitHubissa",
-    "yes": "Kyllä"
+    "yes": "Kyllä",
+    "view_source_button": "Näytä lähdekoodi"
   },
   "dashboard": {
     "account": "Tili",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Tilan päivitys epäonnistui, yritä myöhemmin uudelleen",
     "success": "Onnistui",
     "successMessage": "Sähköpostitilisi on todennettu onnistuneesti OAuth2:n kautta. Järjestelmä on tallentanut kulkutunnuksen ja päivittää sen automaattisesti tarvittaessa.",
-    "theRedirectUrlAfterAuthorization": "Uudelleenohjaus-URI valtuutuksen jälkeen. Täytyy vastata OAuth-palveluntarjoajalle rekisteröityä. Käytä muotoa http://[host]:[port]/oauth2/callback (tai https://), missä [host] ja [port] vastaavat RustMailer-käyttöönottoasi. Polku /oauth2/callback on kiinteä.",
+    "theRedirectUrlAfterAuthorization": "Uudelleenohjaus-URI valtuutuksen jälkeen. Täytyy vastata OAuth-palveluntarjoajalle rekisteröityä. Käytä muotoa http://[host]:[port]/oauth2/callback (tai https://), missä [host] ja [port] vastaavat mailboxd-käyttöönottoasi. Polku /oauth2/callback on kiinteä.",
     "theUniqueIdentifierForYourApplication": "Sovelluksesi yksilöllinen tunnus, jonka OAuth-palveluntarjoaja tarjoaa.",
     "theUrlUsedToExchange": "URL, jota käytetään valtuutuskoodin vaihtamiseen kulkutunnukseksi.",
     "theUrlWhereUsersWillBeRedirected": "URL-osoite, johon käyttäjät ohjataan valtuuttamaan sovelluksesi.",
@@ -998,7 +999,7 @@
     "bulkTitle": "Palauta useita viestejä",
     "bulkWarning": "Huomio: Viestit palautetaan niiden alkuperäisiin kansioihin.",
     "confirm": "Suorita palautus",
-    "desc": "Tämä toiminto lataa valitut viestit uudelleen Bichonista ja palauttaa ne vastaaviin postilaatikoihin IMAP-palvelimella.",
+    "desc": "Tämä toiminto lataa valitut viestit uudelleen mailboxdista ja palauttaa ne vastaaviin postilaatikoihin IMAP-palvelimella.",
     "failed": "Palautus epäonnistui",
     "failedTitle": "Palautusvirhe",
     "messages": "viestiä",

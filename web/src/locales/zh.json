@@ -383,7 +383,8 @@
     "useProxyField": "使用代理",
     "value": "值",
     "viewDetails": "查看详情",
-    "years": "年"
+    "years": "年",
+    "useProxyOptional": "使用代理（可选）："
   },
   "apiDocs": {
     "choosePreferredType": "选择您首选的 API 文档类型",
@@ -551,8 +552,8 @@
     },
     "tryAgain": "重试",
     "update": "更新",
-    "view_on_github_button": "在 GitHub 上查看",
-    "yes": "是"
+    "yes": "是",
+    "view_source_button": "查看源代码"
   },
   "dashboard": {
     "account": "账户",
@@ -905,7 +906,7 @@
     "statusUpdateFailed": "状态更新失败，请稍后重试",
     "success": "成功",
     "successMessage": "您的邮箱账户已通过 OAuth2 成功认证。访问令牌已被系统保存，并会在需要时自动更新。",
-    "theRedirectUrlAfterAuthorization": "授权后的重定向 URL。它必须与在 OAuth 提供商处注册的 URL 匹配。使用格式 http://[host]:[port]/oauth2/callback（或 https://），其中 [host] 和 [port] 与您的 RustMailer 部署匹配。路径 /oauth2/callback 是固定的。",
+    "theRedirectUrlAfterAuthorization": "授权后的重定向 URL。它必须与在 OAuth 提供商处注册的 URL 匹配。使用格式 http://[host]:[port]/oauth2/callback（或 https://），其中 [host] 和 [port] 与您的 mailboxd 部署匹配。路径 /oauth2/callback 是固定的。",
     "theUniqueIdentifierForYourApplication": "您应用程序的唯一标识符，由 OAuth 提供商提供。",
     "theUrlUsedToExchange": "用于将授权代码交换为访问令牌的 URL。",
     "theUrlWhereUsersWillBeRedirected": "用户将被重定向以授权您的应用程序的 URL。",

@@ -373,7 +373,8 @@
     "useProxyField": "usa proxy",
     "value": "Valore",
     "viewDetails": "visualizza dettagli",
-    "years": "Anni"
+    "years": "Anni",
+    "useProxyOptional": "Usa Proxy (opzionale):"
   },
   "apiDocs": {
     "choosePreferredType": "Scegli il tuo tipo di documentazione API preferito",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Riprova",
     "update": "Aggiorna",
-    "view_on_github_button": "Visualizza su GitHub",
-    "yes": "Sì"
+    "yes": "Sì",
+    "view_source_button": "Visualizza sorgente"
   },
   "dashboard": {
     "account": "Account",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Aggiornamento stato fallito, riprova più tardi",
     "success": "Successo",
     "successMessage": "Il tuo account email è stato autenticato con successo tramite OAuth2. Il Token di Accesso è stato salvato dal sistema e verrà aggiornato automaticamente quando necessario.",
-    "theRedirectUrlAfterAuthorization": "L'URI di reindirizzamento dopo l'autorizzazione. Deve corrispondere all'URL registrato presso il provider OAuth. Usa il formato http://[host]:[porta]/oauth2/callback (o https://), dove [host] e [porta] corrispondono alla tua implementazione RustMailer. Il percorso /oauth2/callback è fisso.",
+    "theRedirectUrlAfterAuthorization": "L'URI di reindirizzamento dopo l'autorizzazione. Deve corrispondere all'URL registrato presso il provider OAuth. Usa il formato http://[host]:[porta]/oauth2/callback (o https://), dove [host] e [porta] corrispondono alla tua implementazione mailboxd. Il percorso /oauth2/callback è fisso.",
     "theUniqueIdentifierForYourApplication": "L'identificatore unico per la tua applicazione, fornito dal provider OAuth.",
     "theUrlUsedToExchange": "L'URL utilizzato per scambiare il codice di autorizzazione con un token di accesso.",
     "theUrlWhereUsersWillBeRedirected": "L'URL a cui gli utenti verranno reindirizzati per autorizzare la tua applicazione.",

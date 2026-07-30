@@ -373,7 +373,8 @@
     "useProxyField": "использовать прокси",
     "value": "Значение",
     "viewDetails": "смотреть детали",
-    "years": "Годы"
+    "years": "Годы",
+    "useProxyOptional": "Использовать прокси (опционально):"
   },
   "apiDocs": {
     "choosePreferredType": "Выберите предпочтительный тип документации API",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Повторить",
     "update": "Обновить",
-    "view_on_github_button": "Посмотреть на GitHub",
-    "yes": "Да"
+    "yes": "Да",
+    "view_source_button": "Посмотреть исходный код"
   },
   "dashboard": {
     "account": "Аккаунт",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Ошибка обновления статуса, попробуйте позже",
     "success": "Успех",
     "successMessage": "Ваш почтовый аккаунт успешно аутентифицирован через OAuth2. Access Token был сохранен системой и будет автоматически обновляться по мере необходимости.",
-    "theRedirectUrlAfterAuthorization": "URL перенаправления после авторизации. Он должен совпадать с тем, что зарегистрирован у провайдера OAuth. Используйте формат http://[host]:[port]/oauth2/callback (или https://), где [host] и [port] соответствуют вашему развертыванию RustMailer. Путь /oauth2/callback фиксирован.",
+    "theRedirectUrlAfterAuthorization": "URL перенаправления после авторизации. Он должен совпадать с тем, что зарегистрирован у провайдера OAuth. Используйте формат http://[host]:[port]/oauth2/callback (или https://), где [host] и [port] соответствуют вашему развертыванию mailboxd. Путь /oauth2/callback фиксирован.",
     "theUniqueIdentifierForYourApplication": "Уникальный идентификатор вашего приложения, предоставленный провайдером OAuth.",
     "theUrlUsedToExchange": "URL, используемый для обмена кода авторизации на токен доступа.",
     "theUrlWhereUsersWillBeRedirected": "URL, на который пользователи будут перенаправлены для авторизации вашего приложения.",

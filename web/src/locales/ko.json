@@ -373,7 +373,8 @@
     "useProxyField": "프록시 사용",
     "value": "값",
     "viewDetails": "세부 정보 보기",
-    "years": "년"
+    "years": "년",
+    "useProxyOptional": "프록시 사용 (선택 사항):"
   },
   "apiDocs": {
     "choosePreferredType": "선호하는 API 문서 유형을 선택하십시오",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "다시 시도",
     "update": "업데이트",
-    "view_on_github_button": "GitHub에서 보기",
-    "yes": "예"
+    "yes": "예",
+    "view_source_button": "소스 보기"
   },
   "dashboard": {
     "account": "계정",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "상태 업데이트에 실패했습니다. 나중에 다시 시도하십시오",
     "success": "성공",
     "successMessage": "이메일 계정이 OAuth2를 통해 성공적으로 인증되었습니다. 접근 토큰이 시스템에 저장되었으며 필요에 따라 자동으로 새로 고쳐집니다.",
-    "theRedirectUrlAfterAuthorization": "인증 후 리디렉션될 URI입니다. OAuth 공급자에 등록된 것과 일치해야 합니다. http://[host]:[port]/oauth2/callback (또는 https://) 형식을 사용하며, 여기서 [host]와 [port]는 RustMailer 배포판과 일치해야 합니다. `/oauth2/callback` 경로는 고정되어 있습니다.",
+    "theRedirectUrlAfterAuthorization": "인증 후 리디렉션될 URI입니다. OAuth 공급자에 등록된 것과 일치해야 합니다. http://[host]:[port]/oauth2/callback (또는 https://) 형식을 사용하며, 여기서 [host]와 [port]는 mailboxd 배포판과 일치해야 합니다. `/oauth2/callback` 경로는 고정되어 있습니다.",
     "theUniqueIdentifierForYourApplication": "OAuth 공급자가 제공하는 애플리케이션의 고유 식별자입니다.",
     "theUrlUsedToExchange": "인증 코드를 접근 토큰으로 교환하는 데 사용되는 URL입니다.",
     "theUrlWhereUsersWillBeRedirected": "사용자가 인증을 위해 리디렉션될 URL입니다.",

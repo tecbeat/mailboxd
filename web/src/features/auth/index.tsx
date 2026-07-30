@@ -47,7 +47,7 @@ export default function SignIn() {
               href="https://git.teccave.de/tecbeat/mailboxd"
               className="hover:text-primary underline underline-offset-4 ml-1"
             >
-              {t('common.view_on_github_button')}
+              {t('common.view_source_button')}
             </a>
             .
           </p>

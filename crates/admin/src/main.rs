@@ -37,7 +37,7 @@ async fn run_interactive() {
     let theme = ColorfulTheme::default();
     println!(
         "\n{}\n",
-        style("BICHON ADMINISTRATIVE TOOL").bold().bright().cyan()
+        style("MAILBOXD ADMINISTRATIVE TOOL").bold().bright().cyan()
     );
 
     let main_options = vec![

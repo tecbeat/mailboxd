@@ -373,7 +373,8 @@
     "useProxyField": "użyj proxy",
     "value": "Wartość",
     "viewDetails": "pokaż szczegóły",
-    "years": "Lata"
+    "years": "Lata",
+    "useProxyOptional": "Użyj Proxy (opcjonalnie):"
   },
   "apiDocs": {
     "choosePreferredType": "Wybierz preferowany typ dokumentacji API",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Spróbuj ponownie",
     "update": "Aktualizuj",
-    "view_on_github_button": "Zobacz na GitHub",
-    "yes": "Tak"
+    "yes": "Tak",
+    "view_source_button": "Zobacz kod źródłowy"
   },
   "dashboard": {
     "account": "Konto",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Status aktualizacji zakończł się błędemi spróbuj ponownie",
     "success": "Sukces",
     "successMessage": "Twoje konto email zostało pomyślnie uwierzytelnione za pomocą protokołu OAuth2. Token dostępu został zapisany przez system i będzie automatycznie aktualizowany w razie potrzeby.",
-    "theRedirectUrlAfterAuthorization": "Adres URL przekierowania po autoryzacji. Musi być zgodny z adresem zarejestrowanym u dostawcy OAuth. Użyj formatu: http://[host]:[port]/oauth2/callback (lub https://), gdzie [host] i [port] do instalacji RustMailer. Stała ścieżka /oauth2/callback",
+    "theRedirectUrlAfterAuthorization": "Adres URL przekierowania po autoryzacji. Musi być zgodny z adresem zarejestrowanym u dostawcy OAuth. Użyj formatu: http://[host]:[port]/oauth2/callback (lub https://), gdzie [host] i [port] do instalacji mailboxd. Stała ścieżka /oauth2/callback",
     "theUniqueIdentifierForYourApplication": "Unikalny identyfikator Twojej aplikacji dostarczony przez dostawcę OAuth",
     "theUrlUsedToExchange": "Adres URL służący do wymiany kodu autoryzacyjnego na token dostępu",
     "theUrlWhereUsersWillBeRedirected": "Adres URL, na który użytkownicy zostaną przekierowani w celu autoryzacji Twojej aplikacji",

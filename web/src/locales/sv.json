@@ -373,7 +373,8 @@
     "useProxyField": "använd proxy",
     "value": "Värde",
     "viewDetails": "visa detaljer",
-    "years": "År"
+    "years": "År",
+    "useProxyOptional": "Använd Proxy (valfritt):"
   },
   "apiDocs": {
     "choosePreferredType": "Välj föredragen typ av API-dokumentation",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Försök igen",
     "update": "Uppdatera",
-    "view_on_github_button": "Visa på GitHub",
-    "yes": "Ja"
+    "yes": "Ja",
+    "view_source_button": "Visa källkod"
   },
   "dashboard": {
     "account": "Konto",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Statusuppdatering misslyckades, försök igen senare",
     "success": "Framgång",
     "successMessage": "Ditt e-postkonto har autentiserats via OAuth2. Åtkomsttoken har sparats av systemet och kommer att uppdateras automatiskt vid behov.",
-    "theRedirectUrlAfterAuthorization": "Omdirigerings-URL:en efter auktorisering. Den måste matcha den som registrerats hos OAuth-leverantören. Använd formatet http://[värd]:[port]/oauth2/callback (eller https://), där [värd] och [port] matchar din RustMailer-installation. Sökvägen /oauth2/callback är fast.",
+    "theRedirectUrlAfterAuthorization": "Omdirigerings-URL:en efter auktorisering. Den måste matcha den som registrerats hos OAuth-leverantören. Använd formatet http://[värd]:[port]/oauth2/callback (eller https://), där [värd] och [port] matchar din mailboxd-installation. Sökvägen /oauth2/callback är fast.",
     "theUniqueIdentifierForYourApplication": "Den unika identifieraren för din applikation, tillhandahållen av OAuth-leverantören.",
     "theUrlUsedToExchange": "URL:en som används för att växla auktoriseringskoden mot en åtkomsttoken.",
     "theUrlWhereUsersWillBeRedirected": "URL:en dit användare omdirigeras för att auktorisera din applikation.",

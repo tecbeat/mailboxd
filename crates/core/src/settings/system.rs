@@ -46,7 +46,7 @@ impl SystemSetting {
     //     find_impl(DB_MANAGER.meta_db(), key)
     // }
 
-    // pub async fn list() -> RustMailerResult<Vec<SystemSetting>> {
+    // pub async fn list() -> MailboxdResult<Vec<SystemSetting>> {
     //     list_all_impl(DB_MANAGER.metadata_db()).await
     // }
 

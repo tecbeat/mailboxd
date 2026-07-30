@@ -373,7 +373,8 @@
     "useProxyField": "プロキシを使用",
     "value": "値",
     "viewDetails": "詳細を見る",
-    "years": "年"
+    "years": "年",
+    "useProxyOptional": "プロキシを使用 (オプション):"
   },
   "apiDocs": {
     "choosePreferredType": "ご希望のAPIドキュメントタイプを選択してください",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "再試行",
     "update": "更新",
-    "view_on_github_button": "GitHubで表示",
-    "yes": "はい"
+    "yes": "はい",
+    "view_source_button": "ソースを表示"
   },
   "dashboard": {
     "account": "アカウント",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "ステータス更新に失敗しました。しばらくしてからもう一度お試しください",
     "success": "成功",
     "successMessage": "メールアカウントはOAuth2経由で正常に認証されました。アクセストークンはシステムに保存され、必要に応じて自動的に更新されます。",
-    "theRedirectUrlAfterAuthorization": "認証後のリダイレクトURL。OAuthプロバイダーに登録されているものと一致している必要があります。http://[ホスト]:[ポート]/oauth2/callback (または https://) の形式を使用し、[ホスト]と[ポート]はRustMailerのデプロイメントと一致させてください。パス `/oauth2/callback` は固定です。",
+    "theRedirectUrlAfterAuthorization": "認証後のリダイレクトURL。OAuthプロバイダーに登録されているものと一致している必要があります。http://[ホスト]:[ポート]/oauth2/callback (または https://) の形式を使用し、[ホスト]と[ポート]はmailboxdのデプロイメントと一致させてください。パス `/oauth2/callback` は固定です。",
     "theUniqueIdentifierForYourApplication": "OAuthプロバイダーから提供される、アプリケーションの一意の識別子。",
     "theUrlUsedToExchange": "認証コードをアクセストークンと交換するために使用されるURL。",
     "theUrlWhereUsersWillBeRedirected": "ユーザーが認証のためにリダイレクトされるURL。",

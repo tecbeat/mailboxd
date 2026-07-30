@@ -373,7 +373,8 @@
     "useProxyField": "gebruik proxy",
     "value": "Waarde",
     "viewDetails": "details bekijken",
-    "years": "Jaren"
+    "years": "Jaren",
+    "useProxyOptional": "Gebruik Proxy (optioneel):"
   },
   "apiDocs": {
     "choosePreferredType": "Kies uw voorkeurstype API-documentatie",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "Opnieuw proberen",
     "update": "Bijwerken",
-    "view_on_github_button": "Bekijken op GitHub",
-    "yes": "Ja"
+    "yes": "Ja",
+    "view_source_button": "Broncode bekijken"
   },
   "dashboard": {
     "account": "Account",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "Status bijwerken mislukt, probeer het later opnieuw",
     "success": "Succes",
     "successMessage": "Uw e-mailaccount is succesvol geauthenticeerd via OAuth2. De Toegangstoken is opgeslagen door het systeem en wordt automatisch bijgewerkt indien nodig.",
-    "theRedirectUrlAfterAuthorization": "De redirect-URL na autorisatie. Deze moet overeenkomen met de URL die is geregistreerd bij de OAuth-aanbieder. Gebruik het formaat http://[host]:[poort]/oauth2/callback (of https://), waarbij [host] en [poort] overeenkomen met uw RustMailer-implementatie. Het pad /oauth2/callback is vast.",
+    "theRedirectUrlAfterAuthorization": "De redirect-URL na autorisatie. Deze moet overeenkomen met de URL die is geregistreerd bij de OAuth-aanbieder. Gebruik het formaat http://[host]:[poort]/oauth2/callback (of https://), waarbij [host] en [poort] overeenkomen met uw mailboxd-implementatie. Het pad /oauth2/callback is vast.",
     "theUniqueIdentifierForYourApplication": "De unieke identificatie voor uw applicatie, verstrekt door de OAuth-aanbieder.",
     "theUrlUsedToExchange": "De URL die wordt gebruikt om de autorisatiecode in te ruilen voor een toegangstoken.",
     "theUrlWhereUsersWillBeRedirected": "De URL waar gebruikers naartoe worden geleid om uw applicatie te autoriseren.",

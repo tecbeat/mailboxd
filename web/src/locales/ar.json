@@ -373,7 +373,8 @@
     "useProxyField": "استخدام وكيل",
     "value": "القيمة",
     "viewDetails": "عرض التفاصيل",
-    "years": "سنوات"
+    "years": "سنوات",
+    "useProxyOptional": "استخدام وكيل (اختياري):"
   },
   "apiDocs": {
     "choosePreferredType": "اختر نوع توثيق واجهة برمجة التطبيقات المفضل لديك",
@@ -541,8 +542,8 @@
     },
     "tryAgain": "إعادة المحاولة",
     "update": "تحديث",
-    "view_on_github_button": "عرض على GitHub",
-    "yes": "نعم"
+    "yes": "نعم",
+    "view_source_button": "عرض المصدر"
   },
   "dashboard": {
     "account": "الحساب",
@@ -895,7 +896,7 @@
     "statusUpdateFailed": "فشل تحديث الحالة، يرجى المحاولة مرة أخرى لاحقًا",
     "success": "نجاح",
     "successMessage": "تمت مصادقة حساب بريدك الإلكتروني بنجاح عبر OAuth2. تم حفظ رمز الوصول بواسطة النظام وسيتم تحديثه تلقائيًا حسب الحاجة.",
-    "theRedirectUrlAfterAuthorization": "عنوان URL لإعادة التوجيه بعد التخويل. يجب أن يتطابق مع العنوان المسجل لدى مزود OAuth. استخدم التنسيق http://[host]:[port]/oauth2/callback (أو https://)، حيث يتطابق [host] و[port] مع نشر RustMailer الخاص بك. المسار /oauth2/callback ثابت.",
+    "theRedirectUrlAfterAuthorization": "عنوان URL لإعادة التوجيه بعد التخويل. يجب أن يتطابق مع العنوان المسجل لدى مزود OAuth. استخدم التنسيق http://[host]:[port]/oauth2/callback (أو https://)، حيث يتطابق [host] و[port] مع نشر mailboxd الخاص بك. المسار /oauth2/callback ثابت.",
     "theUniqueIdentifierForYourApplication": "المعرّف الفريد لتطبيقك، والمقدم من مزود OAuth.",
     "theUrlUsedToExchange": "عنوان URL المستخدم لتبادل رمز التخويل برمز وصول.",
     "theUrlWhereUsersWillBeRedirected": "عنوان URL الذي سيتم توجيه المستخدمين إليه لتخويل تطبيقك.",
