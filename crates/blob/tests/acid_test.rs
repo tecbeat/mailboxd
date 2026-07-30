@@ -10,7 +10,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 
-use bichon_blob::{Codec, Config, Engine};
+use mailboxd_blob::{Codec, Config, Engine};
 use tempfile::TempDir;
 
 // ---------------------------------------------------------------------------

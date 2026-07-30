@@ -18,8 +18,8 @@
 
 use std::fmt;
 
-use bichon_core::error::code::ErrorCode;
-use bichon_core::error::BichonError;
+use mailboxd_core::error::code::ErrorCode;
+use mailboxd_core::error::BichonError;
 use poem::error::ResponseError;
 use poem::Body;
 use poem::{http::StatusCode, Error, Response};

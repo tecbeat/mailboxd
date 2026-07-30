@@ -1,4 +1,4 @@
-use bichon_blob::{Codec, Config, Engine};
+use mailboxd_blob::{Codec, Config, Engine};
 use tempfile::TempDir;
 
 #[test]

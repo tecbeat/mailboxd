@@ -9,7 +9,7 @@
 
 use std::collections::HashMap;
 
-use bichon_blob::{Codec, Config, Engine};
+use mailboxd_blob::{Codec, Config, Engine};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ── Setup ──────────────────────────────────────────────────────────

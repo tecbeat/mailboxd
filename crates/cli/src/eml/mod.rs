@@ -27,7 +27,7 @@ use dialoguer::{theme::ColorfulTheme, Input};
 use mail_parser::MessageParser;
 use reqwest::Client;
 
-use bichon_core::base64_encode_url_safe;
+use mailboxd_core::base64_encode_url_safe;
 
 use crate::{BichonCliConfig, api::sender::send_batch_request};
 

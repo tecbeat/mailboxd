@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use bichon_core::bichon_version;
+use mailboxd_core::bichon_version;
 use clap::Parser;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};

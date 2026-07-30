@@ -19,7 +19,7 @@ use std::{
     },
 };
 
-use bichon_core::{
+use mailboxd_core::{
     common::signal::SignalManager,
     context::{executors::BichonContext, Initialize},
     settings::{

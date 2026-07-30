@@ -21,10 +21,10 @@ use std::path::PathBuf;
 
 use crate::api::sender::send_batch_request;
 use crate::mbox::gmail::determine_folder;
-use bichon_core::import::reader::MboxFile;
+use mailboxd_core::import::reader::MboxFile;
 use crate::BichonCliConfig;
-use bichon_core::base64_encode_url_safe;
-use bichon_core::envelope::meta::{parse_bichon_metadata, BichonMetadata};
+use mailboxd_core::base64_encode_url_safe;
+use mailboxd_core::envelope::meta::{parse_bichon_metadata, BichonMetadata};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
 use dialoguer::{Confirm, Select};

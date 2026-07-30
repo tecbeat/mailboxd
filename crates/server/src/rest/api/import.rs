@@ -21,22 +21,22 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::common::auth::WrappedContext;
 use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
-use bichon_core::account::migration::AccountModel;
-use bichon_core::database::manager::DB_MANAGER;
-use bichon_core::database::MemDbModel;
-use bichon_core::import::{
+use mailboxd_core::account::migration::AccountModel;
+use mailboxd_core::database::manager::DB_MANAGER;
+use mailboxd_core::database::MemDbModel;
+use mailboxd_core::import::{
     check_temp_disk_space, get_import_progress, process_uploaded_file, update_progress,
     BatchEmlRequest, BatchEmlResult, ImportEmls, ImportHistory, ImportProgress, ImportStatus,
     MAX_WEB_EML_BYTES,
 };
-use bichon_core::import::history::{save_import_history, MAX_HISTORY_PER_USER};
-use bichon_core::raise_error;
-use bichon_core::error::code::ErrorCode;
-use bichon_core::settings::cli::SETTINGS;
-use bichon_core::settings::dir::DATA_DIR_MANAGER;
-use bichon_core::users::permissions::Permission;
-use bichon_core::import::detect_text_file;
-use bichon_core::import::FileFormat;
+use mailboxd_core::import::history::{save_import_history, MAX_HISTORY_PER_USER};
+use mailboxd_core::raise_error;
+use mailboxd_core::error::code::ErrorCode;
+use mailboxd_core::settings::cli::SETTINGS;
+use mailboxd_core::settings::dir::DATA_DIR_MANAGER;
+use mailboxd_core::users::permissions::Permission;
+use mailboxd_core::import::detect_text_file;
+use mailboxd_core::import::FileFormat;
 use futures::StreamExt;
 use poem::Body;
 use poem_openapi::param::{Path, Query};
@@ -382,7 +382,7 @@ async fn stream_body_to_temp(
         // Once we have enough data, validate format and text
         if first_chunk.len() >= 512 && !text_checked {
             text_checked = true;
-            format_detected = bichon_core::import::detect_format(&first_chunk, "upload");
+            format_detected = mailboxd_core::import::detect_format(&first_chunk, "upload");
 
             // If extension is .eml but content looks like MBOX (or vice versa), that's OK.
             // PST files are binary — skip text detection.

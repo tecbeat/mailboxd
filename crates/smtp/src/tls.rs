@@ -25,7 +25,7 @@ use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use tokio_rustls::TlsAcceptor;
 
-use bichon_core::settings::cli::SETTINGS;
+use mailboxd_core::settings::cli::SETTINGS;
 
 pub async fn create_acceptor() -> io::Result<TlsAcceptor> {
     let (certs, key) = if let (Some(key_path), Some(cert_path)) = (

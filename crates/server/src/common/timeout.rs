@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use bichon_core::error::code::ErrorCode;
+use mailboxd_core::error::code::ErrorCode;
 use poem::{Endpoint, Middleware, Request, Result};
 use std::time::Duration;
 use tracing::error;

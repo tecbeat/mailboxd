@@ -19,7 +19,7 @@
 use console::style;
 use reqwest::Client;
 
-use bichon_core::import::BatchEmlRequest;
+use mailboxd_core::import::BatchEmlRequest;
 
 use crate::BichonCliConfig;
 

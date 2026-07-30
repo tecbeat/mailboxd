@@ -16,18 +16,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use bichon_core::account::migration::AccountModel;
-use bichon_core::common::paginated::DataPage;
-use bichon_core::error::code::ErrorCode;
+use mailboxd_core::account::migration::AccountModel;
+use mailboxd_core::common::paginated::DataPage;
+use mailboxd_core::error::code::ErrorCode;
 
 use crate::common::auth::WrappedContext;
 use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
-use bichon_core::oauth2::entity::{OAuth2, OAuth2CreateRequest, OAuth2UpdateRequest};
-use bichon_core::oauth2::flow::{AuthorizeUrlRequest, OAuth2Flow};
-use bichon_core::oauth2::token::{ExternalOAuth2Request, OAuth2AccessToken};
-use bichon_core::raise_error;
-use bichon_core::users::permissions::Permission;
+use mailboxd_core::oauth2::entity::{OAuth2, OAuth2CreateRequest, OAuth2UpdateRequest};
+use mailboxd_core::oauth2::flow::{AuthorizeUrlRequest, OAuth2Flow};
+use mailboxd_core::oauth2::token::{ExternalOAuth2Request, OAuth2AccessToken};
+use mailboxd_core::raise_error;
+use mailboxd_core::users::permissions::Permission;
 use poem_openapi::param::{Path, Query};
 use poem_openapi::payload::{Json, PlainText};
 use poem_openapi::OpenApi;

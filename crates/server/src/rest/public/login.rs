@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use bichon_core::users::UserModel;
+use mailboxd_core::users::UserModel;
 use poem::{handler, web::Json, IntoResponse, Response};
 use serde::Deserialize;
 use tracing::error;

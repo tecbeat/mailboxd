@@ -19,11 +19,11 @@
 use crate::common::auth::WrappedContext;
 use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
-use bichon_core::autoconfig::entity::MailServerConfig;
-use bichon_core::autoconfig::load::resolve_autoconfig;
-use bichon_core::error::code::ErrorCode;
-use bichon_core::raise_error;
-use bichon_core::users::permissions::Permission;
+use mailboxd_core::autoconfig::entity::MailServerConfig;
+use mailboxd_core::autoconfig::load::resolve_autoconfig;
+use mailboxd_core::error::code::ErrorCode;
+use mailboxd_core::raise_error;
+use mailboxd_core::users::permissions::Permission;
 use poem_openapi::param::Path;
 use poem_openapi::payload::Json;
 use poem_openapi::OpenApi;

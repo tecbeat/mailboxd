@@ -2,7 +2,7 @@ use crate::api::download::download_and_export_with_json_header;
 use crate::api::search::search_messages;
 use crate::api::stats::fetch_account_stats;
 use crate::BichonCliConfig;
-use bichon_core::account::payload::MinimalAccount;
+use mailboxd_core::account::payload::MinimalAccount;
 use console::style;
 use dialoguer::Confirm;
 use dialoguer::{theme::ColorfulTheme, Input};

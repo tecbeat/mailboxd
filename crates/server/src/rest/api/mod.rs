@@ -19,7 +19,7 @@
 use access_token::AccessTokenApi;
 use account::AccountApi;
 use auto_config::AutoConfigApi;
-use bichon_core::bichon_version;
+use mailboxd_core::bichon_version;
 use mailbox::MailBoxApi;
 use message::MessageApi;
 use oauth2::OAuth2Api;

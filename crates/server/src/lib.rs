@@ -23,7 +23,7 @@ pub mod rest;
 
 use std::sync::LazyLock;
 
-use bichon_core::{
+use mailboxd_core::{
     bichon_version,
     cache::imap::task::SYNC_TASKS,
     common::{rustls::BichonTls, signal::SignalManager},
@@ -41,7 +41,7 @@ use bichon_core::{
     tasks::PeriodicTasks,
     users::manager::UserManager,
 };
-use bichon_smtp::server::{start_smtp_server, SmtpServer};
+use mailboxd_smtp::server::{start_smtp_server, SmtpServer};
 use tracing::{error, info};
 
 pub async fn run() -> BichonResult<()> {

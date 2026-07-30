@@ -1,11 +1,11 @@
 [package]
-name = "bichon-admin"
+name = "mailboxd-admin"
 version.workspace = true
 edition.workspace = true
 
 
 [dependencies]
-bichon-core = { path = "../core" }
+mailboxd-core = { path = "../core" }
 tokio.workspace = true
 dialoguer.workspace = true
 console.workspace = true
@@ -17,4 +17,4 @@ serde_json.workspace = true
 
 itertools.workspace = true
 snafu.workspace = true
-bichon-memdb.workspace = true
+mailboxd-memdb.workspace = true

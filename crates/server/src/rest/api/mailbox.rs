@@ -19,9 +19,9 @@
 use crate::common::auth::WrappedContext;
 use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
-use bichon_core::mailbox::delete::delete_mailbox_impl;
-use bichon_core::mailbox::list::{get_account_mailboxes, MailboxListResponse};
-use bichon_core::users::permissions::Permission;
+use mailboxd_core::mailbox::delete::delete_mailbox_impl;
+use mailboxd_core::mailbox::list::{get_account_mailboxes, MailboxListResponse};
+use mailboxd_core::users::permissions::Permission;
 use poem_openapi::param::{Path, Query};
 use poem_openapi::payload::Json;
 use poem_openapi::OpenApi;

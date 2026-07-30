@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use bichon_core::migrate::{
+use mailboxd_core::migrate::{
     count_eml_segments, do_migrate_segment, is_tantivy_index_dir,
     store::{LegacyDirs, NewDirs, NewIndexWriter},
 };

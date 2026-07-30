@@ -19,21 +19,21 @@
 use crate::common::auth::WrappedContext;
 use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
-use bichon_core::account::grant::BatchAccountRoleRequest;
-use bichon_core::account::migration::{AccountModel, AccountType};
-use bichon_core::account::payload::{
+use mailboxd_core::account::grant::BatchAccountRoleRequest;
+use mailboxd_core::account::migration::{AccountModel, AccountType};
+use mailboxd_core::account::payload::{
     filter_accessible_accounts, AccountCreateRequest, AccountUpdateRequest, MinimalAccount,
 };
-use bichon_core::account::state::DownloadState;
-use bichon_core::account::stats::AccountStats;
-use bichon_core::account::view::AccountResp;
-use bichon_core::cache::imap::task::SYNC_TASKS;
-use bichon_core::common::paginated::{paginate_vec, DataPage};
-use bichon_core::error::code::ErrorCode;
-use bichon_core::raise_error;
-use bichon_core::store::tantivy::envelope::ENVELOPE_MANAGER;
-use bichon_core::users::permissions::Permission;
-use bichon_core::users::UserModel;
+use mailboxd_core::account::state::DownloadState;
+use mailboxd_core::account::stats::AccountStats;
+use mailboxd_core::account::view::AccountResp;
+use mailboxd_core::cache::imap::task::SYNC_TASKS;
+use mailboxd_core::common::paginated::{paginate_vec, DataPage};
+use mailboxd_core::error::code::ErrorCode;
+use mailboxd_core::raise_error;
+use mailboxd_core::store::tantivy::envelope::ENVELOPE_MANAGER;
+use mailboxd_core::users::permissions::Permission;
+use mailboxd_core::users::UserModel;
 use poem_openapi::param::{Path, Query};
 use poem_openapi::payload::Json;
 use poem_openapi::OpenApi;

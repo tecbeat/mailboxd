@@ -21,15 +21,15 @@ use std::collections::BTreeMap;
 use crate::common::auth::WrappedContext;
 use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
-use bichon_core::token::AccessTokenModel;
-use bichon_core::users::minimal::MinimalUser;
-use bichon_core::users::payload::{
+use mailboxd_core::token::AccessTokenModel;
+use mailboxd_core::users::minimal::MinimalUser;
+use mailboxd_core::users::payload::{
     RoleCreateRequest, RoleUpdateRequest, UserCreateRequest, UserUpdateRequest,
 };
-use bichon_core::users::permissions::Permission;
-use bichon_core::users::role::{RoleType, UserRole};
-use bichon_core::users::view::UserView;
-use bichon_core::users::UserModel;
+use mailboxd_core::users::permissions::Permission;
+use mailboxd_core::users::role::{RoleType, UserRole};
+use mailboxd_core::users::view::UserView;
+use mailboxd_core::users::UserModel;
 use poem::web::Path;
 use poem_openapi::payload::Json;
 use poem_openapi::OpenApi;

@@ -22,7 +22,7 @@ use console::style;
 use dialoguer::{theme::ColorfulTheme, Select};
 use reqwest::Client;
 
-use bichon_core::{
+use mailboxd_core::{
     account::payload::MinimalAccount,
     users::{permissions::Permission, view::UserView},
 };
