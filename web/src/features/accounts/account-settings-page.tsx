@@ -46,7 +46,7 @@ const emptyImap = {
   port: 0,
   encryption: "None" as const,
   auth: { auth_type: "Password" as const, password: undefined },
-  use_proxy: null,
+  use_proxy: undefined,
 };
 
 function mapAccountToFormValues(account: AccountModel): AccountFormValues {
