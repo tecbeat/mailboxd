@@ -597,7 +597,7 @@ export default function MailArchiveDashboard() {
                 rel="noopener noreferrer"
                 className="hover:underline font-mono"
               >
-                v{stats1.system_version}
+                {stats1.system_version.startsWith('v') ? stats1.system_version : `v${stats1.system_version}`}
               </a>
             </>
           )}
