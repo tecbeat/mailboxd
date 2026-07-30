@@ -1,0 +1,70 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenuButton,
+  useSidebar,
+} from '@/components/ui/sidebar'
+import { NavGroup } from '@/components/layout/nav-group'
+import Logo from '@/assets/logo.svg'
+import { useSidebarData } from './data/sidebar-data'
+import { Link } from '@tanstack/react-router';
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { open } = useSidebar();
+  const sidebarData = useSidebarData();
+  return (
+    <Sidebar collapsible='icon' variant='sidebar' {...props}>
+      <SidebarHeader>
+        <SidebarMenuButton
+          size='lg'
+          asChild
+          className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+        >
+          <Link to="/">
+            <div className='flex aspect-square size-16 items-center justify-center rounded-lg text-sidebar-primary-foreground'>
+              <img
+                className={open ? "relative ml-[12px] mr-[12px]" : "mr-[30px]"}
+                src={Logo}
+                width={open ? 51 : 34}
+                height={open ? 51 : 34}
+                alt='mailboxd icon'
+              />
+            </div>
+            <div className='grid flex-1 text-left text-lg leading-tight'>
+              <span className='truncate font-semibold'>
+                mailboxd
+              </span>
+            </div>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarHeader>
+      <SidebarContent>
+        {sidebarData.navGroups.map((props) => (
+          <NavGroup key={props.title} {...props} />
+        ))}
+      </SidebarContent>
+    </Sidebar>
+  )
+}

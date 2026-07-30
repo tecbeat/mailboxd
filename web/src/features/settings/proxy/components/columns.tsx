@@ -1,0 +1,91 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import { ColumnDef } from '@tanstack/react-table'
+import LongText from '@/components/long-text'
+import { DataTableColumnHeader } from './data-table-column-header'
+import { DataTableRowActions } from './data-table-row-actions'
+import { format } from 'date-fns'
+import { Proxy } from '@/api/system/api'
+
+
+export const getColumns = (t: (key: string) => string): ColumnDef<Proxy>[] => [
+  {
+    accessorKey: 'id',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title={t('settings.id')} />
+    ),
+    cell: ({ row }) => (
+      <LongText className='max-w-72'>{`${row.original.id}`}</LongText>
+    ),
+    enableHiding: false,
+    meta: { className: 'w-44' },
+    enableSorting: false,
+  },
+  {
+    accessorKey: 'url',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title={t('settings.url')} />
+    ),
+    cell: ({ row }) => {
+      return (
+        <LongText
+          className='max-w-full'
+          contentClassName='max-w-[32rem] break-all'
+        >
+          {row.original.url}
+        </LongText>
+      )
+    },
+    meta: { className: 'min-w-0' },
+  },
+  {
+    accessorKey: 'created_at',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title={t('settings.createdAt')} />
+    ),
+    cell: ({ row }) => {
+      const created_at = row.original.created_at
+      const date = format(new Date(created_at), 'yyyy-MM-dd HH:mm:ss')
+      return <LongText>{date}</LongText>
+    },
+    enableHiding: false,
+    meta: { className: 'w-44 whitespace-nowrap' },
+  },
+  {
+    accessorKey: 'updated_at',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title={t('settings.updatedAt')} />
+    ),
+    cell: ({ row }) => {
+      const updated_at = row.original.updated_at
+      const date = format(new Date(updated_at), 'yyyy-MM-dd HH:mm:ss')
+      return <LongText>{date}</LongText>
+    },
+    enableHiding: false,
+    meta: { className: 'w-44 whitespace-nowrap' },
+  },
+  {
+    id: 'actions',
+    cell: DataTableRowActions,
+    meta: { className: 'w-16' },
+  },
+]

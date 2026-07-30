@@ -1,0 +1,54 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+export interface PaginatedResponse<S> {
+  current_page: number | null;
+  page_size: number | null;
+  total_items: number;
+  items: S[];
+  total_pages: number | null;
+}
+
+
+export interface EmailEnvelope {
+  id: string;
+  message_id: string;
+  account_id: number;
+  mailbox_id: number;
+  account_email: string;
+  account_name?: string;
+  mailbox_name: string;
+  uid: number;
+  subject: string;
+  preview: string;
+  from: string;
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  date: number;
+  internal_date: number;
+  size: number;
+  thread_id: string,
+  attachment_count: number;
+  regular_attachment_count: number;
+  tags: string[];
+  content_hash: string;
+}

@@ -1,0 +1,219 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use std::process;
+
+use console::style;
+use dialoguer::{theme::ColorfulTheme, Select};
+use reqwest::Client;
+
+use mailboxd_core::{
+    account::payload::MinimalAccount,
+    users::{permissions::Permission, view::UserView},
+};
+
+use crate::MailboxdCliConfig;
+
+async fn fetch_json<T: serde::de::DeserializeOwned>(
+    client: &Client,
+    url: &str,
+    token: &str,
+    label: &str,
+) -> T {
+    let response = match client
+        .get(url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!(
+                "\n{} {}",
+                style("✘ Network Error:").red().bold(),
+                "Could not connect to mailboxd service."
+            );
+            eprintln!("{} {}", style("Details:").dim(), e);
+            eprintln!(
+                "\n{} Please check if the Base URL is correct and the server is running.",
+                style("Tip:").cyan()
+            );
+            process::exit(1);
+        }
+    };
+
+    let status = response.status();
+    let body = response.text().await.unwrap_or_else(|_| String::new());
+
+    if !status.is_success() {
+        eprintln!(
+            "\n{} Server returned an error (Status: {})",
+            style("✘ API Error:").red().bold(),
+            style(status).yellow()
+        );
+        if status == 401 {
+            eprintln!(
+                "{} Your API Token seems to be invalid or expired.",
+                style("Context:").dim()
+            );
+        } else if status == 404 {
+            eprintln!(
+                "{} The endpoint was not found. Please check your Base URL.",
+                style("Context:").dim()
+            );
+        }
+        eprintln!("{} {}", style("Response:").dim(), body);
+        process::exit(1);
+    }
+
+    if body.is_empty() {
+        eprintln!(
+            "\n{} Server returned an empty response for [{}] (Status: {})",
+            style("✘ Empty Response:").red().bold(),
+            label,
+            status
+        );
+        eprintln!(
+            "{} This may be caused by a reverse proxy or middleware issue.",
+            style("Tip:").cyan()
+        );
+        process::exit(1);
+    }
+
+    match serde_json::from_str::<T>(&body) {
+        Ok(data) => data,
+        Err(e) => {
+            eprintln!(
+                "\n{} Failed to parse response for [{}]: {}",
+                style("✘ Parse Error:").red().bold(),
+                label,
+                e
+            );
+            eprintln!("{} Raw body: {}", style("Debug:").dim(), body);
+            process::exit(1);
+        }
+    }
+}
+
+pub async fn verify_user_and_get_account(
+    config: &MailboxdCliConfig,
+    theme: &ColorfulTheme,
+    only_nosync: bool,
+) -> MinimalAccount {
+    let client = Client::new();
+
+    let user: UserView = fetch_json(
+        &client,
+        &format!("{}/api/v1/current-user", config.base_url),
+        &config.api_token,
+        "current-user",
+    )
+    .await;
+
+    println!("Welcome, {}!", style(&user.username).cyan());
+
+    let accounts: Vec<MinimalAccount> = fetch_json(
+        &client,
+        &format!(
+            "{}/api/v1/minimal-account-list?only_nosync={only_nosync}",
+            config.base_url
+        ),
+        &config.api_token,
+        "minimal-account-list",
+    )
+    .await;
+
+    if accounts.is_empty() {
+        println!(
+            "\n{}",
+            style("Error: No 'nosync' accounts found.").red().bold()
+        );
+        println!(
+            "{}",
+            style("Mail import is only supported for 'nosync' type accounts.").dim()
+        );
+        println!(
+            "Please create a new {} account in the mailboxd web interface first.",
+            style("Nosync").bold().yellow()
+        );
+        process::exit(1);
+    }
+
+    let required_permission = Permission::DATA_IMPORT_BATCH;
+    let mut selectable_accounts = Vec::new();
+    let mut options = Vec::new();
+
+    for acc in accounts {
+        let has_permission = if let Some(perms) = user.account_permissions.get(&acc.id) {
+            perms.iter().any(|p| p == required_permission)
+        } else {
+            user.global_permissions
+                .iter()
+                .any(|p| p == Permission::DATA_MANAGE_ALL || p == Permission::ROOT)
+        };
+
+        let status_prefix = if has_permission {
+            style(" [READY] ").green()
+        } else {
+            style(" [NO PERMISSION] ").red()
+        };
+
+        options.push(format!(
+            "{}{} - {}",
+            status_prefix,
+            style(&acc.email).bold(),
+            style(format!("ID: {}", acc.id)).dim()
+        ));
+
+        selectable_accounts.push((acc, has_permission));
+    }
+
+    let selection = Select::with_theme(theme)
+        .with_prompt("Select the target account for import")
+        .items(&options)
+        .default(0)
+        .max_length(10)
+        .interact()
+        .unwrap();
+
+    let (selected_acc, can_import) = &selectable_accounts[selection];
+
+    if !*can_import {
+        eprintln!(
+            "\n{} You do not have '{}' permission for account {}.",
+            style("✘ Permission Denied:").red().bold(),
+            style(required_permission).yellow(),
+            style(&selected_acc.email).cyan()
+        );
+        eprintln!(
+            "{} Please contact your administrator to upgrade your role for this account.",
+            style("Tip:").dim()
+        );
+        process::exit(1);
+    }
+
+    println!(
+        "{} Targeting account: {}",
+        style("✔").green(),
+        style(&selected_acc.email).cyan().bold()
+    );
+
+    selected_acc.clone()
+}

@@ -1,0 +1,97 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use crate::context::Initialize;
+use crate::settings::cli::SETTINGS;
+use crate::{
+    error::{code::ErrorCode, MailboxdResult},
+    raise_error,
+};
+use std::path::PathBuf;
+use std::sync::LazyLock;
+
+const MEMDB_DIR: &str = "memdb";
+const INDICES: &str = "mailboxd-indices";
+const MAIL_METADATA: &str = "mail_metadata";
+const ATTACHMENT_METADATA: &str = "attachment_metadata";
+const STORAGE: &str = "mailboxd-storage";
+const TMP_DIR: &str = "tmp";
+const LOG_DIR: &str = "logs";
+
+const TLS_CERT: &str = "cert.pem";
+const TLS_KEY: &str = "key.pem";
+
+pub static DATA_DIR_MANAGER: LazyLock<DataDirManager> =
+    LazyLock::new(|| DataDirManager::new(PathBuf::from(&SETTINGS.mailboxd_root_dir)));
+
+#[derive(Debug)]
+pub struct DataDirManager {
+    pub root_dir: PathBuf,
+    pub memdb_dir: PathBuf,
+    pub temp_dir: PathBuf,
+    pub tls_cert: PathBuf,
+    pub tls_key: PathBuf,
+    pub envelope_dir: PathBuf,
+    pub attachment_dir: PathBuf,
+    pub storage_dir: PathBuf,
+    pub log_dir: PathBuf,
+}
+
+impl Initialize for DataDirManager {
+    async fn initialize() -> MailboxdResult<()> {
+        std::fs::create_dir_all(&DATA_DIR_MANAGER.root_dir)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        std::fs::create_dir_all(&DATA_DIR_MANAGER.log_dir)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        std::fs::create_dir_all(&DATA_DIR_MANAGER.temp_dir)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        std::fs::create_dir_all(&DATA_DIR_MANAGER.storage_dir)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        Ok(())
+    }
+}
+
+impl DataDirManager {
+    pub fn new(root_dir: PathBuf) -> Self {
+        let index_dir = if let Some(ref index_dir) = SETTINGS.mailboxd_index_dir {
+            PathBuf::from(index_dir).join(INDICES)
+        } else {
+            root_dir.join(INDICES)
+        };
+
+        let storage_dir = if let Some(ref data_dir) = SETTINGS.mailboxd_data_dir {
+            PathBuf::from(data_dir).join(STORAGE)
+        } else {
+            root_dir.join(STORAGE)
+        };
+
+        Self {
+            root_dir: root_dir.clone(),
+            memdb_dir: root_dir.join(MEMDB_DIR),
+            tls_key: root_dir.join(TLS_KEY),
+            tls_cert: root_dir.join(TLS_CERT),
+            log_dir: root_dir.join(LOG_DIR),
+            envelope_dir: index_dir.join(MAIL_METADATA),
+            attachment_dir: index_dir.join(ATTACHMENT_METADATA),
+            temp_dir: root_dir.join(TMP_DIR),
+            storage_dir,
+        }
+    }
+}

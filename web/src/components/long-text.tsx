@@ -1,0 +1,106 @@
+//
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
+//
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import { useEffect, useRef, useState } from 'react'
+import { cn } from '@/lib/utils'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+
+interface Props {
+  children: React.ReactNode
+  className?: string
+  contentClassName?: string
+}
+
+export default function LongText({
+  children,
+  className = '',
+  contentClassName = '',
+}: Props) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isOverflown, setIsOverflown] = useState(false)
+
+  useEffect(() => {
+    if (checkOverflow(ref.current)) {
+      setIsOverflown(true)
+      return
+    }
+
+    setIsOverflown(false)
+  }, [])
+
+  if (!isOverflown)
+    return (
+      <div ref={ref} className={cn('truncate', className)}>
+        {children}
+      </div>
+    )
+
+  return (
+    <>
+      <div className='hidden sm:block'>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div ref={ref} className={cn('truncate', className)}>
+                {children}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className={contentClassName}>{children}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      <div className='sm:hidden'>
+        <Popover>
+          <PopoverTrigger asChild>
+            <div ref={ref} className={cn('truncate', className)}>
+              {children}
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className={cn('w-fit', contentClassName)}>
+            <p>{children}</p>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </>
+  )
+}
+
+const checkOverflow = (textContainer: HTMLDivElement | null) => {
+  if (textContainer) {
+    return (
+      textContainer.offsetHeight < textContainer.scrollHeight ||
+      textContainer.offsetWidth < textContainer.scrollWidth
+    )
+  }
+  return false
+}

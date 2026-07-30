@@ -1,0 +1,40 @@
+[package]
+name = "mailboxd-server"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = ["embed-web"]
+embed-web = ["dep:rust-embed"]
+
+
+[dependencies]
+mailboxd-core = { path = "../core", features = ["web-api"] }
+mailboxd-smtp = { path = "../smtp" }
+poem = { version = "3.1.12", features = ["embed", "compression", "rustls"] }
+poem-derive = "3.1.12"
+poem-openapi = { version = "5.1.16", features = [
+    "openapi-explorer",
+    "rapidoc",
+    "scalar",
+    "redoc",
+    "swagger-ui",
+    "email",
+] }
+rust-embed = { version = "8.11.0", optional = true }
+email_address.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+governor.workspace = true
+snafu.workspace = true
+timeago.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+futures.workspace = true
+http.workspace = true
+urlencoding.workspace = true
+
+[dev-dependencies]
+poem = { version = "3.1.12", features = ["test"] }
+tempfile = "3"

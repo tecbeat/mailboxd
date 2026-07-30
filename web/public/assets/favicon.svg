@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg version="1.0" width="686.000000pt" height="486.000000pt" viewBox="0 0 686.000000 486.000000" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  <metadata>
+Created by potrace 1.16, written by Peter Selinger 2001-2019
+</metadata>
+  <g transform="translate(0.000000,486.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
+    <path d="M170 4851 c-57 -18 -112 -54 -140 -93 l-30 -41 0 -584 0 -583 3430 0 3430 0 0 575 c0 642 4 604 -72 669 -83 72 204 66 -3367 65 -1774 0 -3237 -4 -3251 -8z" fill="url(#grad1)" />
+    <path d="M340 1731 c0 -1088 3 -1578 11 -1598 15 -40 47 -71 104 -101 l50 -27 2900 -3 c2642 -2 2904 -1 2950 14 60 19 110 55 136 98 18 30 19 73 19 1609 l0 1577 -3085 0 -3085 0 0 -1569z m4251 916 c38 -18 66 -41 85 -69 l29 -41 0 -237 0 -237 -29 -41 c-19 -28 -47 -51 -85 -69 l-56 -28 -1089 -3 c-1228 -3 -1156 -7 -1243 72 l-48 44 0 262 0 262 48 44 c86 77 11 73 1237 71 l1095 -2 56 -28z" fill="url(#grad1)" />
+  </g>
+  <defs>
+    <linearGradient id="grad1" x1="0" y1="2430" x2="6860" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="6%" style="stop-color:rgb(246,129,0);stop-opacity:1" />
+      <stop offset="50%" style="stop-color:rgb(179,51,2);stop-opacity:1" />
+      <stop offset="94%" style="stop-color:rgb(119,1,80);stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

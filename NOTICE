@@ -1,0 +1,56 @@
+mailboxd — a self-hosted email archiving server
+Copyright (c) 2026 tecbeat
+Copyright (c) 2025-2026 rustmailer.com
+
+Licensed under the GNU Affero General Public License v3.0 or later.
+See LICENSE for the full license text, or
+<https://www.gnu.org/licenses/agpl-3.0.html>.
+
+Attribution
+-----------
+
+mailboxd is a fork of the Bichon email archiving project, originally
+authored by rustmailer.com (https://rustmailer.com,
+https://github.com/rustmailer/bichon). The upstream project is
+distributed under the same AGPL-3.0-or-later license.
+
+Modifications
+-------------
+
+- Renamed the project, binaries, container images, environment
+  variables, CLI flags, configuration keys, storage directories and
+  HTTP header prefixes from "bichon"/"BICHON_*" to
+  "mailboxd"/"MAILBOXD_*".
+- Rebranded the web UI, including title, logo references, footer
+  and localised strings across all supported languages.
+- Removed the upstream release-notification integration against
+  github.com/rustmailer/bichon. A replacement pointing at
+  git.teccave.de/tecbeat/mailboxd is tracked as a follow-up task.
+- Updated deployment artefacts (Dockerfile, systemd unit, example
+  environment file, changelog configuration) to reflect the new
+  project identity.
+
+The original per-file copyright notices ("Copyright (c) 2025-2026
+rustmailer.com") are preserved verbatim in every source file, as
+required by AGPL-3.0 § 4 and § 5(b). Every modified file additionally
+carries an added "Copyright (c) 2026 tecbeat" line and a modification
+notice, as required by AGPL-3.0 § 5(a).
+
+Corresponding source
+--------------------
+
+In accordance with AGPL-3.0 § 13, the complete corresponding source
+code of this modified version is available at:
+
+    https://git.teccave.de/tecbeat/mailboxd
+
+Users of a running mailboxd instance can find a link to the source
+in the web UI footer and on the sign-in screen.
+
+Third-party components
+----------------------
+
+mailboxd depends on a number of third-party Rust and JavaScript
+libraries. Their respective licenses can be inspected in the
+Cargo.lock file, the web/pnpm-lock.yaml file, or generated on demand
+with tools such as `cargo about` or `pnpm licenses list`.
