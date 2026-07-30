@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,13 +24,13 @@ use mailboxd_memdb::{Durability, MemDb};
 
 use crate::{
     database::MemDbModel,
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
     users::{UserModel, DEFAULT_ADMIN_USER_ID},
     utils::encrypt::internal_encrypt_string,
 };
 
-pub fn open_database(path: impl AsRef<Path>) -> BichonResult<MemDb> {
+pub fn open_database(path: impl AsRef<Path>) -> MailboxdResult<MemDb> {
     MemDb::open_with(path, Durability::Full).map_err(|e| {
         raise_error!(
             format!("Failed to open database: {:?}", e),
@@ -37,7 +39,7 @@ pub fn open_database(path: impl AsRef<Path>) -> BichonResult<MemDb> {
     })
 }
 
-pub fn find_admin(db: &MemDb) -> BichonResult<Option<UserModel>> {
+pub fn find_admin(db: &MemDb) -> MailboxdResult<Option<UserModel>> {
     let key = DEFAULT_ADMIN_USER_ID.to_string();
     let coll = db.collection(UserModel::collection());
     coll.get(&key)
@@ -48,7 +50,7 @@ pub fn update_admin_password(
     db: &MemDb,
     password: String,
     encrypt_key: &str,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     let key = DEFAULT_ADMIN_USER_ID.to_string();
     let coll = db.collection(UserModel::collection());
     let entity: UserModel = coll

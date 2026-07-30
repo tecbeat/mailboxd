@@ -36,7 +36,7 @@ export const Route = createFileRoute('/_authenticated/search/')({
     return {
       ...result,
       page: result.page ?? 1,
-      pageSize: result.pageSize ?? (Number(localStorage.getItem('bichon_search_page_size')) || 30),
+      pageSize: result.pageSize ?? (Number(localStorage.getItem('mailboxd_search_page_size')) || 30),
     }
   }
 })

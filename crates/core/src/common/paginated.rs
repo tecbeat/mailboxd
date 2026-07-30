@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
 };
 use serde::{Deserialize, Serialize};
@@ -27,7 +29,7 @@ pub fn paginate_vec<T: Clone>(
     items: &Vec<T>,
     page: Option<u64>,
     page_size: Option<u64>,
-) -> BichonResult<Paginated<T>> {
+) -> MailboxdResult<Paginated<T>> {
     let total_items = items.len() as u64;
 
     let (offset, total_pages) = match (page, page_size) {

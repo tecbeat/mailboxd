@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +32,7 @@ pub fn check_dir_read_write(path: &Path) -> Result<(), String> {
         return Err(format!("{:?} is not a directory", path));
     }
 
-    let test_file = path.join(".bichon_perm_test");
+    let test_file = path.join(".mailboxd_perm_test");
 
     {
         let mut f = OpenOptions::new()

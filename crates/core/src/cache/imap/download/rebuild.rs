@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +30,7 @@ use crate::{
         },
         SEMAPHORE,
     },
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
     store::tantivy::{attachment::ATTACHMENT_MANAGER, envelope::ENVELOPE_MANAGER},
 };
@@ -40,7 +42,7 @@ pub async fn rebuild_cache(
     account: &AccountModel,
     remote_mailboxes: &[MailBox],
     token: CancellationToken,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     MailBox::batch_insert(remote_mailboxes)?;
     DownloadState::init_folder_details(
         account.id,
@@ -120,7 +122,7 @@ pub async fn rebuild_cache_by_date(
     date: &str,
     direction: FetchDirection,
     token: CancellationToken,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     MailBox::batch_insert(remote_mailboxes)?;
     DownloadState::init_folder_details(
         account.id,
@@ -204,7 +206,7 @@ pub async fn rebuild_mailbox_cache(
     local_mailbox: &MailBox,
     remote_mailbox: &MailBox,
     token: CancellationToken,
-) -> BichonResult<Option<u32>> {
+) -> MailboxdResult<Option<u32>> {
     ENVELOPE_MANAGER
         .delete_mailbox_envelopes(account.id, vec![local_mailbox.id])
         .await?;
@@ -239,7 +241,7 @@ pub async fn rebuild_mailbox_cache_by_date(
     remote: &MailBox,
     direction: FetchDirection,
     token: CancellationToken,
-) -> BichonResult<Option<u32>> {
+) -> MailboxdResult<Option<u32>> {
     ENVELOPE_MANAGER
         .delete_mailbox_envelopes(account.id, vec![local_mailbox_id])
         .await?;

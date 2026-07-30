@@ -13,7 +13,7 @@ use mailboxd_core::{
     autoconfig::entity::MailServerConfig,
     cache::imap::mailbox::Attribute,
     database::batch_insert_impl,
-    error::{code::ErrorCode, BichonError, BichonResult},
+    error::{code::ErrorCode, MailboxdError, MailboxdResult},
     raise_error,
     token::TokenType,
     users::{acl::AccessControl, role::RoleType},
@@ -457,7 +457,7 @@ impl From<UserRole> for mailboxd_core::users::role::UserRole {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[native_model(id = 10, version = 1)]
 #[native_db]
-pub struct BichonUser {
+pub struct MailboxdUser {
     #[primary_key]
     pub id: u64,
     #[secondary_key(unique)]
@@ -487,9 +487,9 @@ pub struct BichonUser {
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-#[native_model(id = 10, version = 2, from = BichonUser)]
+#[native_model(id = 10, version = 2, from = MailboxdUser)]
 #[native_db]
-pub struct BichonUserV2 {
+pub struct MailboxdUserV2 {
     #[primary_key]
     pub id: u64,
     #[secondary_key(unique)]
@@ -521,9 +521,9 @@ pub struct BichonUserV2 {
     pub language: Option<String>,
 }
 
-impl From<BichonUserV2> for BichonUser {
-    fn from(value: BichonUserV2) -> Self {
-        BichonUser {
+impl From<MailboxdUserV2> for MailboxdUser {
+    fn from(value: MailboxdUserV2) -> Self {
+        MailboxdUser {
             id: value.id,
             username: value.username,
             email: value.email,
@@ -539,9 +539,9 @@ impl From<BichonUserV2> for BichonUser {
     }
 }
 
-impl From<BichonUser> for BichonUserV2 {
-    fn from(value: BichonUser) -> Self {
-        BichonUserV2 {
+impl From<MailboxdUser> for MailboxdUserV2 {
+    fn from(value: MailboxdUser) -> Self {
+        MailboxdUserV2 {
             id: value.id,
             username: value.username,
             email: value.email,
@@ -559,8 +559,8 @@ impl From<BichonUser> for BichonUserV2 {
     }
 }
 
-impl From<BichonUserV2> for mailboxd_core::users::BichonUserV2 {
-    fn from(value: BichonUserV2) -> Self {
+impl From<MailboxdUserV2> for mailboxd_core::users::MailboxdUserV2 {
+    fn from(value: MailboxdUserV2) -> Self {
         Self {
             id: value.id,
             username: value.username,
@@ -707,13 +707,13 @@ impl ModelsAdapter {
         self.register_model::<OAuth2AccessToken>();
         self.register_model::<Proxy>();
         self.register_model::<UserRole>();
-        self.register_model::<BichonUser>();
-        self.register_model::<BichonUserV2>();
+        self.register_model::<MailboxdUser>();
+        self.register_model::<MailboxdUserV2>();
         self.register_model::<AccessTokenModel>();
     }
 }
 
-fn init_meta_database(root_path: &PathBuf) -> BichonResult<Arc<Database<'static>>> {
+fn init_meta_database(root_path: &PathBuf) -> MailboxdResult<Arc<Database<'static>>> {
     let mut database = Builder::new()
         .set_cache_size(134217728)
         .create(&META_MODELS, root_path.join("meta.db"))
@@ -724,7 +724,7 @@ fn init_meta_database(root_path: &PathBuf) -> BichonResult<Arc<Database<'static>
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
     rw.migrate::<AccountV3>()
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-    rw.migrate::<BichonUserV2>()
+    rw.migrate::<MailboxdUserV2>()
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
     rw.commit()
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
@@ -735,7 +735,7 @@ fn init_meta_database(root_path: &PathBuf) -> BichonResult<Arc<Database<'static>
     Ok(Arc::new(database))
 }
 
-fn init_evenlope_database(root_path: &PathBuf) -> BichonResult<Arc<Database<'static>>> {
+fn init_evenlope_database(root_path: &PathBuf) -> MailboxdResult<Arc<Database<'static>>> {
     let mut database = Builder::new()
         .set_cache_size(1073741824)
         .create(&MAILBOX_MODELS, root_path.join("mailbox.db"))
@@ -754,7 +754,7 @@ fn init_evenlope_database(root_path: &PathBuf) -> BichonResult<Arc<Database<'sta
     Ok(Arc::new(database))
 }
 
-fn handle_database_error(error: native_db::db_type::Error) -> BichonError {
+fn handle_database_error(error: native_db::db_type::Error) -> MailboxdError {
     raise_error!(
         format!("Failed to create database: {:?}", error),
         ErrorCode::InternalError
@@ -763,7 +763,7 @@ fn handle_database_error(error: native_db::db_type::Error) -> BichonError {
 
 pub fn list_all_impl<T: ToInput + Clone + Send + 'static>(
     database: &Arc<Database<'static>>,
-) -> BichonResult<Vec<T>> {
+) -> MailboxdResult<Vec<T>> {
     let r_transaction = database
         .r_transaction()
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
@@ -882,8 +882,8 @@ pub fn migrate_metadata(root_path: &PathBuf) -> Result<(), Box<dyn std::error::E
 
     migrate_collection!(
         "Users",
-        BichonUserV2,
-        mailboxd_core::users::BichonUserV2,
+        MailboxdUserV2,
+        mailboxd_core::users::MailboxdUserV2,
         &meta_db
     );
 

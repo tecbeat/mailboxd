@@ -233,7 +233,7 @@ mod tests {
 
     fn temp_dir(name: &str) -> std::path::PathBuf {
         let dir = std::env::temp_dir()
-            .join("bichon-dedup-cache-test")
+            .join("mailboxd-dedup-cache-test")
             .join(name)
             .join(uuid::Uuid::new_v4().to_string());
         fs::create_dir_all(&dir).unwrap();

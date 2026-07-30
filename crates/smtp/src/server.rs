@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +27,7 @@ use mailboxd_core::account::migration::AccountType;
 use mailboxd_core::cache::imap::mailbox::{Attribute, AttributeEnum};
 use mailboxd_core::common::signal::SIGNAL_MANAGER;
 use mailboxd_core::envelope::extractor::extract_envelope_from_smtp;
-use mailboxd_core::error::BichonResult;
+use mailboxd_core::error::MailboxdResult;
 use mailboxd_core::settings::cli::{EncryptionMode, SETTINGS};
 use mailboxd_core::utils::create_hash;
 use mailboxd_core::{
@@ -177,7 +179,7 @@ async fn handle_connection(stream: TcpStream, config: SmtpConfig) -> io::Result<
     let mut stream = BufStream::new(stream);
 
     stream
-        .write_all(b"220 localhost ESMTP (Bichon Email Archiver)\r\n")
+        .write_all(b"220 localhost ESMTP (mailboxd Email Archiver)\r\n")
         .await?;
     stream.flush().await?;
 
@@ -312,7 +314,7 @@ where
     }
 
     if cmd.starts_with("EHLO") || cmd.starts_with("HELO") {
-        let mut response = String::from("250-Bichon Hello\r\n");
+        let mut response = String::from("250-mailboxd Hello\r\n");
         response.push_str("250-SIZE 52428800\r\n"); // 50MB
         response.push_str("250-8BITMIME\r\n");
 
@@ -436,7 +438,7 @@ where
                                 addr
                             );
                             let err = format!(
-                                "550 5.7.1 <{}>: Not a Bichon local account, journaling is not supported\r\n",
+                                "550 5.7.1 <{}>: Not a mailboxd local account, journaling is not supported\r\n",
                                 account.email
                             );
                             stream.write_all(err.as_bytes()).await?;
@@ -447,7 +449,7 @@ where
                     }
                 }
                 Ok(None) => {
-                    let err = format!("550 5.1.1 <{}>: Bichon account not found\r\n", addr);
+                    let err = format!("550 5.1.1 <{}>: mailboxd account not found\r\n", addr);
                     stream.write_all(err.as_bytes()).await?;
                 }
                 Err(e) => {
@@ -494,7 +496,7 @@ where
             match parse_email(&data, session).await {
                 Ok(_) => {
                     stream
-                        .write_all(b"250 2.0.0 OK: queued in Bichon\r\n")
+                        .write_all(b"250 2.0.0 OK: queued in mailboxd\r\n")
                         .await?;
                     tracing::debug!(
                         "SMTP: Message accepted and archived for {} recipients",
@@ -618,7 +620,7 @@ async fn read_data<R: AsyncBufReadExt + Unpin>(reader: &mut R) -> io::Result<Vec
     Ok(data)
 }
 
-async fn parse_email(data: &[u8], session: &Session) -> BichonResult<()> {
+async fn parse_email(data: &[u8], session: &Session) -> MailboxdResult<()> {
     let rcpt = match session.rcpt_to.first() {
         Some(r) => r,
         None => {
@@ -695,15 +697,15 @@ impl SmtpServer {
 }
 
 pub async fn start_smtp_server() -> std::io::Result<SmtpServer> {
-    let smtp_port = SETTINGS.bichon_smtp_port;
+    let smtp_port = SETTINGS.mailboxd_smtp_port;
 
-    let tls_acceptor: Option<TlsAcceptor> = match SETTINGS.bichon_smtp_encryption {
+    let tls_acceptor: Option<TlsAcceptor> = match SETTINGS.mailboxd_smtp_encryption {
         EncryptionMode::None => None,
         EncryptionMode::Starttls | EncryptionMode::Tls => Some(create_acceptor().await?),
     };
 
     let smtp_listener = TcpListener::bind((
-        SETTINGS.bichon_bind_ip.clone().unwrap_or("0.0.0.0".into()),
+        SETTINGS.mailboxd_bind_ip.clone().unwrap_or("0.0.0.0".into()),
         smtp_port,
     ))
     .await
@@ -720,16 +722,16 @@ pub async fn start_smtp_server() -> std::io::Result<SmtpServer> {
 
     let smtp_config = SmtpConfig {
         whitelist: None,
-        tls_acceptor: match SETTINGS.bichon_smtp_encryption {
+        tls_acceptor: match SETTINGS.mailboxd_smtp_encryption {
             EncryptionMode::None | EncryptionMode::Tls => None,
             EncryptionMode::Starttls => tls_acceptor.clone(),
         },
-        auth_required: SETTINGS.bichon_smtp_auth_required,
+        auth_required: SETTINGS.mailboxd_smtp_auth_required,
     };
 
     let smtp_shutdown = SIGNAL_MANAGER.subscribe();
 
-    let smtp_handle = if matches!(SETTINGS.bichon_smtp_encryption, EncryptionMode::Tls) {
+    let smtp_handle = if matches!(SETTINGS.mailboxd_smtp_encryption, EncryptionMode::Tls) {
         let acceptor = tls_acceptor
             .clone()
             .expect("TLS acceptor required when tls=true");

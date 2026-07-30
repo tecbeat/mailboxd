@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use mailboxd_core::bichon_version;
+use mailboxd_core::mailboxd_version;
 use clap::Parser;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
@@ -39,12 +41,11 @@ pub mod thunderbird;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "bichon-cli",
-    author = "rustmailer",
-    version = bichon_version!(),
-    about = "A CLI tool to import email data into Bichon service"
+    name = "mailboxd-cli",
+    version = mailboxd_version!(),
+    about = "A CLI tool to import email data into the mailboxd service"
 )]
-pub struct BichonCli {
+pub struct MailboxdCli {
     /// Path to the configuration file
     #[arg(
         short,
@@ -57,21 +58,21 @@ pub struct BichonCli {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct BichonCliConfig {
+pub struct MailboxdCliConfig {
     pub base_url: String,
     pub api_token: String,
 }
 
 #[tokio::main]
 async fn main() {
-    let cli = BichonCli::parse();
+    let cli = MailboxdCli::parse();
     let theme = ColorfulTheme::default();
     let config_path = &cli.config;
-    let mut current_config: Option<BichonCliConfig> = None;
+    let mut current_config: Option<MailboxdCliConfig> = None;
 
     if config_path.exists() {
         if let Ok(content) = fs::read_to_string(config_path) {
-            if let Ok(config) = toml::from_str::<BichonCliConfig>(&content) {
+            if let Ok(config) = toml::from_str::<MailboxdCliConfig>(&content) {
                 println!("{}", style("✔ Existing configuration found:").green());
                 println!("  Base URL: {}", style(&config.base_url).yellow());
                 println!(" API Token: {}", style(&config.api_token).yellow());
@@ -92,10 +93,10 @@ async fn main() {
     let final_config = match current_config {
         Some(conf) => conf,
         None => {
-            println!("\n{}", style("Please enter Bichon service details:").bold());
+            println!("\n{}", style("Please enter mailboxd service details:").bold());
 
             let url: String = Input::with_theme(&theme)
-                .with_prompt("Bichon Base URL")
+                .with_prompt("mailboxd Base URL")
                 .default("http://localhost:15630".into())
                 .interact_text()
                 .unwrap();
@@ -105,7 +106,7 @@ async fn main() {
                 .interact_text()
                 .unwrap();
 
-            let conf = BichonCliConfig {
+            let conf = MailboxdCliConfig {
                 base_url: url,
                 api_token: token,
             };
@@ -126,7 +127,7 @@ async fn main() {
     };
 
     let operations = &[
-        "1. Import: Upload email data to Bichon",
+        "1. Import: Upload email data to mailboxd",
         "2. Export: Download account data as MBOX file",
     ];
 

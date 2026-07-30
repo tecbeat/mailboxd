@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -45,7 +47,7 @@ pub struct AccountError {
 }
 
 // impl AccountRunningState {
-//     pub async fn add(account_id: u64) -> BichonResult<()> {
+//     pub async fn add(account_id: u64) -> MailboxdResult<()> {
 //         let info = AccountRunningState {
 //             account_id,
 //             last_incremental_sync_start: 0,
@@ -60,14 +62,14 @@ pub struct AccountError {
 //         upsert_impl(DB_MANAGER.envelope_db(), info).await
 //     }
 
-//     pub async fn get(account_id: u64) -> BichonResult<Option<AccountRunningState>> {
+//     pub async fn get(account_id: u64) -> MailboxdResult<Option<AccountRunningState>> {
 //         async_find_impl(DB_MANAGER.envelope_db(), account_id).await
 //     }
 
 //     async fn update_account_running_state(
 //         account_id: u64,
-//         updater: impl FnOnce(&AccountRunningState) -> BichonResult<AccountRunningState> + Send + 'static,
-//     ) -> BichonResult<()> {
+//         updater: impl FnOnce(&AccountRunningState) -> MailboxdResult<AccountRunningState> + Send + 'static,
+//     ) -> MailboxdResult<()> {
 //         if Self::get(account_id).await?.is_some() {
 //             update_impl(
 //                 DB_MANAGER.envelope_db(),
@@ -89,7 +91,7 @@ pub struct AccountError {
 //         Ok(())
 //     }
 
-//     pub async fn delete(account_id: u64) -> BichonResult<()> {
+//     pub async fn delete(account_id: u64) -> MailboxdResult<()> {
 //         if Self::get(account_id).await?.is_none() {
 //             return Ok(());
 //         }
@@ -111,7 +113,7 @@ pub struct AccountError {
 //         .await
 //     }
 
-//     // pub async fn set_initial_sync_start(account_id: u64) -> BichonResult<()> {
+//     // pub async fn set_initial_sync_start(account_id: u64) -> MailboxdResult<()> {
 //     //     Self::update_account_running_state(account_id, move |current| {
 //     //         let mut updated = current.clone();
 //     //         updated.initial_sync_start_time = Some(utc_now!());
@@ -120,7 +122,7 @@ pub struct AccountError {
 //     //     .await
 //     // }
 
-//     pub async fn set_initial_sync_completed(account_id: u64) -> BichonResult<()> {
+//     pub async fn set_initial_sync_completed(account_id: u64) -> MailboxdResult<()> {
 //         Self::update_account_running_state(account_id, move |current| {
 //             let mut updated = current.clone();
 //             updated.is_initial_sync_completed = true;
@@ -130,7 +132,7 @@ pub struct AccountError {
 //         .await
 //     }
 
-//     pub async fn set_initial_sync_failed(account_id: u64) -> BichonResult<()> {
+//     pub async fn set_initial_sync_failed(account_id: u64) -> MailboxdResult<()> {
 //         Self::update_account_running_state(account_id, move |current| {
 //             let mut updated = current.clone();
 //             updated.initial_sync_failed_time = Some(utc_now!());
@@ -143,7 +145,7 @@ pub struct AccountError {
 //         account_id: u64,
 //         syncing_folder: String,
 //         batch_number: u32,
-//     ) -> BichonResult<()> {
+//     ) -> MailboxdResult<()> {
 //         Self::update_account_running_state(account_id, move |current| {
 //             let mut updated = current.clone();
 //             let mut progress_map = updated.progress.clone().unwrap_or_default();
@@ -164,7 +166,7 @@ pub struct AccountError {
 //     pub async fn set_folder_initial_sync_completed(
 //         account_id: u64,
 //         syncing_folder: String,
-//     ) -> BichonResult<()> {
+//     ) -> MailboxdResult<()> {
 //         Self::update_account_running_state(account_id, move |current| {
 //             let mut updated = current.clone();
 //             let mut progress_map = updated.progress.clone().unwrap_or_default();
@@ -186,7 +188,7 @@ pub struct AccountError {
 //         account_id: u64,
 //         current_syncing_folder: String,
 //         total_sync_batches: u32,
-//     ) -> BichonResult<()> {
+//     ) -> MailboxdResult<()> {
 //         Self::update_account_running_state(account_id, move |current| {
 //             let mut updated = current.clone();
 //             let mut progress_map = updated.progress.clone().unwrap_or_default();
@@ -203,7 +205,7 @@ pub struct AccountError {
 //         .await
 //     }
 
-//     pub async fn set_incremental_sync_start(account_id: u64) -> BichonResult<()> {
+//     pub async fn set_incremental_sync_start(account_id: u64) -> MailboxdResult<()> {
 //         Self::update_account_running_state(account_id, move |current| {
 //             let mut updated = current.clone();
 //             updated.last_incremental_sync_start = utc_now!();
@@ -213,7 +215,7 @@ pub struct AccountError {
 //         .await
 //     }
 
-//     pub async fn set_incremental_sync_end(account_id: u64) -> BichonResult<()> {
+//     pub async fn set_incremental_sync_end(account_id: u64) -> MailboxdResult<()> {
 //         Self::update_account_running_state(account_id, move |current| {
 //             let mut updated = current.clone();
 //             updated.last_incremental_sync_end = Some(utc_now!());
@@ -222,7 +224,7 @@ pub struct AccountError {
 //         .await
 //     }
 
-//     pub async fn append_error_message(account_id: u64, error: String) -> BichonResult<()> {
+//     pub async fn append_error_message(account_id: u64, error: String) -> MailboxdResult<()> {
 //         Self::update_account_running_state(account_id, move |current| {
 //             let mut updated = current.clone();
 //             updated.append_error_log(error);

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +37,7 @@ use crate::{
         account::migration::{AccountModel, AccountType},
         cache::imap::mailbox::{Attribute, AttributeEnum, MailBox},
         envelope::extractor::extract_envelope_from_eml,
-        error::{BichonResult, code::ErrorCode},
+        error::{MailboxdResult, code::ErrorCode},
         settings::dir::DATA_DIR_MANAGER,
         utils::create_hash,
     },
@@ -85,7 +87,7 @@ pub struct BatchEmlResult {
 pub struct ImportEmls;
 
 impl ImportEmls {
-    pub async fn do_import(mut request: BatchEmlRequest) -> BichonResult<BatchEmlResult> {
+    pub async fn do_import(mut request: BatchEmlRequest) -> MailboxdResult<BatchEmlResult> {
         let account = AccountModel::check_account_exists(request.account_id)?;
         
         if !account.enabled {
@@ -239,7 +241,7 @@ pub fn update_progress(import_id: &str, progress: ImportProgress) {
 }
 
 /// Check free disk space (in bytes) on the temp directory's filesystem.
-pub fn check_temp_disk_space() -> BichonResult<u64> {
+pub fn check_temp_disk_space() -> MailboxdResult<u64> {
     use sysinfo::Disks;
     let disks = Disks::new_with_refreshed_list();
     let temp_path = &DATA_DIR_MANAGER.temp_dir;
@@ -366,7 +368,7 @@ pub fn detect_text_file(bytes: &[u8]) -> bool {
 }
 
 /// Validate that the target account exists, is enabled, and is NoSync type.
-fn validate_import_account(account_id: u64) -> BichonResult<AccountModel> {
+fn validate_import_account(account_id: u64) -> MailboxdResult<AccountModel> {
     let account = AccountModel::check_account_exists(account_id)?;
     if !account.enabled {
         return Err(raise_error!(
@@ -384,7 +386,7 @@ fn validate_import_account(account_id: u64) -> BichonResult<AccountModel> {
 }
 
 /// Resolve or create a mailbox/folder for the given account.
-pub(super) fn resolve_mailbox(account: &AccountModel, folder: &str) -> BichonResult<u64> {
+pub(super) fn resolve_mailbox(account: &AccountModel, folder: &str) -> MailboxdResult<u64> {
     match account.account_type {
         AccountType::IMAP => {
             // Shouldn't reach here (validated above), but handle gracefully
@@ -423,7 +425,7 @@ pub(super) fn resolve_mailbox(account: &AccountModel, folder: &str) -> BichonRes
 
 /// Resolve or create a mailbox for a given account_id and folder name.
 /// Used by PST import to create per-folder mailboxes.
-pub fn resolve_mailbox_by_account_id(account_id: u64, folder: &str) -> BichonResult<u64> {
+pub fn resolve_mailbox_by_account_id(account_id: u64, folder: &str) -> MailboxdResult<u64> {
     let account = AccountModel::check_account_exists(account_id)?;
     resolve_mailbox(&account, folder)
 }
@@ -518,7 +520,7 @@ pub fn process_uploaded_file(
 }
 
 /// Detect format from a file by reading only the first few KB.
-fn detect_format_from_file(file_path: &Path, file_name: &str) -> BichonResult<FileFormat> {
+fn detect_format_from_file(file_path: &Path, file_name: &str) -> MailboxdResult<FileFormat> {
     use std::io::Read;
     let mut file = std::fs::File::open(file_path).map_err(|e| {
         raise_error!(format!("Failed to open file: {}", e), ErrorCode::InternalError)

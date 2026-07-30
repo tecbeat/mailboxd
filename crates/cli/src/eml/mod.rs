@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -29,10 +31,10 @@ use reqwest::Client;
 
 use mailboxd_core::base64_encode_url_safe;
 
-use crate::{BichonCliConfig, api::sender::send_batch_request};
+use crate::{MailboxdCliConfig, api::sender::send_batch_request};
 
 pub async fn handle_eml_directory_import(
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     account_id: u64,
     theme: &ColorfulTheme,
 ) {
@@ -100,7 +102,7 @@ fn scan_dir(
 }
 
 async fn process_and_upload(
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     account_id: u64,
     tasks: HashMap<String, Vec<PathBuf>>,
 ) {

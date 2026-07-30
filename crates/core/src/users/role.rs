@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +32,7 @@ use crate::{
             delete_impl, find_impl, insert_impl, list_all_impl, manager::DB_MANAGER, update_impl,
             with_transaction, MemDbModel,
         },
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         users::{
             payload::{RoleCreateRequest, RoleUpdateRequest},
             permissions::*,
@@ -39,7 +41,7 @@ use crate::{
     },
 };
 
-/// Enumerates the built-in roles in the Bichon system.
+/// Enumerates the built-in roles in the mailboxd system.
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum BuiltinRole {
     Admin,
@@ -202,7 +204,7 @@ impl MemDbModel for UserRole {
 }
 
 impl UserRole {
-    pub fn ensure_default_roles_exists() -> BichonResult<()> {
+    pub fn ensure_default_roles_exists() -> MailboxdResult<()> {
         let builtin_roles = vec![
             (BuiltinRole::Admin, DEFAULT_ADMIN_ROLE_ID, RoleType::Global),
             (
@@ -260,15 +262,15 @@ impl UserRole {
         Ok(())
     }
 
-    pub fn list_all() -> BichonResult<Vec<UserRole>> {
+    pub fn list_all() -> MailboxdResult<Vec<UserRole>> {
         list_all_impl::<UserRole>(DB_MANAGER.db())
     }
 
-    pub fn find(role_id: u64) -> BichonResult<Option<UserRole>> {
+    pub fn find(role_id: u64) -> MailboxdResult<Option<UserRole>> {
         find_impl::<UserRole>(DB_MANAGER.db(), &role_id.to_string())
     }
 
-    pub fn create(request: RoleCreateRequest) -> BichonResult<UserRole> {
+    pub fn create(request: RoleCreateRequest) -> MailboxdResult<UserRole> {
         let _ = &request.validate()?;
         let now = utc_now!();
         let new_role = UserRole {
@@ -285,7 +287,7 @@ impl UserRole {
         Ok(new_role)
     }
 
-    pub fn update(id: u64, request: RoleUpdateRequest) -> BichonResult<()> {
+    pub fn update(id: u64, request: RoleUpdateRequest) -> MailboxdResult<()> {
         if is_builtin(id) && request.permissions.is_some() {
             return Err(raise_error!(
                 "The permissions of a builtin role are immutable. Please create a custom role instead.".into(),
@@ -325,7 +327,7 @@ impl UserRole {
         Ok(())
     }
 
-    pub fn delete(id: u64) -> BichonResult<()> {
+    pub fn delete(id: u64) -> MailboxdResult<()> {
         if is_builtin(id) {
             return Err(raise_error!(
                 format!("Cannot delete a default system role (ID: {}).", id),

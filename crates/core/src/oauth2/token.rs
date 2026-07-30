@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +24,7 @@ use crate::{
         update_impl, upsert_impl, MemDbModel,
     },
     decrypt, encrypt,
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     oauth2::entity::OAuth2,
     raise_error, utc_now,
 };
@@ -62,7 +64,7 @@ impl OAuth2AccessToken {
         oauth2_id: u64,
         access_token: String,
         refresh_token: String,
-    ) -> BichonResult<Self> {
+    ) -> MailboxdResult<Self> {
         Ok(Self {
             account_id,
             oauth2_id,
@@ -76,7 +78,7 @@ impl OAuth2AccessToken {
     pub fn upsert_external_oauth_token(
         account_id: u64,
         request: ExternalOAuth2Request,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         let now = utc_now!();
         request.validate()?;
 
@@ -122,11 +124,11 @@ impl OAuth2AccessToken {
     }
 
     // This function may be called multiple times for one account, so we use upsert.
-    pub fn save_or_update(&self) -> BichonResult<()> {
+    pub fn save_or_update(&self) -> MailboxdResult<()> {
         upsert_impl(DB_MANAGER.db(), self.clone())
     }
 
-    pub fn get(account_id: u64) -> BichonResult<Option<OAuth2AccessToken>> {
+    pub fn get(account_id: u64) -> MailboxdResult<Option<OAuth2AccessToken>> {
         find_impl::<OAuth2AccessToken>(DB_MANAGER.db(), &account_id.to_string())?
             .map(|mut token| {
                 token.access_token = token.access_token.map(|t| decrypt!(&t)).transpose()?;
@@ -136,7 +138,7 @@ impl OAuth2AccessToken {
             .transpose()
     }
 
-    pub fn list_all() -> BichonResult<Vec<OAuth2AccessToken>> {
+    pub fn list_all() -> MailboxdResult<Vec<OAuth2AccessToken>> {
         list_all_impl::<OAuth2AccessToken>(DB_MANAGER.db())?
             .into_iter()
             .map(|mut token| {
@@ -147,7 +149,7 @@ impl OAuth2AccessToken {
             .collect()
     }
 
-    pub fn try_delete(account_id: u64) -> BichonResult<()> {
+    pub fn try_delete(account_id: u64) -> MailboxdResult<()> {
         if Self::get(account_id)?.is_none() {
             return Ok(());
         }
@@ -155,7 +157,7 @@ impl OAuth2AccessToken {
         delete_impl::<OAuth2AccessToken>(DB_MANAGER.db(), &account_id.to_string())
     }
 
-    pub fn delete_by_oauth2_id(oauth2_id: u64) -> BichonResult<()> {
+    pub fn delete_by_oauth2_id(oauth2_id: u64) -> MailboxdResult<()> {
         let tokens = filter_impl::<OAuth2AccessToken, _>(DB_MANAGER.db(), move |t| {
             t.oauth2_id == oauth2_id
         })?;
@@ -169,7 +171,7 @@ impl OAuth2AccessToken {
         account_id: u64,
         access_token: String,
         refresh_token: String,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         update_impl(
             DB_MANAGER.db(),
             &account_id.to_string(),
@@ -202,7 +204,7 @@ impl ExternalOAuth2Request {
     /// Ensures mutual dependency between oauth2_id and refresh_token:
     /// - If `refresh_token` is provided, `oauth2_id` must also be present.
     /// - If `oauth2_id` is provided, `refresh_token` must also be present.
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         match (self.oauth2_id.is_some(), self.refresh_token.is_some()) {
             (true, false) => {
                 return Err(raise_error!(

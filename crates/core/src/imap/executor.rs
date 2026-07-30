@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +25,7 @@ use crate::envelope::extractor::extract_envelope_and_store_it;
 use crate::error::code::ErrorCode;
 use crate::imap::session::SessionStream;
 use crate::raise_error;
-use crate::{error::BichonResult, imap::manager::ImapConnectionManager};
+use crate::{error::MailboxdResult, imap::manager::ImapConnectionManager};
 use async_imap::types::Name;
 use async_imap::Session;
 use futures::TryStreamExt;
@@ -56,7 +58,7 @@ pub struct ImapExecutor;
 impl ImapExecutor {
     pub async fn list_all_mailboxes(
         session: &mut Session<Box<dyn SessionStream>>,
-    ) -> BichonResult<Vec<Name>> {
+    ) -> MailboxdResult<Vec<Name>> {
         let list = session
             .list(Some(""), Some("*"))
             .await
@@ -72,7 +74,7 @@ impl ImapExecutor {
         session: &mut Session<Box<dyn SessionStream>>,
         mailbox_name: &str,
         query: &str,
-    ) -> BichonResult<HashSet<u32>> {
+    ) -> MailboxdResult<HashSet<u32>> {
         session
             .examine(mailbox_name)
             .await
@@ -90,7 +92,7 @@ impl ImapExecutor {
         flags: Option<&str>,
         internaldate: Option<&str>,
         content: impl AsRef<[u8]>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         session
             .append(mailbox_name, flags, internaldate, content)
             .await
@@ -113,7 +115,7 @@ impl ImapExecutor {
         start_uid: u64,
         before: Option<&str>,
         token: CancellationToken,
-    ) -> BichonResult<Option<u32>> {
+    ) -> MailboxdResult<Option<u32>> {
         assert!(start_uid > 0, "start_uid must be greater than 0");
 
         session
@@ -140,7 +142,7 @@ impl ImapExecutor {
         start_uid: u64,
         date: &str,
         token: CancellationToken,
-    ) -> BichonResult<Option<u32>> {
+    ) -> MailboxdResult<Option<u32>> {
         let query = format!("UID {start_uid}:* BEFORE {date}");
         info!(
             "[account {}][mailbox {}] fetch_new_mail: UID SEARCH {}",
@@ -241,7 +243,7 @@ impl ImapExecutor {
         mailbox: &MailBox,
         start_uid: u64,
         token: CancellationToken,
-    ) -> BichonResult<Option<u32>> {
+    ) -> MailboxdResult<Option<u32>> {
         let uid_range = format!("{start_uid}:*");
         info!(
             "[account {}][mailbox {}] fetch_new_mail: direct UID FETCH {}",
@@ -341,7 +343,7 @@ impl ImapExecutor {
         max_email_size_bytes: Option<u64>,
         token: CancellationToken,
         max_uid: &mut Option<u32>,
-    ) -> BichonResult<usize> {
+    ) -> MailboxdResult<usize> {
         assert!(page > 0, "Page number must be greater than 0");
         assert!(page_size > 0, "Page size must be greater than 0");
 
@@ -431,7 +433,7 @@ impl ImapExecutor {
         uid_set: &str,
         max_email_size_bytes: Option<u64>,
         token: CancellationToken,
-    ) -> BichonResult<u64> {
+    ) -> MailboxdResult<u64> {
         let limit = max_email_size_bytes.unwrap_or(DEFAULT_MAX_EMAIL_SIZE);
 
         // PASS 1: fetch only SIZE to identify oversized messages
@@ -504,7 +506,7 @@ impl ImapExecutor {
         session: &mut Session<Box<dyn SessionStream>>,
         encoded_mailbox_name: &str,
         uid: u32,
-    ) -> BichonResult<Vec<u8>> {
+    ) -> MailboxdResult<Vec<u8>> {
         session
             .examine(encoded_mailbox_name)
             .await
@@ -549,7 +551,7 @@ impl ImapExecutor {
 
     pub async fn create_connection(
         account_id: u64,
-    ) -> BichonResult<Session<Box<dyn SessionStream>>> {
+    ) -> MailboxdResult<Session<Box<dyn SessionStream>>> {
         ImapConnectionManager::build(account_id).await
     }
 
@@ -559,7 +561,7 @@ impl ImapExecutor {
         session: &mut Session<Box<dyn SessionStream>>,
         uid_set: &str,
         token: CancellationToken,
-    ) -> BichonResult<HashMap<u32, Option<String>>> {
+    ) -> MailboxdResult<HashMap<u32, Option<String>>> {
         let mut stream = session
             .uid_fetch(uid_set, "(UID BODY.PEEK[HEADER])")
             .await

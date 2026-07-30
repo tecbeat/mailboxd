@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +25,7 @@ use tracing::error;
 
 use super::create_api_error_response;
 
-pub const TIMEOUT_HEADER: &str = "X-Bichon-Timeout-Seconds";
+pub const TIMEOUT_HEADER: &str = "X-Mailboxd-Timeout-Seconds";
 
 pub struct Timeout;
 
@@ -61,7 +63,7 @@ impl<E: Endpoint> Endpoint for TimeoutEndpoint<E> {
                 error!("Request timed out after {} seconds", seconds);
                 Err(create_api_error_response(
                     &format!(
-                        "Request timed out after {} seconds (timeout set via X-Bichon-Timeout-Seconds header, max allowed: 600 seconds)",
+                        "Request timed out after {} seconds (timeout set via X-Mailboxd-Timeout-Seconds header, max allowed: 600 seconds)",
                         seconds
                     ),
                     ErrorCode::RequestTimeout,

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +24,7 @@ use crate::cache::imap::download::process_imap_download;
 use crate::common::periodic::{PeriodicTask, TaskHandle};
 use crate::error::code::ErrorCode;
 use crate::oauth2::token::OAuth2AccessToken;
-use crate::{account::migration::AccountModel, error::BichonResult};
+use crate::{account::migration::AccountModel, error::MailboxdResult};
 use crate::{raise_error, utc_now};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicI64, Ordering};
@@ -131,7 +133,7 @@ impl AccountDownTask {
                                 if let AuthType::OAuth2 = imap.auth.auth_type {
                                     if OAuth2AccessToken::get(account.id)?.is_none() {
                                         if utc_now!() % 300_000 == 0 {
-                                            warn!("Account {}: download aborted. OAuth2 authorization not completed. Please visit the rustmailer admin page to authorize this account.", account_id);
+                                            warn!("Account {}: download aborted. OAuth2 authorization not completed. Please visit the mailboxd admin page to authorize this account.", account_id);
                                         }
                                         return Ok(());
                                     }
@@ -178,7 +180,7 @@ impl AccountDownTask {
         }
     }
 
-    pub async fn stop(&self, account_id: u64) -> BichonResult<()> {
+    pub async fn stop(&self, account_id: u64) -> MailboxdResult<()> {
         let mut guard = self.tasks.lock().await;
         if let Some(map) = guard.as_mut() {
             if let Some((handler, token)) = map.remove(&account_id) {
@@ -211,7 +213,7 @@ impl AccountDownTask {
         }
     }
 
-    pub async fn start_manual_task(&self, account_id: u64) -> BichonResult<()> {
+    pub async fn start_manual_task(&self, account_id: u64) -> MailboxdResult<()> {
         {
             if self.is_manual_running(account_id).await {
                 return Err(raise_error!(

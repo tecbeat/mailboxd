@@ -3,7 +3,7 @@ use crate::{
     {
         account::migration::{AccountModel, AccountType},
         envelope::extractor::reattach_eml_content,
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         imap::executor::ImapExecutor,
     },
 };
@@ -19,7 +19,7 @@ pub struct RestoreMessagesRequest {
     pub envelope_ids: Vec<String>,
 }
 
-pub async fn restore_emails(account_id: u64, envelope_ids: Vec<String>) -> BichonResult<()> {
+pub async fn restore_emails(account_id: u64, envelope_ids: Vec<String>) -> MailboxdResult<()> {
     if envelope_ids.len() > MAX_RESTORE_COUNT {
         return Err(raise_error!(
             format!(
@@ -42,7 +42,7 @@ pub async fn restore_emails(account_id: u64, envelope_ids: Vec<String>) -> Bicho
     let mut failed = Vec::new();
     let mut session = ImapExecutor::create_connection(account_id).await?;
     for envelope_id in envelope_ids {
-        let result: BichonResult<()> = async {
+        let result: MailboxdResult<()> = async {
             let (envelope, eml) = reattach_eml_content(account_id, envelope_id.clone())?;
             if let Some(mailbox_name) = envelope.mailbox_name {
                 ImapExecutor::append(

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +25,7 @@ use crate::error::code::ErrorCode;
 use crate::store::envelope::Envelope;
 use crate::utils::compute_content_hash;
 use crate::utils::html::block_remote_content;
-use crate::{error::BichonResult, raise_error};
+use crate::{error::MailboxdResult, raise_error};
 use mail_parser::{MessageParser, MimeHeaders};
 //use poem_openapi::Object;
 use serde::{Deserialize, Serialize};
@@ -176,7 +178,7 @@ pub fn retrieve_email_content(
     account_id: u64,
     envelope_id: String,
     block_remote: bool,
-) -> BichonResult<FullMessageContent> {
+) -> MailboxdResult<FullMessageContent> {
     AccountModel::check_account_exists(account_id)?;
     let (envelope, eml) = reattach_eml_content(account_id, envelope_id)?;
     let message = MessageParser::default().parse(&eml).ok_or_else(|| {
@@ -265,7 +267,7 @@ pub fn retrieve_nested_eml_content(
     envelope_id: String,
     content_hash: &str,
     block_remote: bool,
-) -> BichonResult<FullNestedMessageContent> {
+) -> MailboxdResult<FullNestedMessageContent> {
     let (_, eml) = reattach_eml_content(account_id, envelope_id)?;
     let parent_message = MessageParser::default().parse(&eml).ok_or_else(|| {
         raise_error!(

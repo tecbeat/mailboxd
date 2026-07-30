@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
 };
 use chrono::{Datelike, Days, Local, Months, NaiveDate, Utc};
@@ -78,7 +80,7 @@ pub struct RelativeDate {
 }
 
 impl RelativeDate {
-    pub fn validate_date(&self) -> BichonResult<()> {
+    pub fn validate_date(&self) -> MailboxdResult<()> {
         if self.value == 0 {
             return Err(raise_error!(
                 "Value must be greater than 0".into(),
@@ -117,7 +119,7 @@ impl RelativeDate {
         Ok(())
     }
 
-    fn compute_date(&self) -> BichonResult<chrono::DateTime<Local>> {
+    fn compute_date(&self) -> MailboxdResult<chrono::DateTime<Local>> {
         if self.value == 0 {
             return Err(raise_error!(
                 "Value must be greater than 0".into(),
@@ -154,14 +156,14 @@ impl RelativeDate {
         Ok(date)
     }
 
-    pub fn calculate_date(&self) -> BichonResult<String> {
+    pub fn calculate_date(&self) -> MailboxdResult<String> {
         let date = self.compute_date()?;
         Ok(date.format("%d-%b-%Y").to_string())
     }
 }
 
 impl DateSince {
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         match (&self.fixed, &self.relative) {
             // If only `relative` is provided
             (None, Some(r)) => {
@@ -183,7 +185,7 @@ impl DateSince {
         Ok(())
     }
 
-    fn validate_fixed_date(&self, fixed: &str) -> BichonResult<()> {
+    fn validate_fixed_date(&self, fixed: &str) -> MailboxdResult<()> {
         // Try to parse the input string as YYYY-MM-DD
         let date = NaiveDate::parse_from_str(fixed, "%Y-%m-%d").map_err(|_| {
             raise_error!(
@@ -223,7 +225,7 @@ impl DateSince {
         Ok(())
     }
 
-    fn format_user_date(&self, fixed: &str) -> BichonResult<String> {
+    fn format_user_date(&self, fixed: &str) -> MailboxdResult<String> {
         let date = NaiveDate::parse_from_str(fixed, "%Y-%m-%d").map_err(|_| {
             raise_error!(
                 format!(
@@ -237,7 +239,7 @@ impl DateSince {
         Ok(date.format("%d-%b-%Y").to_string())
     }
 
-    pub fn since_date(&self) -> BichonResult<String> {
+    pub fn since_date(&self) -> MailboxdResult<String> {
         // Handle the case where only one of `fixed` or `relative` is provided
         if let Some(r) = &self.relative {
             // If `relative` is provided, calculate the date

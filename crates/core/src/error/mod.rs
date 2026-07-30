@@ -6,7 +6,7 @@ pub mod code;
 
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
-pub enum BichonError {
+pub enum MailboxdError {
     #[snafu(display("{message}"))]
     Generic {
         message: String,
@@ -16,12 +16,12 @@ pub enum BichonError {
     },
 }
 
-impl BichonError {
+impl MailboxdError {
     pub fn code(&self) -> ErrorCode {
         match self {
-            BichonError::Generic { code, .. } => *code,
+            MailboxdError::Generic { code, .. } => *code,
         }
     }
 }
 
-pub type BichonResult<T, E = BichonError> = std::result::Result<T, E>;
+pub type MailboxdResult<T, E = MailboxdError> = std::result::Result<T, E>;

@@ -5,11 +5,11 @@ use mailboxd_core::{
 };
 use reqwest::Client;
 
-use crate::BichonCliConfig;
+use crate::MailboxdCliConfig;
 
 pub async fn search_messages(
     client: &Client,
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     account_ids: Option<std::collections::HashSet<u64>>,
     page: u64,
     page_size: u64,

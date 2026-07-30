@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,11 +20,11 @@
 
 use crate::{
     cache::imap::mailbox::MailBox,
-    error::BichonResult,
+    error::MailboxdResult,
     store::tantivy::{attachment::ATTACHMENT_MANAGER, envelope::ENVELOPE_MANAGER},
 };
 
-pub async fn delete_mailbox_impl(account_id: u64, mailbox_id: u64) -> BichonResult<()> {
+pub async fn delete_mailbox_impl(account_id: u64, mailbox_id: u64) -> MailboxdResult<()> {
     let mailbox = MailBox::get(mailbox_id)?;
 
     let name = mailbox.name;

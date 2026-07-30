@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
     users::{permissions::Permission, role::UserRole, UserModel},
 };
@@ -19,7 +19,7 @@ impl ClientContext {
     pub fn require_any_permission(
         &self,
         requirements: Vec<(Option<u64>, &str)>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         for (account_id, permission) in requirements {
             if self.has_permission(account_id, permission) {
                 return Ok(());
@@ -130,7 +130,7 @@ impl ClientContext {
         &self,
         account_id: Option<u64>,
         permission: &str,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         if self.has_permission(account_id, permission) {
             Ok(())
         } else {

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -36,11 +38,11 @@ impl SystemSetting {
     //     }
     // }
     //overwrite
-    // pub async fn set(&self) -> BichonResult<()> {
+    // pub async fn set(&self) -> MailboxdResult<()> {
     //     upsert_impl(DB_MANAGER.meta_db(), self.to_owned()).await
     // }
 
-    // pub fn get(key: &str) -> BichonResult<Option<SystemSetting>> {
+    // pub fn get(key: &str) -> MailboxdResult<Option<SystemSetting>> {
     //     find_impl(DB_MANAGER.meta_db(), key)
     // }
 
@@ -48,12 +50,12 @@ impl SystemSetting {
     //     list_all_impl(DB_MANAGER.metadata_db()).await
     // }
 
-    // pub fn get_existing_value(key: &str) -> BichonResult<Option<String>> {
+    // pub fn get_existing_value(key: &str) -> MailboxdResult<Option<String>> {
     //     let setting = Self::get(key)?;
     //     Ok(setting.map(|s| s.value))
     // }
 
-    // pub async fn set_value(key: &str, value: String) -> BichonResult<()> {
+    // pub async fn set_value(key: &str, value: String) -> MailboxdResult<()> {
     //     let setting = Self::new(key.to_string(), value);
     //     setting.set().await
     // }

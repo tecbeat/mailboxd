@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +25,7 @@ use crate::{
             batch_delete_impl, batch_insert_impl, batch_upsert_impl, delete_impl, filter_impl,
             find_impl, manager::DB_MANAGER, MemDbModel,
         },
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
     },
 };
 use async_imap::types::{Name, NameAttribute};
@@ -76,7 +78,7 @@ impl MailBox {
         encode_mailbox_name!(&self.name)
     }
 
-    pub fn get(id: u64) -> BichonResult<MailBox> {
+    pub fn get(id: u64) -> MailboxdResult<MailBox> {
         let result = find_impl::<MailBox>(DB_MANAGER.db(), &id.to_string())?;
         Ok(result.ok_or_else(|| {
             raise_error!(
@@ -86,28 +88,28 @@ impl MailBox {
         })?)
     }
 
-    pub fn delete(id: u64) -> BichonResult<()> {
+    pub fn delete(id: u64) -> MailboxdResult<()> {
         delete_impl::<MailBox>(DB_MANAGER.db(), &id.to_string())
     }
 
-    pub fn list_all(account_id: u64) -> BichonResult<Vec<MailBox>> {
+    pub fn list_all(account_id: u64) -> MailboxdResult<Vec<MailBox>> {
         filter_impl::<MailBox, _>(DB_MANAGER.db(), move |m| m.account_id == account_id)
     }
 
-    pub fn find_mailbox(account_id: u64, mailbox_id: u64) -> BichonResult<Option<MailBox>> {
+    pub fn find_mailbox(account_id: u64, mailbox_id: u64) -> MailboxdResult<Option<MailBox>> {
         let all = filter_impl::<MailBox, _>(DB_MANAGER.db(), move |m| m.account_id == account_id)?;
         Ok(all.into_iter().find(|m| m.id == mailbox_id))
     }
 
-    pub fn batch_insert(mailboxes: &[MailBox]) -> BichonResult<()> {
+    pub fn batch_insert(mailboxes: &[MailBox]) -> MailboxdResult<()> {
         batch_insert_impl(DB_MANAGER.db(), mailboxes.to_vec())
     }
 
-    pub fn batch_upsert(mailboxes: &[MailBox]) -> BichonResult<()> {
+    pub fn batch_upsert(mailboxes: &[MailBox]) -> MailboxdResult<()> {
         batch_upsert_impl(DB_MANAGER.db(), mailboxes.to_vec())
     }
 
-    pub fn clean(account_id: u64) -> BichonResult<()> {
+    pub fn clean(account_id: u64) -> MailboxdResult<()> {
         let mailboxes =
             filter_impl::<MailBox, _>(DB_MANAGER.db(), move |m| m.account_id == account_id)?;
         let keys: Vec<String> = mailboxes.iter().map(|m| m.id.to_string()).collect();

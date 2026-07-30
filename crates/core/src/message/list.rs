@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +21,7 @@
 use crate::{
     account::migration::AccountModel,
     common::paginated::DataPage,
-    error::BichonResult,
+    error::MailboxdResult,
     store::{envelope::Envelope, tantivy::envelope::ENVELOPE_MANAGER},
 };
 
@@ -28,7 +30,7 @@ pub fn get_thread_messages(
     thread_id: &str,
     page: u64,
     page_size: u64,
-) -> BichonResult<DataPage<Envelope>> {
+) -> MailboxdResult<DataPage<Envelope>> {
     AccountModel::check_account_exists(account_id)?;
     ENVELOPE_MANAGER.list_thread_envelopes(account_id, thread_id, page, page_size, true)
 }

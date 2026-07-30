@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -24,12 +26,12 @@ pub mod rest;
 use std::sync::LazyLock;
 
 use mailboxd_core::{
-    bichon_version,
+    mailboxd_version,
     cache::imap::task::SYNC_TASKS,
-    common::{rustls::BichonTls, signal::SignalManager},
-    context::{executors::BichonContext, Initialize},
+    common::{rustls::MailboxdTls, signal::SignalManager},
+    context::{executors::MailboxdContext, Initialize},
     database::manager::DB_MANAGER,
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     logger,
     migrate::check_data_status,
     raise_error,
@@ -44,31 +46,26 @@ use mailboxd_core::{
 use mailboxd_smtp::server::{start_smtp_server, SmtpServer};
 use tracing::{error, info};
 
-pub async fn run() -> BichonResult<()> {
+pub async fn run() -> MailboxdResult<()> {
     logger::initialize_logging();
     info!(
         r#"
-     _      _        _
-    | |    (_)      | |
-    | |__   _   ___ | |__    ___   _ __
-    | '_ \ | | / __|| '_ \  / _ \ | '_ \
-    | |_) || || (__ | | | || (_) || | | |
-    |_.__/ |_| \___||_| |_| \___/ |_| |_|
+                _  _  _                    _
+     _ __ ___  | |(_)| |__    ___ __  __ __| |
+    | '_ ` _ \ | || || '_ \  / _ \\ \/ // _` |
+    | | | | | || || || |_) || (_) |>  <| (_| |
+    |_| |_| |_||_||_||_.__/  \___//_/\_\\__,_|
 
     "#
     );
-    info!("Starting bichon-server");
-    info!("Version:  {}", bichon_version!());
+    info!("Starting mailboxd-server");
+    info!("Version:  {}", mailboxd_version!());
     info!("Git:      [{}]", env!("GIT_HASH"));
-    info!("GitHub:   https://github.com/rustmailer/bichon");
 
     match check_data_status() {
         Ok(false) => {
             error!("Incompatible data format detected.");
-            error!("Your data was created by an older version of Bichon and must be migrated before use.");
-            error!("Please stop the Bichon v0.3.7 service before migration.");
-            error!("Please run: bichon-admin");
-            error!("Documentation: https://github.com/rustmailer/bichon/wiki/Bichon-Data-Migration:-v0.3.7-%E2%86%92-v1.0");
+            error!("Please run: mailboxd-admin");
             return Err(raise_error!(
                 "Legacy data layout detected".into(),
                 ErrorCode::InternalError
@@ -88,7 +85,7 @@ pub async fn run() -> BichonResult<()> {
 
     let periodic_tasks = PeriodicTasks::setup();
     let mut smtp_service: Option<SmtpServer> = None;
-    if SETTINGS.bichon_enable_smtp {
+    if SETTINGS.mailboxd_enable_smtp {
         info!("SMTP service is enabled, starting...");
         match start_smtp_server().await {
             Ok(server) => {
@@ -118,16 +115,16 @@ pub async fn run() -> BichonResult<()> {
     ATTACHMENT_MANAGER.shutdown().await;
     BLOB_MANAGER.shutdown().await;
     DB_MANAGER.flush();
-    info!("Bichon server stopped.");
+    info!("mailboxd server stopped.");
     Ok(())
 }
 
-async fn initialize() -> BichonResult<()> {
+async fn initialize() -> MailboxdResult<()> {
     SignalManager::initialize().await?;
     DataDirManager::initialize().await?;
     UserManager::initialize().await?;
-    BichonTls::initialize().await?;
-    BichonContext::initialize().await?;
+    MailboxdTls::initialize().await?;
+    MailboxdContext::initialize().await?;
     LazyLock::force(&BLOB_MANAGER);
     LazyLock::force(&ENVELOPE_MANAGER);
     LazyLock::force(&ATTACHMENT_MANAGER);

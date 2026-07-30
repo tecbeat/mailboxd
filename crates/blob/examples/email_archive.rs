@@ -1,4 +1,4 @@
-/// bichon-blob usage example: email archival with content-addressable storage.
+/// mailboxd-blob usage example: email archival with content-addressable storage.
 ///
 /// This example simulates a mail archival system where multiple accounts
 /// may receive the same email (e.g. CC'd or forwarded).  The blob store
@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Simulate three emails arriving.  Email #2 is a newsletter that
     // both alice and bob received — identical content, same hash.
     let emails = vec![
-        ("alice", "Welcome to Bichon Mail!"),
+        ("alice", "Welcome to mailboxd!"),
         ("alice", "Weekly Newsletter: Rust Edition"),
         ("bob", "Weekly Newsletter: Rust Edition"), // same content as above
     ];
@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //   SELECT COUNT(*) FROM email_refs WHERE content_hash = ? AND account_id != ?
     // If count == 0, it's safe to delete from blob.
 
-    let welcome_hash = mock_content_hash(b"Welcome to Bichon Mail!");
+    let welcome_hash = mock_content_hash(b"Welcome to mailboxd!");
     engine.delete(&welcome_hash)?;
     println!("\nDeleted welcome email, still exists? {}", engine.exists(&welcome_hash)?);
 

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +24,7 @@ use std::{collections::BTreeSet, net::IpAddr};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
 };
 
@@ -45,7 +47,7 @@ pub struct AccessControl {
 }
 
 impl AccessControl {
-    pub fn validate(&self) -> BichonResult<()> {
+    pub fn validate(&self) -> MailboxdResult<()> {
         if let Some(ip_whitelist) = &self.ip_whitelist {
             for ip in ip_whitelist {
                 if ip.parse::<IpAddr>().is_err() {

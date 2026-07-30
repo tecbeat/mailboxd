@@ -4,9 +4,9 @@ use tantivy::schema::Term;
 use tantivy::{IndexReader, IndexWriter};
 
 use crate::common::periodic::{PeriodicTask, TaskHandle};
-use crate::context::BichonTask;
+use crate::context::MailboxdTask;
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::raise_error;
 use crate::store::tantivy::attachment::ATTACHMENT_MANAGER;
 use crate::store::tantivy::envelope::ENVELOPE_MANAGER;
@@ -57,7 +57,7 @@ pub async fn dedup_task(
     email_reader: &IndexReader,
     email_writer: &mut IndexWriter,
     attachment_writer: &mut IndexWriter,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     let account_ids = collect_account_ids(email_reader)?;
     let mut total_deleted = 0u64;
 
@@ -79,7 +79,7 @@ const DEDUP_INTERVAL: std::time::Duration = std::time::Duration::from_secs(12 * 
 /// attachment index.
 pub struct DedupTask;
 
-impl BichonTask for DedupTask {
+impl MailboxdTask for DedupTask {
     fn start() -> TaskHandle {
         let periodic_task = PeriodicTask::new("index-dedup");
 
@@ -115,7 +115,7 @@ impl BichonTask for DedupTask {
 ///
 /// Scans only the account_id FAST column — no stored field reads, no I/O
 /// beyond the column file itself.
-fn collect_account_ids(reader: &IndexReader) -> BichonResult<Vec<u64>> {
+fn collect_account_ids(reader: &IndexReader) -> MailboxdResult<Vec<u64>> {
     let searcher = reader.searcher();
     let mut ids = std::collections::HashSet::new();
 
@@ -155,7 +155,7 @@ fn dedup_account(
     email_writer: &mut IndexWriter,
     attachment_writer: &mut IndexWriter,
     account_id: u64,
-) -> BichonResult<u64> {
+) -> MailboxdResult<u64> {
     let searcher = email_reader.searcher();
     let fields = SchemaTools::email_fields();
     // eprintln!(
@@ -323,7 +323,7 @@ mod tests {
 
     fn temp_dir(prefix: &str) -> std::path::PathBuf {
         let dir = std::env::temp_dir()
-            .join("bichon-dedup-test")
+            .join("mailboxd-dedup-test")
             .join(prefix)
             .join(uuid::Uuid::new_v4().to_string());
         fs::create_dir_all(&dir).unwrap();
@@ -625,8 +625,8 @@ mod tests {
     /// This test is read-only — it does not modify the index.
     #[test]
     fn inspect_production_duplicates() {
-        let index_path = r"E:\bichon-data\bichon-indices\mail_metadata";
-        let report_path = std::path::PathBuf::from(r"E:\bichon\dedup_report.txt");
+        let index_path = r"E:\mailboxd-data\mailboxd-indices\mail_metadata";
+        let report_path = std::path::PathBuf::from(r"E:\mailboxd\dedup_report.txt");
 
         let mut report = String::new();
         let _ = writeln!(report, "opening index at {index_path}...");

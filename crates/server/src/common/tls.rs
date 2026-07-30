@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,12 +22,12 @@ use poem::listener::{RustlsCertificate, RustlsConfig};
 use mailboxd_core::{
     raise_error,
     {
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         settings::dir::DATA_DIR_MANAGER,
     },
 };
 
-pub fn rustls_config() -> BichonResult<RustlsConfig> {
+pub fn rustls_config() -> MailboxdResult<RustlsConfig> {
     let cert = std::fs::read_to_string(&DATA_DIR_MANAGER.tls_cert).map_err(|e| {
         raise_error!(
             format!(

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +26,7 @@ use crate::{
         account::migration::{AccountModel, AccountType},
         cache::imap::mailbox::{AttributeEnum, MailBox},
         cache::imap::mailbox_cache,
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         imap::{executor::ImapExecutor, session::SessionStream},
         mailbox::list::convert_names_to_mailboxes,
     },
@@ -35,7 +37,7 @@ use tracing::{debug, info, warn};
 pub async fn get_download_folders(
     account: &AccountModel,
     session: &mut Session<Box<dyn SessionStream>>,
-) -> BichonResult<Vec<MailBox>> {
+) -> MailboxdResult<Vec<MailBox>> {
     assert_eq!(account.account_type, AccountType::IMAP);
     let names = ImapExecutor::list_all_mailboxes(session).await?;
     if names.is_empty() {
@@ -128,7 +130,7 @@ pub async fn get_download_folders(
 pub async fn detect_mailbox_changes(
     account: &AccountModel,
     all_names: BTreeSet<String>,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     if account.known_folders.is_none() {
         // First time sync: just save without comparing
         AccountModel::update_known_folders(account.id, all_names)?;

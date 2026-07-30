@@ -5,7 +5,7 @@ use crate::{
     {
         dashboard::Group,
         envelope::extractor::reattach_eml_content,
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         utils::compute_content_hash,
     },
 };
@@ -37,7 +37,7 @@ pub fn retrieve_attachment_content(
     account_id: u64,
     envelope_id: String,
     content_hash: &str,
-) -> BichonResult<Cursor<Bytes>> {
+) -> MailboxdResult<Cursor<Bytes>> {
     let (_, eml) = reattach_eml_content(account_id, envelope_id)?;
     let message = MessageParser::default()
         .parse(&eml)
@@ -61,7 +61,7 @@ pub fn retrieve_nested_attachment_content(
     envelope_id: String,
     content_hash: &str,
     nested_content_hash: &str,
-) -> BichonResult<Cursor<Bytes>> {
+) -> MailboxdResult<Cursor<Bytes>> {
     let (_, eml) = reattach_eml_content(account_id, envelope_id)?;
     let parent_message = MessageParser::default().parse(&eml).ok_or_else(|| {
         raise_error!(

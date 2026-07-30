@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +27,7 @@ use crate::{
         account::migration::AccountModel,
         common::auth::ClientContext,
         database::{manager::DB_MANAGER, with_transaction, MemDbModel},
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         users::{
             permissions::Permission,
             role::{RoleType, UserRole},
@@ -43,7 +45,7 @@ pub struct BatchAccountRoleRequest {
 }
 
 impl BatchAccountRoleRequest {
-    pub fn validate_existence(&self) -> BichonResult<()> {
+    pub fn validate_existence(&self) -> MailboxdResult<()> {
         let role = UserRole::find(self.role_id)?.ok_or_else(|| {
             raise_error!(
                 format!("Role ID {} not found", self.role_id),
@@ -85,7 +87,7 @@ impl BatchAccountRoleRequest {
         account_ids: Vec<u64>,
         user_ids: Vec<u64>,
         role_id: u64,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         with_transaction(DB_MANAGER.db(), move |txn| {
             let mut txn = txn;
             for &uid in &user_ids {
@@ -112,7 +114,7 @@ impl BatchAccountRoleRequest {
         })
     }
 
-    pub fn do_assign(self, context: &ClientContext) -> BichonResult<()> {
+    pub fn do_assign(self, context: &ClientContext) -> MailboxdResult<()> {
         for account_id in &self.account_ids {
             // Get the user's specific access for this account
             let assigned_role_id =

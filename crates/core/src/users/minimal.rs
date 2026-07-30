@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +23,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     database::{list_all_impl, manager::DB_MANAGER},
-    error::BichonResult,
+    error::MailboxdResult,
     users::UserModel,
 };
 
@@ -34,7 +36,7 @@ pub struct MinimalUser {
 }
 
 impl MinimalUser {
-    pub fn list_all() -> BichonResult<Vec<MinimalUser>> {
+    pub fn list_all() -> MailboxdResult<Vec<MinimalUser>> {
         let all_users = list_all_impl::<UserModel>(DB_MANAGER.db())?;
         let minimal_list = all_users
             .into_iter()

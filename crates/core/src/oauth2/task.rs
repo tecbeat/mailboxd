@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +20,7 @@
 
 use crate::{
     common::periodic::{PeriodicTask, TaskHandle},
-    context::BichonTask,
+    context::MailboxdTask,
     oauth2::pending::OAuth2PendingEntity,
 };
 use std::time::Duration;
@@ -28,7 +30,7 @@ const TASK_INTERVAL: Duration = Duration::from_secs(6 * 60 * 60);
 ///This task cleans up expired OAuth2 pending authorizations that haven't been completed by users in a timely manner.
 pub struct OAuth2CleanTask;
 
-impl BichonTask for OAuth2CleanTask {
+impl MailboxdTask for OAuth2CleanTask {
     fn start() -> TaskHandle {
         let periodic_task = PeriodicTask::new("oauth2-pending-task-cleaner");
 

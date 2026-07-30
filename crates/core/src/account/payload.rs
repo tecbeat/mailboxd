@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +26,7 @@ use crate::account::migration::{
 };
 use crate::account::since::{DateSince, RelativeDate};
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::{raise_error, validate_email};
 use serde::{Deserialize, Serialize};
 
@@ -66,7 +68,7 @@ pub struct AccountCreateRequest {
 }
 
 impl AccountCreateRequest {
-    pub fn create_entity(self, user_id: u64) -> BichonResult<AccountModel> {
+    pub fn create_entity(self, user_id: u64) -> MailboxdResult<AccountModel> {
         if self.date_before.is_some() && self.date_since.is_some() {
             return Err(raise_error!(
                 "date_before and date_since are mutually exclusive; specify only one time boundary"
@@ -129,7 +131,7 @@ impl AccountCreateRequest {
         Ok(AccountModel::new(user_id, self)?)
     }
 
-    fn validate_request(imap: &ImapConfig, email: &str) -> BichonResult<()> {
+    fn validate_request(imap: &ImapConfig, email: &str) -> MailboxdResult<()> {
         imap.auth
             .validate()
             .map_err(|e| raise_error!(e.to_owned(), ErrorCode::InvalidParameter))?;
@@ -204,7 +206,7 @@ pub struct AccountUpdateRequest {
 }
 
 impl AccountUpdateRequest {
-    pub fn validate_update_request(&self, account: &AccountModel) -> BichonResult<()> {
+    pub fn validate_update_request(&self, account: &AccountModel) -> MailboxdResult<()> {
         if self.date_before.is_some() && self.date_since.is_some() {
             return Err(raise_error!(
                 "date_before and date_since are mutually exclusive; specify only one time boundary"
@@ -273,7 +275,7 @@ impl AccountUpdateRequest {
     }
 }
 
-fn validate_cron_expression(expr: &str) -> BichonResult<()> {
+fn validate_cron_expression(expr: &str) -> MailboxdResult<()> {
     if expr.trim().is_empty() {
         return Err(raise_error!(
             "download_schedule must not be empty".into(),

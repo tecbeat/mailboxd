@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +22,7 @@ use crate::error::code::ErrorCode;
 use crate::raise_error;
 use crate::settings::proxy::Proxy;
 use crate::utils::tls::establish_tls_stream;
-use crate::{error::BichonResult, imap::session::SessionStream};
+use crate::{error::MailboxdResult, imap::session::SessionStream};
 use base64::{engine::general_purpose, Engine as _};
 use std::net::SocketAddr;
 use std::pin::Pin;
@@ -85,7 +87,7 @@ impl ProxyAddr {
 pub(crate) async fn establish_tcp_connection_with_timeout(
     address: SocketAddr,
     use_proxy: Option<u64>,
-) -> BichonResult<Pin<Box<TimeoutStream<TcpStream>>>> {
+) -> MailboxdResult<Pin<Box<TimeoutStream<TcpStream>>>> {
     // Establish the TCP connection with a timeout
     let tcp_stream = connect_with_optional_proxy(use_proxy, address).await?;
     let mut timeout_stream = TimeoutStream::new(tcp_stream);
@@ -104,7 +106,7 @@ pub async fn establish_tls_connection(
     alpn_protocols: &[&str],
     use_proxy: Option<u64>,
     dangerous: bool,
-) -> BichonResult<impl SessionStream> {
+) -> MailboxdResult<impl SessionStream> {
     // Establish the TCP connection with timeout
     let tcp_stream = establish_tcp_connection_with_timeout(address, use_proxy).await?;
 
@@ -123,7 +125,7 @@ pub async fn establish_tls_connection(
 /// - **Non-standard** (some proxy providers): `[scheme://]host:port:username:password`
 ///
 /// The distinguishing feature is the `@` sign in the standard format.
-pub fn parse_proxy_url(input: &str) -> BichonResult<ProxyAddr> {
+pub fn parse_proxy_url(input: &str) -> MailboxdResult<ProxyAddr> {
     // Normalize and strip scheme prefix
     let (scheme, stripped) = if let Some(rest) = input
         .strip_prefix("socks5://")
@@ -249,7 +251,7 @@ pub fn parse_proxy_url(input: &str) -> BichonResult<ProxyAddr> {
 }
 
 /// Split "user:pass" into (Some(user), Some(pass)).
-fn split_userinfo(userinfo: &str) -> BichonResult<(Option<String>, Option<String>)> {
+fn split_userinfo(userinfo: &str) -> MailboxdResult<(Option<String>, Option<String>)> {
     if userinfo.is_empty() {
         return Ok((None, None));
     }
@@ -278,7 +280,7 @@ fn split_userinfo(userinfo: &str) -> BichonResult<(Option<String>, Option<String
 }
 
 /// Split "host:port" into (host, port). Bracketed IPv6 is accepted.
-fn split_hostport(hostport: &str) -> BichonResult<(String, u16)> {
+fn split_hostport(hostport: &str) -> MailboxdResult<(String, u16)> {
     if hostport.is_empty() {
         return Err(raise_error!(
             "Empty host:port in proxy URL.".into(),
@@ -348,7 +350,7 @@ fn split_hostport(hostport: &str) -> BichonResult<(String, u16)> {
 async fn connect_with_optional_proxy(
     use_proxy: Option<u64>,
     address: SocketAddr,
-) -> BichonResult<TcpStream> {
+) -> MailboxdResult<TcpStream> {
     if let Some(proxy_id) = use_proxy {
         let proxy = Proxy::get(proxy_id)?;
         let addr = parse_proxy_url(&proxy.url)?;
@@ -382,7 +384,7 @@ async fn connect_with_optional_proxy(
 async fn connect_via_socks5_proxy(
     addr: &ProxyAddr,
     address: SocketAddr,
-) -> BichonResult<TcpStream> {
+) -> MailboxdResult<TcpStream> {
     let proxy_addr = (addr.host.as_str(), addr.port);
     let result = if let (Some(user), Some(pass)) = (&addr.username, &addr.password) {
         timeout(
@@ -418,7 +420,7 @@ async fn connect_via_socks5_proxy(
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::NetworkError))
 }
 
-async fn connect_via_http_proxy(addr: &ProxyAddr, address: SocketAddr) -> BichonResult<TcpStream> {
+async fn connect_via_http_proxy(addr: &ProxyAddr, address: SocketAddr) -> MailboxdResult<TcpStream> {
     let mut stream = timeout(TIMEOUT, TcpStream::connect((addr.host.as_str(), addr.port)))
         .await
         .map_err(|_| {

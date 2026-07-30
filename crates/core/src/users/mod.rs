@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +24,7 @@ use crate::{
         with_transaction, MemDbModel,
     },
     decrypt, encrypt,
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     generate_token, id, raise_error,
     token::{AccessTokenModel, TokenType},
     users::{
@@ -46,7 +48,7 @@ pub mod permissions;
 pub mod role;
 pub mod view;
 
-pub type UserModel = BichonUserV2;
+pub type UserModel = MailboxdUserV2;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct LoginResult {
@@ -60,7 +62,7 @@ pub struct LoginResult {
 pub const DEFAULT_ADMIN_USER_ID: u64 = 100000000000000;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-pub struct BichonUserV2 {
+pub struct MailboxdUserV2 {
     pub id: u64,
     pub username: String,
     pub email: String,
@@ -94,7 +96,7 @@ pub struct BichonUserV2 {
     pub sso_provider: Option<String>,
 }
 
-impl MemDbModel for BichonUserV2 {
+impl MemDbModel for MailboxdUserV2 {
     fn collection() -> &'static str {
         "users"
     }
@@ -103,7 +105,7 @@ impl MemDbModel for BichonUserV2 {
     }
 }
 
-impl BichonUserV2 {
+impl MailboxdUserV2 {
     pub fn is_using_role(&self, role_id: u64) -> bool {
         if self.global_roles.contains(&role_id) {
             return true;
@@ -115,7 +117,7 @@ impl BichonUserV2 {
         false
     }
 
-    pub fn list_all() -> BichonResult<Vec<UserModel>> {
+    pub fn list_all() -> MailboxdResult<Vec<UserModel>> {
         Ok(list_all_impl::<UserModel>(DB_MANAGER.db())?)
     }
 
@@ -206,19 +208,19 @@ impl BichonUserV2 {
         self.get_all_permissions().contains(Permission::ROOT)
     }
 
-    pub fn ensure_default_admin_exists() -> BichonResult<()> {
+    pub fn ensure_default_admin_exists() -> MailboxdResult<()> {
         let now = utc_now!();
 
         // 1. Try to get the existing admin user
         let admin = find_impl::<UserModel>(DB_MANAGER.db(), &DEFAULT_ADMIN_USER_ID.to_string())?;
 
         if admin.is_none() {
-            // 2. Insert the BichonUser with the updated schema
+            // 2. Insert the MailboxdUser with the updated schema
             let user = UserModel {
                 id: DEFAULT_ADMIN_USER_ID,
                 username: "admin".into(),
                 email: "placeholder@example.com".into(),
-                password: Some(encrypt!("admin@bichon")?),
+                password: Some(encrypt!("admin@mailboxd")?),
 
                 // Use global_roles as defined in our new schema
                 global_roles: vec![DEFAULT_ADMIN_ROLE_ID],
@@ -262,7 +264,7 @@ impl BichonUserV2 {
         Ok(())
     }
 
-    pub fn authenticate_user(username: String, password: String) -> BichonResult<LoginResult> {
+    pub fn authenticate_user(username: String, password: String) -> MailboxdResult<LoginResult> {
         // Find by username
         let username_for_first = username.clone();
         let users = filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| {
@@ -336,11 +338,11 @@ impl BichonUserV2 {
         }
     }
 
-    pub fn find(user_id: u64) -> BichonResult<Option<UserModel>> {
+    pub fn find(user_id: u64) -> MailboxdResult<Option<UserModel>> {
         find_impl::<UserModel>(DB_MANAGER.db(), &user_id.to_string())
     }
 
-    pub fn check_username_conflict(username: &str) -> BichonResult<()> {
+    pub fn check_username_conflict(username: &str) -> MailboxdResult<()> {
         let username_clone = username.to_string();
         let users =
             filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| u.username == username_clone)?;
@@ -355,7 +357,7 @@ impl BichonUserV2 {
         Ok(())
     }
 
-    pub fn check_email_conflict(email: &str) -> BichonResult<()> {
+    pub fn check_email_conflict(email: &str) -> MailboxdResult<()> {
         let email_clone = email.to_string();
         let users = filter_impl::<UserModel, _>(DB_MANAGER.db(), move |u| u.email == email_clone)?;
 
@@ -369,7 +371,7 @@ impl BichonUserV2 {
         Ok(())
     }
 
-    pub fn create(request: UserCreateRequest) -> BichonResult<UserModel> {
+    pub fn create(request: UserCreateRequest) -> MailboxdResult<UserModel> {
         request.validate()?;
         Self::check_username_conflict(&request.username)?;
         Self::check_email_conflict(&request.email)?;
@@ -422,7 +424,7 @@ impl BichonUserV2 {
     }
 
     //delete user，
-    pub fn remove(id: u64) -> BichonResult<()> {
+    pub fn remove(id: u64) -> MailboxdResult<()> {
         if DEFAULT_ADMIN_USER_ID == id {
             return Err(raise_error!(
                 format!("The default admin user (id={}) cannot be removed", id),
@@ -459,7 +461,7 @@ impl BichonUserV2 {
         Ok(())
     }
 
-    pub fn update(id: u64, request: UserUpdateRequest) -> BichonResult<()> {
+    pub fn update(id: u64, request: UserUpdateRequest) -> MailboxdResult<()> {
         let _ = &request.validate()?;
         let password_changed = request.password.is_some();
         let is_default_admin = id == DEFAULT_ADMIN_USER_ID;
@@ -565,7 +567,7 @@ impl BichonUserV2 {
         Ok(())
     }
 
-    fn list_authorized_users(account_id: u64) -> BichonResult<Vec<UserModel>> {
+    fn list_authorized_users(account_id: u64) -> MailboxdResult<Vec<UserModel>> {
         let all = Self::list_all()?;
         let result: Vec<UserModel> = all
             .into_iter()
@@ -574,7 +576,7 @@ impl BichonUserV2 {
         Ok(result)
     }
 
-    pub fn cleanup_account(account_id: u64) -> BichonResult<()> {
+    pub fn cleanup_account(account_id: u64) -> MailboxdResult<()> {
         let users = Self::list_authorized_users(account_id)?;
         if users.is_empty() {
             return Ok(());

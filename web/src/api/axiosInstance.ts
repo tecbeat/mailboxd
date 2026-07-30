@@ -20,7 +20,7 @@
 import { getToken } from "@/stores/authStore";
 import axios from "axios";
 
-const injectedBase = (window as any).__BICHON_BASE__;
+const injectedBase = (window as any).__MAILBOXD_BASE__;
 const base_url = (injectedBase === "/" || !injectedBase) ? "" : injectedBase;
 
 

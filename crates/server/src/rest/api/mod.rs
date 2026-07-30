@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +21,7 @@
 use access_token::AccessTokenApi;
 use account::AccountApi;
 use auto_config::AutoConfigApi;
-use mailboxd_core::bichon_version;
+use mailboxd_core::mailboxd_version;
 use mailbox::MailBoxApi;
 use message::MessageApi;
 use oauth2::OAuth2Api;
@@ -79,7 +81,7 @@ pub fn create_openapi_service() -> OpenApiService<RustMailOpenApi, ()> {
             ImportApi,
             UsersApi,
         ),
-        "BichonApi",
-        bichon_version!(),
+        "MailboxdApi",
+        mailboxd_version!(),
     )
 }

@@ -115,7 +115,7 @@ const queryClient = new QueryClient({
   }),
 })
 
-const basepath = (window as any).__BICHON_BASE__ || '/';
+const basepath = (window as any).__MAILBOXD_BASE__ || '/';
 console.log('Current Basepath:', basepath);
 // Create a new router instance
 const router = createRouter({

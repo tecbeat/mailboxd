@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,20 +20,20 @@
 
 use crate::error::code::ErrorCode;
 use crate::imap::session::SessionStream;
-use crate::{error::BichonResult, raise_error};
+use crate::{error::MailboxdResult, raise_error};
 use async_imap::types::Capability;
 use async_imap::{types::Capabilities, Session};
 
 pub async fn fetch_capabilities(
     session: &mut Session<Box<dyn SessionStream>>,
-) -> BichonResult<Capabilities> {
+) -> MailboxdResult<Capabilities> {
     session
         .capabilities()
         .await
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::ImapCommandFailed))
 }
 
-pub fn check_capabilities(capabilities: &Capabilities) -> BichonResult<()> {
+pub fn check_capabilities(capabilities: &Capabilities) -> MailboxdResult<()> {
     if !capabilities.has_str("IMAP4rev1") {
         return Err(raise_error!(
             "Server does not support IMAP4rev1".into(),

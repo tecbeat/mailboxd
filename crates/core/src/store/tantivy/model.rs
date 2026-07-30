@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +31,7 @@ use crate::{
     {
         account::migration::AccountModel,
         cache::imap::mailbox::MailBox,
-        error::{code::ErrorCode, BichonResult},
+        error::{code::ErrorCode, MailboxdResult},
         message::content::AttachmentInfo,
         store::{
             envelope::Envelope,
@@ -54,7 +56,7 @@ pub struct EnvelopeWithAttachments {
 }
 
 impl EnvelopeWithAttachments {
-    pub fn to_document(&self, body_text: &str, shard_id: u64) -> BichonResult<TantivyDocument> {
+    pub fn to_document(&self, body_text: &str, shard_id: u64) -> MailboxdResult<TantivyDocument> {
         let fields = SchemaTools::email_fields();
         let mut doc = TantivyDocument::new();
 
@@ -128,7 +130,7 @@ impl EnvelopeWithAttachments {
         Ok(doc)
     }
 
-    pub fn from_tantivy_doc(doc: &TantivyDocument) -> BichonResult<Self> {
+    pub fn from_tantivy_doc(doc: &TantivyDocument) -> MailboxdResult<Self> {
         let fields = SchemaTools::email_fields();
 
         let attachments_raw = extract_string_field(doc, fields.f_attachments, F_ATTACHMENTS).ok();
@@ -155,7 +157,7 @@ impl EnvelopeWithAttachments {
             id: extract_string_field(doc, fields.f_id, F_ID)?,
             message_id: extract_string_field(doc, fields.f_message_id, F_MESSAGE_ID)?,
             account_id,
-            account_email: Some(account.email), //https://github.com/rustmailer/bichon/issues/306
+            account_email: Some(account.email),
             account_name: account.account_name,
             mailbox_id,
             mailbox_name: Some(mailbox.name),
@@ -193,7 +195,7 @@ fn extract_u64_field(
     document: &TantivyDocument,
     field: tantivy::schema::Field,
     field_name: &str,
-) -> BichonResult<u64> {
+) -> MailboxdResult<u64> {
     extract_option_u64_field(document, field)?.ok_or_else(|| {
         raise_error!(
             format!("'{}' field is not a u64", field_name),
@@ -205,7 +207,7 @@ fn extract_u64_field(
 fn extract_option_u64_field(
     document: &TantivyDocument,
     field: tantivy::schema::Field,
-) -> BichonResult<Option<u64>> {
+) -> MailboxdResult<Option<u64>> {
     Ok(document.get_first(field).and_then(|v| v.as_u64()))
 }
 
@@ -213,7 +215,7 @@ fn extract_bool_field(
     document: &TantivyDocument,
     field: tantivy::schema::Field,
     field_name: &str,
-) -> BichonResult<bool> {
+) -> MailboxdResult<bool> {
     let value = document.get_first(field).ok_or_else(|| {
         raise_error!(
             format!("miss '{}' field in tantivy document", field_name),
@@ -232,7 +234,7 @@ fn extract_i64_field(
     document: &TantivyDocument,
     field: tantivy::schema::Field,
     field_name: &str,
-) -> BichonResult<i64> {
+) -> MailboxdResult<i64> {
     let value = document.get_first(field).ok_or_else(|| {
         raise_error!(
             format!("miss '{}' field in tantivy document", field_name),
@@ -251,7 +253,7 @@ fn extract_string_field(
     document: &TantivyDocument,
     field: tantivy::schema::Field,
     field_name: &str,
-) -> BichonResult<String> {
+) -> MailboxdResult<String> {
     extract_option_string_field(document, field)?.ok_or_else(|| {
         raise_error!(
             format!("'{}' field is not a string", field_name),
@@ -263,7 +265,7 @@ fn extract_string_field(
 fn extract_option_string_field(
     document: &TantivyDocument,
     field: tantivy::schema::Field,
-) -> BichonResult<Option<String>> {
+) -> MailboxdResult<Option<String>> {
     Ok(document
         .get_first(field)
         .and_then(|v| v.as_str())
@@ -273,7 +275,7 @@ fn extract_option_string_field(
 fn extract_vec_string_field(
     document: &TantivyDocument,
     field: tantivy::schema::Field,
-) -> BichonResult<Vec<String>> {
+) -> MailboxdResult<Vec<String>> {
     let value = document
         .get_all(field)
         .filter_map(|v| v.as_str().map(|s| s.to_string()))
@@ -281,7 +283,7 @@ fn extract_vec_string_field(
     Ok(value)
 }
 
-pub fn extract_contacts(doc: &TantivyDocument) -> BichonResult<HashSet<String>> {
+pub fn extract_contacts(doc: &TantivyDocument) -> MailboxdResult<HashSet<String>> {
     let fields = SchemaTools::email_fields();
     let mut all_contacts = HashSet::new();
 
@@ -306,7 +308,7 @@ pub fn extract_contacts(doc: &TantivyDocument) -> BichonResult<HashSet<String>> 
     Ok(all_contacts)
 }
 
-pub fn extract_senders(doc: &TantivyDocument) -> BichonResult<HashSet<String>> {
+pub fn extract_senders(doc: &TantivyDocument) -> MailboxdResult<HashSet<String>> {
     let fields = SchemaTools::attachment_fields();
     let mut senders = HashSet::new();
 
@@ -406,7 +408,7 @@ impl AttachmentModel {
         doc
     }
 
-    pub fn from_tantivy_doc(doc: &TantivyDocument) -> BichonResult<Self> {
+    pub fn from_tantivy_doc(doc: &TantivyDocument) -> MailboxdResult<Self> {
         let f = SchemaTools::attachment_fields();
 
         let tags: Vec<String> = doc

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +20,7 @@
 
 use std::{fs, io, path::PathBuf};
 
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use base64::engine::general_purpose::STANDARD;
 use base64::{engine::general_purpose, Engine};
 use rand::{rng, RngExt};
@@ -33,7 +35,7 @@ pub mod shutdown;
 pub mod tls;
 
 #[macro_export]
-macro_rules! bichon_version {
+macro_rules! mailboxd_version {
     () => {
         env!("CARGO_PKG_VERSION")
     };
@@ -104,7 +106,7 @@ macro_rules! license_header {
 #[macro_export]
 macro_rules! raise_error {
     ($msg:expr, $code:expr) => {
-        $crate::error::BichonError::Generic {
+        $crate::error::MailboxdError::Generic {
             message: $msg,
             code: $code,
             location: snafu::location!(),
@@ -226,7 +228,7 @@ macro_rules! decrypt {
     }};
 }
 
-pub fn validate_email(email: &str) -> crate::error::BichonResult<()> {
+pub fn validate_email(email: &str) -> crate::error::MailboxdResult<()> {
     use std::str::FromStr;
     let email_address = email_address::EmailAddress::from_str(email).map_err(|_| {
         raise_error!(
@@ -326,7 +328,7 @@ pub fn get_total_size(path: &PathBuf) -> io::Result<u64> {
 
 const MAX_AVATAR_BYTES: usize = 128 * 1024;
 
-pub fn decode_avatar_bytes(base64_str: &str) -> BichonResult<Vec<u8>> {
+pub fn decode_avatar_bytes(base64_str: &str) -> MailboxdResult<Vec<u8>> {
     let bytes = STANDARD.decode(base64_str).map_err(|e| {
         raise_error!(
             format!("Invalid avatar base64 encoding: {}", e),

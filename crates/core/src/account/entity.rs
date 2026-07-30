@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{encrypt, error::BichonResult};
+use crate::{encrypt, error::MailboxdResult};
 
 //use poem_openapi::{Enum, Object};
 use serde::{Deserialize, Serialize};
@@ -47,7 +49,7 @@ pub struct ImapConfig {
 }
 
 impl ImapConfig {
-    pub fn try_encrypt_password(self) -> BichonResult<Self> {
+    pub fn try_encrypt_password(self) -> MailboxdResult<Self> {
         Ok(Self {
             host: self.host,
             port: self.port,
@@ -82,7 +84,7 @@ pub struct AuthConfig {
 }
 
 impl AuthConfig {
-    pub fn encrypt(self) -> BichonResult<Self> {
+    pub fn encrypt(self) -> MailboxdResult<Self> {
         match self.password {
             Some(password) => Ok(Self {
                 auth_type: self.auth_type,

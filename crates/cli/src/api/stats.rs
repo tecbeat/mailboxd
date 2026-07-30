@@ -1,11 +1,11 @@
 use mailboxd_core::account::stats::AccountStats;
 use reqwest::Client;
 
-use crate::BichonCliConfig;
+use crate::MailboxdCliConfig;
 
 pub async fn fetch_account_stats(
     client: &Client,
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     account_id: u64,
 ) -> Option<AccountStats> {
     let url = format!("{}/api/v1/accounts/{}/stats", config.base_url, account_id);

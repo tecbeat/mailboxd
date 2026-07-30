@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::api::sender::send_batch_request;
-use crate::BichonCliConfig;
+use crate::MailboxdCliConfig;
 use mailboxd_core::import::pst::build_eml_base64;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Input};
@@ -29,7 +31,7 @@ use std::path::PathBuf;
 use std::pin::Pin;
 use std::rc::Rc;
 
-pub async fn handle_pst_import(config: &BichonCliConfig, account_id: u64, theme: &ColorfulTheme) {
+pub async fn handle_pst_import(config: &MailboxdCliConfig, account_id: u64, theme: &ColorfulTheme) {
     let path_str: String = Input::with_theme(theme)
         .with_prompt("Enter the path to your SINGLE .pst file")
         .validate_with(|input: &String| {
@@ -84,7 +86,7 @@ pub async fn handle_pst_import(config: &BichonCliConfig, account_id: u64, theme:
     }
 }
 
-async fn parse_pst(pst_path: PathBuf, config: &BichonCliConfig, account_id: u64) {
+async fn parse_pst(pst_path: PathBuf, config: &MailboxdCliConfig, account_id: u64) {
     let client = Client::new();
 
     let pst_store = match outlook_pst::open_store(&pst_path) {
@@ -130,7 +132,7 @@ fn process_folder_recursively<'a>(
     client: &'a Client,
     folder: &'a Rc<dyn Folder>,
     parent_path: &'a str,
-    config: &'a BichonCliConfig,
+    config: &'a MailboxdCliConfig,
     account_id: u64,
 ) -> Pin<Box<dyn Future<Output = ()> + 'a>> {
     Box::pin(async move {
@@ -184,13 +186,13 @@ fn process_folder_recursively<'a>(
                 if emls_batch.len() >= 50 {
                     let batch = emls_batch.clone();
                     emls_batch.clear();
-                    send_to_bichon(client, config, account_id, &current_path, batch).await;
+                    send_to_mailboxd(client, config, account_id, &current_path, batch).await;
                 }
             }
         }
 
         if !emls_batch.is_empty() {
-            send_to_bichon(client, config, account_id, &current_path, emls_batch).await;
+            send_to_mailboxd(client, config, account_id, &current_path, emls_batch).await;
         }
 
         if let Some(hierarchy_table) = folder.hierarchy_table() {
@@ -213,9 +215,9 @@ fn process_folder_recursively<'a>(
     })
 }
 
-async fn send_to_bichon(
+async fn send_to_mailboxd(
     client: &Client,
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     account_id: u64,
     folder_path: &str,
     emls: Vec<String>,

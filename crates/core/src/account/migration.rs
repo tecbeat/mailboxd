@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +37,7 @@ use crate::{
         paginate_impl, update_impl, MemDbModel,
     },
     encrypt,
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     id,
     oauth2::token::OAuth2AccessToken,
     raise_error,
@@ -328,7 +330,7 @@ impl MemDbModel for Account {
 }
 
 impl Account {
-    pub fn new(user_id: u64, request: AccountCreateRequest) -> BichonResult<Self> {
+    pub fn new(user_id: u64, request: AccountCreateRequest) -> MailboxdResult<Self> {
         Ok(Self {
             id: id!(64),
             email: request.email,
@@ -360,11 +362,11 @@ impl Account {
         })
     }
 
-    pub fn check_account_exists(account_id: u64) -> BichonResult<AccountModel> {
+    pub fn check_account_exists(account_id: u64) -> MailboxdResult<AccountModel> {
         Self::get(account_id)
     }
 
-    pub fn get(account_id: u64) -> BichonResult<AccountModel> {
+    pub fn get(account_id: u64) -> MailboxdResult<AccountModel> {
         let result: AccountModel = Self::find(account_id)?.ok_or_else(|| {
             raise_error!(
                 format!("Account with ID '{account_id}' not found"),
@@ -374,7 +376,7 @@ impl Account {
         Ok(result)
     }
 
-    pub fn find(account_id: u64) -> BichonResult<Option<AccountModel>> {
+    pub fn find(account_id: u64) -> MailboxdResult<Option<AccountModel>> {
         let result = find_impl::<AccountModel>(DB_MANAGER.db(), &account_id.to_string())?;
         Ok(result)
     }
@@ -382,7 +384,7 @@ impl Account {
     pub async fn create_account(
         user_id: u64,
         request: AccountCreateRequest,
-    ) -> BichonResult<AccountModel> {
+    ) -> MailboxdResult<AccountModel> {
         let entity = request.create_entity(user_id)?;
         let cloned = entity.clone();
 
@@ -428,7 +430,7 @@ impl Account {
         account_id: u64,
         request: AccountUpdateRequest,
         validate: bool,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         let account = AccountModel::get(account_id)?;
         if validate {
             request.validate_update_request(&account)?;
@@ -442,7 +444,7 @@ impl Account {
         Ok(())
     }
 
-    pub async fn delete(account_id: u64) -> BichonResult<()> {
+    pub async fn delete(account_id: u64) -> MailboxdResult<()> {
         let account = Self::get(account_id)?;
 
         // Immediately stop scheduling to prevent new downloads
@@ -487,11 +489,11 @@ impl Account {
         Ok(())
     }
 
-    fn delete_account(account: &AccountModel) -> BichonResult<()> {
+    fn delete_account(account: &AccountModel) -> MailboxdResult<()> {
         delete_impl::<AccountModel>(DB_MANAGER.db(), &account.id.to_string())
     }
 
-    async fn cleanup_account_resources_sequential(account: &AccountModel) -> BichonResult<()> {
+    async fn cleanup_account_resources_sequential(account: &AccountModel) -> MailboxdResult<()> {
         // Sync task already stopped in delete() before spawning this background task
         if matches!(account.account_type, AccountType::IMAP) {
             DownloadState::delete(account.id)?;
@@ -513,7 +515,7 @@ impl Account {
     pub fn update_download_folders(
         account_id: u64,
         download_folders: Vec<String>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         update_impl(
             DB_MANAGER.db(),
             &account_id.to_string(),
@@ -529,7 +531,7 @@ impl Account {
     pub fn update_known_folders(
         account_id: u64,
         known_folders: BTreeSet<String>,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         update_impl(
             DB_MANAGER.db(),
             &account_id.to_string(),
@@ -542,7 +544,7 @@ impl Account {
         Ok(())
     }
 
-    pub fn update_capabilities(account_id: u64, capabilities: Vec<String>) -> BichonResult<()> {
+    pub fn update_capabilities(account_id: u64, capabilities: Vec<String>) -> MailboxdResult<()> {
         update_impl(
             DB_MANAGER.db(),
             &account_id.to_string(),
@@ -556,11 +558,11 @@ impl Account {
     }
 
     /// Retrieves a list of all `AccountEntity` instances.
-    pub fn list_all() -> BichonResult<Vec<AccountModel>> {
+    pub fn list_all() -> MailboxdResult<Vec<AccountModel>> {
         list_all_impl::<AccountModel>(DB_MANAGER.db())
     }
 
-    pub fn find_by_email(email: &str) -> BichonResult<Option<AccountModel>> {
+    pub fn find_by_email(email: &str) -> MailboxdResult<Option<AccountModel>> {
         let all: Vec<AccountModel> = list_all_impl::<AccountModel>(DB_MANAGER.db())?;
         let target_email = email.trim().to_lowercase();
 
@@ -571,7 +573,7 @@ impl Account {
         Ok(first_match)
     }
 
-    pub fn minimal_list(only_nosync: bool) -> BichonResult<Vec<MinimalAccount>> {
+    pub fn minimal_list(only_nosync: bool) -> MailboxdResult<Vec<MinimalAccount>> {
         let result = list_all_impl::<AccountModel>(DB_MANAGER.db())?
             .into_iter()
             .filter(|account: &AccountModel| {
@@ -586,7 +588,7 @@ impl Account {
         Ok(result)
     }
 
-    pub fn count() -> BichonResult<usize> {
+    pub fn count() -> MailboxdResult<usize> {
         count_impl::<AccountModel>(DB_MANAGER.db())
     }
 
@@ -594,7 +596,7 @@ impl Account {
         page: Option<u64>,
         page_size: Option<u64>,
         desc: Option<bool>,
-    ) -> BichonResult<DataPage<AccountModel>> {
+    ) -> MailboxdResult<DataPage<AccountModel>> {
         paginate_impl::<AccountModel>(DB_MANAGER.db(), page, page_size, desc).map(DataPage::from)
     }
 
@@ -602,7 +604,7 @@ impl Account {
     fn apply_update_fields(
         old: &AccountModel,
         request: AccountUpdateRequest,
-    ) -> BichonResult<AccountModel> {
+    ) -> MailboxdResult<AccountModel> {
         let mut new = old.clone();
 
         if let Some(date_since) = request.date_since {

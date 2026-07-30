@@ -19,7 +19,7 @@ use uuid::Uuid;
 use crate::{
     common::AddrVec,
     envelope::extractor::{compute_thread_id, generate_message_id},
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
     store::envelope::Envelope,
     store::tantivy::{
@@ -99,7 +99,7 @@ pub fn detach_attachments_standalone(
         }
 
         if range_valid {
-            let placeholder = format!("<<BICHON_DETACH_HASH:{}>>", &content_hash);
+            let placeholder = format!("<<MAILBOXD_DETACH_HASH:{}>>", &content_hash);
             stripped_eml.splice(raw_start..raw_end, placeholder.as_bytes().iter().cloned());
         }
 
@@ -145,7 +145,7 @@ pub struct NewIndexWriter {
 //const COMMIT_THRESHOLD: usize = 500;
 
 impl NewIndexWriter {
-    pub fn open(dirs: NewDirs) -> BichonResult<Self> {
+    pub fn open(dirs: NewDirs) -> MailboxdResult<Self> {
         // ── envelope index ──────────────────────────────────────────────
         std::fs::create_dir_all(&dirs.envelope_dir)
             .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
@@ -264,7 +264,7 @@ impl NewIndexWriter {
         mailbox_id: u64,
         uid: u32,
         internal_date: i64,
-    ) -> BichonResult<()> {
+    ) -> MailboxdResult<()> {
         let email_content_hash = compute_content_hash(eml_bytes);
 
         let message = MessageParser::new()
@@ -439,7 +439,7 @@ impl NewIndexWriter {
 
     /// Commit pending Tantivy documents (mid-stream) — frees the in-memory
     /// term dictionary / postings that accumulate in the IndexWriter.
-    fn commit_tantivy(&mut self) -> BichonResult<()> {
+    fn commit_tantivy(&mut self) -> MailboxdResult<()> {
         if self.pending == 0 {
             return Ok(());
         }
@@ -462,7 +462,7 @@ impl NewIndexWriter {
     }
 
     /// Final commit + segment merge for Tantivy writers (called once at end).
-    pub fn finish_writers(&mut self) -> BichonResult<()> {
+    pub fn finish_writers(&mut self) -> MailboxdResult<()> {
         self.commit_tantivy()?;
 
         for (name, writer_opt) in [
@@ -494,7 +494,7 @@ impl NewIndexWriter {
     /// Sort buffered (hash, data) pairs, dedup, and write via Fjall's
     /// ingestion API — writes SSTables directly, bypassing memtable and WAL.
     /// Also commits the Tantivy writers to bound their in-memory state.
-    pub fn flush_fjall_buffers(&mut self) -> BichonResult<()> {
+    pub fn flush_fjall_buffers(&mut self) -> MailboxdResult<()> {
         self.commit_tantivy()?;
 
         if !self.email_buf.is_empty() {

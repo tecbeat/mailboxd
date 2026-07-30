@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +21,7 @@
 use crate::database::manager::DB_MANAGER;
 use crate::database::{delete_impl, upsert_impl};
 use crate::database::{find_impl, MemDbModel};
-use crate::{autoconfig::entity::MailServerConfig, error::BichonResult, utc_now};
+use crate::{autoconfig::entity::MailServerConfig, error::MailboxdResult, utc_now};
 use serde::{Deserialize, Serialize};
 
 pub mod client;
@@ -49,7 +51,7 @@ impl MemDbModel for CachedMailSettings {
 }
 
 impl CachedMailSettings {
-    pub fn add(domain: String, config: MailServerConfig) -> BichonResult<()> {
+    pub fn add(domain: String, config: MailServerConfig) -> MailboxdResult<()> {
         Self {
             domain,
             config,
@@ -58,11 +60,11 @@ impl CachedMailSettings {
         .save()
     }
 
-    fn save(&self) -> BichonResult<()> {
+    fn save(&self) -> MailboxdResult<()> {
         upsert_impl(DB_MANAGER.db(), self.to_owned())
     }
 
-    pub fn get(domain: &str) -> BichonResult<Option<CachedMailSettings>> {
+    pub fn get(domain: &str) -> MailboxdResult<Option<CachedMailSettings>> {
         if let Some(found) = find_impl::<CachedMailSettings>(DB_MANAGER.db(), domain)? {
             if (utc_now!() - found.created_at) > EXPIRE_TIME_MS {
                 delete_impl::<CachedMailSettings>(DB_MANAGER.db(), domain)?;

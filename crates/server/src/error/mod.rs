@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::error::code::IntoStatusCode;
-use mailboxd_core::error::BichonError;
+use mailboxd_core::error::MailboxdError;
 use poem::http::StatusCode;
 use poem_openapi::{payload::Json, ApiResponse, Object};
 use std::{fmt::Formatter, u32};
@@ -31,10 +33,10 @@ pub struct ApiError {
     pub code: u32,
 }
 
-impl From<BichonError> for ApiErrorResponse {
-    fn from(error: BichonError) -> Self {
+impl From<MailboxdError> for ApiErrorResponse {
+    fn from(error: MailboxdError) -> Self {
         match error {
-            BichonError::Generic {
+            MailboxdError::Generic {
                 message,
                 location,
                 code,

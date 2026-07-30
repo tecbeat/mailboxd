@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +21,7 @@
 use tantivy::{schema::Facet, IndexWriter};
 
 use crate::{
-    error::{code::ErrorCode, BichonResult},
+    error::{code::ErrorCode, MailboxdResult},
     raise_error,
 };
 
@@ -76,7 +78,7 @@ pub fn fatal_commit(writer: &mut IndexWriter) {
     }
 }
 
-pub fn validate_facet(tag: &str) -> BichonResult<()> {
+pub fn validate_facet(tag: &str) -> MailboxdResult<()> {
     Facet::from_text(tag)
         .map(|_| ())
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))

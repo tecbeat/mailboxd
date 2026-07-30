@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +29,7 @@ use crate::rest::public::login::login;
 use crate::rest::public::status::get_status;
 use mailboxd_core::common::signal::SIGNAL_MANAGER;
 use mailboxd_core::error::code::ErrorCode;
-use mailboxd_core::error::BichonResult;
+use mailboxd_core::error::MailboxdResult;
 use mailboxd_core::raise_error;
 use mailboxd_core::settings::cli::SETTINGS;
 
@@ -76,7 +78,7 @@ pub fn build_routes() -> impl Endpoint {
         .with(Timeout)
         .with(Tracing);
 
-    let cors_origins: Option<HashSet<String>> = SETTINGS.bichon_cors_origins.clone();
+    let cors_origins: Option<HashSet<String>> = SETTINGS.mailboxd_cors_origins.clone();
     let cors_origins: Vec<String> = cors_origins.unwrap_or_default().into_iter().collect();
 
     let cors = Cors::new()
@@ -101,7 +103,7 @@ pub fn build_routes() -> impl Endpoint {
         ])
         .allow_headers(vec!["Content-Type", "Authorization", TIMEOUT_HEADER])
         .expose_headers(vec!["Accept"])
-        .max_age(SETTINGS.bichon_cors_max_age);
+        .max_age(SETTINGS.mailboxd_cors_max_age);
 
     let app_logic = Route::new()
         .nest("/api-docs/swagger", swagger)
@@ -119,9 +121,9 @@ pub fn build_routes() -> impl Endpoint {
     let app_logic = add_web_assets(app_logic);
 
     Route::new()
-        .nest(&SETTINGS.bichon_base_url, app_logic)
+        .nest(&SETTINGS.mailboxd_base_url, app_logic)
         .with(cors)
-        .with_if(SETTINGS.bichon_http_compression_enabled, Compression::new())
+        .with_if(SETTINGS.mailboxd_http_compression_enabled, Compression::new())
         .with(CatchPanic::new())
 }
 
@@ -153,7 +155,7 @@ async fn serve_index_with_base() -> impl IntoResponse {
     let mut html =
         String::from_utf8_lossy(&FrontEndAssets::get("index.html").unwrap().data).to_string();
 
-    let raw_base = &SETTINGS.bichon_base_url;
+    let raw_base = &SETTINGS.mailboxd_base_url;
     let base_href = if raw_base.ends_with('/') {
         raw_base.clone()
     } else {
@@ -161,7 +163,7 @@ async fn serve_index_with_base() -> impl IntoResponse {
     };
 
     let inject_content = format!(
-        r#"<base href="{}"><script>window.__BICHON_BASE__ = '{}';</script>"#,
+        r#"<base href="{}"><script>window.__MAILBOXD_BASE__ = '{}';</script>"#,
         base_href, raw_base
     );
 
@@ -171,13 +173,13 @@ async fn serve_index_with_base() -> impl IntoResponse {
         .body(html)
 }
 
-pub async fn start_http_server() -> BichonResult<()> {
+pub async fn start_http_server() -> MailboxdResult<()> {
     let listener = TcpListener::bind((
-        SETTINGS.bichon_bind_ip.clone().unwrap_or("0.0.0.0".into()),
-        SETTINGS.bichon_http_port as u16,
+        SETTINGS.mailboxd_bind_ip.clone().unwrap_or("0.0.0.0".into()),
+        SETTINGS.mailboxd_http_port as u16,
     ));
 
-    let listener = if SETTINGS.bichon_enable_rest_https {
+    let listener = if SETTINGS.mailboxd_enable_rest_https {
         listener.rustls(rustls_config()?).boxed()
     } else {
         listener.boxed()
@@ -190,7 +192,7 @@ pub async fn start_http_server() -> BichonResult<()> {
         let _ = rx.recv().await;
     };
     let server = Server::new(listener)
-        .name("Bichon Service")
+        .name("mailboxd Service")
         .idle_timeout(Duration::from_secs(60))
         .run_with_graceful_shutdown(
             route.catch_all_error(error_handler),
@@ -198,8 +200,8 @@ pub async fn start_http_server() -> BichonResult<()> {
             Some(Duration::from_secs(5)),
         );
     println!(
-        "Bichon Service is now running on port {}.",
-        SETTINGS.bichon_http_port
+        "mailboxd Service is now running on port {}.",
+        SETTINGS.mailboxd_http_port
     );
     server
         .await

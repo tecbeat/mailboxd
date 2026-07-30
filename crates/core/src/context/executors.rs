@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,26 +22,26 @@ use crate::account::migration::AccountType;
 use crate::context::Initialize;
 use crate::{
     {
-        account::migration::AccountModel, context::controller::DOWNLOAD_CONTROLLER, error::BichonResult,
+        account::migration::AccountModel, context::controller::DOWNLOAD_CONTROLLER, error::MailboxdResult,
     },
     utc_now,
 };
 use std::sync::LazyLock;
 use tracing::info;
 
-pub static BICHON_CONTEXT: LazyLock<BichonContext> = LazyLock::new(BichonContext::new);
+pub static MAILBOXD_CONTEXT: LazyLock<MailboxdContext> = LazyLock::new(MailboxdContext::new);
 
-pub struct BichonContext {
+pub struct MailboxdContext {
     start_at: i64,
 }
 
-impl Initialize for BichonContext {
-    async fn initialize() -> BichonResult<()> {
-        BICHON_CONTEXT.start_account_downloader().await
+impl Initialize for MailboxdContext {
+    async fn initialize() -> MailboxdResult<()> {
+        MAILBOXD_CONTEXT.start_account_downloader().await
     }
 }
 
-impl BichonContext {
+impl MailboxdContext {
     pub fn new() -> Self {
         Self {
             start_at: utc_now!(),
@@ -49,7 +51,7 @@ impl BichonContext {
         utc_now!() - self.start_at
     }
 
-    pub async fn start_account_downloader(&self) -> BichonResult<()> {
+    pub async fn start_account_downloader(&self) -> MailboxdResult<()> {
         let accounts = AccountModel::list_all()?;
         let active_accounts: Vec<AccountModel> = accounts
             .into_iter()

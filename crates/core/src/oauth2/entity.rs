@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +25,7 @@ use crate::{
         MemDbModel,
     },
     encrypt,
-    error::BichonResult,
+    error::MailboxdResult,
     id, utc_now,
 };
 use serde::{Deserialize, Serialize};
@@ -75,7 +77,7 @@ impl MemDbModel for OAuth2 {
 }
 
 impl OAuth2 {
-    pub fn new(request: OAuth2CreateRequest) -> BichonResult<Self> {
+    pub fn new(request: OAuth2CreateRequest) -> MailboxdResult<Self> {
         let request = request.encrypt()?;
         Ok(OAuth2 {
             id: id!(64),
@@ -115,7 +117,7 @@ impl OAuth2 {
         self.extra_params = None;
     }
 
-    pub fn save(&self) -> BichonResult<()> {
+    pub fn save(&self) -> MailboxdResult<()> {
         insert_impl(DB_MANAGER.db(), self.to_owned())?;
         Ok(())
     }
@@ -124,21 +126,21 @@ impl OAuth2 {
         page: Option<u64>,
         page_size: Option<u64>,
         desc: Option<bool>,
-    ) -> BichonResult<DataPage<OAuth2>> {
+    ) -> MailboxdResult<DataPage<OAuth2>> {
         let paginated = paginate_impl::<OAuth2>(DB_MANAGER.db(), page, page_size, desc)?;
         Ok(DataPage::from(paginated))
     }
 
-    pub fn get(id: u64) -> BichonResult<Option<OAuth2>> {
+    pub fn get(id: u64) -> MailboxdResult<Option<OAuth2>> {
         let results = find_impl::<OAuth2>(DB_MANAGER.db(), &id.to_string())?;
         Ok(results.into_iter().next())
     }
 
-    pub fn delete(id: u64) -> BichonResult<()> {
+    pub fn delete(id: u64) -> MailboxdResult<()> {
         delete_impl::<OAuth2>(DB_MANAGER.db(), &id.to_string())
     }
 
-    pub fn update(id: u64, request: OAuth2UpdateRequest) -> BichonResult<()> {
+    pub fn update(id: u64, request: OAuth2UpdateRequest) -> MailboxdResult<()> {
         update_impl(DB_MANAGER.db(), &id.to_string(), |current| {
             apply_update(&current, request)
         })?;
@@ -182,7 +184,7 @@ pub struct OAuth2CreateRequest {
 }
 
 impl OAuth2CreateRequest {
-    pub fn encrypt(self) -> BichonResult<Self> {
+    pub fn encrypt(self) -> MailboxdResult<Self> {
         Ok(Self {
             description: self.description,
             client_id: self.client_id,
@@ -232,7 +234,7 @@ pub struct OAuth2UpdateRequest {
     pub use_proxy: Option<u64>,
 }
 
-fn apply_update(old: &OAuth2, request: OAuth2UpdateRequest) -> BichonResult<OAuth2> {
+fn apply_update(old: &OAuth2, request: OAuth2UpdateRequest) -> MailboxdResult<OAuth2> {
     let mut new = old.clone();
     if request.description.is_some() {
         new.description = request.description;

@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -25,19 +27,19 @@ use std::num::NonZeroU32;
 use std::sync::LazyLock;
 
 use crate::error::code::ErrorCode;
-use crate::error::BichonResult;
+use crate::error::MailboxdResult;
 use crate::raise_error;
 use crate::settings::cli::SETTINGS;
 
 pub static ENCRYPT_PASSWORD: LazyLock<String> = LazyLock::new(|| {
-    if let Some(file_path) = &SETTINGS.bichon_encrypt_password_file {
+    if let Some(file_path) = &SETTINGS.mailboxd_encrypt_password_file {
         return fs::read_to_string(file_path)
             .expect("failed to read the file with the encrypt password")
             .trim()
             .to_string();
     }
 
-    if let Some(p) = &SETTINGS.bichon_encrypt_password {
+    if let Some(p) = &SETTINGS.mailboxd_encrypt_password {
         return p.clone();
     }
 
@@ -58,12 +60,12 @@ impl NonceSequence for SingleNonceSequence {
     }
 }
 
-pub fn encrypt_string(plaintext: &str) -> BichonResult<String> {
+pub fn encrypt_string(plaintext: &str) -> MailboxdResult<String> {
     internal_encrypt_string(&ENCRYPT_PASSWORD, plaintext)
         .map_err(|_| raise_error!("Failed to encrypt string.".into(), ErrorCode::InternalError))
 }
 
-pub fn decrypt_string(data: &str) -> BichonResult<String> {
+pub fn decrypt_string(data: &str) -> MailboxdResult<String> {
     internal_decrypt_string(&ENCRYPT_PASSWORD, data).map_err(|_| {
         raise_error!(
             "Decryption failed, likely due to incorrect encryption key or corrupted data".into(),

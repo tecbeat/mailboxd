@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +23,7 @@ use crate::{
         batch_delete_impl, delete_impl, find_impl, insert_impl, list_all_impl, manager::DB_MANAGER,
         MemDbModel,
     },
-    error::BichonResult,
+    error::MailboxdResult,
     utc_now,
 };
 use serde::{Deserialize, Serialize};
@@ -64,15 +66,15 @@ impl OAuth2PendingEntity {
         }
     }
 
-    pub fn save(&self) -> BichonResult<()> {
+    pub fn save(&self) -> MailboxdResult<()> {
         insert_impl(DB_MANAGER.db(), self.to_owned())
     }
 
-    pub fn delete(state: &str) -> BichonResult<()> {
+    pub fn delete(state: &str) -> MailboxdResult<()> {
         delete_impl::<OAuth2PendingEntity>(DB_MANAGER.db(), state)
     }
 
-    pub fn clean() -> BichonResult<()> {
+    pub fn clean() -> MailboxdResult<()> {
         let all = list_all_impl::<OAuth2PendingEntity>(DB_MANAGER.db())?;
         let now = utc_now!();
         let to_delete: Vec<String> = all
@@ -86,7 +88,7 @@ impl OAuth2PendingEntity {
         Ok(())
     }
 
-    pub fn get(state: &str) -> BichonResult<Option<OAuth2PendingEntity>> {
+    pub fn get(state: &str) -> MailboxdResult<Option<OAuth2PendingEntity>> {
         let entity = find_impl::<OAuth2PendingEntity>(DB_MANAGER.db(), state)?;
 
         match entity {

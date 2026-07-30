@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,12 +20,12 @@
 
 use std::{collections::HashMap, path::PathBuf};
 
-use crate::{mbox::run_import, BichonCliConfig};
+use crate::{mbox::run_import, MailboxdCliConfig};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input};
 
 pub async fn handle_thunderbird_import(
-    config: &BichonCliConfig,
+    config: &MailboxdCliConfig,
     account_id: u64,
     theme: &ColorfulTheme,
 ) {

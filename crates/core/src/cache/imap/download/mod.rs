@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +24,7 @@ use crate::{
         state::{DownloadState, DownloadStatus, TriggerType},
     },
     cache::imap::{download::flow::FetchDirection, mailbox::MailBox},
-    error::BichonResult,
+    error::MailboxdResult,
     imap::executor::ImapExecutor,
 };
 use download_folders::get_download_folders;
@@ -42,7 +44,7 @@ pub async fn process_imap_download(
     account: &AccountModel,
     token: CancellationToken,
     trigger_type: TriggerType,
-) -> BichonResult<()> {
+) -> MailboxdResult<()> {
     assert_eq!(account.account_type, AccountType::IMAP);
     let start_time = Instant::now();
     let account_id = account.id;

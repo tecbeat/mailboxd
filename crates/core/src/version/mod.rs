@@ -1,7 +1,9 @@
 //
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the Bichon Email Archiving Project
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,14 +21,14 @@
 //use poem_openapi::Object;
 use serde::{Deserialize, Serialize};
 
-use crate::{bichon_version, error::BichonResult};
+use crate::error::MailboxdResult;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
 pub struct ReleaseNotification {
     /// Details of the latest release, if available. `None` if no release data is available.
     pub latest: Option<Release>,
-    /// Indicates whether the latest release is newer than the current RustMailer service version.
+    /// Indicates whether the latest release is newer than the current service version.
     pub is_newer: bool,
     /// Optional error message if the release check failed (e.g., network or API issues).
     pub error_message: Option<String>,
@@ -51,12 +53,19 @@ pub struct Notifications {
     pub release: ReleaseNotification,
 }
 
-pub async fn fetch_notifications() -> BichonResult<Notifications> {
-    let current_version = bichon_version!();
-    let release = check_new_release("rustmailer", "bichon", current_version).await;
+pub async fn fetch_notifications() -> MailboxdResult<Notifications> {
+    // TODO: wire release check to git.teccave.de/tecbeat/mailboxd (GitLab API).
+    // The old GitHub-based check against rustmailer/bichon has been disabled
+    // for the fork. See tracking issue for the GitLab-native implementation.
+    let release = ReleaseNotification {
+        latest: None,
+        is_newer: false,
+        error_message: None,
+    };
     Ok(Notifications { release })
 }
 
+#[allow(dead_code)]
 async fn check_new_release(owner: &str, repo: &str, current_version: &str) -> ReleaseNotification {
     let url = format!(
         "https://api.github.com/repos/{}/{}/releases/latest",
@@ -107,13 +116,16 @@ async fn check_new_release(owner: &str, repo: &str, current_version: &str) -> Re
 
 #[cfg(test)]
 mod test {
-    use crate::{bichon_version, version::check_new_release};
+    use crate::{mailboxd_version, version::check_new_release};
 
+    // TODO: replace with a GitLab-hosted release-check test once
+    // fetch_notifications() points at git.teccave.de/tecbeat/mailboxd.
     #[tokio::test]
+    #[ignore]
     async fn test() {
-        let current_version = bichon_version!();
-        println!("current_version: {}", bichon_version!());
-        let result = check_new_release("rustmailer", "persistent-scheduler", current_version).await;
+        let current_version = mailboxd_version!();
+        println!("current_version: {}", mailboxd_version!());
+        let result = check_new_release("example", "example", current_version).await;
 
         println!("{:#?}", result);
     }
