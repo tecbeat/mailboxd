@@ -47,8 +47,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <img
                 className={open ? "relative ml-[12px] mr-[12px]" : "mr-[30px]"}
                 src={Logo}
-                width={open ? 60 : 40}
-                height={open ? 60 : 40}
+                width={open ? 51 : 34}
+                height={open ? 51 : 34}
                 alt='mailboxd icon'
               />
             </div>
