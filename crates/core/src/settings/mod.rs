@@ -67,6 +67,8 @@ pub struct SystemConfigurations {
     pub mailboxd_oidc_issuer_url: Option<String>,
     pub mailboxd_oidc_client_id: Option<String>,
     pub mailboxd_oidc_redirect_uri: Option<String>,
+    pub mailboxd_oidc_default_role_id: u64,
+    pub mailboxd_oidc_auto_redirect: bool,
 
     pub mailboxd_upload_body_limit_mb: u64,
 
@@ -111,6 +113,8 @@ impl From<&Settings> for SystemConfigurations {
             mailboxd_oidc_issuer_url: s.mailboxd_oidc_issuer_url.clone(),
             mailboxd_oidc_client_id: s.mailboxd_oidc_client_id.clone(),
             mailboxd_oidc_redirect_uri: s.mailboxd_oidc_redirect_uri.clone(),
+            mailboxd_oidc_default_role_id: s.mailboxd_oidc_default_role_id,
+            mailboxd_oidc_auto_redirect: s.mailboxd_oidc_auto_redirect,
             mailboxd_upload_body_limit_mb: s.mailboxd_upload_body_limit_mb,
             mailboxd_web_mbox_upload_limit_mb: s.mailboxd_web_mbox_upload_limit_mb,
             mailboxd_web_pst_upload_limit_mb: s.mailboxd_web_pst_upload_limit_mb,
