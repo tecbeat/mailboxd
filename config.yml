@@ -1,14 +1,139 @@
 ---
 repo:
-  description: "mailboxd is a self-hosted email archiving server built in Rust. It downloads mail from IMAP accounts via password or OAuth2, deduplicates content with BLAKE3, indexes everything with Tantivy full-text search, and stores the raw blobs in an LZ4-compressed LSM tree. Access is via a REST API and an embedded React web UI. mailboxd is a fork of Bichon by rustmailer.com and is distributed under AGPL-3.0-or-later."
+  tagline: "Self-hosted email archiving in Rust — multi-account IMAP, full-text search, RBAC, OIDC, and an embedded WebUI."
+
+  description: >-
+    mailboxd is a self-hosted email archiving server built in Rust and a fork of
+    Bichon by rustmailer.com. It concurrently downloads mail from any number of
+    IMAP accounts (password or OAuth 2.0), deduplicates content via BLAKE3, indexes
+    everything with Tantivy full-text search, and stores raw blobs in an
+    LZ4-compressed LSM tree. Access is via a documented REST API and an embedded
+    React WebUI localised into 18 languages. Distributed under AGPL-3.0-or-later.
+
   command: "docker compose up -d"
+
+  prerequisites:
+    Docker: "24.0 or later with the Compose plugin, or a compatible container runtime."
+    Storage: "A local filesystem (ext4, XFS) for the data volume. NFS, CIFS and other network filesystems are NOT supported."
+    Ports: "One free TCP port for the WebUI/REST API (default 15630). Additional ports if the embedded SMTP (2525) or IMAP (10143/10993) servers are enabled."
+
   feature:
-    Multi-account IMAP download: "Concurrent IMAP sync per account with PLAIN/LOGIN and SASL XOAUTH2, incremental UID-based delta fetching, UIDVALIDITY-aware cache rebuilds, per-account SOCKS5 proxy and cron-based schedules."
-    Full-text search: "Tantivy indices for envelopes and attachments with Zstd compression, faceted tags, thread reconstruction, and filters for date range, size, attachment presence, file type and content category."
-    Three-layer storage: "memdb for relational metadata, Tantivy for full-text indexing, and Fjall for LZ4-compressed content-addressed blob storage. BLAKE3 content hashing gives insert-time deduplication across accounts and folders."
+    Multi-account IMAP download: "Concurrent per-account sync with PLAIN/LOGIN and SASL XOAUTH2, automatic OAuth token refresh with PKCE, and support for SSL/TLS, STARTTLS or plain connections."
+    Incremental delta fetch: "UID-based delta fetching downloads only new messages after the initial sync. UIDVALIDITY changes trigger automatic cache rebuilds."
+    Fetch scoping: "Filter downloads by date range, mailbox folder limit or specific folder names. Optional per-account SOCKS5 proxy routing."
+    Auto-configuration: "Discover IMAP server settings automatically from an email domain."
+    Full-text search: "Tantivy indices for envelopes and attachments with Zstd compression. Optimised for European languages."
+    Advanced filters: "Date range, size range, attachment presence, file type, content category and facet-based tag combinations."
+    Thread grouping: "Reconstruct and view complete conversation threads across folders."
+    Attachment search: "Browse and filter attachments by sender, file type, size and other attachment properties."
+    Faceted tags: "Add, remove or overwrite tags on messages and attachments; filter by tag combinations with real-time count updates."
+    Contacts view: "Extracted and deduplicated sender/recipient address book across all authorised accounts."
+    Three-layer storage: "memdb for relational metadata, Tantivy for full-text indexing and Fjall (LZ4) for content-addressed blob storage — all embedded, no external dependencies."
+    Content deduplication: "BLAKE3 content hashing gives insert-time deduplication across accounts and folders. Folder moves update metadata only."
+    Dashboard analytics: "Email volume trends, top senders, storage usage breakdown, attachment statistics and per-account activity — scoped by user permissions."
+    OpenAPI 3.0: "All endpoints documented and browsable via Swagger UI, ReDoc and Scalar. Long-lived API tokens for programmatic access."
     Multi-user RBAC: "5 built-in roles (Admin, Manager, Member, AccountManager, AccountViewer) plus custom roles with 22 granular permissions. Account-level ACLs scope data access per user."
     OpenID Connect SSO: "Authorization Code flow with PKCE against any OIDC provider (Authentik, Keycloak, PocketID, Authelia, Zitadel, Dex). Auto-provisioning of new users with a configurable default role."
     Embedded SMTP receiver: "Optional built-in SMTP server for direct email ingestion. STARTTLS or implicit TLS, AUTH PLAIN/LOGIN with API-token authentication."
+    Embedded IMAP server: "Optional read-only IMAP server exposes archived mail to standard email clients (Thunderbird, Outlook, Apple Mail)."
     Import and export: "CLI tools import from EML directories, MBOX files (incl. Gmail's variant), Thunderbird profiles and Outlook PST files. Export as MBOX. All parsing happens server-side."
-    REST API with OpenAPI 3.0: "All endpoints documented and browsable via Swagger UI, ReDoc and Scalar. Long-lived API tokens for programmatic access."
-    Multi-language web UI: "React + TypeScript frontend served embedded, localised into 18 languages with light and dark themes."
+    Scheduled downloads: "Per-account cron expressions run syncs at specific times — nightly-only or business-hours-only archiving."
+    Remote-content blocking: "External images and tracking pixels in emails are blocked by default; users can selectively allow remote content per message."
+    Async index dedup: "Duplicate detection in the search index runs asynchronously to reduce write latency during high-throughput ingestion."
+    Multi-language WebUI: "React + TypeScript frontend served embedded, localised into 18 languages with light and dark themes."
+
+  configuration:
+    MAILBOXD_ROOT_DIR: "**Required.** Absolute path for all persistent data."
+    MAILBOXD_ENCRYPT_PASSWORD: "Password used to encrypt stored credentials (IMAP passwords, OAuth tokens). Alternative: `MAILBOXD_ENCRYPT_PASSWORD_FILE`."
+    MAILBOXD_ENCRYPT_PASSWORD_FILE: "Read the encryption password from a file. If both are set, `MAILBOXD_ENCRYPT_PASSWORD` takes precedence."
+    MAILBOXD_HTTP_PORT: "HTTP server port. Default `15630`."
+    MAILBOXD_BIND_IP: "IP address to bind to (IPv4 or IPv6). Default `0.0.0.0`."
+    MAILBOXD_PUBLIC_URL: "Public-facing URL used in OAuth redirects and docs. Default `http://localhost:15630`."
+    MAILBOXD_BASE_URL: "Base path for the WebUI when behind a reverse proxy (e.g. `/mailboxd`). Default `/`."
+    MAILBOXD_WEBUI_TOKEN_EXPIRATION_HOURS: "Access token lifetime in hours. Default `168` (7 days)."
+    MAILBOXD_HTTP_COMPRESSION_ENABLED: "Enable gzip/brotli/zstd response compression. Default `true`."
+    MAILBOXD_ENABLE_REST_HTTPS: "Serve the REST API over HTTPS (requires a valid certificate). Default `false`."
+    MAILBOXD_LOG_LEVEL: "Log level: `trace`, `debug`, `info`, `warn`, `error`. Default `info`."
+    MAILBOXD_ANSI_LOGS: "Colorised terminal output. Default `true`."
+    MAILBOXD_JSON_LOGS: "JSON-formatted logs for log aggregators. Default `false`."
+    MAILBOXD_LOG_TO_FILE: "Persist logs to files under the root dir. Default `false`."
+    MAILBOXD_MAX_SERVER_LOG_FILES: "Max log files to retain. Default `5`."
+    MAILBOXD_CORS_ORIGINS: "Comma-separated list of allowed origins. If unset, all origins are allowed; if set, only exact matches pass (no wildcards, no trailing slash)."
+    MAILBOXD_CORS_MAX_AGE: "CORS preflight cache duration in seconds. Default `86400`."
+    MAILBOXD_INDEX_DIR: "Tantivy full-text index directory. Default `{root}/envelope`. Place on fast SSD."
+    MAILBOXD_DATA_DIR: "Blob storage directory. Default `{root}/eml`. Can live on high-capacity HDD."
+    MAILBOXD_SYNC_CONCURRENCY: "Max concurrent account sync tasks. Default `num_cpus × 2`."
+    MAILBOXD_UPLOAD_BODY_LIMIT_MB: "Maximum HTTP request body size in MB for file uploads. Default `1100`."
+    MAILBOXD_WEB_MBOX_UPLOAD_LIMIT_MB: "Maximum per-file size in MB for MBOX uploads via the WebUI. Default `1024`."
+    MAILBOXD_WEB_PST_UPLOAD_LIMIT_MB: "Maximum per-file size in MB for PST uploads via the WebUI. Default `2048`."
+    MAILBOXD_ENABLE_SMTP: "Enable the embedded SMTP receiver. Default `false`."
+    MAILBOXD_SMTP_PORT: "SMTP listening port. Default `2525` (port 25 may require root)."
+    MAILBOXD_SMTP_ENCRYPTION: "SMTP encryption mode: `none`, `starttls`, `tls`. Default `starttls`."
+    MAILBOXD_SMTP_AUTH_REQUIRED: "Require authentication for SMTP connections. Default `true`."
+    MAILBOXD_TLS_KEY_PATH: "Absolute path to the SMTP/REST TLS private key."
+    MAILBOXD_TLS_CERT_PATH: "Absolute path to the SMTP/REST TLS certificate chain."
+    MAILBOXD_ENABLE_IMAP: "Enable the embedded read-only IMAP server. Default `false`."
+    MAILBOXD_IMAP_PORT: "IMAP port (STARTTLS or plaintext). Default `10143`."
+    MAILBOXD_IMAPS_PORT: "IMAPS port (implicit TLS). Default `10993`."
+    MAILBOXD_IMAP_ENCRYPTION: "IMAP encryption mode: `none`, `starttls`, `tls`. Default `none`."
+    MAILBOXD_OIDC_ENABLED: "Enable OIDC single sign-on. When `true`, the four settings below are required. Default `false`."
+    MAILBOXD_OIDC_ISSUER_URL: "Issuer URL of the OIDC provider (without the `/.well-known/openid-configuration` suffix)."
+    MAILBOXD_OIDC_CLIENT_ID: "OAuth 2.0 client ID registered with the IdP."
+    MAILBOXD_OIDC_CLIENT_SECRET: "OAuth 2.0 client secret registered with the IdP."
+    MAILBOXD_OIDC_REDIRECT_URI: "Redirect URI registered with the IdP. Must resolve to `<public-url>/api/auth/oidc/callback`."
+    MAILBOXD_OIDC_DEFAULT_ROLE_ID: "Global role ID assigned to auto-provisioned OIDC users. Default `100200000000000` (built-in `Member`)."
+    MAILBOXD_OIDC_AUTO_REDIRECT: "When OIDC is configured, `/sign-in` redirects to the IdP immediately. The local login form remains reachable via `/sign-in?local=1`. Default `false`."
+
+  development: >-
+    Prerequisites: Rust (latest stable), Node.js 20+, pnpm.
+    Clone the repo and run `cargo build` — the frontend is installed and built
+    automatically via `build.rs`. For frontend development run
+    `cd web && pnpm run dev` for a Vite dev server with API proxy to the Rust
+    backend. See [CONTRIBUTING guidelines](https://git.teccave.de/tecbeat/mailboxd/-/blob/main/README.md#contributing).
+
+  stack: >-
+    **Backend:** Rust, Tokio, Poem + Poem OpenAPI.
+    **Full-text search:** Tantivy (Zstd compression).
+    **Blob storage:** Fjall (LZ4-compressed LSM tree, BLAKE3 dedup).
+    **Metadata DB:** memdb (embedded key-value store with WAL).
+    **IMAP:** async-imap, rustls (ring), SOCKS5 proxy support.
+    **SMTP/IMAP servers:** embedded (AUTH PLAIN/LOGIN, STARTTLS/TLS).
+    **Cryptography:** AES-256-GCM (ring), BLAKE3 (content hashing).
+    **Frontend:** React 18, TypeScript, Vite, ShadCN UI, TanStack Router/Query/Table.
+    **i18n:** i18next (18 languages).
+    **Container:** Ubuntu 24.04, Docker.
+
+  faq:
+    "CORS errors when accessing the WebUI": >-
+      Enable debug logging with `MAILBOXD_LOG_LEVEL=debug`, check the server logs
+      for the incoming `Origin` header, and ensure the browser's exact origin
+      matches an entry in `MAILBOXD_CORS_ORIGINS` (no trailing slash, no
+      wildcards). In Docker, do not wrap the value in quotes.
+    "How do I run mailboxd behind a reverse proxy?": >-
+      Set `MAILBOXD_BASE_URL=/mailboxd` (or your sub-path) and configure your
+      proxy to forward `/mailboxd/` to `http://127.0.0.1:15630/`, preserving
+      `Host` and `X-Forwarded-For` headers.
+    "Can mailboxd send emails?": >-
+      No. mailboxd is an **archiver**, not an email client. The optional SMTP
+      server only **receives** emails — it cannot send, forward or reply. The
+      optional IMAP server is read-only.
+    "What hardware does mailboxd need?": >-
+      Recommended: 4+ CPU cores, 2+ GB RAM (sufficient for 10+ accounts and
+      200+ GB of archived data). Use a mainstream local filesystem (ext4, XFS);
+      avoid network/virtual filesystems (NFS, SMB, VirtIO-FS) for all data
+      directories. Indices benefit from SSD storage; blob storage can use HDD.
+    "How do I reset the admin password?": >-
+      Run the `mailboxd-admin` binary inside the container
+      (`docker exec -it mailboxd mailboxd-admin`) and select
+      *Reset Admin Password*. `MAILBOXD_ENCRYPT_PASSWORD` (or its `_FILE`
+      counterpart) must be set for the tool to decrypt stored credentials.
+    "How do I back up my data?": >-
+      Back up the entire `MAILBOXD_ROOT_DIR` (plus `MAILBOXD_INDEX_DIR` and
+      `MAILBOXD_DATA_DIR` if overridden). All three storage layers must be
+      backed up together for consistency. Do not place any of these directories
+      on network-mounted storage — sync locally, then rsync to a remote
+      destination.
+    "Default login credentials?": >-
+      On first start, mailboxd creates a built-in admin user with username
+      `admin` and password `admin@mailboxd`. **Change the password immediately**
+      via *Settings → Profile* in the WebUI.
