@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.1) - 2026-07-31
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Translate "no attachment data" empty state - ([21df9c1](https://git.teccave.de/tecbeat/mailboxd/commit/21df9c114260b6eff62d6261730b3acf1d464f91))
+- *(settings)* Add missing i18n keys for access panel empty state - ([bf4a12a](https://git.teccave.de/tecbeat/mailboxd/commit/bf4a12a4b10674a40f1cacaf784c04c031533b7a))
+
+### 📚 Documentation
+
+- *(config)* Expand config.yml for full README rendering - ([5a4fae6](https://git.teccave.de/tecbeat/mailboxd/commit/5a4fae62f21569ea926c438336c8b38ed8b1d1cc))
+
+### ⚙️ Miscellaneous Tasks
+
+- Consolidate renovate updates + categorise config - ([19cf184](https://git.teccave.de/tecbeat/mailboxd/commit/19cf1840d9c2423af2adbabdab2b9fc22c71e1f2))
+
 ## [1.0.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.0) - 2026-07-30
 
 ### ⛰️  Features
