@@ -20,8 +20,12 @@
 
 
 import { MailboxData } from "@/api/mailbox/api";
-import { TreeViewBaseItem } from '@mui/x-tree-view/models';
 
+export type TreeViewBaseItem<T = object> = T & {
+    id: string;
+    label: string;
+    children?: TreeViewBaseItem<T>[];
+};
 
 export type ExtendedTreeItemProps = {
     exists?: number;

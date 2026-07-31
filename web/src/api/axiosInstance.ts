@@ -27,7 +27,7 @@ const base_url = (injectedBase === "/" || !injectedBase) ? "" : injectedBase;
 
 
 // Create an Axios instance
-const baseURL = process.env.NODE_ENV === "production"
+const baseURL = import.meta.env.PROD
   ? base_url // Production: relative to the current domain
   : "http://localhost:15630"; // Development: Poem's backend server
 

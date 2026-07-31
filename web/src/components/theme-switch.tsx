@@ -143,9 +143,9 @@ function ThemePreview({
         <span className='h-1 w-1 rounded-full' style={{ backgroundColor: muted }} />
         <span className='h-1 w-1 rounded-full' style={{ backgroundColor: primary }} />
       </div>
-      <div className='h-1.5 w-12 rounded-sm' style={{ backgroundColor: primary }} />
-      <div className='h-1 w-16 rounded-sm opacity-70' style={{ backgroundColor: muted }} />
-      <div className='h-1 w-10 rounded-sm opacity-50' style={{ backgroundColor: muted }} />
+      <div className='h-1.5 w-12 rounded-xs' style={{ backgroundColor: primary }} />
+      <div className='h-1 w-16 rounded-xs opacity-70' style={{ backgroundColor: muted }} />
+      <div className='h-1 w-10 rounded-xs opacity-50' style={{ backgroundColor: muted }} />
     </div>
   )
 }

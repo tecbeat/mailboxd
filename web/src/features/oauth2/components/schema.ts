@@ -3,17 +3,17 @@ import { z } from 'zod'
 const paramEntry = (t: (key: string) => string) =>
   z.object({
     key: z
-      .string({ required_error: t('oauth2.keyIsRequired') })
+      .string({ error: t('oauth2.keyIsRequired') })
       .min(1, t('oauth2.keyCannotBeEmpty')),
     value: z
-      .string({ required_error: t('oauth2.valueIsRequired') })
+      .string({ error: t('oauth2.valueIsRequired') })
       .min(1, t('oauth2.valueCannotBeEmpty')),
   })
 
 const scopeEntry = (t: (key: string) => string) =>
   z.object({
     value: z
-      .string({ required_error: t('oauth2.valueIsRequired') })
+      .string({ error: t('oauth2.valueIsRequired') })
       .min(1, t('oauth2.valueCannotBeEmpty')),
   })
 
@@ -25,28 +25,34 @@ export const getOAuth2Schema = (t: (key: string) => string) =>
       .optional(),
     client_id: z
       .string({
-        required_error: t('oauth2.clientIdIsRequired'),
+        error: t('oauth2.clientIdIsRequired'),
       })
       .min(1, { message: t('oauth2.clientIdCannotBeEmpty') }),
     client_secret: z.string().optional(),
     auth_url: z
-      .string({
-        required_error: t('oauth2.authorizationUrlIsRequired'),
+      .url({
+        error: (issue) =>
+          issue.input === undefined || issue.input === ''
+            ? t('oauth2.authorizationUrlIsRequired')
+            : t('oauth2.invalidAuthorizationUrlFormat'),
       })
-      .min(1, { message: t('oauth2.authorizationUrlCannotBeEmpty') })
-      .url({ message: t('oauth2.invalidAuthorizationUrlFormat') }),
+      .min(1, { message: t('oauth2.authorizationUrlCannotBeEmpty') }),
     token_url: z
-      .string({
-        required_error: t('oauth2.tokenUrlIsRequired'),
+      .url({
+        error: (issue) =>
+          issue.input === undefined || issue.input === ''
+            ? t('oauth2.tokenUrlIsRequired')
+            : t('oauth2.invalidTokenUrlFormat'),
       })
-      .min(1, { message: t('oauth2.tokenUrlCannotBeEmpty') })
-      .url({ message: t('oauth2.invalidTokenUrlFormat') }),
+      .min(1, { message: t('oauth2.tokenUrlCannotBeEmpty') }),
     redirect_uri: z
-      .string({
-        required_error: t('oauth2.redirectUriIsRequired'),
+      .url({
+        error: (issue) =>
+          issue.input === undefined || issue.input === ''
+            ? t('oauth2.redirectUriIsRequired')
+            : t('oauth2.invalidRedirectUriFormat'),
       })
-      .min(1, { message: t('oauth2.redirectUriCannotBeEmpty') })
-      .url({ message: t('oauth2.invalidRedirectUriFormat') }),
+      .min(1, { message: t('oauth2.redirectUriCannotBeEmpty') }),
     scopes: z.array(scopeEntry(t)).optional(),
     extra_params: z.array(paramEntry(t)).optional(),
     enabled: z.boolean(),

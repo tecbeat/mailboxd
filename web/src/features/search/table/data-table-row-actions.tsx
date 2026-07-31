@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useTranslation } from 'react-i18next'
-import { MoreVertical, TagIcon, Trash2, Upload } from 'lucide-react'
+import { EllipsisVertical as MoreVertical, Tag as TagIcon, Trash2, Upload } from 'lucide-react'
 import { EmailEnvelope } from '@/api'
 import { useSearchContext } from '../context'
 

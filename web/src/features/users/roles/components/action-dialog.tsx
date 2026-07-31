@@ -40,7 +40,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { AxiosError } from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2, LockIcon, ShieldCheck, UserCog } from 'lucide-react'
+import { LoaderCircle as Loader2, Lock as LockIcon, ShieldCheck, UserCog } from 'lucide-react'
 import { create_role, getPermissions, update_role, UserRole } from '@/api/users/api'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -202,11 +202,11 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
                                 className={cn(
                                   'flex items-center justify-between p-3 rounded-md border-2 transition-all',
                                   isSelected
-                                    ? 'border-primary bg-primary/5 shadow-sm'
+                                    ? 'border-primary bg-primary/5 shadow-xs'
                                     : 'border-border bg-card',
                                   disabled
                                     ? 'opacity-40 cursor-not-allowed'
-                                    : 'cursor-pointer hover:shadow-sm'
+                                    : 'cursor-pointer hover:shadow-xs'
                                 )}
                               >
                                 <div className="flex items-center gap-2 text-sm font-bold">
@@ -302,7 +302,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
                                     className={cn(
                                       'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition',
                                       checked
-                                        ? 'bg-card border-primary/30 shadow-sm'
+                                        ? 'bg-card border-primary/30 shadow-xs'
                                         : 'bg-muted/30 border-border/50 opacity-70'
                                     )}
                                   >

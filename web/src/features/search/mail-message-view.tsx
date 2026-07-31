@@ -21,7 +21,7 @@
 
 import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Loader, Download, Trash2, MessageSquareMore, FileText, FileImage, FileVideo, FileArchive, FileSpreadsheet, FileCode, FileIcon, FileAudio, Upload, ShieldCheck, Pencil } from 'lucide-react';
+import { Loader, Download, Trash2, MessageSquareMore, FileText, FileImage, Video as FileVideo, FileArchive, FileSpreadsheet, FileCode, File as FileIcon, FileMusic as FileAudio, Upload, ShieldCheck, Pencil } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -359,8 +359,8 @@ export function MailMessageView({
                     const is_message = attachment.is_message;
 
                     return <div key={i} className="flex items-center">
-                      <div className="group flex items-center gap-2 p-1 hover:bg-muted/60 rounded transition-colors min-w-0 w-full">
-                        <div className={`flex-shrink-0 ${color}`}>
+                      <div className="group flex items-center gap-2 p-1 hover:bg-muted/60 rounded-sm transition-colors min-w-0 w-full">
+                        <div className={`shrink-0 ${color}`}>
                           {icon}
                         </div>
                         <div className="flex items-center justify-between min-w-0 flex-1 gap-2">
@@ -381,7 +381,7 @@ export function MailMessageView({
                           >
                             {attachment.filename}
                           </button>
-                          <span className="flex-shrink-0 text-[9px] font-bold text-muted-foreground/60 bg-muted px-1 py-0.5 rounded uppercase">
+                          <span className="shrink-0 text-[9px] font-bold text-muted-foreground/60 bg-muted px-1 py-0.5 rounded-sm uppercase">
                             {attachment.file_type.split('/').pop()}
                           </span>
                         </div>

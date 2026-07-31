@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Plus, Tag as TagIcon, X, Loader2, Check, AlertTriangle } from 'lucide-react';
+import { Plus, Tag as TagIcon, X, LoaderCircle as Loader2, Check, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import { useAvailableTags } from '@/hooks/use-available-tags';
 import { TagAction, useUpdateTags } from '@/hooks/use-update-tags';
@@ -168,7 +168,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
                                     {tag}
                                     <button
                                         onClick={() => handleRemoveTag(tag)}
-                                        className="rounded-sm hover:bg-destructive/20 hover:text-destructive transition-colors"
+                                        className="rounded-xs hover:bg-destructive/20 hover:text-destructive transition-colors"
                                     >
                                         <X className="h-3 w-3" />
                                     </button>

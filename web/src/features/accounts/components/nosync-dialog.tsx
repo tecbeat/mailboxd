@@ -34,14 +34,19 @@ import { AccountModel, create_account, update_account } from '@/api/account/api'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
+import { LoaderCircle as Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 
 const accountSchema = (t: (key: string) => string) =>
   z.object({
     account_name: z.string().optional(),
-    email: z.string({ required_error: t('validation.emailRequired') }).email({ message: t('validation.invalidEmail') }),
+    email: z.email({
+      error: (issue) =>
+        issue.input === undefined || issue.input === ''
+          ? t('validation.emailRequired')
+          : t('validation.invalidEmail'),
+    }),
     enabled: z.boolean()
   });
 
