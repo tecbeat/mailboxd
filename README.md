@@ -79,46 +79,14 @@ docker compose up -d
 
 | Variable | Description |
 |----------|-------------|
-| `MAILBOXD_ROOT_DIR` | **Required.** Absolute path for all persistent data. |
-| `MAILBOXD_ENCRYPT_PASSWORD` | Password used to encrypt stored credentials (IMAP passwords, OAuth tokens). Alternative: `MAILBOXD_ENCRYPT_PASSWORD_FILE`. |
-| `MAILBOXD_ENCRYPT_PASSWORD_FILE` | Read the encryption password from a file. If both are set, `MAILBOXD_ENCRYPT_PASSWORD` takes precedence. |
-| `MAILBOXD_HTTP_PORT` | HTTP server port. Default `15630`. |
-| `MAILBOXD_BIND_IP` | IP address to bind to (IPv4 or IPv6). Default `0.0.0.0`. |
-| `MAILBOXD_PUBLIC_URL` | Public-facing URL used in OAuth redirects and docs. Default `http://localhost:15630`. |
-| `MAILBOXD_BASE_URL` | Base path for the WebUI when behind a reverse proxy (e.g. `/mailboxd`). Default `/`. |
-| `MAILBOXD_WEBUI_TOKEN_EXPIRATION_HOURS` | Access token lifetime in hours. Default `168` (7 days). |
-| `MAILBOXD_HTTP_COMPRESSION_ENABLED` | Enable gzip/brotli/zstd response compression. Default `true`. |
-| `MAILBOXD_ENABLE_REST_HTTPS` | Serve the REST API over HTTPS (requires a valid certificate). Default `false`. |
-| `MAILBOXD_LOG_LEVEL` | Log level: `trace`, `debug`, `info`, `warn`, `error`. Default `info`. |
-| `MAILBOXD_ANSI_LOGS` | Colorised terminal output. Default `true`. |
-| `MAILBOXD_JSON_LOGS` | JSON-formatted logs for log aggregators. Default `false`. |
-| `MAILBOXD_LOG_TO_FILE` | Persist logs to files under the root dir. Default `false`. |
-| `MAILBOXD_MAX_SERVER_LOG_FILES` | Max log files to retain. Default `5`. |
-| `MAILBOXD_CORS_ORIGINS` | Comma-separated list of allowed origins. If unset, all origins are allowed; if set, only exact matches pass (no wildcards, no trailing slash). |
-| `MAILBOXD_CORS_MAX_AGE` | CORS preflight cache duration in seconds. Default `86400`. |
-| `MAILBOXD_INDEX_DIR` | Tantivy full-text index directory. Default `{root}/envelope`. Place on fast SSD. |
-| `MAILBOXD_DATA_DIR` | Blob storage directory. Default `{root}/eml`. Can live on high-capacity HDD. |
-| `MAILBOXD_SYNC_CONCURRENCY` | Max concurrent account sync tasks. Default `num_cpus × 2`. |
-| `MAILBOXD_UPLOAD_BODY_LIMIT_MB` | Maximum HTTP request body size in MB for file uploads. Default `1100`. |
-| `MAILBOXD_WEB_MBOX_UPLOAD_LIMIT_MB` | Maximum per-file size in MB for MBOX uploads via the WebUI. Default `1024`. |
-| `MAILBOXD_WEB_PST_UPLOAD_LIMIT_MB` | Maximum per-file size in MB for PST uploads via the WebUI. Default `2048`. |
-| `MAILBOXD_ENABLE_SMTP` | Enable the embedded SMTP receiver. Default `false`. |
-| `MAILBOXD_SMTP_PORT` | SMTP listening port. Default `2525` (port 25 may require root). |
-| `MAILBOXD_SMTP_ENCRYPTION` | SMTP encryption mode: `none`, `starttls`, `tls`. Default `starttls`. |
-| `MAILBOXD_SMTP_AUTH_REQUIRED` | Require authentication for SMTP connections. Default `true`. |
-| `MAILBOXD_TLS_KEY_PATH` | Absolute path to the SMTP/REST TLS private key. |
-| `MAILBOXD_TLS_CERT_PATH` | Absolute path to the SMTP/REST TLS certificate chain. |
-| `MAILBOXD_ENABLE_IMAP` | Enable the embedded read-only IMAP server. Default `false`. |
-| `MAILBOXD_IMAP_PORT` | IMAP port (STARTTLS or plaintext). Default `10143`. |
-| `MAILBOXD_IMAPS_PORT` | IMAPS port (implicit TLS). Default `10993`. |
-| `MAILBOXD_IMAP_ENCRYPTION` | IMAP encryption mode: `none`, `starttls`, `tls`. Default `none`. |
-| `MAILBOXD_OIDC_ENABLED` | Enable OIDC single sign-on. When `true`, the four settings below are required. Default `false`. |
-| `MAILBOXD_OIDC_ISSUER_URL` | Issuer URL of the OIDC provider (without the `/.well-known/openid-configuration` suffix). |
-| `MAILBOXD_OIDC_CLIENT_ID` | OAuth 2.0 client ID registered with the IdP. |
-| `MAILBOXD_OIDC_CLIENT_SECRET` | OAuth 2.0 client secret registered with the IdP. |
-| `MAILBOXD_OIDC_REDIRECT_URI` | Redirect URI registered with the IdP. Must resolve to `<public-url>/api/auth/oidc/callback`. |
-| `MAILBOXD_OIDC_DEFAULT_ROLE_ID` | Global role ID assigned to auto-provisioned OIDC users. Default `100200000000000` (built-in `Member`). |
-| `MAILBOXD_OIDC_AUTO_REDIRECT` | When OIDC is configured, `/sign-in` redirects to the IdP immediately. The local login form remains reachable via `/sign-in?local=1`. Default `false`. |
+| `Storage & Encryption` | {'MAILBOXD_ROOT_DIR': {'required': True, 'description': 'Absolute path for all persistent data.'}, 'MAILBOXD_ENCRYPT_PASSWORD': {'description': 'Password used to encrypt stored credentials (IMAP passwords, OAuth tokens). Alternative: `MAILBOXD_ENCRYPT_PASSWORD_FILE`.'}, 'MAILBOXD_ENCRYPT_PASSWORD_FILE': {'description': 'Read the encryption password from a file. If both are set, `MAILBOXD_ENCRYPT_PASSWORD` takes precedence.'}, 'MAILBOXD_INDEX_DIR': {'default': '{root}/envelope', 'description': 'Tantivy full-text index directory. Place on fast SSD.'}, 'MAILBOXD_DATA_DIR': {'default': '{root}/eml', 'description': 'Blob storage directory. Can live on high-capacity HDD.'}} |
+| `Server & Networking` | {'MAILBOXD_HTTP_PORT': {'default': 15630, 'description': 'HTTP server port.'}, 'MAILBOXD_BIND_IP': {'default': '0.0.0.0', 'description': 'IP address to bind to (IPv4 or IPv6).'}, 'MAILBOXD_PUBLIC_URL': {'default': 'http://localhost:15630', 'description': 'Public-facing URL used in OAuth redirects and docs.'}, 'MAILBOXD_BASE_URL': {'default': '/', 'description': 'Base path for the WebUI when behind a reverse proxy (e.g. `/mailboxd`).'}, 'MAILBOXD_ENABLE_REST_HTTPS': {'default': False, 'description': 'Serve the REST API over HTTPS (requires a valid certificate).'}, 'MAILBOXD_HTTP_COMPRESSION_ENABLED': {'default': True, 'description': 'Enable gzip/brotli/zstd response compression.'}, 'MAILBOXD_WEBUI_TOKEN_EXPIRATION_HOURS': {'default': 168, 'description': 'Access token lifetime in hours (default 7 days).'}, 'MAILBOXD_SYNC_CONCURRENCY': {'default': 'num_cpus × 2', 'description': 'Maximum concurrent account sync tasks.'}} |
+| `Logging` | {'MAILBOXD_LOG_LEVEL': {'default': 'info', 'description': 'Log level: `trace`, `debug`, `info`, `warn`, `error`.'}, 'MAILBOXD_ANSI_LOGS': {'default': True, 'description': 'Colorised terminal output.'}, 'MAILBOXD_JSON_LOGS': {'default': False, 'description': 'JSON-formatted logs for log aggregators.'}, 'MAILBOXD_LOG_TO_FILE': {'default': False, 'description': 'Persist logs to files under the root dir.'}, 'MAILBOXD_MAX_SERVER_LOG_FILES': {'default': 5, 'description': 'Maximum log files to retain.'}} |
+| `CORS` | {'MAILBOXD_CORS_ORIGINS': {'description': 'Comma-separated list of allowed origins. If unset, all origins are allowed; if set, only exact matches pass (no wildcards, no trailing slash).'}, 'MAILBOXD_CORS_MAX_AGE': {'default': 86400, 'description': 'CORS preflight cache duration in seconds.'}} |
+| `Upload Limits` | {'MAILBOXD_UPLOAD_BODY_LIMIT_MB': {'default': 1100, 'description': 'Maximum HTTP request body size in MB for file uploads.'}, 'MAILBOXD_WEB_MBOX_UPLOAD_LIMIT_MB': {'default': 1024, 'description': 'Maximum per-file size in MB for MBOX uploads via the WebUI.'}, 'MAILBOXD_WEB_PST_UPLOAD_LIMIT_MB': {'default': 2048, 'description': 'Maximum per-file size in MB for PST uploads via the WebUI.'}} |
+| `Embedded SMTP Server` | {'MAILBOXD_ENABLE_SMTP': {'default': False, 'description': 'Enable the embedded SMTP receiver.'}, 'MAILBOXD_SMTP_PORT': {'default': 2525, 'description': 'SMTP listening port (port 25 may require root).'}, 'MAILBOXD_SMTP_ENCRYPTION': {'default': 'starttls', 'description': 'SMTP encryption mode: `none`, `starttls`, `tls`.'}, 'MAILBOXD_SMTP_AUTH_REQUIRED': {'default': True, 'description': 'Require authentication for SMTP connections.'}, 'MAILBOXD_TLS_KEY_PATH': {'description': 'Absolute path to the SMTP/REST TLS private key.'}, 'MAILBOXD_TLS_CERT_PATH': {'description': 'Absolute path to the SMTP/REST TLS certificate chain.'}} |
+| `Embedded IMAP Server` | {'MAILBOXD_ENABLE_IMAP': {'default': False, 'description': 'Enable the embedded read-only IMAP server.'}, 'MAILBOXD_IMAP_PORT': {'default': 10143, 'description': 'IMAP port (STARTTLS or plaintext).'}, 'MAILBOXD_IMAPS_PORT': {'default': 10993, 'description': 'IMAPS port (implicit TLS).'}, 'MAILBOXD_IMAP_ENCRYPTION': {'default': 'none', 'description': 'IMAP encryption mode: `none`, `starttls`, `tls`.'}} |
+| `OIDC Single Sign-On` | {'MAILBOXD_OIDC_ENABLED': {'default': False, 'description': 'Enable OIDC single sign-on. When `true`, the four settings below are required.'}, 'MAILBOXD_OIDC_ISSUER_URL': {'description': 'Issuer URL of the OIDC provider (without the `/.well-known/openid-configuration` suffix).'}, 'MAILBOXD_OIDC_CLIENT_ID': {'description': 'OAuth 2.0 client ID registered with the IdP.'}, 'MAILBOXD_OIDC_CLIENT_SECRET': {'description': 'OAuth 2.0 client secret registered with the IdP.'}, 'MAILBOXD_OIDC_REDIRECT_URI': {'description': 'Redirect URI registered with the IdP. Must resolve to `<public-url>/api/auth/oidc/callback`.'}, 'MAILBOXD_OIDC_DEFAULT_ROLE_ID': {'default': 100200000000000, 'description': 'Global role ID assigned to auto-provisioned OIDC users (built-in `Member`).'}, 'MAILBOXD_OIDC_AUTO_REDIRECT': {'default': False, 'description': 'When OIDC is configured, `/sign-in` redirects to the IdP immediately. The local login form remains reachable via `/sign-in?local=1`.'}} |
 
 ### Development
 
