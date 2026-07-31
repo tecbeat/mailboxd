@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
-import { Loader2 } from 'lucide-react'
+import { LoaderCircle as Loader2 } from 'lucide-react'
 
 interface ConfirmDialogProps {
   open: boolean

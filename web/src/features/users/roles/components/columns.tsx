@@ -27,7 +27,7 @@ import { format } from 'date-fns'
 import { UserRole } from '@/api/users/api'
 import { Badge } from '@/components/ui/badge'
 import { PermissionsCellAction } from './permissions-action'
-import { LockIcon } from 'lucide-react'
+import { Lock as LockIcon } from 'lucide-react'
 
 export const getColumns = (t: (key: string) => string): ColumnDef<UserRole>[] => [
   {

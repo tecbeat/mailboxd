@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useOAuth2Context } from '../context'
 import { OAuth2Entity } from '../data/schema'
-import { WorkflowIcon } from 'lucide-react'
+import { Workflow as WorkflowIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/hooks/use-current-user'
 

@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { Loader2, Plus } from 'lucide-react'
+import { LoaderCircle as Loader2, Plus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { get_user_tokens } from '@/api/users/api'
 import { Skeleton } from '@/components/ui/skeleton'

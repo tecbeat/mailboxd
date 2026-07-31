@@ -24,15 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  ShieldCheck,
-  Server,
-  Database,
-  Activity,
-  InfoIcon,
-  Mail,
-  Zap
-} from "lucide-react"
+import { ShieldCheck, Server, Database, Activity, Info as InfoIcon, Mail, Zap } from "lucide-react"
 import { get_system_configurations } from "@/api/system/api"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"

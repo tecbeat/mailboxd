@@ -188,7 +188,7 @@ export function MailListTable({
                           key={idx}
                           type="button"
                           onClick={(e) => handleClick(e, email)}
-                          className="text-left text-xs px-1 py-0.5 rounded hover:bg-accent hover:text-accent-foreground hover:underline transition-colors"
+                          className="text-left text-xs px-1 py-0.5 rounded-sm hover:bg-accent hover:text-accent-foreground hover:underline transition-colors"
                         >
                           {email}
                         </button>

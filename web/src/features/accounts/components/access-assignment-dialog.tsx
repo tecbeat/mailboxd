@@ -23,7 +23,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, ShieldCheck, Users, Search } from 'lucide-react'
+import { LoaderCircle as Loader2, ShieldCheck, Users, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -95,7 +95,7 @@ export function AccountAccessAssignmentDialog({
             message: t('accounts.access_control.validation.user_required'),
         }),
         role_id: z.number({
-            required_error: t('accounts.access_control.validation.role_required'),
+            error: t('accounts.access_control.validation.role_required'),
         }),
     })
 

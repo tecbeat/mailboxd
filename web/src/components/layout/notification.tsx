@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { BellIcon, Loader2, ExternalLinkIcon } from "lucide-react";
+import { Bell as BellIcon, LoaderCircle as Loader2, ExternalLink as ExternalLinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

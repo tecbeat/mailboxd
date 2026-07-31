@@ -52,13 +52,13 @@ const DialogContent = React.forwardRef<
           <div className='absolute right-4 top-4 flex items-center gap-2'>
             {!hideFullscreen && (
               isFullscreen ? (
-                <Minimize onClick={() => setIsFullscreen(!isFullscreen)} className='rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground h-4 w-4' />
+                <Minimize onClick={() => setIsFullscreen(!isFullscreen)} className='rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground h-4 w-4' />
               ) : (
-                <Maximize onClick={() => setIsFullscreen(!isFullscreen)} className='rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground h-4 w-4' />
+                <Maximize onClick={() => setIsFullscreen(!isFullscreen)} className='rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground h-4 w-4' />
               )
             )}
             {!hideClose && (
-              <DialogPrimitive.Close className='rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground'>
+              <DialogPrimitive.Close className='rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground'>
                 <X className='h-4 w-4' />
                 <span className='sr-only'>Close</span>
               </DialogPrimitive.Close>

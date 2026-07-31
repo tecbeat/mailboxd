@@ -45,7 +45,7 @@ import { Input } from '@/components/ui/input'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ToastAction } from '@/components/ui/toast'
 import { AxiosError } from 'axios'
-import { Loader2, Clock } from 'lucide-react'
+import { LoaderCircle as Loader2, Clock } from 'lucide-react'
 import { AccessToken, create_access_token, update_access_token } from '@/api/users/api'
 import {
   Select,
@@ -64,7 +64,7 @@ const createSchema = (t: any) => z.object({
     .or(z.literal('')),
   expire_in: z
     .number({
-      invalid_type_error: t('users.tokens.schema.expire_number'),
+      error: t('users.tokens.schema.expire_number'),
     })
     .int(t('users.tokens.schema.expire_int'))
     .positive(t('users.tokens.schema.expire_positive'))
