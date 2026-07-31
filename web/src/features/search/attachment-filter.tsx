@@ -49,7 +49,7 @@ export function AttachmentFilter() {
             variant="outline"
             onClick={toggleAttachment}
             className={cn(
-                "h-8 px-3 gap-2 transition-all rounded-none flex-shrink-0",
+                "h-8 px-3 gap-2 transition-all rounded-none shrink-0",
                 hasAttachment
                     ? "bg-primary/10 border-primary text-primary hover:bg-primary/20 hover:text-primary z-10"
                     : "text-muted-foreground border-r-0"

@@ -21,7 +21,7 @@
 
 
 import { useRef } from 'react'
-import { X, Trash2, Upload, TagIcon } from 'lucide-react'
+import { X, Trash2, Upload, Tag as TagIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -135,7 +135,7 @@ export function MailBulkActions({ children }: MailBulkActionsProps) {
                 className={cn(
                     'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl',
                     'transition-all delay-100 duration-300 ease-out hover:scale-105',
-                    'focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none'
+                    'focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-hidden'
                 )}
             >
                 <div

@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2, CheckSquare, Square } from 'lucide-react'
+import { LoaderCircle as Loader2, SquareCheck as CheckSquare, Square } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { list_mailboxes, MailboxData } from '@/api/mailbox/api'
@@ -47,7 +47,8 @@ import React from 'react'
 import Collapse from '@mui/material/Collapse';
 import { styled } from '@mui/material/styles';
 import { TreeItemCheckbox, TreeItemContent, TreeItemIconContainer, TreeItemLabel, TreeItemRoot } from '@mui/x-tree-view/TreeItem'
-import { TreeItemDragAndDropOverlay, TreeItemIcon, TreeItemProvider, TreeViewBaseItem, TreeViewSelectionPropagation, useTreeItem, useTreeItemModel, UseTreeItemParameters } from '@mui/x-tree-view'
+import { TreeItemDragAndDropOverlay, TreeItemIcon, TreeItemProvider, TreeViewSelectionPropagation, useTreeItem, useTreeItemModel, UseTreeItemParameters } from '@mui/x-tree-view'
+import { TreeViewBaseItem } from '@/lib/build-tree'
 import { animated, useSpring } from '@react-spring/web';
 import { TransitionProps } from '@mui/material/transitions'
 
@@ -408,7 +409,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
-                <DialogHeader className="flex-shrink-0">
+                <DialogHeader className="shrink-0">
                     <DialogTitle>{t('accounts.selectMailboxes')}</DialogTitle>
                     <DialogDescription>
                         {t('accounts.chooseMailboxesToDownload', { "email": currentRow.email })}

@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useTranslation } from 'react-i18next'
-import { Copy, Download, Eye, MoreVertical } from 'lucide-react'
+import { Copy, Download, Eye, EllipsisVertical as MoreVertical } from 'lucide-react'
 import { AttachmentModel } from '@/api/attachment/api'
 import { useSearchAttachments } from '@/hooks/use-search-attachments'
 import { useToast } from '@/hooks/use-toast'

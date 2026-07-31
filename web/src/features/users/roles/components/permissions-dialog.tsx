@@ -26,7 +26,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { getPermissions, UserRole } from '@/api/users/api'
-import { CheckCircle, XCircle } from 'lucide-react'
+import { CircleCheck as CheckCircle, CircleX as XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

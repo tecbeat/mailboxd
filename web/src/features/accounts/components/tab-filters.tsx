@@ -31,7 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Plus, HelpCircle } from "lucide-react";
+import { Plus, CircleQuestionMark as HelpCircle } from "lucide-react";
 import { PatternInput } from "./pattern-input";
 import type { PatternEntry } from "@/lib/pattern-utils";
 import { newPatternId, simplePatternToRegex } from "@/lib/pattern-utils";

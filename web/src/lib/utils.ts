@@ -18,7 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { enUS, zhCN, zhTW, arSA, de, es, fi, fr, it, ja, ko, nl, ptBR, ru, da, sv, nb, Locale } from 'date-fns/locale';
+import { enUS, zhCN, zhTW, arSA, de, es, fi, fr, it, ja, ko, nl, ptBR, ru, da, sv, nb } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 

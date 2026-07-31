@@ -33,7 +33,7 @@ export const getAuthConfigSchema = (isEdit: boolean, t: (key: string) => string)
 export const getImapConfigSchema = (isEdit: boolean, t: (key: string) => string) =>
   z.object({
     host: z
-      .string({ required_error: t('validation.imapHostRequired') })
+      .string({ error: t('validation.imapHostRequired') })
       .min(1, { message: t('validation.imapHostCannotBeEmpty') }),
     port: z
       .number()
@@ -51,7 +51,7 @@ const relativeDateSchema = (t: (key: string) => string) =>
       message: t('accounts.selectUnit'),
     }),
     value: z
-      .number({ message: t('accounts.enterValue') })
+      .number({ error: t('accounts.enterValue') })
       .int()
       .min(1, t('accounts.mustBeAtLeast1')),
   })
@@ -60,7 +60,7 @@ const dateSelectionSchema = (t: (key: string) => string) =>
   z
     .object({
       fixed: z
-        .string({ message: t('accounts.selectDate') })
+        .string({ error: t('accounts.selectDate') })
         .min(1, { message: t('accounts.selectDate') })
         .optional(),
       relative: relativeDateSchema(t).optional(),
@@ -85,8 +85,12 @@ export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
     account_name: z.string().optional(),
     login_name: z.string().optional(),
     email: z
-      .string({ required_error: t('validation.emailRequired') })
-      .email({ message: t('validation.invalidEmail') }),
+      .email({
+        error: (issue) =>
+          issue.input === undefined || issue.input === ''
+            ? t('validation.emailRequired')
+            : t('validation.invalidEmail'),
+      }),
     imap: getImapConfigSchema(isEdit, t),
     enabled: z.boolean(),
     use_dangerous: z.boolean(),
@@ -94,7 +98,7 @@ export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
     date_before: relativeDateSchema(t).optional(),
     download_interval_min: z
       .number({
-        invalid_type_error: t('validation.incrementalSyncMustBeNumber'),
+        error: t('validation.incrementalSyncMustBeNumber'),
       })
       .int()
       .min(10, {
@@ -102,9 +106,7 @@ export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
       }),
     download_batch_size: z
       .number({
-        invalid_type_error: t(
-          'validation.singleRequestBatchSizeMustBeNumber'
-        ),
+        error: t('validation.singleRequestBatchSizeMustBeNumber'),
       })
       .int()
       .min(10, {
@@ -115,7 +117,7 @@ export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
       }),
     max_email_size_bytes: z
       .number({
-        invalid_type_error: t('validation.maxEmailSizeMustBeNumber'),
+        error: t('validation.maxEmailSizeMustBeNumber'),
       })
       .int()
       .min(1 * 1024 * 1024, { message: t('validation.maxEmailSizeTooSmall') })

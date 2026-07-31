@@ -20,7 +20,7 @@
 
 import { useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Loader2, MessageSquareText } from 'lucide-react';
+import { LoaderCircle as Loader2, MessageSquareText } from 'lucide-react';
 
 import {
   Dialog,
@@ -147,7 +147,7 @@ export function MailThreadDialog({ open, onOpenChange }: MailThreadDialogProps) 
                           )}
                         </div>
                         <Card
-                          className={`transition-all min-w-0 shadow-sm ${isLatest
+                          className={`transition-all min-w-0 shadow-xs ${isLatest
                             ? 'border-primary/20 bg-primary/5 ring-1 ring-primary/10'
                             : 'border-border bg-card'
                             } ${isExpanded ? 'ring-2 ring-primary' : ''}`}
@@ -164,7 +164,7 @@ export function MailThreadDialog({ open, onOpenChange }: MailThreadDialogProps) 
                                   {msg.to.join(', ')}
                                 </span>
                               </div>
-                              <div className="text-[10px] font-mono font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">
+                              <div className="text-[10px] font-mono font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm shrink-0">
                                 <span className="sm:hidden">
                                   {isNaN(date.getTime()) ? '' : format(date, 'HH:mm')}
                                 </span>

@@ -20,10 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import {
-  Download, FileIcon, ZoomIn, ZoomOut, RotateCcw,
-  ChevronLeft, ChevronRight, X,
-} from 'lucide-react';
+import { Download, File as FileIcon, ZoomIn, ZoomOut, RotateCcw, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';

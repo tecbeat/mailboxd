@@ -1,15 +1,4 @@
-import {
-    FileText,
-    FileImage,
-    FileVideo,
-    FileAudio,
-    FileArchive,
-    FileCode,
-    FilePlus,
-    Presentation,
-    FileSpreadsheet,
-    FileLock
-} from "lucide-react";
+import { FileText, FileImage, Video as FileVideo, FileMusic as FileAudio, FileArchive, FileCode, FilePlus, Presentation, FileSpreadsheet, FileLock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AttachmentIconProps {

@@ -4,7 +4,7 @@ export const profileSchema = (t: (key: string) => string) =>
   z.object({
     username: z
       .string({
-        required_error: t('settings.profile.validation.username.required'),
+        error: t('settings.profile.validation.username.required'),
       })
       .min(3, {
         message: t('settings.profile.validation.username.min'),
@@ -14,11 +14,11 @@ export const profileSchema = (t: (key: string) => string) =>
       }),
 
     email: z
-      .string({
-        required_error: t('settings.profile.validation.email.required'),
-      })
       .email({
-        message: t('settings.profile.validation.email.invalid'),
+        error: (issue) =>
+          issue.input === undefined || issue.input === ''
+            ? t('settings.profile.validation.email.required')
+            : t('settings.profile.validation.email.invalid'),
       }),
 
     password: z
@@ -34,4 +34,4 @@ export const profileSchema = (t: (key: string) => string) =>
       .transform((v) => (v ? v : undefined)),
   })
 
-export type ProfileFormValues = z.infer<ReturnType<typeof profileSchema>>
+export type ProfileFormValues = z.input<ReturnType<typeof profileSchema>>

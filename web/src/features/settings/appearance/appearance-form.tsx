@@ -68,10 +68,10 @@ const ALL_THEME_VALUES = [...LIGHT_THEMES.map(t => t.value), ...DARK_THEMES.map(
 
 const appearanceSchema = (t: (key: string) => string) => z.object({
     theme: z.enum(ALL_THEME_VALUES, {
-        required_error: t('settings.appearance.validation.theme.required'),
+        error: t('settings.appearance.validation.theme.required'),
     }),
     language: z.string({
-        required_error: t('settings.appearance.validation.language.required'),
+        error: t('settings.appearance.validation.language.required'),
     })
 })
 
@@ -79,13 +79,13 @@ type AppearanceFormValues = z.infer<ReturnType<typeof appearanceSchema>>
 
 function ThemePreview({ background, primary, muted }: { background: string; primary: string; muted: string }) {
     return (
-        <div className='flex h-12 w-full flex-col gap-1.5 rounded-md border p-2 shadow-sm' style={{ backgroundColor: background, borderColor: 'transparent' }}>
+        <div className='flex h-12 w-full flex-col gap-1.5 rounded-md border p-2 shadow-xs' style={{ backgroundColor: background, borderColor: 'transparent' }}>
             <div className='flex gap-1'>
                 <span className='h-1.5 w-1.5 rounded-full' style={{ backgroundColor: muted }} />
                 <span className='h-1.5 w-1.5 rounded-full' style={{ backgroundColor: primary }} />
             </div>
-            <div className='h-1.5 w-3/4 rounded-sm' style={{ backgroundColor: primary }} />
-            <div className='h-1.5 w-1/2 rounded-sm opacity-50' style={{ backgroundColor: muted }} />
+            <div className='h-1.5 w-3/4 rounded-xs' style={{ backgroundColor: primary }} />
+            <div className='h-1.5 w-1/2 rounded-xs opacity-50' style={{ backgroundColor: muted }} />
         </div>
     )
 }

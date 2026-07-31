@@ -8,11 +8,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  Upload, FileText, X, CheckCircle2, AlertTriangle,
-  Sparkles, PenLine, ListTree, ChevronsUpDown, Check,
-  Clock, ChevronRight,
-} from 'lucide-react';
+import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -642,7 +638,7 @@ export default function ImportPage() {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); removeFile(i); }}
-                          className="p-0.5 hover:bg-muted rounded"
+                          className="p-0.5 hover:bg-muted rounded-sm"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>

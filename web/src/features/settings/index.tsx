@@ -22,7 +22,7 @@
 import { Outlet } from '@tanstack/react-router'
 import { Main } from '@/components/layout/main'
 import SidebarNav from './components/sidebar-nav'
-import { KeyRound, Palette, SettingsIcon, ShieldCheck, UserCog, Waypoints } from 'lucide-react'
+import { KeyRound, Palette, Settings as SettingsIcon, ShieldCheck, UserCog, Waypoints } from 'lucide-react'
 import { FixedHeader } from '@/components/layout/fixed-header'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useTranslation } from 'react-i18next'

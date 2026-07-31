@@ -207,7 +207,7 @@ export function AttachmentListTable({
               </LongText>}
             </div>
             <div className="flex items-center gap-1 ml-6.5 mt-1">
-              <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1 py-0.5 rounded-sm">
+              <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1 py-0.5 rounded-xs">
                 {shortContentType}
               </span>
             </div>

@@ -26,7 +26,7 @@ import { DataTableRowActions } from './data-table-row-actions'
 import { format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { User, UserRole } from '@/api/users/api'
-import { LockIcon } from 'lucide-react'
+import { Lock as LockIcon } from 'lucide-react'
 
 export const getColumns = (t: (key: string) => string, roles: UserRole[]): ColumnDef<User>[] => [
   {

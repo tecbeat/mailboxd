@@ -22,7 +22,7 @@ import { useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { setToken } from '@/stores/authStore'
 import axiosInstance from '@/api/axiosInstance'
-import { Loader2 } from 'lucide-react'
+import { LoaderCircle as Loader2 } from 'lucide-react'
 
 interface HandoffResponse {
   access_token: string
