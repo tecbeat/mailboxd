@@ -104,7 +104,7 @@ export function MoreFiltersPopover() {
                     <ListFilter className="h-3.5 w-3.5" />
                     <span className="text-xs">{t('search_more.trigger_label')}</span>
                     {activeCount > 0 && (
-                        <Badge className="ml-1 h-4 px-1 text-[10px] bg-primary text-primary-foreground border-none rounded-sm">
+                        <Badge className="ml-1 h-4 px-1 text-[10px] bg-primary text-primary-foreground border-none rounded-xs">
                             {activeCount}
                         </Badge>
                     )}

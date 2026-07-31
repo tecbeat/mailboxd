@@ -39,13 +39,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import {
-  Clock,
-  Loader2,
-  Activity,
-  AlertTriangle,
-  Info,
-} from 'lucide-react'
+import { Clock, LoaderCircle as Loader2, Activity, TriangleAlert as AlertTriangle, Info } from 'lucide-react'
 import LongText from '@/components/long-text'
 import { useTranslation } from 'react-i18next'
 
@@ -84,7 +78,7 @@ function FolderDetailItem({ f, t }: { f: FolderProgress, t: (key: string) => str
   const percentage = Math.min(Math.round((f.current / f.planned) * 100), 100) || 0;
 
   return (
-    <div className="border rounded-xl bg-card overflow-hidden mb-3 shadow-sm">
+    <div className="border rounded-xl bg-card overflow-hidden mb-3 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center p-4 gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <LongText className="text-xs font-bold text-foreground tracking-tight">
@@ -189,15 +183,15 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                       ) : (
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
-                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-sm flex items-center justify-between sm:block">
+                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-xs flex items-center justify-between sm:block">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('accounts.runningState.session.status')}</p>
                               <StatusBadge status={session.status} />
                             </div>
-                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-sm flex items-center justify-between sm:block">
+                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-xs flex items-center justify-between sm:block">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('accounts.runningState.session.trigger')}</p>
                               <TriggerBadge trigger={session.trigger} />
                             </div>
-                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-sm flex items-center justify-between sm:block">
+                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-xs flex items-center justify-between sm:block">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('accounts.runningState.session.started_at')}</p>
                               <div className="text-sm font-bold font-mono text-foreground">
                                 {format(new Date(session.start_time), 'yyyy-MM-dd HH:mm:ss')}
@@ -292,7 +286,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                       ) : (
                         <Accordion type="single" collapsible className="space-y-3">
                           {[...history].reverse().map((h, i) => (
-                            <AccordionItem key={i} value={`history-${i}`} className="border rounded-xl bg-card shadow-sm px-4 border-border overflow-hidden">
+                            <AccordionItem key={i} value={`history-${i}`} className="border rounded-xl bg-card shadow-xs px-4 border-border overflow-hidden">
                               <AccordionTrigger className="hover:no-underline py-4">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full pr-4 gap-2">
                                   <div className="flex items-center gap-3">

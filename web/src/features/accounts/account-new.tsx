@@ -24,7 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, LoaderCircle as Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -182,7 +182,7 @@ export function AccountNewPage() {
             ]} />
           </div>
 
-          <div className="rounded-lg border shadow-sm bg-card p-6 md:p-8">
+          <div className="rounded-lg border shadow-xs bg-card p-6 md:p-8">
             <div className="mb-6">
               <h2 className="text-xl font-bold">{t('accounts.addAccount')}</h2>
               <p className="text-sm text-muted-foreground mt-1">{t('accounts.addNewEmailAccountHere')}</p>

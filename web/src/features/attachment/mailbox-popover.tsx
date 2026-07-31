@@ -20,11 +20,7 @@
 
 
 import * as React from 'react';
-import {
-    ChevronDown, Folders, X, TreeDeciduous, FolderIcon,
-    MoreVertical, Trash2, Search,
-    Check
-} from 'lucide-react';
+import { ChevronDown, Folders, X, TreeDeciduous, Folder as FolderIcon, EllipsisVertical as MoreVertical, Trash2, Search, Check } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { animated, useSpring } from '@react-spring/web';
@@ -332,7 +328,7 @@ export function MailboxPopover() {
                                             className={cn(
                                                 "w-full flex items-center justify-between px-3 py-2 text-left rounded-md transition-all",
                                                 isActive
-                                                    ? "bg-background shadow-sm text-primary ring-1 ring-black/5"
+                                                    ? "bg-background shadow-xs text-primary ring-1 ring-black/5"
                                                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                                             )}
                                         >
@@ -356,7 +352,7 @@ export function MailboxPopover() {
                                 {activeIsLoading ? (
                                     <div className="p-4 space-y-4">
                                         {[1, 2, 3, 4, 5].map(i => (
-                                            <div key={i} className="h-3 bg-muted animate-pulse rounded w-full" />
+                                            <div key={i} className="h-3 bg-muted animate-pulse rounded-sm w-full" />
                                         ))}
                                     </div>
                                 ) : activeAccountId ? (
@@ -389,7 +385,7 @@ export function MailboxPopover() {
                                 <Button variant="ghost" size="sm" onClick={() => setLocalOpen(false)} className="h-8 px-3 text-xs">
                                     {t('common.cancel')}
                                 </Button>
-                                <Button size="sm" onClick={handleApply} className="h-8 px-4 text-xs gap-1.5 shadow-sm">
+                                <Button size="sm" onClick={handleApply} className="h-8 px-4 text-xs gap-1.5 shadow-xs">
                                     <Check className="h-3.5 w-3.5" />
                                     {t('common.apply')}
                                 </Button>

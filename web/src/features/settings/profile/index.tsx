@@ -20,7 +20,7 @@
 
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { UserProfileForm } from './profile-form'
-import { Loader2 } from 'lucide-react'
+import { LoaderCircle as Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export function Profile() {

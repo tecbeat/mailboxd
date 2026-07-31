@@ -20,7 +20,7 @@
 
 import { useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Loader2, MessageSquareText } from 'lucide-react';
+import { ChevronDown, ChevronUp, LoaderCircle as Loader2, MessageSquareText } from 'lucide-react';
 
 import {
   Dialog,

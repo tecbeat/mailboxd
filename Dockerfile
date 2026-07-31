@@ -1,14 +1,14 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1.25@sha256:0adf442eae370b6087e08edc7c50b552d80ddf261576f4ebd6421006b2461f12
 
 # ---------------------------------------------------------------------------
 # Stage 1: build the React web UI with pnpm
 # ---------------------------------------------------------------------------
-FROM node:24-alpine3.24@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS web-builder
+FROM node:24-alpine3.24@sha256:f70403e87646dc51b45295f4b8b70cdad0b63d2297c4c9899119b03f7af7a6b3 AS web-builder
 
 WORKDIR /build
 
 RUN corepack enable \
-    && corepack prepare pnpm@11.4.0 --activate
+    && corepack prepare pnpm@11.18.0 --activate
 
 COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \

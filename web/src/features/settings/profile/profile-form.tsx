@@ -21,7 +21,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
+import { LoaderCircle as Loader2 } from 'lucide-react'
 import { AxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'

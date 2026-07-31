@@ -27,10 +27,12 @@ export const getBaseUserSchema = (t: (key: string) => string) =>
       .min(1, t('users.actions.schema.username_required'))
       .min(3, t('users.actions.schema.username_min'))
       .max(32, t('users.actions.schema.username_max')),
-    email: z
-      .string()
-      .min(1, t('users.actions.schema.email_required'))
-      .email(t('users.actions.schema.email_invalid')),
+    email: z.email({
+      error: (issue) =>
+        issue.input === undefined || issue.input === ''
+          ? t('users.actions.schema.email_required')
+          : t('users.actions.schema.email_invalid'),
+    }),
     global_roles: z
       .array(z.number())
       .min(1, t('users.actions.schema.global_role_required')),
@@ -54,6 +56,20 @@ export const getBaseUserSchema = (t: (key: string) => string) =>
           .optional(),
       })
       .optional()
+      .refine(
+        (data) => {
+          if (!data?.ip_whitelist) return true
+          return data.ip_whitelist
+            .split('\n')
+            .map((v) => v.trim())
+            .filter(Boolean)
+            .every(isValidIP)
+        },
+        {
+          message: t('users.actions.schema.ip_invalid'),
+          path: ['ip_whitelist'],
+        }
+      )
       .transform((data) => {
         if (!data) return undefined
         const ips =
@@ -70,17 +86,7 @@ export const getBaseUserSchema = (t: (key: string) => string) =>
           ip_whitelist: ips.length > 0 ? ips.join('\n') : undefined,
           rate_limit: finalRateLimit,
         }
-      })
-      .refine(
-        (data) => {
-          if (!data?.ip_whitelist) return true
-          return data.ip_whitelist.split('\n').every(isValidIP)
-        },
-        {
-          message: t('users.actions.schema.ip_invalid'),
-          path: ['ip_whitelist'],
-        }
-      ),
+      }),
   })
 
 export const getCreateUserSchema = (t: (key: string) => string) =>
@@ -103,4 +109,7 @@ export const getUpdateUserSchema = (t: (key: string) => string) =>
       .transform((v) => v || undefined),
   })
 
-export type UserFormValues = z.infer<ReturnType<typeof getCreateUserSchema>>
+// Union of input types (what the form receives), covering both create (password required) and update (password optional)
+export type UserFormValues =
+  | z.input<ReturnType<typeof getCreateUserSchema>>
+  | z.input<ReturnType<typeof getUpdateUserSchema>>

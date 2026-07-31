@@ -165,7 +165,7 @@ export function RestoreMessageDialog({
                     <div className="rounded-md bg-primary/5 border border-primary/20 p-3 text-sm">
                         <div className="flex justify-between items-center text-primary font-medium">
                             <span>{t('restore_message.summary', 'Summary')}</span>
-                            <span className="bg-primary/10 px-2 py-0.5 rounded text-xs">
+                            <span className="bg-primary/10 px-2 py-0.5 rounded-sm text-xs">
                                 {selectedCount} {t('restore_message.messages', 'messages')}
                             </span>
                         </div>

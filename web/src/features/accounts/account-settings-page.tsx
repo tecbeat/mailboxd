@@ -208,7 +208,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
             ]} />
           </div>
 
-          <div className="rounded-lg border shadow-sm bg-card p-6 md:p-8">
+          <div className="rounded-lg border shadow-xs bg-card p-6 md:p-8">
             <div className="mb-6">
               <h2 className="text-xl font-bold">{account.email}</h2>
               <p className="text-sm text-muted-foreground mt-1">{t('accounts.updateTheEmailAccountHere')}</p>

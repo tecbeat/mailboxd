@@ -19,10 +19,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useState, useMemo } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { useFieldArray, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Shield, Settings2, UserIcon, Plus, Trash2, Mail, Check, ChevronsUpDown } from 'lucide-react'
+import { LoaderCircle as Loader2, Shield, Settings2, User as UserIcon, Plus, Trash2, Mail, Check, ChevronsUpDown } from 'lucide-react'
 import { AxiosError } from 'axios'
 
 import { Button } from '@/components/ui/button'
@@ -84,7 +84,7 @@ function AccountSearchSelect({
   placeholder,
 }: {
   accounts: { id: number; email: string; name?: string }[]
-  value: number
+  value: number | undefined
   onChange: (v: number) => void
   placeholder: string
 }) {
@@ -112,7 +112,7 @@ function AccountSearchSelect({
           </Button>
         </FormControl>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+      <PopoverContent className="p-0 w-(--radix-popover-trigger-width)" align="start">
         <Command shouldFilter={false}>
           <CommandInput value={search} onValueChange={setSearch} placeholder={placeholder} />
           <CommandList>
@@ -146,8 +146,9 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   const { global, account } = useRoles()
   const { minimalList: allAccounts } = useMinimalAccountList()
 
+  const schema = isEdit ? getUpdateUserSchema(t) : getCreateUserSchema(t)
   const form = useForm<UserForm>({
-    resolver: zodResolver(isEdit ? getUpdateUserSchema(t) : getCreateUserSchema(t)),
+    resolver: zodResolver(schema) as Resolver<UserForm>,
     defaultValues: useMemo(() => {
       if (isEdit && currentRow) {
         const accessEntries = currentRow.account_access_map
@@ -203,17 +204,18 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   }
 
   const onSubmit = (values: UserForm) => {
-    const validEntries = values.account_access_entries.filter((e: any) => e.accountId > 0 && e.roleId > 0);
+    const validEntries = (values.account_access_entries ?? []).filter((e: any) => e.accountId > 0 && e.roleId > 0);
     const account_access_map = Object.fromEntries(
       validEntries.map((e: any) => [e.accountId, e.roleId])
     );
     const { account_access_entries, ...rest } = values;
+    const acl = values.acl as { ip_whitelist?: string; rate_limit?: { quota?: number; interval?: number } } | undefined;
     const payload = {
       ...rest,
       account_access_map,
-      acl: values.acl ? {
-        ...values.acl,
-        ip_whitelist: values.acl.ip_whitelist?.split('\n').map((v: string) => v.trim()).filter(Boolean)
+      acl: acl ? {
+        ...acl,
+        ip_whitelist: acl.ip_whitelist?.split('\n').map((v: string) => v.trim()).filter(Boolean)
       } : undefined
     }
 
@@ -228,7 +230,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
         <DialogHeader className="p-6 pb-0 shrink-0">
           <div className="flex items-center gap-4 mb-4">
             {isEdit && currentRow?.avatar ? (
-              <img src={`data:image/png;base64,${currentRow.avatar}`} className="h-12 w-12 rounded-full border shadow-sm object-cover" alt="" />
+              <img src={`data:image/png;base64,${currentRow.avatar}`} className="h-12 w-12 rounded-full border shadow-xs object-cover" alt="" />
             ) : (
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <UserIcon className="h-6 w-6" />
@@ -368,7 +370,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
                     <ScrollArea className="flex-1 -mx-2 px-2">
                       <div className="space-y-3 pb-4">
                         {fields.map((item, index) => (
-                          <div key={item.id} className="flex items-start gap-3 p-3 border rounded-xl bg-card shadow-sm hover:border-primary/30 transition-colors">
+                          <div key={item.id} className="flex items-start gap-3 p-3 border rounded-xl bg-card shadow-xs hover:border-primary/30 transition-colors">
                             <FormField control={form.control} name={`account_access_entries.${index}.accountId`} render={({ field }) => (
                               <FormItem className="flex-1">
                                 <AccountSearchSelect

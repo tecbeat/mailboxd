@@ -155,7 +155,7 @@ export function TagFilterPopover() {
                             {Array.from({ length: 6 }).map((_, i) => (
                                 <div
                                     key={i}
-                                    className="h-4 rounded bg-muted animate-pulse"
+                                    className="h-4 rounded-sm bg-muted animate-pulse"
                                 />
                             ))}
                         </div>

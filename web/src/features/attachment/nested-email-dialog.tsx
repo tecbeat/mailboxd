@@ -44,7 +44,7 @@ const MessageHeader = ({
     const displayAttachments = attachments || [];
 
     return (
-        <div className="space-y-4 mb-4 bg-white p-5 rounded-xl border shadow-sm">
+        <div className="space-y-4 mb-4 bg-white p-5 rounded-xl border shadow-xs">
             <div className="space-y-1">
                 <h1 className="text-lg font-bold text-slate-900 leading-snug">
                     {envelope.subject || `(${t('mail.noSubject')})`}
@@ -124,7 +124,7 @@ const MessageHeader = ({
                                             onClick={() => onDownload(att.content_hash, att.filename)}
                                             className="group flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-all text-slate-600 hover:text-blue-700"
                                         >
-                                            <span className={`${color} p-0.5 rounded`}>{icon}</span>
+                                            <span className={`${color} p-0.5 rounded-sm`}>{icon}</span>
                                             <span className="text-xs font-medium truncate max-w-[180px]">
                                                 {att.filename}
                                             </span>

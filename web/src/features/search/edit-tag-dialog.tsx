@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Tag as TagIcon, X, Loader2, Check, Search } from 'lucide-react';
+import { Plus, Tag as TagIcon, X, LoaderCircle as Loader2, Check, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAvailableTags } from '@/hooks/use-available-tags';
 import { useUpdateTags } from '@/hooks/use-update-tags';
@@ -165,7 +165,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                                     {tag}
                                     <button
                                         onClick={() => handleRemoveTag(tag)}
-                                        className="rounded-sm hover:bg-destructive/20 hover:text-destructive transition-colors"
+                                        className="rounded-xs hover:bg-destructive/20 hover:text-destructive transition-colors"
                                     >
                                         <X className="h-3 w-3" />
                                     </button>
@@ -215,7 +215,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                                         <button
                                             key={tag}
                                             type="button"
-                                            className="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                            className="relative flex w-full cursor-default select-none items-center rounded-xs px-2 py-1.5 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground"
                                             onClick={() => handleAddTag(tag)}
                                         >
                                             <Check className="mr-2 h-4 w-4 opacity-0" />
