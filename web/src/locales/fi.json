@@ -591,7 +591,8 @@
     "totalAttachments": "Liitteitä yhteensä",
     "totalEmailSize": "Sähköpostien kokonaiskoko",
     "totalEmails": "Sähköpostien kokonaismäärä",
-    "withAttachments": "Liitteillä"
+    "withAttachments": "Liitteillä",
+    "noAttachmentData": "Ei liitedataa"
   },
   "dialogs": {
     "accountCredentials": "Tilin tunnistetiedot ja asetukset",

@@ -601,7 +601,8 @@
     "totalAttachments": "附件总数",
     "totalEmailSize": "邮件总大小",
     "totalEmails": "邮件总数",
-    "withAttachments": "包含附件"
+    "withAttachments": "包含附件",
+    "noAttachmentData": "无附件数据"
   },
   "dialogs": {
     "accountCredentials": "账户凭据和设置",

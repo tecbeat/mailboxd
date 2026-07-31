@@ -591,7 +591,8 @@
     "totalAttachments": "Totalt antal bilagor",
     "totalEmailSize": "Total e-poststorlek",
     "totalEmails": "Totalt antal e-postmeddelanden",
-    "withAttachments": "Med bilagor"
+    "withAttachments": "Med bilagor",
+    "noAttachmentData": "Inga bilagedata"
   },
   "dialogs": {
     "accountCredentials": "Kontouppgifter och inställningar",

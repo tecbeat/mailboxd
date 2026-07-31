@@ -591,7 +591,8 @@
     "totalAttachments": "Всего вложений",
     "totalEmailSize": "Общий размер писем",
     "totalEmails": "Всего писем",
-    "withAttachments": "С вложениями"
+    "withAttachments": "С вложениями",
+    "noAttachmentData": "Нет данных о вложениях"
   },
   "dialogs": {
     "accountCredentials": "Учетные данные аккаунта и настройки",

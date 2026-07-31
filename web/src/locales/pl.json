@@ -591,7 +591,8 @@
     "totalAttachments": "Łączna liczba załączników",
     "totalEmailSize": "Wielkość wszystkich wiadomości",
     "totalEmails": "Wszystkie wiadomości",
-    "withAttachments": "Z załącznikami"
+    "withAttachments": "Z załącznikami",
+    "noAttachmentData": "Brak danych załączników"
   },
   "dialogs": {
     "accountCredentials": "Poświadczenia kont i ustawienia",

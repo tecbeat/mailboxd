@@ -602,7 +602,8 @@
     "totalAttachments": "Total attachments",
     "totalEmailSize": "Total Email Size",
     "totalEmails": "Total Emails",
-    "withAttachments": "With Attachments"
+    "withAttachments": "With Attachments",
+    "noAttachmentData": "No attachment data"
   },
   "dialogs": {
     "accountCredentials": "Account credentials and settings",

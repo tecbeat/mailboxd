@@ -591,7 +591,8 @@
     "totalAttachments": "Totaal aantal bijlagen",
     "totalEmailSize": "Totale e-mailgrootte",
     "totalEmails": "Totaal aantal e-mails",
-    "withAttachments": "Met Bijlagen"
+    "withAttachments": "Met Bijlagen",
+    "noAttachmentData": "Geen bijlagegegevens"
   },
   "dialogs": {
     "accountCredentials": "Accountgegevens en instellingen",
