@@ -591,7 +591,8 @@
     "totalAttachments": "Anhänge insgesamt",
     "totalEmailSize": "Gesamtgröße der E-Mails",
     "totalEmails": "Gesamt-E-Mails",
-    "withAttachments": "Mit Anhängen"
+    "withAttachments": "Mit Anhängen",
+    "noAttachmentData": "Keine Anhangsdaten"
   },
   "dialogs": {
     "accountCredentials": "Kontozugangsdaten und Konfiguration",
@@ -1443,7 +1444,13 @@
     "youAreAboutToResetTheRootPassword": "Sie sind dabei, das Root-Passwort zurückzusetzen. Stellen Sie sicher, dass Sie es sicher speichern.",
     "youAreAboutToResetTheRootToken": "Sie sind dabei, das Root-Token zurückzusetzen. Diese Aktion kann nicht rückgängig gemacht werden.",
     "yourLoginInformationHasBeenUpdated": "Ihre Anmeldeinformationen wurden aktualisiert. Sie müssen sich nicht erneut anmelden.",
-    "yourProxyHasBeenSuccessfully": "Ihr Proxy wurde erfolgreich {{action}}."
+    "yourProxyHasBeenSuccessfully": "Ihr Proxy wurde erfolgreich {{action}}.",
+    "access": {
+      "empty": {
+        "title": "Keine Kontozugriffe",
+        "description": "Sie haben aktuell keinen direkten Zugriff auf E-Mail-Konten. Wenden Sie sich an Ihren Administrator, um Zugriff anzufordern."
+      }
+    }
   },
   "sign_out": {
     "confirm": "Abmelden",

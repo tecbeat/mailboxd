@@ -602,7 +602,8 @@
     "totalAttachments": "Total attachments",
     "totalEmailSize": "Total Email Size",
     "totalEmails": "Total Emails",
-    "withAttachments": "With Attachments"
+    "withAttachments": "With Attachments",
+    "noAttachmentData": "No attachment data"
   },
   "dialogs": {
     "accountCredentials": "Account credentials and settings",
@@ -1458,7 +1459,13 @@
     "youAreAboutToResetTheRootPassword": "You are about to reset the root password. Make sure to store it securely.",
     "youAreAboutToResetTheRootToken": "You are about to reset the root token. This action cannot be undone.",
     "yourLoginInformationHasBeenUpdated": "Your login information has been updated. No need to log in again.",
-    "yourProxyHasBeenSuccessfully": "Your Proxy has been successfully {{action}}."
+    "yourProxyHasBeenSuccessfully": "Your Proxy has been successfully {{action}}.",
+    "access": {
+      "empty": {
+        "title": "No account access",
+        "description": "You do not have direct access to any email accounts yet. Contact your administrator to request access."
+      }
+    }
   },
   "sign_out": {
     "confirm": "Sign out",

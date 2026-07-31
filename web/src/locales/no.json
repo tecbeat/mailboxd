@@ -591,7 +591,8 @@
     "totalAttachments": "Totalt antall vedlegg",
     "totalEmailSize": "Total e-poststørrelse",
     "totalEmails": "Totalt antall e-poster",
-    "withAttachments": "Med vedlegg"
+    "withAttachments": "Med vedlegg",
+    "noAttachmentData": "Ingen vedleggsdata"
   },
   "dialogs": {
     "accountCredentials": "Kontolegitimasjon og innstillinger",
