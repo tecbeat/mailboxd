@@ -591,7 +591,8 @@
     "totalAttachments": "添付ファイル総数",
     "totalEmailSize": "メール総容量",
     "totalEmails": "合計メール数",
-    "withAttachments": "添付ファイルあり"
+    "withAttachments": "添付ファイルあり",
+    "noAttachmentData": "添付ファイルのデータがありません"
   },
   "dialogs": {
     "accountCredentials": "アカウントの資格情報と設定",

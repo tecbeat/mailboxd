@@ -506,7 +506,7 @@ export default function MailArchiveDashboard() {
                     </TableBody>
                   </Table>
                 ) : (
-                  <EmptyTable title="No attachment data" />
+                  <EmptyTable title={t('dashboard.noAttachmentData')} />
                 )}
               </CardContent>
             </Card>

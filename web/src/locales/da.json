@@ -591,7 +591,8 @@
     "totalAttachments": "Samlet antal vedhæftede filer",
     "totalEmailSize": "Samlet e-mailstørrelse",
     "totalEmails": "Samlet antal e-mails",
-    "withAttachments": "Med vedhæftninger"
+    "withAttachments": "Med vedhæftninger",
+    "noAttachmentData": "Ingen vedhæftningsdata"
   },
   "dialogs": {
     "accountCredentials": "Kontooplysninger og indstillinger",

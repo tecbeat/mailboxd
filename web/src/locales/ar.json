@@ -591,7 +591,8 @@
     "totalAttachments": "إجمالي المرفقات",
     "totalEmailSize": "الحجم الإجمالي لرسائل البريد الإلكتروني",
     "totalEmails": "إجمالي رسائل البريد الإلكتروني",
-    "withAttachments": "مع مرفقات"
+    "withAttachments": "مع مرفقات",
+    "noAttachmentData": "لا توجد بيانات مرفقات"
   },
   "dialogs": {
     "accountCredentials": "بيانات اعتماد الحساب وإعداداته",
