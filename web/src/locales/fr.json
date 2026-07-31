@@ -591,7 +591,8 @@
     "totalAttachments": "Total des pièces jointes",
     "totalEmailSize": "Taille totale des e-mails",
     "totalEmails": "Total des e-mails",
-    "withAttachments": "Avec Pièces Jointes"
+    "withAttachments": "Avec Pièces Jointes",
+    "noAttachmentData": "Aucune donnée d'annexe"
   },
   "dialogs": {
     "accountCredentials": "Les informations d'identification et les paramètres du compte",

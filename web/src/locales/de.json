@@ -591,7 +591,8 @@
     "totalAttachments": "Anhänge insgesamt",
     "totalEmailSize": "Gesamtgröße der E-Mails",
     "totalEmails": "Gesamt-E-Mails",
-    "withAttachments": "Mit Anhängen"
+    "withAttachments": "Mit Anhängen",
+    "noAttachmentData": "Keine Anhangsdaten"
   },
   "dialogs": {
     "accountCredentials": "Kontozugangsdaten und Konfiguration",

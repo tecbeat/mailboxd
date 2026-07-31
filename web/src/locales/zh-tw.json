@@ -591,7 +591,8 @@
     "totalAttachments": "附件總數",
     "totalEmailSize": "郵件總容量",
     "totalEmails": "郵件總數",
-    "withAttachments": "包含附件"
+    "withAttachments": "包含附件",
+    "noAttachmentData": "無附件資料"
   },
   "dialogs": {
     "accountCredentials": "帳號憑證和設定",

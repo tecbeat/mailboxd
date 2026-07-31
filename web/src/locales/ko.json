@@ -591,7 +591,8 @@
     "totalAttachments": "총 첨부 파일",
     "totalEmailSize": "총 이메일 크기",
     "totalEmails": "총 이메일 수",
-    "withAttachments": "첨부 파일 포함"
+    "withAttachments": "첨부 파일 포함",
+    "noAttachmentData": "첨부 파일 데이터 없음"
   },
   "dialogs": {
     "accountCredentials": "계정 자격 증명 및 설정",
