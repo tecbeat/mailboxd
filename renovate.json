@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "packageRules": [
+    {
+      "matchManagers": ["cargo"],
+      "matchDepNames": ["reqwest"],
+      "allowedVersions": "<0.13.0"
+    },
+    {
+      "matchManagers": ["cargo"],
+      "matchDepNames": ["native_model"],
+      "allowedVersions": "<0.5.0"
+    }
+  ]
+}
