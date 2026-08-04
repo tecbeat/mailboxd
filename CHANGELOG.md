@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.3) - 2026-08-04
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update node.js to d32cdf6 - ([5f62d42](https://git.teccave.de/tecbeat/mailboxd/commit/5f62d42b0d915555843f1ec4717bf84f4e7ac3a2))
+
+## [1.0.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.2) - 2026-08-01
+
+### 🐛 Bug Fixes
+
+- *(deps)* Keep native_model at 0.4.20 (native_db 0.8.2 requires it) - ([8bb5f90](https://git.teccave.de/tecbeat/mailboxd/commit/8bb5f908afd8ab99a2d0889587de221c4b22a2eb))
+- *(deps)* Update dependency typescript to v7 - ([b5c02b9](https://git.teccave.de/tecbeat/mailboxd/commit/b5c02b955fafc48720c4a94b801c2941b30500af))
+- *(deps)* Update all non-major dependencies - ([06deef1](https://git.teccave.de/tecbeat/mailboxd/commit/06deef1af348f7df6d351a87663d4043ba9a6c2c))
+- *(deps)* Pin dependencies - ([0153056](https://git.teccave.de/tecbeat/mailboxd/commit/015305637e361c3cbf8f486430521eb727d32229))
+- *(deps)* Pin dependencies - ([181e89b](https://git.teccave.de/tecbeat/mailboxd/commit/181e89b4d5ea0d65ce058604eaccb86e7c2f11c1))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Regenerate Cargo.lock after renovate consolidation - ([2f0e3e9](https://git.teccave.de/tecbeat/mailboxd/commit/2f0e3e9d3a2609cd285c239f1ac36a43593d6f15))
+
 ## [1.0.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.1) - 2026-07-31
 
 ### 🐛 Bug Fixes
