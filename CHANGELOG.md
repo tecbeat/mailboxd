@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.4) - 2026-08-04
+
+### 🐛 Bug Fixes
+
+- *(deps)* Drop reqwest 0.13, native_model 0.6, and too-new npm bumps - ([ffdf0da](https://git.teccave.de/tecbeat/mailboxd/commit/ffdf0daa60aa9c157cc778d32db9b6bf84456504))
+- *(deps)* Update all non-major dependencies - ([336f3fb](https://git.teccave.de/tecbeat/mailboxd/commit/336f3fb5a1c3d4776d03895e21d61a7056ed3ef3))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Regenerate Cargo.lock after renovate consolidation - ([9c7af1c](https://git.teccave.de/tecbeat/mailboxd/commit/9c7af1c6fd6057cc2a7624328aab94b3d1bdd9e4))
+- *(renovate)* Ignore reqwest >=0.13 and native_model >=0.5 - ([059389a](https://git.teccave.de/tecbeat/mailboxd/commit/059389a4debb24cb36ca369f636d9b71c6e0cf04))
+
 ## [1.0.3](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.3) - 2026-08-04
 
 ### 🐛 Bug Fixes
