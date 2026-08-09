@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.6](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.6) - 2026-08-09
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies - ([794e918](https://git.teccave.de/tecbeat/mailboxd/commit/794e918a844d450ed26fdb5670f3b62bf40e8e34))
+
 ## [1.0.5](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.5) - 2026-08-06
 
 ### 🐛 Bug Fixes
