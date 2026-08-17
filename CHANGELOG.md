@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.8](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.8) - 2026-08-17
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update rust:1.97.1-slim-bookworm docker digest to 2775a09 - ([be77534](https://git.teccave.de/tecbeat/mailboxd/commit/be7753412f6109ef68464d3fd98955b93689f15b))
+
 ## [1.0.7](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.7) - 2026-08-16
 
 ### 🐛 Bug Fixes
