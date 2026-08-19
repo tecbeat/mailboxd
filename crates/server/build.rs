@@ -28,8 +28,13 @@ fn main() -> Result<()> {
         .unwrap_or_else(|| "unknown".to_string());
     println!("cargo:rustc-env=GIT_HASH={}", git_hash);
 
-    // Build frontend assets
-    build_frontend();
+    // Build frontend assets — only when the `embed-web` feature is active.
+    // Without the feature, `rest::assets::FrontEndAssets` is not compiled and
+    // pnpm/node are not required (e.g. running `cargo test` on a Rust-only
+    // CI image).
+    if std::env::var("CARGO_FEATURE_EMBED_WEB").is_ok() {
+        build_frontend();
+    }
 
     Ok(())
 }
