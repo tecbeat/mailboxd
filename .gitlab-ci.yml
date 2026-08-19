@@ -27,6 +27,9 @@ cargo_test:
     - rm -rf /var/lib/apt/lists/*
     - mkdir -p "$MAILBOXD_ROOT_DIR"
   script:
-    - cargo test --workspace --locked
+    # Disable the `embed-web` feature on the server crate so the frontend
+    # (pnpm/node) is not required for unit tests. The feature is exercised
+    # separately by `test_build_image`, which builds the full container.
+    - cargo test --workspace --locked --no-default-features
   tags:
     - teccave
