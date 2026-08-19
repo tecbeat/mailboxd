@@ -37,7 +37,7 @@ pub struct SystemApi;
 
 #[OpenApi(prefix_path = "/api/v1", tag = "ApiTags::System")]
 impl SystemApi {
-    /// Retrieves important system notifications for the mailboxd service.
+    /// Retrieves important system notifications for the Mailboxd service.
     ///
     /// This endpoint returns a consolidated view of all critical system notifications including:
     /// - Available version updates
@@ -90,7 +90,9 @@ impl SystemApi {
         context: WrappedContext,
     ) -> ApiResult<()> {
         context.require_permission(None, Permission::ROOT)?;
-        Ok(Proxy::delete(id.0)?)
+        let id = id.0;
+        Proxy::delete(id)?;
+        Ok(())
     }
 
     /// Retrieve a specific proxy configuration by ID. Requires root permission.
@@ -120,8 +122,10 @@ impl SystemApi {
     #[oai(path = "/proxy", method = "post", operation_id = "create_proxy")]
     async fn create_proxy(&self, url: PlainText<String>, context: WrappedContext) -> ApiResult<()> {
         context.require_permission(None, Permission::ROOT)?;
-        let entity = Proxy::new(url.0);
-        Ok(entity.save()?)
+        let url = url.0;
+        let entity = Proxy::new(url.clone());
+        entity.save()?;
+        Ok(())
     }
 
     /// Update the URL of a specific proxy by ID. Requires root permission.
@@ -133,7 +137,10 @@ impl SystemApi {
         context: WrappedContext,
     ) -> ApiResult<()> {
         context.require_permission(None, Permission::ROOT)?;
-        Ok(Proxy::update(id.0, url.0)?)
+        let id = id.0;
+        let url = url.0;
+        Proxy::update(id, url.clone())?;
+        Ok(())
     }
 
     /// Get system configurations.

@@ -19,7 +19,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use mailboxd_core::users::UserModel;
-use poem::{handler, web::Json, IntoResponse, Response};
+use poem::web::Json;
+use poem::{handler, IntoResponse, Request, Response};
 use serde::Deserialize;
 use tracing::error;
 
@@ -34,20 +35,21 @@ pub struct LoginPayload {
 /// Accepts a plain text password and returns the `root_token`
 /// on successful authentication.
 #[handler]
-pub fn login(payload: Json<LoginPayload>) -> Response {
-    let payload = payload.0;
-    match UserModel::authenticate_user(payload.username, payload.password) {
-        Ok(result) => match serde_json::to_string(&result) {
-            Ok(json_string) => Response::builder()
-                .status(http::StatusCode::OK)
-                .content_type("application/json")
-                .body(json_string)
-                .into_response(),
-            Err(_) => Response::builder()
-                .status(http::StatusCode::INTERNAL_SERVER_ERROR)
-                .body("Internal server error during response serialization.")
-                .into_response(),
-        },
+pub async fn login(payload: Json<LoginPayload>, _req: &Request) -> Response {
+    match UserModel::authenticate_user(payload.0.username, payload.0.password) {
+        Ok(result) => {
+            match serde_json::to_string(&result) {
+                Ok(json_string) => Response::builder()
+                    .status(http::StatusCode::OK)
+                    .content_type("application/json")
+                    .body(json_string)
+                    .into_response(),
+                Err(_) => Response::builder()
+                    .status(http::StatusCode::INTERNAL_SERVER_ERROR)
+                    .body("Internal server error during response serialization.")
+                    .into_response(),
+            }
+        }
         Err(e) => {
             error!("Authentication failed with system error: {:?}", e);
             Response::builder()

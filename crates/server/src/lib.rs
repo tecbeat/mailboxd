@@ -27,7 +27,7 @@ use std::sync::LazyLock;
 
 use mailboxd_core::{
     mailboxd_version,
-    cache::imap::task::SYNC_TASKS,
+    archive::imap::task::SYNC_TASKS,
     common::{rustls::MailboxdTls, signal::SignalManager},
     context::{executors::MailboxdContext, Initialize},
     database::manager::DB_MANAGER,

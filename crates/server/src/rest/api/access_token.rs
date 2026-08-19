@@ -62,8 +62,8 @@ impl AccessTokenApi {
         if context.user.id != token.user_id {
             context.require_permission(None, Permission::TOKEN_MANAGE)?;
         }
-
-        Ok(AccessTokenModel::delete(&token.token)?)
+        AccessTokenModel::delete(&token.token)?;
+        Ok(())
     }
 
     /// Creates a new api token.
@@ -83,7 +83,6 @@ impl AccessTokenApi {
         if target_user_id != current_user_id {
             context.require_permission(None, Permission::USER_MANAGE)?;
         }
-
         let token_string = AccessTokenModel::create_api_token(target_user_id, payload.0)?;
         Ok(PlainText(token_string))
     }
