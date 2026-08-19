@@ -82,6 +82,7 @@ impl MailBoxApi {
         let account_id = account_id.0;
         let mailbox_id = mailbox_id.0;
         context.require_permission(Some(account_id), Permission::DATA_DELETE)?;
-        Ok(delete_mailbox_impl(account_id, mailbox_id).await?)
+        delete_mailbox_impl(account_id, mailbox_id).await?;
+        Ok(())
     }
 }

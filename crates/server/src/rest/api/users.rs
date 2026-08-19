@@ -55,7 +55,8 @@ impl UsersApi {
     ) -> ApiResult<()> {
         let id = id.0;
         context.require_permission(None, Permission::USER_MANAGE)?;
-        Ok(UserRole::delete(id)?)
+        UserRole::delete(id)?;
+        Ok(())
     }
 
     /// Create a new account
@@ -83,7 +84,8 @@ impl UsersApi {
     ) -> ApiResult<()> {
         let id = id.0;
         context.require_permission(None, Permission::USER_MANAGE)?;
-        Ok(UserRole::update(id, payload.0)?)
+        UserRole::update(id, payload.0)?;
+        Ok(())
     }
 
     #[oai(path = "/list-users", method = "get", operation_id = "list_users")]
@@ -124,7 +126,8 @@ impl UsersApi {
     ) -> ApiResult<()> {
         let id = id.0;
         context.require_permission(None, Permission::USER_MANAGE)?;
-        Ok(UserModel::remove(id)?)
+        UserModel::remove(id)?;
+        Ok(())
     }
 
     #[oai(path = "/users", method = "post", operation_id = "create_user")]
@@ -158,7 +161,8 @@ impl UsersApi {
             update_data.account_access_map = None;
             update_data.acl = None;
         }
-        Ok(UserModel::update(target_id, update_data)?)
+        UserModel::update(target_id, update_data)?;
+        Ok(())
     }
 
     #[oai(
