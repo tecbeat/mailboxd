@@ -320,6 +320,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "network-dependent: fetches live autoconfig from public providers"]
     async fn test_fetch_valid_domain() {
         let domains = vec![
             // North America
@@ -428,6 +429,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "network-dependent: performs a live DNS SRV lookup"]
     async fn test_lookup_srv_gmail() {
         // Gmail should have SRV records for IMAPS and SMTP submission
         let config = lookup_srv("gmail.com").await;
@@ -446,6 +448,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "network-dependent: performs a live DNS SRV lookup"]
     async fn test_lookup_srv_nonexistent() {
         // A domain without SRV records should return None
         let config = lookup_srv("this-domain-definitely-does-not-exist-12345.com").await;
