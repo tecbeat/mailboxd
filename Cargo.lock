@@ -2470,10 +2470,16 @@ dependencies = [
 name = "mailboxd-admin"
 version = "1.6.2"
 dependencies = [
+ "bytes 1.12.0",
+ "chrono",
  "console",
  "dialoguer",
+ "fjall",
+ "hex",
  "indicatif",
  "itertools 0.15.0",
+ "mail-parser",
+ "mailboxd-blob",
  "mailboxd-core",
  "mailboxd-memdb",
  "native_db",
@@ -2481,7 +2487,11 @@ dependencies = [
  "serde",
  "serde_json",
  "snafu",
+ "tantivy",
+ "tempfile",
  "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -2542,7 +2552,6 @@ dependencies = [
  "deunicode",
  "email_address",
  "encoding_rs",
- "fjall",
  "futures",
  "governor",
  "hex",
@@ -2553,6 +2562,7 @@ dependencies = [
  "lru 0.18.0",
  "mail-parser",
  "mail-send",
+ "mailboxd-blob",
  "mailboxd-memdb",
  "memmap2",
  "murmur3",
