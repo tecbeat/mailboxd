@@ -3,20 +3,17 @@ use std::{path::PathBuf, time::Instant};
 use bytes::Bytes;
 use mail_parser::MimeHeaders;
 
-use crate::{
+use mailboxd_core::{
     envelope::extractor::extract_references, message::content::AttachmentInfo,
     store::tantivy::tokenizers::EuroTokenizer, utils::compute_content_hash,
 };
 
-use fjall::{
-    config::{BlockSizePolicy, CompressionPolicy},
-    CompressionType, Database, Keyspace, KeyspaceCreateOptions, KvSeparationOptions,
-};
+use mailboxd_blob::{Codec, Config, Engine};
 use mail_parser::MessageParser;
 use tantivy::{indexer::NoMergePolicy, Index, IndexWriter, TantivyDocument};
 use uuid::Uuid;
 
-use crate::{
+use mailboxd_core::{
     common::AddrVec,
     envelope::extractor::{compute_thread_id, generate_message_id},
     error::{code::ErrorCode, MailboxdResult},
@@ -62,6 +59,17 @@ impl NewDirs {
 pub struct DetachOutput {
     pub infos: Vec<AttachmentInfo>,
     pub blobs: Vec<(String, Bytes)>,
+}
+
+fn hex_to_raw_key(hex: &str) -> MailboxdResult<[u8; 32]> {
+    let mut key = [0u8; 32];
+    hex::decode_to_slice(hex, &mut key).map_err(|e| {
+        raise_error!(
+            format!("invalid content hash: {e:#?}"),
+            ErrorCode::InternalError
+        )
+    })?;
+    Ok(key)
 }
 
 pub fn detach_attachments_standalone(
@@ -132,19 +140,16 @@ pub fn detach_attachments_standalone(
     (stripped_eml, DetachOutput { infos, blobs })
 }
 
-pub struct NewIndexWriter {
+pub struct NewIndexWriterV2 {
     pub envelope_writer: Option<IndexWriter>,
     pub attachment_writer: Option<IndexWriter>,
-    pub email_ks: Keyspace,
-    pub attachment_ks: Keyspace,
+    pub engine: Engine,
     pending: usize,
-    email_buf: Vec<(String, Vec<u8>)>,
-    attachment_buf: Vec<(String, Vec<u8>)>,
+    email_buf: Vec<([u8; 32], Vec<u8>)>,
+    attachment_buf: Vec<([u8; 32], Vec<u8>)>,
 }
 
-//const COMMIT_THRESHOLD: usize = 500;
-
-impl NewIndexWriter {
+impl NewIndexWriterV2 {
     pub fn open(dirs: NewDirs) -> MailboxdResult<Self> {
         // ── envelope index ──────────────────────────────────────────────
         std::fs::create_dir_all(&dirs.envelope_dir)
@@ -170,11 +175,6 @@ impl NewIndexWriter {
             .writer_with_num_threads(3, 256 * 1024 * 1024)
             .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
 
-        // let mut merge_policy = LogMergePolicy::default();
-        // merge_policy.set_min_num_segments(25);
-        // merge_policy.set_min_layer_size(10_000);
-        // merge_policy.set_max_docs_before_merge(100_000);
-
         envelope_writer.set_merge_policy(Box::new(NoMergePolicy));
         // ── attachment index ─────────────────────────────────────────────
         std::fs::create_dir_all(&dirs.attachment_dir)
@@ -199,58 +199,26 @@ impl NewIndexWriter {
             .writer_with_num_threads(3, 256 * 1024 * 1024)
             .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
 
-        // let mut merge_policy = LogMergePolicy::default();
-        // merge_policy.set_min_num_segments(25);
-        // merge_policy.set_min_layer_size(10_000);
-        // merge_policy.set_max_docs_before_merge(100_000);
-
         attachment_writer.set_merge_policy(Box::new(NoMergePolicy));
 
-        // ── blob store ───────────────────────────────────────────────────
+        // ── blob store (mailboxd-blob, not fjall) ───────────────────────────
         std::fs::create_dir_all(&dirs.storage_dir)
             .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
-        let db = Database::builder(&dirs.storage_dir)
-            .cache_size(8 * 1024 * 1024)
-            .journal_compression(CompressionType::None)
-            .max_journaling_size(64 * 1024 * 1024)
-            .open()
-            .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+        let blob_dir = dirs.storage_dir.join("blobs");
 
-        let email_ks = db
-            .keyspace("email", || {
-                KeyspaceCreateOptions::default()
-                    .max_memtable_size(4 * 1024 * 1024)
-                    .data_block_size_policy(BlockSizePolicy::all(4 * 1024))
-                    .data_block_compression_policy(CompressionPolicy::all(CompressionType::Lz4))
-                    .with_kv_separation(Some(
-                        KvSeparationOptions::default()
-                            .separation_threshold(1024)
-                            .compression(CompressionType::Lz4)
-                            .file_target_size(512 * 1024 * 1024),
-                    ))
-            })
-            .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+        let mut config = Config::default();
+        config.default_codec = Codec::Zstd;
+        config.compress_threshold = 1024;
+        config.flush_interval_secs = 0;
+        config.gc_interval_secs = 0;
 
-        let attachment_ks = db
-            .keyspace("attachments", || {
-                KeyspaceCreateOptions::default()
-                    .max_memtable_size(4 * 1024 * 1024)
-                    .data_block_size_policy(BlockSizePolicy::all(4 * 1024))
-                    .data_block_compression_policy(CompressionPolicy::all(CompressionType::Lz4))
-                    .with_kv_separation(Some(
-                        KvSeparationOptions::default()
-                            .separation_threshold(1024)
-                            .compression(CompressionType::Lz4)
-                            .file_target_size(512 * 1024 * 1024),
-                    ))
-            })
+        let engine = Engine::open(&blob_dir, config)
             .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
 
         Ok(Self {
             envelope_writer: Some(envelope_writer),
             attachment_writer: Some(attachment_writer),
-            email_ks,
-            attachment_ks,
+            engine,
             pending: 0,
             email_buf: Vec::new(),
             attachment_buf: Vec::new(),
@@ -266,6 +234,7 @@ impl NewIndexWriter {
         internal_date: i64,
     ) -> MailboxdResult<()> {
         let email_content_hash = compute_content_hash(eml_bytes);
+        let email_raw_key = hex_to_raw_key(&email_content_hash)?;
 
         let message = MessageParser::new()
             .parse(eml_bytes)
@@ -284,7 +253,7 @@ impl NewIndexWriter {
             .or_else(|| {
                 message
                     .body_html(0)
-                    .map(|html| crate::utils::html::extract_text(html.into_owned()))
+                    .map(|html| mailboxd_core::utils::html::extract_text(html.into_owned()))
             })
             .unwrap_or_default();
         let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
@@ -336,11 +305,13 @@ impl NewIndexWriter {
         // ── detach attachments → blob ──────────────────────────────────────
         let (stripped_eml, attachment_output) = detach_attachments_standalone(eml_bytes, &message);
 
-        // Buffer for bulk ingestion — sorted + flushed later.
+        // Buffer for bulk write — sorted + flushed later.
+        // Key is the raw 32-byte hash (not the hex string).
         self.email_buf
-            .push((email_content_hash.clone(), stripped_eml));
+            .push((email_raw_key, stripped_eml));
         for (hash, data) in &attachment_output.blobs {
-            self.attachment_buf.push((hash.clone(), data.to_vec()));
+            let raw_key = hex_to_raw_key(hash)?;
+            self.attachment_buf.push((raw_key, data.to_vec()));
         }
 
         // ── build envelope doc ────────────────────────────────────────────
@@ -430,9 +401,6 @@ impl NewIndexWriter {
         }
 
         self.pending += 1;
-        // if self.pending >= COMMIT_THRESHOLD {
-        //     self.commit()?;
-        // }
 
         Ok(())
     }
@@ -473,7 +441,7 @@ impl NewIndexWriter {
                 let seg_ids = writer
                     .index()
                     .searchable_segment_ids()
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+                    .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
                 println!("merging {} {} segments...", seg_ids.len(), name);
                 if seg_ids.len() > 1 {
                     let _ = writer.merge(&seg_ids);
@@ -491,70 +459,111 @@ impl NewIndexWriter {
         Ok(())
     }
 
-    /// Sort buffered (hash, data) pairs, dedup, and write via Fjall's
-    /// ingestion API — writes SSTables directly, bypassing memtable and WAL.
+    /// Write buffered blobs to the mailboxd-blob engine.
     /// Also commits the Tantivy writers to bound their in-memory state.
-    pub fn flush_fjall_buffers(&mut self) -> MailboxdResult<()> {
+    pub fn flush_blob_buffers(&mut self) -> MailboxdResult<()> {
         self.commit_tantivy()?;
 
         if !self.email_buf.is_empty() {
-            self.email_buf.sort_by(|a, b| a.0.cmp(&b.0));
-            self.email_buf.dedup_by(|a, b| a.0 == b.0);
+            let mut buf = std::mem::take(&mut self.email_buf);
+            buf.sort_by(|a, b| a.0.cmp(&b.0));
+            buf.dedup_by(|a, b| a.0 == b.0);
 
-            let mut ingestion = self.email_ks.start_ingestion().map_err(|e| {
-                raise_error!(
-                    format!("email ingestion start: {e:#?}"),
-                    ErrorCode::InternalError
-                )
-            })?;
-            for (hash, data) in &self.email_buf {
-                ingestion
-                    .write(hash.as_bytes(), data.as_slice())
-                    .map_err(|e| {
-                        raise_error!(
-                            format!("email ingestion write: {e:#?}"),
-                            ErrorCode::InternalError
-                        )
-                    })?;
+            let count = buf.len();
+            let mut skipped = 0usize;
+            let mut batch: Vec<([u8; 32], Vec<u8>, Codec)> = Vec::with_capacity(buf.len());
+            for (key, data) in buf {
+                if data.len() > 100 * 1024 * 1024 {
+                    eprintln!(
+                        "{}",
+                        console::style(format!(
+                            "WARN: skipping oversized email blob key={} ({} bytes)",
+                            hex::encode(key),
+                            data.len()
+                        ))
+                        .yellow()
+                    );
+                    skipped += 1;
+                    continue;
+                }
+                batch.push((key, data, Codec::Zstd));
             }
-            ingestion.finish().map_err(|e| {
-                raise_error!(
-                    format!("email ingestion finish: {e:#?}"),
-                    ErrorCode::InternalError
-                )
-            })?;
-            self.email_buf.clear();
+            if !batch.is_empty() {
+                self.engine.put_batch(&batch).map_err(|e| {
+                    raise_error!(
+                        format!("blob engine put_batch error: {e:#?}"),
+                        ErrorCode::InternalError
+                    )
+                })?;
+            }
+            println!("flushed {} email blobs to engine", count - skipped);
+            if skipped > 0 {
+                eprintln!(
+                    "{}",
+                    console::style(format!("skipped {} oversized email blobs", skipped)).yellow()
+                );
+            }
         }
 
         if !self.attachment_buf.is_empty() {
-            self.attachment_buf.sort_by(|a, b| a.0.cmp(&b.0));
-            self.attachment_buf.dedup_by(|a, b| a.0 == b.0);
+            let mut buf = std::mem::take(&mut self.attachment_buf);
+            buf.sort_by(|a, b| a.0.cmp(&b.0));
+            buf.dedup_by(|a, b| a.0 == b.0);
 
-            let mut ingestion = self.attachment_ks.start_ingestion().map_err(|e| {
-                raise_error!(
-                    format!("attachment ingestion start: {e:#?}"),
-                    ErrorCode::InternalError
-                )
-            })?;
-            for (hash, data) in &self.attachment_buf {
-                ingestion
-                    .write(hash.as_bytes(), data.as_slice())
-                    .map_err(|e| {
-                        raise_error!(
-                            format!("attachment ingestion write: {e:#?}"),
-                            ErrorCode::InternalError
-                        )
-                    })?;
+            let count = buf.len();
+            let mut skipped = 0usize;
+            let mut batch: Vec<([u8; 32], Vec<u8>, Codec)> = Vec::with_capacity(buf.len());
+            for (key, data) in buf {
+                if data.len() > 100 * 1024 * 1024 {
+                    eprintln!(
+                        "{}",
+                        console::style(format!(
+                            "WARN: skipping oversized attachment blob key={} ({} bytes)",
+                            hex::encode(key),
+                            data.len()
+                        ))
+                        .yellow()
+                    );
+                    skipped += 1;
+                    continue;
+                }
+                batch.push((key, data, Codec::Zstd));
             }
-            ingestion.finish().map_err(|e| {
-                raise_error!(
-                    format!("attachment ingestion finish: {e:#?}"),
-                    ErrorCode::InternalError
-                )
-            })?;
-            self.attachment_buf.clear();
+            if !batch.is_empty() {
+                self.engine.put_batch(&batch).map_err(|e| {
+                    raise_error!(
+                        format!("blob engine put_batch error: {e:#?}"),
+                        ErrorCode::InternalError
+                    )
+                })?;
+            }
+            println!("flushed {} attachment blobs to engine", count - skipped);
+            if skipped > 0 {
+                eprintln!(
+                    "{}",
+                    console::style(format!("skipped {} oversized attachment blobs", skipped))
+                        .yellow()
+                );
+            }
         }
 
+        Ok(())
+    }
+
+    /// Flush and shutdown the blob engine (called once at the very end).
+    pub fn shutdown_engine(&mut self) -> MailboxdResult<()> {
+        self.engine.flush().map_err(|e| {
+            raise_error!(
+                format!("engine flush error: {e:#?}"),
+                ErrorCode::InternalError
+            )
+        })?;
+        self.engine.shutdown().map_err(|e| {
+            raise_error!(
+                format!("engine shutdown error: {e:#?}"),
+                ErrorCode::InternalError
+            )
+        })?;
         Ok(())
     }
 }

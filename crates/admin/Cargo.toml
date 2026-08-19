@@ -18,3 +18,15 @@ serde_json.workspace = true
 itertools.workspace = true
 snafu.workspace = true
 mailboxd-memdb.workspace = true
+fjall.workspace = true
+hex.workspace = true
+mailboxd-blob.workspace = true
+mail-parser.workspace = true
+bytes.workspace = true
+uuid.workspace = true
+tantivy = { version = "0.26.1", features = ["zstd-compression", "quickwit"] }
+chrono.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
