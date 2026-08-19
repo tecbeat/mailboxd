@@ -55,9 +55,9 @@ pub struct EmailSearchFilter {
     pub internal_date_since: Option<i64>,
     /// Upper bound (inclusive) on the IMAP server INTERNALDATE timestamp.
     pub internal_date_before: Option<i64>,
-    /// Lower bound (inclusive) on mailboxd's archival (ingest) timestamp.
+    /// Lower bound (inclusive) on Mailboxd's archival (ingest) timestamp.
     pub ingest_since: Option<i64>,
-    /// Upper bound (inclusive) on mailboxd's archival (ingest) timestamp.
+    /// Upper bound (inclusive) on Mailboxd's archival (ingest) timestamp.
     pub ingest_before: Option<i64>,
     pub account_ids: Option<HashSet<u64>>,
     pub mailbox_ids: Option<HashSet<u64>>,
@@ -82,7 +82,7 @@ pub enum SortBy {
     #[serde(rename = "INTERNAL_DATE")]
     #[cfg_attr(feature = "web-api", oai(rename = "INTERNAL_DATE"))]
     InternalDate,
-    /// Sort by mailboxd's archival (ingest) timestamp.
+    /// Sort by Mailboxd's archival (ingest) timestamp.
     #[serde(rename = "INGEST_AT")]
     #[cfg_attr(feature = "web-api", oai(rename = "INGEST_AT"))]
     IngestAt,
@@ -171,6 +171,10 @@ pub struct AttachmentSearchRequest {
     desc: Option<bool>,
 }
 impl AttachmentSearchRequest {
+    pub fn filter(&self) -> &AttachmentSearchFilter {
+        &self.filter
+    }
+
     pub fn validate(&self) -> MailboxdResult<()> {
         if self.page == 0 || self.page_size == 0 {
             return Err(raise_error!(

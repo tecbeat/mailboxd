@@ -1,4 +1,3 @@
-//
 // Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
 // Copyright (c) 2026 tecbeat
 //
@@ -18,37 +17,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::io;
-use std::net::SocketAddr;
-use std::time::Duration;
+use std::{io, net::SocketAddr, time::Duration};
 
 use base64::{prelude::BASE64_STANDARD, Engine as _};
-use mailboxd_core::account::migration::AccountType;
-use mailboxd_core::cache::imap::mailbox::{Attribute, AttributeEnum};
-use mailboxd_core::common::signal::SIGNAL_MANAGER;
-use mailboxd_core::envelope::extractor::extract_envelope_from_smtp;
-use mailboxd_core::error::MailboxdResult;
-use mailboxd_core::settings::cli::{EncryptionMode, SETTINGS};
-use mailboxd_core::utils::create_hash;
 use mailboxd_core::{
-    account::migration::AccountModel,
-    cache::imap::mailbox::MailBox,
-    common::auth::ClientContext,
+    account::migration::{AccountModel, AccountType},
+    archive::imap::mailbox::{Attribute, AttributeEnum, MailBox},
+    common::{auth::ClientContext, signal::SIGNAL_MANAGER},
+    envelope::extractor::extract_envelope_from_smtp,
+    error::MailboxdResult,
+    settings::cli::{EncryptionMode, SETTINGS},
     token::AccessTokenModel,
     users::{permissions::Permission, UserModel},
+    utils::create_hash,
 };
-use tokio::time::timeout;
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt},
     net::{TcpListener, TcpStream},
     sync::broadcast,
+    time::timeout,
 };
 use tokio_rustls::TlsAcceptor;
 
-use crate::stream::BufStream;
-use crate::tls::create_acceptor;
+use crate::{stream::BufStream, tls::create_acceptor};
 
-const MAX_MAIL_SIZE: usize = 50 * 1024 * 1024; //50MB
+const MAX_MAIL_SIZE: usize = 50 * 1024 * 1024; // 50MB
 const SMTP_IDLE_TIMEOUT: Duration = Duration::from_secs(60);
 const GLOBAL_SESSION_TIMEOUT: Duration = Duration::from_secs(600);
 
@@ -179,7 +172,7 @@ async fn handle_connection(stream: TcpStream, config: SmtpConfig) -> io::Result<
     let mut stream = BufStream::new(stream);
 
     stream
-        .write_all(b"220 localhost ESMTP (mailboxd Email Archiver)\r\n")
+        .write_all(b"220 localhost ESMTP (Mailboxd Email Archiver)\r\n")
         .await?;
     stream.flush().await?;
 
@@ -314,7 +307,7 @@ where
     }
 
     if cmd.starts_with("EHLO") || cmd.starts_with("HELO") {
-        let mut response = String::from("250-mailboxd Hello\r\n");
+        let mut response = String::from("250-Mailboxd Hello\r\n");
         response.push_str("250-SIZE 52428800\r\n"); // 50MB
         response.push_str("250-8BITMIME\r\n");
 
@@ -396,7 +389,7 @@ where
                 .await?;
         } else {
             let addr = extract_address(&trimmed[8..]);
-            //println!("DEBUG: SMTP RCPT TO extracted address -> '{}'", addr);
+            // println!("DEBUG: SMTP RCPT TO extracted address -> '{}'", addr);
             let account_result = AccountModel::find_by_email(addr.as_str());
 
             match account_result {
@@ -438,7 +431,7 @@ where
                                 addr
                             );
                             let err = format!(
-                                "550 5.7.1 <{}>: Not a mailboxd local account, journaling is not supported\r\n",
+                                "550 5.7.1 <{}>: Not a Mailboxd local account, journaling is not supported\r\n",
                                 account.email
                             );
                             stream.write_all(err.as_bytes()).await?;
@@ -449,7 +442,7 @@ where
                     }
                 }
                 Ok(None) => {
-                    let err = format!("550 5.1.1 <{}>: mailboxd account not found\r\n", addr);
+                    let err = format!("550 5.1.1 <{}>: Mailboxd account not found\r\n", addr);
                     stream.write_all(err.as_bytes()).await?;
                 }
                 Err(e) => {
@@ -496,7 +489,7 @@ where
             match parse_email(&data, session).await {
                 Ok(_) => {
                     stream
-                        .write_all(b"250 2.0.0 OK: queued in mailboxd\r\n")
+                        .write_all(b"250 2.0.0 OK: queued in Mailboxd\r\n")
                         .await?;
                     tracing::debug!(
                         "SMTP: Message accepted and archived for {} recipients",
@@ -668,6 +661,7 @@ async fn parse_email(data: &[u8], session: &Session) -> MailboxdResult<()> {
 
     extract_envelope_from_smtp(data, rcpt.id, mailbox_id)
         .await
+        .map(|_| ())
         .map_err(|e| {
             tracing::error!(
                 "SMTP: Envelope extraction failed for {}: {:?}",
