@@ -11,7 +11,7 @@ use mailboxd_core::{
         since::{DateSince, RelativeDate},
     },
     autoconfig::entity::MailServerConfig,
-    cache::imap::mailbox::Attribute,
+    archive::imap::mailbox::Attribute,
     database::batch_insert_impl,
     error::{code::ErrorCode, MailboxdError, MailboxdResult},
     raise_error,
@@ -653,7 +653,7 @@ pub struct MailBox {
     pub uid_validity: Option<u32>,
 }
 
-impl From<MailBox> for mailboxd_core::cache::imap::mailbox::MailBox {
+impl From<MailBox> for mailboxd_core::archive::imap::mailbox::MailBox {
     fn from(value: MailBox) -> Self {
         Self {
             id: value.id,
@@ -898,7 +898,7 @@ pub fn migrate_metadata(root_path: &PathBuf) -> Result<(), Box<dyn std::error::E
     migrate_collection!(
         "Mailboxes",
         MailBox,
-        mailboxd_core::cache::imap::mailbox::MailBox,
+        mailboxd_core::archive::imap::mailbox::MailBox,
         &envelope_db
     );
 
