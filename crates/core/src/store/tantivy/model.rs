@@ -30,7 +30,7 @@ use crate::{
     raise_error,
     {
         account::migration::AccountModel,
-        cache::imap::mailbox::MailBox,
+        archive::imap::mailbox::MailBox,
         error::{code::ErrorCode, MailboxdResult},
         message::content::AttachmentInfo,
         store::{
@@ -157,7 +157,7 @@ impl EnvelopeWithAttachments {
             id: extract_string_field(doc, fields.f_id, F_ID)?,
             message_id: extract_string_field(doc, fields.f_message_id, F_MESSAGE_ID)?,
             account_id,
-            account_email: Some(account.email),
+            account_email: Some(account.email), //https://git.teccave.de/tecbeat/mailboxd/issues/306
             account_name: account.account_name,
             mailbox_id,
             mailbox_name: Some(mailbox.name),
