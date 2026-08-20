@@ -29,10 +29,10 @@ use std::path::PathBuf;
 use std::sync::LazyLock;
 
 const MEMDB_DIR: &str = "memdb";
-const INDICES: &str = "mailboxd-indices";
+pub const INDICES: &str = "mailboxd-indices";
 const MAIL_METADATA: &str = "mail_metadata";
 const ATTACHMENT_METADATA: &str = "attachment_metadata";
-const STORAGE: &str = "mailboxd-storage";
+pub const STORAGE: &str = "mailboxd-storage";
 const TMP_DIR: &str = "tmp";
 const LOG_DIR: &str = "logs";
 
