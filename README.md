@@ -200,6 +200,13 @@ Prerequisites: Rust (latest stable), Node.js 20+, pnpm. Clone the repo and run `
 ## FAQ
 
 <details>
+<summary><strong>Upgrading from Bichon 2.x</strong></summary>
+
+mailboxd is a drop-in successor to Bichon 2.x and reuses the same on-disk format (storage version 2). To migrate: stop Bichon, swap the container image for mailboxd, and rename every `BICHON_*` environment variable to `MAILBOXD_*` (e.g. `BICHON_ROOT_DIR` → `MAILBOXD_ROOT_DIR`), keeping the **same** `MAILBOXD_ENCRYPT_PASSWORD` as your previous `BICHON_ENCRYPT_PASSWORD` so stored IMAP and OAuth credentials remain decryptable. Point `MAILBOXD_ROOT_DIR` at your existing Bichon data volume and start the container — on first boot mailboxd renames the `bichon-indices` and `bichon-storage` directories to `mailboxd-indices` and `mailboxd-storage` and adopts the database in place, with no re-download and no re-index. Existing users, roles, accounts and archived mail are preserved; sign in with your previous credentials. Back up the data volume before upgrading.
+
+</details>
+
+<details>
 <summary><strong>CORS errors when accessing the WebUI</strong></summary>
 
 Enable debug logging with `MAILBOXD_LOG_LEVEL=debug`, check the server logs for the incoming `Origin` header, and ensure the browser's exact origin matches an entry in `MAILBOXD_CORS_ORIGINS` (no trailing slash, no wildcards). In Docker, do not wrap the value in quotes.
