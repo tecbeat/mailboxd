@@ -60,7 +60,18 @@ impl AttachmentApi {
             } else {
                 Some(context.user.account_access_map.keys().cloned().collect())
             };
-        Ok(Json(search_attachment_impl(authorized_ids, payload.0)?))
+        let search_text = payload
+            .0
+            .filter()
+            .text
+            .clone()
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        let result = search_attachment_impl(authorized_ids, payload.0)?;
+        if !search_text.is_empty() {
+        }
+        Ok(Json(result))
     }
 
     /// Retrieves the attachment (metadata) of a specific message.

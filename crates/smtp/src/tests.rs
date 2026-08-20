@@ -25,6 +25,7 @@ use lettre::transport::smtp::client::{Tls, TlsParameters};
 use lettre::{Message, SmtpTransport, Transport};
 
 #[tokio::test]
+#[ignore = "integration: requires a live mailboxd SMTP server on 127.0.0.1:2525"]
 async fn test_smtp_archiving_flow() {
     let email = Message::builder()
         .from("tester@mailboxd.local".parse().unwrap())
@@ -52,6 +53,7 @@ async fn test_smtp_archiving_flow() {
 }
 
 #[test]
+#[ignore = "integration: requires a live mailboxd SMTP server on 127.0.0.1:2525"]
 fn test_mailboxd_smtp_logic() -> Result<(), Box<dyn Error>> {
     let smtp_host = "127.0.0.1";
     let smtp_port = 2525;

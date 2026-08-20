@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-    cache::imap::mailbox::MailBox,
+    archive::imap::mailbox::MailBox,
     error::MailboxdResult,
     store::tantivy::{attachment::ATTACHMENT_MANAGER, envelope::ENVELOPE_MANAGER},
 };

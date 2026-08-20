@@ -190,6 +190,20 @@ repo:
     **Container:** Ubuntu 24.04, Docker.
 
   faq:
+    "Upgrading from Bichon 2.x": >-
+      mailboxd is a drop-in successor to Bichon 2.x and reuses the same
+      on-disk format (storage version 2). To migrate: stop Bichon, swap the
+      container image for mailboxd, and rename every `BICHON_*` environment
+      variable to `MAILBOXD_*` (e.g. `BICHON_ROOT_DIR` → `MAILBOXD_ROOT_DIR`),
+      keeping the **same** `MAILBOXD_ENCRYPT_PASSWORD` as your previous
+      `BICHON_ENCRYPT_PASSWORD` so stored IMAP and OAuth credentials remain
+      decryptable. Point `MAILBOXD_ROOT_DIR` at your existing Bichon data
+      volume and start the container — on first boot mailboxd renames the
+      `bichon-indices` and `bichon-storage` directories to `mailboxd-indices`
+      and `mailboxd-storage` and adopts the database in place, with no
+      re-download and no re-index. Existing users, roles, accounts and
+      archived mail are preserved; sign in with your previous credentials.
+      Back up the data volume before upgrading.
     "CORS errors when accessing the WebUI": >-
       Enable debug logging with `MAILBOXD_LOG_LEVEL=debug`, check the server logs
       for the incoming `Origin` header, and ensure the browser's exact origin

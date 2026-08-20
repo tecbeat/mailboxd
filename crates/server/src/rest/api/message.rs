@@ -69,7 +69,9 @@ impl MessageApi {
         for account_id in request.keys() {
             context.require_permission(Some(*account_id), Permission::DATA_DELETE)?;
         }
-        Ok(delete_messages_impl(request).await?)
+        let result = delete_messages_impl(request).await;
+        result?;
+        Ok(())
     }
 
     /// Searches messages across all mailboxes using various filter criteria.
@@ -90,7 +92,8 @@ impl MessageApi {
             } else {
                 Some(context.user.account_access_map.keys().cloned().collect())
             };
-        Ok(Json(search_messages_impl(authorized_ids, payload.0)?))
+        let result = search_messages_impl(authorized_ids, payload.0)?;
+        Ok(Json(result))
     }
 
     /// Retrieves all messages belonging to a specific thread. Requires `thread_id`, `page`, and `page_size` query parameters.
@@ -143,11 +146,9 @@ impl MessageApi {
         let account_id = account_id.0;
         let block_remote = block_remote_content.0.unwrap_or(false);
         context.require_permission(Some(account_id), Permission::DATA_READ)?;
-        Ok(Json(retrieve_email_content(
-            account_id,
-            envelope_id.0,
-            block_remote,
-        )?))
+        let envelope_id = envelope_id.0.trim().to_string();
+        let content = retrieve_email_content(account_id, envelope_id, block_remote)?;
+        Ok(Json(content))
     }
 
     /// Retrieves the content of an email embedded as an attachment.
@@ -274,7 +275,7 @@ impl MessageApi {
         AccountModel::check_account_exists(account_id)?;
         context.require_permission(Some(account_id), Permission::DATA_READ)?;
         let content_hash = content_hash.0.trim();
-        let reader = retrieve_attachment_content(account_id, envelope_id, content_hash)?;
+        let reader = retrieve_attachment_content(account_id, envelope_id.clone(), content_hash)?;
         let body = Body::from_async_read(reader);
         let attachment = Attachment::new(body)
             .attachment_type(AttachmentType::Attachment)
@@ -304,7 +305,7 @@ impl MessageApi {
         AccountModel::check_account_exists(account_id)?;
         context.require_permission(Some(account_id), Permission::DATA_READ)?;
         let content_hash = content_hash.0.trim();
-        let reader = retrieve_attachment_content(account_id, envelope_id, content_hash)?;
+        let reader = retrieve_attachment_content(account_id, envelope_id.clone(), content_hash)?;
         let body = Body::from_async_read(reader);
         Ok(Attachment::new(body).attachment_type(AttachmentType::Inline))
     }
@@ -334,7 +335,7 @@ impl MessageApi {
         let nested_content_hash = nested_content_hash.0.trim();
         let reader = retrieve_nested_attachment_content(
             account_id,
-            envelope_id,
+            envelope_id.clone(),
             content_hash,
             nested_content_hash,
         )?;
