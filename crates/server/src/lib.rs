@@ -27,13 +27,13 @@ use std::sync::LazyLock;
 
 use mailboxd_core::{
     mailboxd_version,
-    cache::imap::task::SYNC_TASKS,
+    archive::imap::task::SYNC_TASKS,
     common::{rustls::MailboxdTls, signal::SignalManager},
     context::{executors::MailboxdContext, Initialize},
     database::manager::DB_MANAGER,
     error::{code::ErrorCode, MailboxdResult},
     logger,
-    migrate::check_data_status,
+    migrate::{check_data_status, migrate_bichon_layout},
     raise_error,
     settings::{cli::SETTINGS, dir::DataDirManager},
     store::{
@@ -61,6 +61,11 @@ pub async fn run() -> MailboxdResult<()> {
     info!("Starting mailboxd-server");
     info!("Version:  {}", mailboxd_version!());
     info!("Git:      [{}]", env!("GIT_HASH"));
+
+    if let Err(e) = migrate_bichon_layout() {
+        error!("Failed to migrate Bichon data layout: {:#?}", e);
+        return Err(raise_error!(format!("{:#?}", e), ErrorCode::InternalError));
+    }
 
     match check_data_status() {
         Ok(false) => {

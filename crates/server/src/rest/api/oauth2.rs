@@ -83,7 +83,9 @@ impl OAuth2Api {
         context: WrappedContext,
     ) -> ApiResult<()> {
         context.require_permission(None, Permission::ROOT)?;
-        Ok(OAuth2::delete(id.0)?)
+        let id = id.0;
+        OAuth2::delete(id)?;
+        Ok(())
     }
 
     /// Creates a new OAuth2 configuration.
@@ -103,7 +105,8 @@ impl OAuth2Api {
     ) -> ApiResult<()> {
         context.require_permission(None, Permission::ROOT)?;
         let entity = OAuth2::new(request.0)?;
-        Ok(entity.save()?)
+        entity.save()?;
+        Ok(())
     }
 
     /// Updates an existing OAuth2 configuration.
@@ -124,7 +127,9 @@ impl OAuth2Api {
         context: WrappedContext,
     ) -> ApiResult<()> {
         context.require_permission(None, Permission::ROOT)?;
-        Ok(OAuth2::update(id.0, payload.0)?)
+        let id = id.0;
+        OAuth2::update(id, payload.0)?;
+        Ok(())
     }
 
     /// Lists OAuth2 configurations with pagination and sorting options.
@@ -210,19 +215,19 @@ impl OAuth2Api {
     /// Configures an external OAuth2 token for a specified account.
     ///
     /// This endpoint allows two usage modes:
-    /// 1. If only an `access_token` is provided, mailboxd will store it directly.
-    ///    - In this mode, mailboxd **cannot refresh** the token, since it has no
+    /// 1. If only an `access_token` is provided, Mailboxd will store it directly.
+    ///    - In this mode, Mailboxd **cannot refresh** the token, since it has no
     ///      associated OAuth2 configuration or refresh token.
     ///    - The caller is responsible for periodically updating the access token
     ///      by calling this endpoint again.
     /// 2. If both `oauth2_id` and `refresh_token` are provided, it means the external
-    ///    OAuth2 authorization flow has been completed outside mailboxd.
+    ///    OAuth2 authorization flow has been completed outside Mailboxd.
     ///    - Since the OAuth2 configuration (including client_id and client_secret)
-    ///      is already stored in mailboxd, the service can use the refresh token
+    ///      is already stored in Mailboxd, the service can use the refresh token
     ///      to obtain new access tokens automatically.
     ///
     /// Note: The `oauth2_id` must reference a valid OAuth2 configuration
-    /// already created in mailboxd.
+    /// already created in Mailboxd.
     #[oai(
         path = "/store-external-oauth2-token/:account_id",
         method = "post",

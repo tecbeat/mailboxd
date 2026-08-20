@@ -26,10 +26,10 @@ use mailboxd_core::account::migration::{AccountModel, AccountType};
 use mailboxd_core::account::payload::{
     filter_accessible_accounts, AccountCreateRequest, AccountUpdateRequest, MinimalAccount,
 };
-use mailboxd_core::account::state::DownloadState;
+use mailboxd_core::account::state::{DownloadState, GapFillState};
 use mailboxd_core::account::stats::AccountStats;
 use mailboxd_core::account::view::AccountResp;
-use mailboxd_core::cache::imap::task::SYNC_TASKS;
+use mailboxd_core::archive::imap::task::SYNC_TASKS;
 use mailboxd_core::common::paginated::{paginate_vec, DataPage};
 use mailboxd_core::error::code::ErrorCode;
 use mailboxd_core::raise_error;
@@ -39,9 +39,21 @@ use mailboxd_core::users::UserModel;
 use poem_openapi::param::{Path, Query};
 use poem_openapi::payload::Json;
 use poem_openapi::OpenApi;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 pub struct AccountApi;
+
+/// Request body for `POST /accounts/:account_id/start-download`.
+/// `Default` keeps the handler working for older clients that send no body.
+#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize, poem_openapi::Object)]
+pub struct StartDownloadRequest {
+    /// When true, run the gap-fill phase (enumerate all UIDs in the download
+    /// folders and download anything missing locally) after the incremental
+    /// sync. Defaults to false; omitted by older clients.
+    #[serde(default)]
+    pub run_gap_fill: bool,
+}
 
 #[OpenApi(prefix_path = "/api/v1", tag = "ApiTags::Account")]
 impl AccountApi {
@@ -109,7 +121,8 @@ impl AccountApi {
     ) -> ApiResult<()> {
         let account_id = account_id.0;
         context.require_permission(Some(account_id), Permission::ACCOUNT_MANAGE)?;
-        Ok(AccountModel::update(account_id, payload.0, true)?)
+        AccountModel::update(account_id, payload.0, true)?;
+        Ok(())
     }
 
     /// List accounts with optional pagination parameters
@@ -198,6 +211,30 @@ impl AccountApi {
         Ok(Json(state))
     }
 
+    /// Get the gap-fill history of an account (independent of download sessions)
+    #[oai(
+        path = "/accounts/:account_id/gap-fill-stats",
+        method = "get",
+        operation_id = "accounts_gap_fill_state"
+    )]
+    async fn accounts_gap_fill_state(
+        &self,
+        /// The account ID to check gap-fill state for
+        account_id: Path<u64>,
+        context: WrappedContext,
+    ) -> ApiResult<Json<GapFillState>> {
+        let account_id = account_id.0;
+        AccountModel::check_account_exists(account_id)?;
+        context.require_permission(Some(account_id), Permission::ACCOUNT_READ_DETAILS)?;
+        let state = GapFillState::get(account_id)?;
+        let state = state.unwrap_or(GapFillState {
+            account_id,
+            active: None,
+            history: Vec::new(),
+        });
+        Ok(Json(state))
+    }
+
     /// Start a manual download task for an account
     #[oai(
         path = "/accounts/:account_id/start-download",
@@ -208,6 +245,7 @@ impl AccountApi {
         &self,
         /// The account ID to start download for
         account_id: Path<u64>,
+        body: Json<StartDownloadRequest>,
         context: WrappedContext,
     ) -> ApiResult<()> {
         let account_id = account_id.0;
@@ -219,7 +257,7 @@ impl AccountApi {
             ))?;
         }
         context.require_permission(Some(account_id), Permission::ACCOUNT_MANAGE)?;
-        SYNC_TASKS.start_manual_task(account_id).await?;
+        SYNC_TASKS.start_manual_task(account_id, body.run_gap_fill).await?;
         Ok(())
     }
 
@@ -308,8 +346,9 @@ impl AccountApi {
         req: Json<BatchAccountRoleRequest>,
         context: WrappedContext,
     ) -> ApiResult<()> {
+        let req = req.0;
         req.validate_existence()?;
-        req.0.do_assign(&context)?;
+        req.do_assign(&context)?;
         Ok(())
     }
 }
