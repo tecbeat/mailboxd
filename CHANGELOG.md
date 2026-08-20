@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.1.1) - 2026-08-20
+
+### 🐛 Bug Fixes
+
+- *(deps)* Pin rust crate tempfile to =3.27.0 - ([ebd2b81](https://git.teccave.de/tecbeat/mailboxd/commit/ebd2b81e8f2bbdc18680621dace60ceb477f5f74))
+
+## [1.1.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.1.0) - 2026-08-20
+
+### ⛰️  Features
+
+- *(blob)* Port upstream redb-backed blob storage engine rewrite - ([ea3d727](https://git.teccave.de/tecbeat/mailboxd/commit/ea3d727124c36cac3fa517384b7e0bb422dc99ba))
+- *(import)* Port import module changes from upstream 2.0.1 - ([097413a](https://git.teccave.de/tecbeat/mailboxd/commit/097413a60c21dbff5dae5be6b473a24baf4ab753))
+- *(migrate)* Adopt Bichon 2.x data volume on startup - ([98cf03e](https://git.teccave.de/tecbeat/mailboxd/commit/98cf03e4c582abdac73402b14076c98123f4d795))
+- *(server)* Port REST API and build script from upstream 2.0.1 - ([7318bea](https://git.teccave.de/tecbeat/mailboxd/commit/7318bea5c877a2ab9280341640d66613a9d3e1aa))
+- *(settings)* Add imap_timeout_seconds and archive dir from upstream 2.0.1 - ([2201e6d](https://git.teccave.de/tecbeat/mailboxd/commit/2201e6d7ae31990d286d1af415e94c9954903d45))
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies - ([cea4f04](https://git.teccave.de/tecbeat/mailboxd/commit/cea4f048a343ce1edec36ea3e7ba6713c79220a6))
+
+### 🚜 Refactor
+
+- *(admin)* Move migration engine from core to admin crate - ([80acca1](https://git.teccave.de/tecbeat/mailboxd/commit/80acca13f7505b796c2376a9e8e5b1e0ff0a05cb))
+- *(core)* Rename cache module to archive and overhaul IMAP sync - ([11d7e9f](https://git.teccave.de/tecbeat/mailboxd/commit/11d7e9f6900c939e56da1ef0c615accebbbc7be5))
+
+### 📚 Documentation
+
+- *(config)* Add Bichon-to-mailboxd migration guide to README FAQ - ([ce6c430](https://git.teccave.de/tecbeat/mailboxd/commit/ce6c4306dd0abe3feca260ef2bca059eea93e27a))
+
+### 🧪 Testing
+
+- Mark network- and SMTP-integration tests as ignored - ([e2a1bec](https://git.teccave.de/tecbeat/mailboxd/commit/e2a1becd35623ef58d83c8bf2d9e8619c3d21caa))
+- Fix rand 0.10 API and remove Bichon developer scratchpad tests - ([2cc1195](https://git.teccave.de/tecbeat/mailboxd/commit/2cc1195b8058a0e87754d9f5d24128a66f56b593))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update Cargo.lock for 2.0.1 backend port - ([f919536](https://git.teccave.de/tecbeat/mailboxd/commit/f91953686f6a623b0b77d8d93adacdd22f258d3a))
+- *(server)* Gate frontend build on embed-web feature so cargo_test runs without pnpm - ([6a5cd74](https://git.teccave.de/tecbeat/mailboxd/commit/6a5cd748785417331e0c025b0054a9e4567e144e))
+- Add cargo_test job to run workspace unit tests on every push - ([d531317](https://git.teccave.de/tecbeat/mailboxd/commit/d5313173e56a2d683016f1dc998ad62fffe914ed))
+
 ## [1.0.8](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.0.8) - 2026-08-17
 
 ### 🐛 Bug Fixes
