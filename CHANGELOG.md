@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.2.1) - 2026-08-21
+
+### 🐛 Bug Fixes
+
+- Correct migration-guide wiki URL printed after v1 migration - ([2143f08](https://git.teccave.de/tecbeat/mailboxd/commit/2143f08661f26aed2dbfc03ed46f56b77c639e3e))
+
+## [1.2.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.2.0) - 2026-08-21
+
+### 🐛 Bug Fixes
+
+- *(admin)* Auto-migrate legacy storage to v2 on startup - ([f20ae72](https://git.teccave.de/tecbeat/mailboxd/commit/f20ae72d3ef9ac1fd70a308fedc9e7aa0cad7d2d))
+- *(docker)* Run storage auto-migration before starting server - ([4aeedde](https://git.teccave.de/tecbeat/mailboxd/commit/4aeedded0714393ad7a8dd01e1c108fe21bcdd23))
+
+### 🚜 Refactor
+
+- *(core)* Extract path-parameterized adopt_bichon_layout - ([26e5a58](https://git.teccave.de/tecbeat/mailboxd/commit/26e5a58471f1989f8e5ad27f316020f3951687f5))
+
+### 📚 Documentation
+
+- Correct v2 storage default paths in config.yml - ([b3565d6](https://git.teccave.de/tecbeat/mailboxd/commit/b3565d64d674d79a12b27078237e80d736a15f7f))
+- Link the project wiki from the README - ([45ba560](https://git.teccave.de/tecbeat/mailboxd/commit/45ba560d6ec296c0e642ad0b9ddf2e056a84ff6d))
+- Correct v2 blob storage description and document auto-migration - ([ad741de](https://git.teccave.de/tecbeat/mailboxd/commit/ad741de1ef120329c643ec204be1cecab913947f))
+
+### ⚙️ Miscellaneous Tasks
+
+- Add image-based integration and update tests - ([8adbb2d](https://git.teccave.de/tecbeat/mailboxd/commit/8adbb2d1fdd3f50b5914cb0bbd1305eacc60c451))
+- Add dedicated migration test job to pipeline - ([9ea6918](https://git.teccave.de/tecbeat/mailboxd/commit/9ea6918efb05db488b704e5cb4ea886dab4bf355))
+
 ## [1.1.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.1.1) - 2026-08-20
 
 ### 🐛 Bug Fixes
