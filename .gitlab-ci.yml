@@ -33,3 +33,42 @@ cargo_test:
     - cargo test --workspace --locked --no-default-features
   tags:
     - teccave
+
+# Storage-migration coverage as a first-class, visible gate. `cargo_test`
+# already runs these as part of the workspace, but a half-broken migration is
+# critical enough (it decides whether an existing install can boot at all) to
+# warrant an explicit, deterministic run whose failure is unambiguous.
+#
+# Single-threaded on purpose: the fixtures open real on-disk redb / Tantivy /
+# mailboxd-blob stores, so serial execution keeps them independent and
+# reproducible. Reuses the build cache produced by `cargo_test` to avoid a
+# second full workspace compile.
+migration_tests:
+  stage: unittest
+  image: rust:1.97.1-slim-bookworm@sha256:2775a09d208ff0d7c1f50490c45b62db929e87ba1dcbc3f2132ac71a704bcdd3
+  needs:
+    - cargo_test
+  variables:
+    CARGO_TERM_COLOR: always
+    CARGO_INCREMENTAL: "0"
+  cache:
+    key:
+      files:
+        - Cargo.lock
+    paths:
+      - .cargo/registry/cache
+      - .cargo/registry/index
+      - target
+    policy: pull
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates git
+    - rm -rf /var/lib/apt/lists/*
+  script:
+    # v1.x fjall -> v2, v0.3.7 Tantivy -> v2 (incl. a byte-identical
+    # end-to-end fixture), and the guard/idempotency cases.
+    - cargo test -p mailboxd-admin --locked --no-default-features migrate -- --test-threads=1 --nocapture
+    # Bichon layout adoption (bichon-* -> mailboxd-*) and the shared core helpers.
+    - cargo test -p mailboxd-core --locked --no-default-features migrate -- --test-threads=1
+  tags:
+    - teccave
