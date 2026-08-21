@@ -13,8 +13,9 @@ repo:
     mailboxd is a self-hosted email archiving server built in Rust and a fork of
     Bichon by rustmailer.com. It concurrently downloads mail from any number of
     IMAP accounts (password or OAuth 2.0), deduplicates content via BLAKE3, indexes
-    everything with Tantivy full-text search, and stores raw blobs in an
-    LZ4-compressed LSM tree. Access is via a documented REST API and an embedded
+    everything with Tantivy full-text search, and stores raw message content in
+    an embedded, content-addressed blob store with Zstd compression. Access is
+    via a documented REST API and an embedded
     React WebUI localised into 18 languages. Distributed under AGPL-3.0-or-later.
 
   command: "docker compose up -d"
@@ -35,7 +36,7 @@ repo:
     Attachment search: "Browse and filter attachments by sender, file type, size and other attachment properties."
     Faceted tags: "Add, remove or overwrite tags on messages and attachments; filter by tag combinations with real-time count updates."
     Contacts view: "Extracted and deduplicated sender/recipient address book across all authorised accounts."
-    Three-layer storage: "memdb for relational metadata, Tantivy for full-text indexing and Fjall (LZ4) for content-addressed blob storage — all embedded, no external dependencies."
+    Three-layer storage: "memdb for relational metadata, Tantivy for full-text indexing and mailboxd-blob (embedded, content-addressed, Zstd-compressed) for raw message and attachment storage — all embedded, no external dependencies."
     Content deduplication: "BLAKE3 content hashing gives insert-time deduplication across accounts and folders. Folder moves update metadata only."
     Dashboard analytics: "Email volume trends, top senders, storage usage breakdown, attachment statistics and per-account activity — scoped by user permissions."
     OpenAPI 3.0: "All endpoints documented and browsable via Swagger UI, ReDoc and Scalar. Long-lived API tokens for programmatic access."
@@ -59,10 +60,10 @@ repo:
       MAILBOXD_ENCRYPT_PASSWORD_FILE:
         description: "Read the encryption password from a file. If both are set, `MAILBOXD_ENCRYPT_PASSWORD` takes precedence."
       MAILBOXD_INDEX_DIR:
-        default: "{root}/envelope"
+        default: "{root}/mailboxd-indices"
         description: "Tantivy full-text index directory. Place on fast SSD."
       MAILBOXD_DATA_DIR:
-        default: "{root}/eml"
+        default: "{root}/mailboxd-storage"
         description: "Blob storage directory. Can live on high-capacity HDD."
 
     Server & Networking:
@@ -187,7 +188,7 @@ repo:
   stack: >-
     **Backend:** Rust, Tokio, Poem + Poem OpenAPI.
     **Full-text search:** Tantivy (Zstd compression).
-    **Blob storage:** Fjall (LZ4-compressed LSM tree, BLAKE3 dedup).
+    **Blob storage:** mailboxd-blob (embedded content-addressed store, Zstd compression, BLAKE3 dedup).
     **Metadata DB:** memdb (embedded key-value store with WAL).
     **IMAP:** async-imap, rustls (ring), SOCKS5 proxy support.
     **SMTP/IMAP servers:** embedded (AUTH PLAIN/LOGIN, STARTTLS/TLS).
@@ -211,6 +212,20 @@ repo:
       re-download and no re-index. Existing users, roles, accounts and
       archived mail are preserved; sign in with your previous credentials.
       Back up the data volume before upgrading.
+    "Upgrading from an older data layout (storage v1 or v0.3.7)": >-
+      Older installs used earlier on-disk layouts — the fjall-based v1.x blob
+      storage (Bichon 1.x era) or the Tantivy-based v0.3.7 layout. mailboxd
+      migrates these to the current v2 layout automatically on first boot: the
+      container runs the migration **before** starting the server, with no
+      operator interaction. The migration is non-destructive and idempotent —
+      it reads the legacy data, writes the v2 store alongside it and records a
+      `STORAGE_VERSION` marker — so it is a no-op on volumes already on v2 and
+      safe to run on every start. Just swap the image for the new version and
+      start the container. If migration fails the container refuses to start
+      rather than run the server against half-converted data; check the
+      `[auto-migrate]` log lines. A partially-completed v0.3.7 migration is not
+      resumed automatically — run the interactive `mailboxd-admin` tool in that
+      case. **Back up the data volume before upgrading.**
     "CORS errors when accessing the WebUI": >-
       Enable debug logging with `MAILBOXD_LOG_LEVEL=debug`, check the server logs
       for the incoming `Origin` header, and ensure the browser's exact origin

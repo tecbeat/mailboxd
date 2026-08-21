@@ -33,15 +33,27 @@ pub fn migrate_bichon_layout() -> std::io::Result<()> {
         .as_ref()
         .map(PathBuf::from)
         .unwrap_or_else(|| root_dir.clone());
-    adopt_legacy_dir(&index_base.join(BICHON_INDICES), &index_base.join(INDICES))?;
 
     let data_base = SETTINGS
         .mailboxd_data_dir
         .as_ref()
         .map(PathBuf::from)
         .unwrap_or_else(|| root_dir.clone());
-    adopt_legacy_dir(&data_base.join(BICHON_STORAGE), &data_base.join(STORAGE))?;
 
+    adopt_bichon_layout(&index_base, &data_base)
+}
+
+/// Rename Bichon's top-level `bichon-indices` / `bichon-storage` directories to
+/// the mailboxd names under the given base directories.
+///
+/// This is the path-parameterized core of [`migrate_bichon_layout`]. It is
+/// shared with the admin binary's unattended startup migration so that the
+/// server startup path and the pre-server migration adopt a Bichon volume
+/// identically. Idempotent: does nothing if the mailboxd-named directory
+/// already exists or no Bichon directory is present.
+pub fn adopt_bichon_layout(index_base: &Path, data_base: &Path) -> std::io::Result<()> {
+    adopt_legacy_dir(&index_base.join(BICHON_INDICES), &index_base.join(INDICES))?;
+    adopt_legacy_dir(&data_base.join(BICHON_STORAGE), &data_base.join(STORAGE))?;
     Ok(())
 }
 
