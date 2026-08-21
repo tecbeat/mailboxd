@@ -1,8 +1,13 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use mailboxd_core::{
     error::{code::ErrorCode, MailboxdResult},
-    migrate::{is_tantivy_index_dir, write_storage_version},
+    migrate::{
+        is_tantivy_index_dir, read_storage_version, write_storage_version, CURRENT_STORAGE_VERSION,
+    },
     raise_error,
 };
 use console::style;
@@ -51,6 +56,167 @@ pub fn count_eml_segments(legacy: &LegacyDirs) -> MailboxdResult<usize> {
         .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
     let searcher = reader.searcher();
     Ok(searcher.segment_readers().len())
+}
+
+/// Resolved source and destination directories for a v0.3.7 → v2 migration.
+///
+/// The derivation matches both the interactive tool and
+/// [`mailboxd_core::migrate::check_data_status`]: the legacy Tantivy indices
+/// default to `root/envelope` and `root/eml`, and the new layout is written to
+/// `<base>/mailboxd-indices` and `<base>/mailboxd-storage`, where `<base>` is
+/// the corresponding `MAILBOXD_INDEX_DIR` / `MAILBOXD_DATA_DIR` if set, else the
+/// root directory.
+pub struct V037Paths {
+    pub root: PathBuf,
+    pub legacy_index: PathBuf,
+    pub legacy_data: PathBuf,
+    pub new_index: PathBuf,
+    pub new_data: PathBuf,
+}
+
+impl V037Paths {
+    pub fn derive(root: &Path, index_dir: Option<&Path>, data_dir: Option<&Path>) -> Self {
+        let legacy_index = index_dir
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| root.join("envelope"));
+        let legacy_data = data_dir
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| root.join("eml"));
+        let new_index = index_dir
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| root.to_path_buf())
+            .join("mailboxd-indices");
+        let new_data = data_dir
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| root.to_path_buf())
+            .join("mailboxd-storage");
+        Self {
+            root: root.to_path_buf(),
+            legacy_index,
+            legacy_data,
+            new_index,
+            new_data,
+        }
+    }
+}
+
+/// Result of a successful [`migrate_v037_to_v2`] run.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct V037Outcome {
+    pub migrated: usize,
+    pub skipped: usize,
+}
+
+/// Return `true` if `path` is a directory that contains at least one entry.
+fn dir_has_entries(path: &Path) -> MailboxdResult<bool> {
+    if !path.is_dir() {
+        return Ok(false);
+    }
+    let mut entries = std::fs::read_dir(path)
+        .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+    Ok(entries.next().is_some())
+}
+
+/// Non-interactive, guarded migration of a legacy v0.3.7 Tantivy layout to the
+/// v2 mailboxd-blob layout. This is the shared engine behind the server's
+/// unattended startup migration; the interactive [`handle_migration_v037`]
+/// keeps its own prompts and per-segment progress reporting.
+///
+/// Returns `Ok(None)` when there is nothing to do (already on v2, or no legacy
+/// v0.3.7 layout is present, so the caller can try another migration).
+///
+/// Unlike the fjall v1 migration this conversion is **not** re-runnable against
+/// its own output — re-ingesting would duplicate Tantivy documents — so it only
+/// runs on a clean legacy volume and writes `STORAGE_VERSION = 2` as its final,
+/// committing step. If v2 target artifacts already exist without that marker
+/// (an interrupted earlier run), it refuses with an error rather than risk a
+/// doubled or partial migration; such a volume must be resolved with the
+/// interactive tool.
+pub fn migrate_v037_to_v2(
+    paths: &V037Paths,
+    batch_size: u32,
+) -> MailboxdResult<Option<V037Outcome>> {
+    // Already migrated, or a fresh v2 install.
+    if read_storage_version(&paths.root).is_some_and(|v| v >= CURRENT_STORAGE_VERSION) {
+        return Ok(None);
+    }
+
+    // Not a v0.3.7 layout — let the caller try other migrations.
+    let is_legacy = is_legacy_data_layout_with_paths(&paths.legacy_index, &paths.legacy_data)
+        .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+    if !is_legacy {
+        return Ok(None);
+    }
+
+    // A v2 target already exists without a completion marker: either an
+    // interrupted earlier migration or an unexpected mixed layout. Re-running
+    // the ingest would double the Tantivy documents, so refuse and defer to the
+    // interactive tool rather than corrupt data unattended.
+    let blob_dir = paths.new_data.join("blobs");
+    if blob_dir.exists()
+        || dir_has_entries(&paths.new_index)?
+        || dir_has_entries(&paths.root.join("memdb"))?
+    {
+        return Err(raise_error!(
+            format!(
+                "v0.3.7 auto-migration aborted: v2 target artifacts already exist \
+                 (blobs at '{}', new indices at '{}', or a memdb directory). This looks \
+                 like an interrupted migration — resolve it with `mailboxd-admin` \
+                 interactively.",
+                blob_dir.display(),
+                paths.new_index.display()
+            ),
+            ErrorCode::InternalError
+        ));
+    }
+
+    // Step 1: metadata (meta.db + mailbox.db → memdb).
+    crate::meta::migrate_metadata(&paths.root).map_err(|e| {
+        raise_error!(
+            format!("v0.3.7 metadata migration failed: {e}"),
+            ErrorCode::InternalError
+        )
+    })?;
+
+    // Step 2: email index + blob data, segment by segment. Reuses the exact
+    // per-segment engine the interactive tool drives, with a callback that only
+    // tallies the final per-segment counts.
+    let legacy = LegacyDirs::new(paths.legacy_index.clone(), paths.legacy_data.clone());
+    let total_segments = count_eml_segments(&legacy)?;
+
+    let mut writer =
+        NewIndexWriterV2::open(NewDirs::new(paths.new_index.clone(), paths.new_data.clone()))?;
+
+    let mut migrated = 0usize;
+    let mut skipped = 0usize;
+    for seg_idx in 0..total_segments {
+        let legacy = LegacyDirs::new(paths.legacy_index.clone(), paths.legacy_data.clone());
+        do_migrate_segment_v2(batch_size, legacy, &mut writer, seg_idx, |msg| {
+            if let Some(done) = msg.strip_prefix("DONE:") {
+                let mut parts = done.split(':');
+                migrated += parts
+                    .next()
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(0);
+                skipped += parts
+                    .next()
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(0);
+            }
+        })?;
+    }
+
+    writer.finish_writers()?;
+    writer.shutdown_engine()?;
+
+    write_storage_version(&paths.root, CURRENT_STORAGE_VERSION).map_err(|e| {
+        raise_error!(
+            format!("failed to write STORAGE_VERSION: {e:#?}"),
+            ErrorCode::InternalError
+        )
+    })?;
+
+    Ok(Some(V037Outcome { migrated, skipped }))
 }
 
 pub fn handle_migration_v037(theme: &ColorfulTheme) {
@@ -688,4 +854,222 @@ where
 
     on_progress(&format!("DONE:{}:{}", total_migrated, total_skipped));
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Fabricate a directory that `is_tantivy_index_dir` accepts as a Tantivy
+    /// index: a `meta.json` plus at least three files with Tantivy extensions.
+    /// Contents are irrelevant — only the file names are inspected.
+    fn fake_tantivy_dir(path: &Path) {
+        std::fs::create_dir_all(path).unwrap();
+        std::fs::write(path.join("meta.json"), b"{}").unwrap();
+        std::fs::write(path.join("00000000000000000000000000000000.store"), b"").unwrap();
+        std::fs::write(path.join("00000000000000000000000000000000.term"), b"").unwrap();
+        std::fs::write(path.join("00000000000000000000000000000000.idx"), b"").unwrap();
+    }
+
+    // ── V037Paths::derive ─────────────────────────────────────────────
+
+    #[test]
+    fn derive_uses_root_defaults_when_no_env_dirs() {
+        let root = PathBuf::from("/data");
+        let paths = V037Paths::derive(&root, None, None);
+        assert_eq!(paths.root, root);
+        assert_eq!(paths.legacy_index, root.join("envelope"));
+        assert_eq!(paths.legacy_data, root.join("eml"));
+        assert_eq!(paths.new_index, root.join("mailboxd-indices"));
+        assert_eq!(paths.new_data, root.join("mailboxd-storage"));
+    }
+
+    #[test]
+    fn derive_honours_explicit_index_and_data_dirs() {
+        let root = PathBuf::from("/data");
+        let index_dir = PathBuf::from("/idx");
+        let data_dir = PathBuf::from("/store");
+        let paths = V037Paths::derive(&root, Some(&index_dir), Some(&data_dir));
+        // The legacy Tantivy indices sit at the given dirs directly …
+        assert_eq!(paths.legacy_index, index_dir);
+        assert_eq!(paths.legacy_data, data_dir);
+        // … and the new layout is written beneath them, matching the
+        // interactive tool and the runtime's directory manager.
+        assert_eq!(paths.new_index, index_dir.join("mailboxd-indices"));
+        assert_eq!(paths.new_data, data_dir.join("mailboxd-storage"));
+    }
+
+    // ── dir_has_entries ───────────────────────────────────────────────
+
+    #[test]
+    fn dir_has_entries_detects_content_and_absence() {
+        let tmp = tempfile::tempdir().unwrap();
+        let empty = tmp.path().join("empty");
+        std::fs::create_dir_all(&empty).unwrap();
+        assert!(!dir_has_entries(&empty).unwrap());
+        assert!(!dir_has_entries(&tmp.path().join("missing")).unwrap());
+
+        std::fs::write(empty.join("x"), b"y").unwrap();
+        assert!(dir_has_entries(&empty).unwrap());
+    }
+
+    // ── migrate_v037_to_v2 guards ─────────────────────────────────────
+
+    #[test]
+    fn migrate_v037_is_noop_when_already_v2() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_path_buf();
+        write_storage_version(&root, CURRENT_STORAGE_VERSION).unwrap();
+        // A legacy layout present alongside a v2 marker must not tempt a
+        // re-migration.
+        fake_tantivy_dir(&root.join("envelope"));
+        fake_tantivy_dir(&root.join("eml"));
+
+        let paths = V037Paths::derive(&root, None, None);
+        assert_eq!(migrate_v037_to_v2(&paths, 100).unwrap(), None);
+    }
+
+    #[test]
+    fn migrate_v037_is_noop_when_no_legacy_layout() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_path_buf();
+        // Fresh volume: no envelope/eml Tantivy indices.
+        let paths = V037Paths::derive(&root, None, None);
+        assert_eq!(migrate_v037_to_v2(&paths, 100).unwrap(), None);
+    }
+
+    #[test]
+    fn migrate_v037_refuses_when_v2_target_already_exists() {
+        // A legacy layout is present, but a `blobs/` directory already exists
+        // and no STORAGE_VERSION marker was written — the signature of an
+        // interrupted migration. Auto-migration must refuse rather than
+        // re-ingest and double the Tantivy documents.
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_path_buf();
+        fake_tantivy_dir(&root.join("envelope"));
+        fake_tantivy_dir(&root.join("eml"));
+        std::fs::create_dir_all(root.join("mailboxd-storage").join("blobs")).unwrap();
+
+        let paths = V037Paths::derive(&root, None, None);
+        let err = migrate_v037_to_v2(&paths, 100).unwrap_err();
+        assert!(
+            err.to_string().contains("interrupted migration"),
+            "unexpected error: {err}"
+        );
+    }
+
+    // ── full v0.3.7 → v2 happy path ───────────────────────────────────
+
+    const SAMPLE_EML: &[u8] = b"From: alice@example.com\r\n\
+To: bob@example.com\r\n\
+Subject: Legacy migration test\r\n\
+Date: Mon, 1 Jan 2024 00:00:00 +0000\r\n\
+Message-ID: <legacy-1@example.com>\r\n\
+\r\n\
+Body of a v0.3.7 archived message.\r\n";
+
+    /// Build a realistic legacy v0.3.7 volume at `root`: empty native_db
+    /// `meta.db`/`mailbox.db` (so the metadata pre-flight passes) plus a
+    /// legacy `eml` and `envelope` Tantivy index each holding one message.
+    /// Returns the content hash the migration must key the email blob under.
+    fn seed_v037_volume(root: &Path) -> String {
+        use crate::legacy::schema::SchemaTools;
+        use mailboxd_core::utils::compute_content_hash;
+
+        // Empty legacy metadata databases (native_db / redb files). Dropped
+        // immediately so the migration can reopen them.
+        {
+            let db = native_db::Builder::new()
+                .create(&crate::meta::META_MODELS, root.join("meta.db"))
+                .unwrap();
+            drop(db);
+            let db = native_db::Builder::new()
+                .create(&crate::meta::MAILBOX_MODELS, root.join("mailbox.db"))
+                .unwrap();
+            drop(db);
+        }
+
+        let eid: u64 = 42;
+        let account_id: u64 = 7;
+        let mailbox_id: u64 = 3;
+
+        // Legacy EML index (raw message bytes live in Tantivy here).
+        {
+            let ef = SchemaTools::eml_fields();
+            std::fs::create_dir_all(root.join("eml")).unwrap();
+            let index =
+                tantivy::Index::create_in_dir(root.join("eml"), SchemaTools::eml_schema()).unwrap();
+            let mut w = index.writer_with_num_threads(1, 50_000_000).unwrap();
+            let mut d = tantivy::TantivyDocument::default();
+            d.add_field_value(ef.f_id, &eid);
+            d.add_field_value(ef.f_account_id, &account_id);
+            d.add_field_value(ef.f_mailbox_id, &mailbox_id);
+            d.add_field_value(ef.f_eml, &SAMPLE_EML.to_vec());
+            w.add_document(d).unwrap();
+            w.commit().unwrap();
+        }
+
+        // Legacy envelope index (uid + internal_date keyed by the same eid).
+        {
+            let ev = SchemaTools::envelope_fields();
+            std::fs::create_dir_all(root.join("envelope")).unwrap();
+            let index =
+                tantivy::Index::create_in_dir(root.join("envelope"), SchemaTools::envelope_schema())
+                    .unwrap();
+            let mut w = index.writer_with_num_threads(1, 50_000_000).unwrap();
+            let mut d = tantivy::TantivyDocument::default();
+            d.add_field_value(ev.f_id, &eid);
+            d.add_field_value(ev.f_uid, &100u64);
+            d.add_field_value(ev.f_internal_date, &1_700_000_000_000i64);
+            w.add_document(d).unwrap();
+            w.commit().unwrap();
+        }
+
+        // With no attachments the stored email blob is the original bytes,
+        // keyed by their content hash.
+        compute_content_hash(SAMPLE_EML)
+    }
+
+    #[test]
+    fn migrate_v037_converts_legacy_volume_end_to_end() {
+        use mailboxd_blob::{Config, Engine};
+
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_path_buf();
+        let hex_hash = seed_v037_volume(&root);
+
+        // Broken pre-conditions of an existing v0.3.7 install.
+        assert!(read_storage_version(&root).is_none());
+        assert!(!root.join("mailboxd-storage").join("blobs").exists());
+
+        let paths = V037Paths::derive(&root, None, None);
+        let outcome = migrate_v037_to_v2(&paths, 100)
+            .unwrap()
+            .expect("legacy v0.3.7 volume should migrate");
+        assert_eq!(outcome.migrated, 1);
+        assert_eq!(outcome.skipped, 0);
+
+        // The server's boot gate now passes …
+        assert_eq!(read_storage_version(&root), Some(CURRENT_STORAGE_VERSION));
+        // … the v2 artifacts exist …
+        assert!(root.join("memdb").is_dir());
+        assert!(root.join("mailboxd-indices").join("mail_metadata").is_dir());
+
+        // … and the archived message survives byte-for-byte in the new engine.
+        let mut config = Config::default();
+        config.flush_interval_secs = 0;
+        config.gc_interval_secs = 0;
+        let engine = Engine::open(&root.join("mailboxd-storage").join("blobs"), config).unwrap();
+        let mut key = [0u8; 32];
+        hex::decode_to_slice(&hex_hash, &mut key).unwrap();
+        assert_eq!(
+            engine.get(&key).unwrap().as_deref(),
+            Some(SAMPLE_EML),
+            "migrated email blob must be byte-identical"
+        );
+        engine.shutdown().unwrap();
+
+        // Re-running now short-circuits on the STORAGE_VERSION marker.
+        assert_eq!(migrate_v037_to_v2(&paths, 100).unwrap(), None);
+    }
 }
