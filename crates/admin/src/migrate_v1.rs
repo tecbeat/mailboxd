@@ -351,7 +351,7 @@ pub fn handle_migrate_v1(theme: &ColorfulTheme) {
                  Do not delete anything until you have verified the new server works correctly.",
                     outcome.emails,
                     outcome.attachments,
-                    "https://git.teccave.de/tecbeat/mailboxd/wiki/Mailboxd-v2.x-Migration-Guide"
+                    "https://git.teccave.de/tecbeat/mailboxd/-/wikis/Mailboxd-v2.x-Migration-Guide"
                 ))
                 .green()
                 .bold()
