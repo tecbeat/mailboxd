@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
+- *(deps)* Update all non-major dependencies - ([bd3b92a](https://git.teccave.de/tecbeat/mailboxd/commit/bd3b92a4d6d36393476e1f22550537ec66c85cf0))
 - Correct migration-guide wiki URL printed after v1 migration - ([2143f08](https://git.teccave.de/tecbeat/mailboxd/commit/2143f08661f26aed2dbfc03ed46f56b77c639e3e))
 
 ## [1.2.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.2.0) - 2026-08-21
