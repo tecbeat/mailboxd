@@ -1,6 +1,13 @@
 ---
+# Opt into GitLab project features managed by the teccave templater.
+gitlab_features:
+  wiki: true
+
 repo:
   tagline: "Self-hosted email archiving in Rust — multi-account IMAP, full-text search, RBAC, OIDC, and an embedded WebUI."
+
+  links:
+    Wiki: "https://git.teccave.de/tecbeat/mailboxd/-/wikis/home"
 
   description: >-
     mailboxd is a self-hosted email archiving server built in Rust and a fork of
