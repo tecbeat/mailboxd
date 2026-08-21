@@ -14,6 +14,7 @@
   <a href="https://git.teccave.de/tecbeat/mailboxd/-/issues"><img src="https://img.shields.io/gitlab/issues/open/tecbeat%2Fmailboxd?gitlab_url=https%3A%2F%2Fgit.teccave.de&style=flat-square&label=Issues&color=orange" alt="Open Issues"></a>
   <a href="https://git.teccave.de/tecbeat/mailboxd/-/merge_requests"><img src="https://img.shields.io/gitlab/merge-requests/open/tecbeat%2Fmailboxd?gitlab_url=https%3A%2F%2Fgit.teccave.de&style=flat-square&label=Merge%20Requests&color=blue" alt="Open Merge Requests"></a>
   <a href="https://git.teccave.de/tecbeat/mailboxd/-/commits/main"><img src="https://img.shields.io/gitlab/last-commit/tecbeat%2Fmailboxd?gitlab_url=https%3A%2F%2Fgit.teccave.de&style=flat-square&label=Last%20commit" alt="Last commit"></a>
+  <a href="https://git.teccave.de/tecbeat/mailboxd/-/wikis/home"><img src="https://img.shields.io/badge/Wiki-informational?style=flat-square" alt="Wiki"></a>
 </p>
 
 </div>
