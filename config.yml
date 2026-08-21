@@ -53,10 +53,10 @@ repo:
       MAILBOXD_ENCRYPT_PASSWORD_FILE:
         description: "Read the encryption password from a file. If both are set, `MAILBOXD_ENCRYPT_PASSWORD` takes precedence."
       MAILBOXD_INDEX_DIR:
-        default: "{root}/envelope"
+        default: "{root}/mailboxd-indices"
         description: "Tantivy full-text index directory. Place on fast SSD."
       MAILBOXD_DATA_DIR:
-        default: "{root}/eml"
+        default: "{root}/mailboxd-storage"
         description: "Blob storage directory. Can live on high-capacity HDD."
 
     Server & Networking:
