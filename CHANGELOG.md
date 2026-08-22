@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.0) - 2026-08-22
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency @tanstack/react-table to v9 - ([8007bfc](https://git.teccave.de/tecbeat/mailboxd/commit/8007bfc04adf9aa311c0b9992d885a6379d83168))
+- *(deps)* Update dependency eslint to v10.9.0 - ([8403dc3](https://git.teccave.de/tecbeat/mailboxd/commit/8403dc341cbc3c005456c54a0230ed839297dc9e))
+
+### 🚜 Refactor
+
+- *(web)* Migrate data tables to @tanstack/react-table v9 API - ([14b38e3](https://git.teccave.de/tecbeat/mailboxd/commit/14b38e35a6077734d382cfdb7d4f3bd59c0cd408))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(license)* Attribute new data-table module to tecbeat only - ([891ed75](https://git.teccave.de/tecbeat/mailboxd/commit/891ed75c66504144bd2f3729b489fd79505157f4))
+
 ## [1.2.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.2.1) - 2026-08-21
 
 ### 🐛 Bug Fixes
