@@ -20,6 +20,7 @@
 
 
 import { Row } from '@tanstack/react-table'
+import { type MailTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -35,7 +36,7 @@ import { EmailEnvelope } from '@/api'
 import { useSearchContext } from '../context'
 
 interface DataTableRowActionsProps {
-  row: Row<EmailEnvelope>
+  row: Row<MailTableFeatures, EmailEnvelope>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {

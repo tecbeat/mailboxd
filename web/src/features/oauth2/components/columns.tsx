@@ -20,6 +20,7 @@
 
 
 import { ColumnDef } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { Checkbox } from '@/components/ui/checkbox'
 import LongText from '@/components/long-text'
 import { OAuth2Entity } from '../data/schema'
@@ -28,7 +29,7 @@ import { DataTableRowActions } from './data-table-row-actions'
 import { format } from 'date-fns'
 import { EnableAction } from './enable-action'
 
-export const getColumns = (t: (key: string) => string): ColumnDef<OAuth2Entity>[] => [
+export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatures, OAuth2Entity>[] => [
   {
     accessorKey: 'id',
     header: ({ column }) => (

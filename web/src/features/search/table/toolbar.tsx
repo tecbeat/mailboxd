@@ -1,4 +1,5 @@
-import { type Table } from '@tanstack/react-table'
+import { type RowData, type Table } from '@tanstack/react-table'
+import { type MailTableFeatures } from '@/lib/data-table'
 import { DataTableViewOptions } from './view-options'
 import { TagFilterPopover } from '../tag-filter-popover'
 import { TimePopover } from '../time-popover'
@@ -9,11 +10,11 @@ import { FilterResetButton } from '../filter-reset'
 import { MailboxPopover } from '../mailbox-popover'
 import { AccountPopover } from '../account-popover'
 
-type DataTableToolbarProps<TData> = {
-  table: Table<TData>
+type DataTableToolbarProps<TData extends RowData> = {
+  table: Table<MailTableFeatures, TData>
 }
 
-export function DataTableToolbar<TData>({
+export function DataTableToolbar<TData extends RowData>({
   table,
 }: DataTableToolbarProps<TData>) {
   return (

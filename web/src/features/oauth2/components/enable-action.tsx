@@ -20,6 +20,7 @@
 
 
 import { Row } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { Switch } from '@/components/ui/switch'
 import { useState } from 'react'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -32,7 +33,7 @@ import { update_oauth2 } from '@/api/oauth2/api'
 import { useTranslation } from 'react-i18next'
 
 interface DataTableRowActionsProps {
-  row: Row<OAuth2Entity>
+  row: Row<DataTableFeatures, OAuth2Entity>
 }
 
 export function EnableAction({ row }: DataTableRowActionsProps) {

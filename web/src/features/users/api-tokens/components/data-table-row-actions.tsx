@@ -21,6 +21,7 @@
 
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { Row } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { IconTrash } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,7 +36,7 @@ import { useTranslation } from 'react-i18next'
 import { AccessToken } from '@/api/users/api'
 
 interface DataTableRowActionsProps {
-  row: Row<AccessToken>
+  row: Row<DataTableFeatures, AccessToken>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {

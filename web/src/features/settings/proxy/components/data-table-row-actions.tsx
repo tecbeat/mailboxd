@@ -22,6 +22,7 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { useMutation } from '@tanstack/react-query'
 import { Row } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
 import { Button } from '@/components/ui/button'
@@ -41,7 +42,7 @@ import { toast } from '@/hooks/use-toast'
 
 
 interface DataTableRowActionsProps {
-  row: Row<Proxy>
+  row: Row<DataTableFeatures, Proxy>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
