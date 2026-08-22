@@ -20,6 +20,7 @@
 
 
 import { ColumnDef } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import LongText from '@/components/long-text'
 import { DataTableColumnHeader } from './data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
@@ -30,7 +31,7 @@ import { EnableAction } from './enable-action'
 import { useTranslation } from 'react-i18next'
 import { AccountModel } from '@/api/account/api'
 
-export function useColumns(): ColumnDef<AccountModel>[] {
+export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
   const { t } = useTranslation()
 
   return [
