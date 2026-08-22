@@ -23,17 +23,10 @@ import { useEffect, useRef, useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
-  RowData,
+  ColumnVisibilityState,
   SortingState,
-  VisibilityState,
   flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  useTable,
 } from '@tanstack/react-table'
 import {
   Table,
@@ -43,20 +36,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableToolbar } from './data-table-toolbar'
 import { useTranslation } from 'react-i18next'
 import { AccountModel } from '@/api/account/api'
 
-declare module '@tanstack/react-table' {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends RowData, TValue> {
-    className: string
-  }
-}
-
 interface DataTableProps {
-  columns: ColumnDef<AccountModel>[]
+  columns: ColumnDef<DataTableFeatures, AccountModel>[]
   data: AccountModel[]
 }
 
@@ -64,7 +51,7 @@ interface DataTableProps {
 export function AccountTable({ columns, data }: DataTableProps) {
   const { t } = useTranslation()
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>(() => {
     const saved = localStorage.getItem('mailboxd_accounts_sorting');
@@ -80,7 +67,8 @@ export function AccountTable({ columns, data }: DataTableProps) {
     }
   }, [sorting]);
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data,
     columns,
     state: {
@@ -100,12 +88,6 @@ export function AccountTable({ columns, data }: DataTableProps) {
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
   return (

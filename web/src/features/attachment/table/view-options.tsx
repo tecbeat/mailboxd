@@ -1,6 +1,7 @@
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import { MixerHorizontalIcon } from '@radix-ui/react-icons'
-import { type Table } from '@tanstack/react-table'
+import { type RowData, type Table } from '@tanstack/react-table'
+import { type MailTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,8 +13,8 @@ import {
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-type DataTableViewOptionsProps<TData> = {
-  table: Table<TData>
+type DataTableViewOptionsProps<TData extends RowData> = {
+  table: Table<MailTableFeatures, TData>
 }
 
 const defaultColumns = (t: (key: string) => string) => [
@@ -27,7 +28,7 @@ const defaultColumns = (t: (key: string) => string) => [
 ]
 
 
-export function DataTableViewOptions<TData>({
+export function DataTableViewOptions<TData extends RowData>({
   table,
 }: DataTableViewOptionsProps<TData>) {
   const { t } = useTranslation()

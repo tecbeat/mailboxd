@@ -21,6 +21,7 @@
 
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { Row } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { IconEdit, IconPlayerPlay, IconPlayerStop, IconShieldLock, IconTrash } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -40,7 +41,7 @@ import { toast } from '@/hooks/use-toast'
 import { useNavigate } from '@tanstack/react-router'
 
 interface DataTableRowActionsProps {
-  row: Row<AccountModel>
+  row: Row<DataTableFeatures, AccountModel>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {

@@ -19,15 +19,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { Table } from '@tanstack/react-table'
+import { ReactTable, RowData } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { Input } from '@/components/ui/input'
 import { useTranslation } from 'react-i18next'
 
-interface DataTableToolbarProps<TData> {
-  table: Table<TData>
+interface DataTableToolbarProps<TData extends RowData> {
+  table: ReactTable<DataTableFeatures, TData>
 }
 
-export function DataTableToolbar<TData>({
+export function DataTableToolbar<TData extends RowData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const { t } = useTranslation()
@@ -36,7 +37,7 @@ export function DataTableToolbar<TData>({
       <div className='flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2'>
         <Input
           placeholder={t('settings.filterAccount')}
-          value={(table.getState().globalFilter as string) ?? ''}
+          value={(table.state.globalFilter as string) ?? ''}
           onChange={(event) => {
             table.setGlobalFilter(event.target.value);
           }}
