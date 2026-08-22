@@ -20,13 +20,14 @@
 
 
 import { Row } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'
 import { UserRole } from '@/api/users/api';
 import { useRoleContext } from '../context';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
-  row: Row<UserRole>
+  row: Row<DataTableFeatures, UserRole>
 }
 
 export function PermissionsCellAction({ row }: Props) {

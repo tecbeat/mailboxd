@@ -20,6 +20,7 @@
 
 
 import { Row } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { Switch } from '@/components/ui/switch'
 import { useState } from 'react'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -32,7 +33,7 @@ import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/hooks/use-current-user'
 
 interface DataTableRowActionsProps {
-  row: Row<AccountModel>
+  row: Row<DataTableFeatures, AccountModel>
 }
 
 export function EnableAction({ row }: DataTableRowActionsProps) {

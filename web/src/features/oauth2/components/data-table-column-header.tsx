@@ -25,7 +25,8 @@ import {
   CaretSortIcon,
   EyeNoneIcon,
 } from '@radix-ui/react-icons'
-import { Column } from '@tanstack/react-table'
+import { Column, RowData } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -37,13 +38,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useTranslation } from 'react-i18next'
 
-interface DataTableColumnHeaderProps<TData, TValue>
+interface DataTableColumnHeaderProps<TData extends RowData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>
+  column: Column<DataTableFeatures, TData, TValue>
   title: string
 }
 
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
   title,
   className,

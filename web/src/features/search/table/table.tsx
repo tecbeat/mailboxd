@@ -24,14 +24,8 @@ import {
   ColumnDef,
   ColumnFiltersState,
   Row,
-  RowData,
   flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
+  useTable,
 } from '@tanstack/react-table'
 import { type Table } from '@tanstack/react-table'
 import {
@@ -42,28 +36,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { mailTableFeatures, type MailTableFeatures } from '@/lib/data-table'
 import { useTranslation } from 'react-i18next'
 import { EmailEnvelope } from '@/api'
 import { cn } from '@/lib/utils'
 import { useSearchContext } from '../context'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
-
-
-declare module '@tanstack/react-table' {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends RowData, TValue> {
-    className: string
-  }
-}
-
 interface DataTableProps {
-  columns: ColumnDef<EmailEnvelope>[]
+  columns: ColumnDef<MailTableFeatures, EmailEnvelope>[]
   data: EmailEnvelope[]
-  onRowClick: (e: ReactMouseEvent<HTMLTableRowElement, MouseEvent>, row: Row<EmailEnvelope>) => void
+  onRowClick: (e: ReactMouseEvent<HTMLTableRowElement, MouseEvent>, row: Row<MailTableFeatures, EmailEnvelope>) => void
   setSortBy: (sortBy: "DATE" | "SIZE") => void
   setSortOrder: (value: "desc" | "asc") => void
-  children?: (table: Table<EmailEnvelope>) => React.ReactNode
+  children?: (table: Table<MailTableFeatures, EmailEnvelope>) => React.ReactNode
 }
 
 export function SearchTable({ columns, data, onRowClick, setSortBy, setSortOrder, children }: DataTableProps) {
@@ -78,7 +64,8 @@ export function SearchTable({ columns, data, onRowClick, setSortBy, setSortOrder
     setSortOrder(value.desc ? "desc" : "asc")
   }, [sorting])
 
-  const table = useReactTable({
+  const table = useTable({
+    features: mailTableFeatures,
     data,
     columns,
     state: {
@@ -90,11 +77,6 @@ export function SearchTable({ columns, data, onRowClick, setSortBy, setSortOrder
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
   return (

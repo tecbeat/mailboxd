@@ -19,6 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { ColumnDef } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import LongText from '@/components/long-text'
 
 import { DataTableColumnHeader } from './data-table-column-header'
@@ -29,7 +30,7 @@ import { Badge } from '@/components/ui/badge'
 import { PermissionsCellAction } from './permissions-action'
 import { Lock as LockIcon } from 'lucide-react'
 
-export const getColumns = (t: (key: string) => string): ColumnDef<UserRole>[] => [
+export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatures, UserRole>[] => [
   {
     accessorKey: 'id',
     header: ({ column }) => (

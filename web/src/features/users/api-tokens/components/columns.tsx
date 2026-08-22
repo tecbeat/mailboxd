@@ -19,13 +19,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { ColumnDef } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { DataTableColumnHeader } from './data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
 import { format } from 'date-fns'
 import { AccessToken } from '@/api/users/api'
 import { Badge } from '@/components/ui/badge'
 
-export const getColumns = (t: (key: string) => string): ColumnDef<AccessToken>[] => {
+export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatures, AccessToken>[] => {
   return [
     {
       accessorKey: 'name',

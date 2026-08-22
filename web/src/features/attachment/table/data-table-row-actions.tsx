@@ -20,6 +20,7 @@
 
 
 import { Row } from '@tanstack/react-table'
+import { type MailTableFeatures } from '@/lib/data-table'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -40,7 +41,7 @@ import { download_attachment } from '@/api/mailbox/envelope/api'
 import AttachmentPreview from '@/features/attachment/attachment-preview'
 
 interface DataTableRowActionsProps {
-  row: Row<AttachmentModel>
+  row: Row<MailTableFeatures, AttachmentModel>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {

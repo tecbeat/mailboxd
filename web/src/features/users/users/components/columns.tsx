@@ -20,6 +20,7 @@
 
 
 import { ColumnDef } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import LongText from '@/components/long-text'
 import { DataTableColumnHeader } from './data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
@@ -28,7 +29,7 @@ import { Badge } from '@/components/ui/badge'
 import { User, UserRole } from '@/api/users/api'
 import { Lock as LockIcon } from 'lucide-react'
 
-export const getColumns = (t: (key: string) => string, roles: UserRole[]): ColumnDef<User>[] => [
+export const getColumns = (t: (key: string) => string, roles: UserRole[]): ColumnDef<DataTableFeatures, User>[] => [
   {
     accessorKey: 'id',
     header: ({ column }) => (

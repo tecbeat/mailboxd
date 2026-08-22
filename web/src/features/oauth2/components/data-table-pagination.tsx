@@ -25,7 +25,8 @@ import {
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons'
-import { Table } from '@tanstack/react-table'
+import { ReactTable, RowData } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -36,13 +37,13 @@ import {
 } from '@/components/ui/select'
 import { useTranslation } from 'react-i18next'
 
-interface DataTablePaginationProps<TData> {
-  table: Table<TData>
+interface DataTablePaginationProps<TData extends RowData> {
+  table: ReactTable<DataTableFeatures, TData>
   showSelected?: boolean
   showPageSizeSelector?: boolean
 }
 
-export function DataTablePagination<TData>({
+export function DataTablePagination<TData extends RowData>({
   table,
   showSelected = false,
   showPageSizeSelector = true,
@@ -71,7 +72,7 @@ export function DataTablePagination<TData>({
               {t('table.pagination.rows_per_page')}
             </p>
             <Select
-              value={`${table.getState().pagination.pageSize}`}
+              value={`${table.state.pagination.pageSize}`}
               onValueChange={(value) => {
                 localStorage.setItem('mailboxd_oauth2_page_size', value);
                 table.setPageSize(Number(value))
@@ -79,7 +80,7 @@ export function DataTablePagination<TData>({
             >
               <SelectTrigger className='h-8 w-[70px]'>
                 <SelectValue
-                  placeholder={table.getState().pagination.pageSize}
+                  placeholder={table.state.pagination.pageSize}
                 />
               </SelectTrigger>
               <SelectContent side='top'>
@@ -94,7 +95,7 @@ export function DataTablePagination<TData>({
         )}
         <div className='flex w-[130px] items-center justify-center text-sm font-medium'>
           {t('table.pagination.page_info', {
-            page: table.getState().pagination.pageIndex + 1,
+            page: table.state.pagination.pageIndex + 1,
             total: table.getPageCount(),
           })}
         </div>

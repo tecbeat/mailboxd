@@ -20,6 +20,7 @@
 
 
 import { Row } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'
 import { useAccountContext } from '../context'
 import { useTranslation } from 'react-i18next'
@@ -29,7 +30,7 @@ import { ToastAction } from '@/components/ui/toast'
 import { AccountModel } from '@/api/account/api'
 
 interface DataTableRowActionsProps {
-  row: Row<AccountModel>
+  row: Row<DataTableFeatures, AccountModel>
 }
 export function OAuth2Action({ row }: DataTableRowActionsProps) {
   const { t } = useTranslation()

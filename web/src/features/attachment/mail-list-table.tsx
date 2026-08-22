@@ -27,6 +27,7 @@ import { useAttachmentContext } from "./context"
 import { useTranslation } from 'react-i18next'
 import { enUS } from "date-fns/locale"
 import { ColumnDef } from "@tanstack/react-table"
+import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
 import { DataTableColumnHeader } from "./table/data-table-column-header"
 import { SearchTable } from "./table/table"
@@ -55,7 +56,7 @@ export function AttachmentListTable({
   const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
   const { selected, setSelected, setOpen, setCurrentAttachment } = useAttachmentContext()
 
-  const columns: ColumnDef<AttachmentModel>[] = [
+  const columns: ColumnDef<MailTableFeatures, AttachmentModel>[] = [
     {
       accessorKey: "id",
       header: () => (

@@ -1,4 +1,5 @@
-import { type Table } from '@tanstack/react-table'
+import { type RowData, type Table } from '@tanstack/react-table'
+import { type MailTableFeatures } from '@/lib/data-table'
 import { DataTableViewOptions } from './view-options'
 import { TimePopover } from '../time-popover'
 import { SenderFilterPopover } from '../sender-popover'
@@ -10,11 +11,11 @@ import { AccountPopover } from '../account-popover'
 import { MetadataFilter } from '../attachment-metadata-filter'
 import { FileType, Laptop, Tag } from 'lucide-react'
 
-type DataTableToolbarProps<TData> = {
-  table: Table<TData>
+type DataTableToolbarProps<TData extends RowData> = {
+  table: Table<MailTableFeatures, TData>
 }
 
-export function DataTableToolbar<TData>({
+export function DataTableToolbar<TData extends RowData>({
   table,
 }: DataTableToolbarProps<TData>) {
   return (

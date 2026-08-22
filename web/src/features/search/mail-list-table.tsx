@@ -30,6 +30,7 @@ import { MailBulkActions } from "./bulk-actions"
 import { useTranslation } from 'react-i18next'
 import { enUS } from "date-fns/locale"
 import { ColumnDef } from "@tanstack/react-table"
+import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
 import { DataTableColumnHeader } from "./table/data-table-column-header"
 import { SearchTable } from "./table/table"
@@ -59,7 +60,7 @@ export function MailListTable({
   const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
   const { selected, setSelected } = useSearchContext()
 
-  const columns: ColumnDef<EmailEnvelope>[] = [
+  const columns: ColumnDef<MailTableFeatures, EmailEnvelope>[] = [
     {
       accessorKey: "id",
       header: () => (
