@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.1) - 2026-08-23
+
+### 🐛 Bug Fixes
+
+- *(license)* Attribute tecbeat-authored OIDC files to tecbeat only - ([a7397a6](https://git.teccave.de/tecbeat/mailboxd/commit/a7397a6dcec4dfa0fd4a7759d3c1f0fd6b769247))
+
 ## [1.3.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.0) - 2026-08-22
 
 ### 🐛 Bug Fixes
