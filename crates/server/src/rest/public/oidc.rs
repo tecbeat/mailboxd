@@ -1,7 +1,7 @@
 //
-// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
+// Copyright (c) 2026 tecbeat
 //
-// This file is part of the mailboxd Email Archiving Project
+// This file is part of mailboxd, an email archiving project.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
