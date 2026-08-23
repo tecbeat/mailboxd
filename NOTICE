@@ -30,11 +30,14 @@ Modifications
   environment file, changelog configuration) to reflect the new
   project identity.
 
-The original per-file copyright notices ("Copyright (c) 2025-2026
-rustmailer.com") are preserved verbatim in every source file, as
-required by AGPL-3.0 § 4 and § 5(b). Every modified file additionally
-carries an added "Copyright (c) 2026 tecbeat" line and a modification
-notice, as required by AGPL-3.0 § 5(a).
+Files derived from the upstream Bichon project preserve their original
+per-file copyright notices ("Copyright (c) 2025-2026 rustmailer.com")
+verbatim, as required by AGPL-3.0 § 4 and § 5(b), and additionally carry
+an added "Copyright (c) 2026 tecbeat" line and a modification notice, as
+required by AGPL-3.0 § 5(a).
+
+Files authored by tecbeat that are not derived from the upstream Bichon
+project carry a "Copyright (c) 2026 tecbeat" notice only.
 
 Corresponding source
 --------------------
