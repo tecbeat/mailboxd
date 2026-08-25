@@ -2,12 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.3](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.3) - 2026-08-25
+
 ## [1.3.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.2) - 2026-08-25
 
 ### 🐛 Bug Fixes
 
 - *(deps)* Update rust:1.98.0-slim-bookworm docker digest to 1469a27 - ([271e3c2](https://git.teccave.de/tecbeat/mailboxd/commit/271e3c28d160f960003eacd9146bc3536fc70b72))
 - *(deps)* Update debian:bookworm-slim docker digest to 8820086 - ([6fbddd0](https://git.teccave.de/tecbeat/mailboxd/commit/6fbddd07b28b8cc14a8e2c0974f45ce725840c2e))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update rust:1.98.0-slim-bookworm Docker digest to 1469a27 - ([a301ecc](https://git.teccave.de/tecbeat/mailboxd/commit/a301ecca40f257b88d417c044bdc9f25e40fe004))
 
 ## [1.3.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.1) - 2026-08-23
 
