@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - *(deps)* Update rust:1.98.0-slim-bookworm docker digest to 1469a27 - ([8eb936e](https://git.teccave.de/tecbeat/mailboxd/commit/8eb936eac8f9b8c1d26a1d1257d594656299478e))
+- *(deps)* Update debian:bookworm-slim docker digest to 8820086 - ([4920779](https://git.teccave.de/tecbeat/mailboxd/commit/492077927624b997699767b0662c2c2f4b4005d8))
 
 ## [1.3.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.1) - 2026-08-23
 
