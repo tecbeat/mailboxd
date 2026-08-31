@@ -43,39 +43,12 @@ import {
 import { get_system_configurations } from '@/api/system/api';
 import { list_mailboxes } from '@/api/mailbox/api';
 import { extractFolderHint, type FolderHint } from './folder-hint';
+import { buildQueue, getExtension, type QueuedFile } from './file-validation';
 
-const MAX_EML = 100 * 1024 * 1024;   // 100 MB (hardcoded)
 const DEFAULT_MAX_MBOX = 1024 * 1024 * 1024; // 1 GB (fallback; actual limit from server settings)
 const DEFAULT_MAX_PST = 2048 * 1024 * 1024; // 2 GB (fallback; actual limit from server settings)
 
-// MIME types that are clearly NOT email files — reject these upfront.
-const BLOCKED_MIME_PREFIXES = [
-  'video/', 'audio/', 'image/', 'font/',
-  'application/zip', 'application/gzip', 'application/x-tar',
-  'application/x-7z', 'application/x-rar',
-  'application/vnd.', 'application/pdf',
-  'application/x-msdownload', 'application/x-executable',
-];
-
-function isValidFileType(file: File, ext: string): boolean {
-  // Check MIME type: reject known binary types
-  const mime = file.type.toLowerCase();
-  if (mime) {
-    for (const prefix of BLOCKED_MIME_PREFIXES) {
-      if (mime.startsWith(prefix)) return false;
-    }
-  }
-  // Check extension
-  return ext === 'eml' || ext === 'mbox' || ext === 'pst';
-}
-
 type FolderMode = '' | 'header' | 'existing' | 'custom';
-
-interface QueuedFile {
-  file: File;
-  sizeOk: boolean;
-  typeOk: boolean;
-}
 
 function formatSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -194,15 +167,7 @@ export default function ImportPage() {
   }, []);
 
   const handleFiles = useCallback(async (newFiles: FileList | File[]) => {
-    const arr = Array.from(newFiles) as File[];
-    const queued: QueuedFile[] = arr.map((f) => {
-      const ext = f.name.split('.').pop()?.toLowerCase() || '';
-      const isMbox = ext === 'mbox';
-      const isPst = ext === 'pst';
-      const max = isMbox ? maxMbox : isPst ? maxPst : MAX_EML;
-      const typeOk = isValidFileType(f, ext);
-      return { file: f, sizeOk: f.size <= max, typeOk };
-    });
+    const queued = buildQueue(newFiles, { maxMbox, maxPst });
 
     setFiles(queued);
     setPhase('idle');
@@ -213,7 +178,7 @@ export default function ImportPage() {
     // PST files are binary (OLE2) — headers can't be extracted in-browser.
     const firstOk = queued.find((q) => q.sizeOk && q.typeOk);
     if (firstOk) {
-      const ext = firstOk.file.name.split('.').pop()?.toLowerCase() || '';
+      const ext = getExtension(firstOk.file.name);
       const isPstFile = ext === 'pst';
       setIsPstSelected(isPstFile);
       if (isPstFile) {
