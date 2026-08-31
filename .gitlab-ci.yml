@@ -73,6 +73,46 @@ migration_tests:
   tags:
     - teccave
 
+# Frontend (web/) checks. Node/pnpm are deliberately kept out of the Rust jobs
+# above (see the embed-web note in cargo_test); this is the dedicated frontend
+# gate. Mirrors the web-builder stage of the Dockerfile (same image, same pnpm,
+# same install invocation) so CI and the release build stay in lockstep.
+.web_check:
+  stage: unittest
+  image: node:24-alpine3.24@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
+  needs: []
+  variables:
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+  cache:
+    key:
+      files:
+        - web/pnpm-lock.yaml
+    paths:
+      - web/.pnpm-store
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@11.24.0 --activate
+    - cd web
+    - pnpm install --frozen-lockfile --config.strict-dep-builds=false --store-dir=.pnpm-store
+  tags:
+    - teccave
+
+# Hard gate: the frontend must type-check and its unit tests must pass.
+web_test:
+  extends: .web_check
+  script:
+    - pnpm exec tsc -b
+    - pnpm test
+
+# eslint runs but does not block yet: fixing #6 made lint runnable again and
+# exposed a pre-existing violation backlog, tracked in #16. Drop allow_failure
+# to turn lint into a hard gate once #16 is done.
+web_lint:
+  extends: .web_check
+  allow_failure: true
+  script:
+    - pnpm run lint
+
 # End-to-end coverage against the actual release artifact: the built container
 # image. `cargo_test`/`migration_tests` exercise the Rust logic in isolation;
 # these jobs boot the real image the way an operator would, so a broken
