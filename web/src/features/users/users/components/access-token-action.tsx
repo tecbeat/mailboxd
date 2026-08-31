@@ -43,6 +43,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { invalidateAccessTokenViews } from '@/lib/access-cache'
 import { ToastAction } from '@/components/ui/toast'
 import { AxiosError } from 'axios'
 import { LoaderCircle as Loader2, Clock } from 'lucide-react'
@@ -133,8 +134,7 @@ export function TokensActionDialog({
       ),
     })
 
-    queryClient.invalidateQueries({ queryKey: ['access-tokens'] })
-    queryClient.invalidateQueries({ queryKey: ['user-tokens', userId] })
+    invalidateAccessTokenViews(queryClient, userId)
     form.reset(defaultValues)
     onOpenChange(false)
   }

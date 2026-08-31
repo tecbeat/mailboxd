@@ -56,6 +56,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { access_assign, AccountModel } from '@/api/account/api'
 import { list_account_roles, list_minimal_users, MinimalUser, UserRole } from '@/api/users/api'
+import { invalidateAccountAccessViews } from '@/lib/access-cache'
 
 interface Props {
     currentRow: AccountModel
@@ -127,7 +128,7 @@ export function AccountAccessAssignmentDialog({
                 title: t('accounts.access_control.toast.success_title'),
                 description: t('accounts.access_control.toast.success_desc', { email: currentRow.email }),
             })
-            queryClient.invalidateQueries({ queryKey: ['account-access-list'] })
+            invalidateAccountAccessViews(queryClient)
             onOpenChange(false)
         },
         onError: (error: any) => {
