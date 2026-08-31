@@ -23,6 +23,7 @@ pub mod common;
 pub mod error;
 pub mod rest;
 
+use std::path::PathBuf;
 use std::sync::LazyLock;
 
 use mailboxd_core::{
@@ -33,7 +34,7 @@ use mailboxd_core::{
     database::manager::DB_MANAGER,
     error::{code::ErrorCode, MailboxdResult},
     logger,
-    migrate::{check_data_status, migrate_bichon_layout},
+    migrate::check_data_status,
     raise_error,
     settings::{cli::SETTINGS, dir::DataDirManager},
     store::{
@@ -43,6 +44,7 @@ use mailboxd_core::{
     tasks::PeriodicTasks,
     users::manager::UserManager,
 };
+use mailboxd_migrate::{run_auto_migrate, AutoMigrateOutcome, AutoMigratePaths};
 use mailboxd_smtp::server::{start_smtp_server, SmtpServer};
 use tracing::{error, info};
 
@@ -62,9 +64,27 @@ pub async fn run() -> MailboxdResult<()> {
     info!("Version:  {}", mailboxd_version!());
     info!("Git:      [{}]", env!("GIT_HASH"));
 
-    if let Err(e) = migrate_bichon_layout() {
-        error!("Failed to migrate Bichon data layout: {:#?}", e);
-        return Err(raise_error!(format!("{:#?}", e), ErrorCode::InternalError));
+    // Migrate an existing data volume up to v2 on startup (no-op if current).
+    let migrate_paths = AutoMigratePaths {
+        root_dir: PathBuf::from(&SETTINGS.mailboxd_root_dir),
+        index_dir: SETTINGS.mailboxd_index_dir.as_ref().map(PathBuf::from),
+        data_dir: SETTINGS.mailboxd_data_dir.as_ref().map(PathBuf::from),
+    };
+    match run_auto_migrate(&migrate_paths) {
+        Ok(AutoMigrateOutcome::AlreadyCurrent) => {
+            info!("Storage layout already current; nothing to migrate")
+        }
+        Ok(AutoMigrateOutcome::MigratedV1 {
+            emails,
+            attachments,
+        }) => info!(emails, attachments, "Migrated v1.x storage to v2"),
+        Ok(AutoMigrateOutcome::MigratedV037 { migrated, skipped }) => {
+            info!(migrated, skipped, "Migrated legacy v0.3.7 storage to v2")
+        }
+        Err(e) => {
+            error!("Failed to migrate data layout: {:#?}", e);
+            return Err(e);
+        }
     }
 
     match check_data_status() {

@@ -81,10 +81,7 @@ RUN groupadd -g 1000 mailboxd \
 COPY --from=rust-builder /out/mailboxd-server /opt/mailboxd/mailboxd-server
 COPY --from=rust-builder /out/mailboxd-cli    /usr/local/bin/mailboxd-cli
 COPY --from=rust-builder /out/mailboxd-admin  /usr/local/bin/mailboxd-admin
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY LICENSE NOTICE /opt/mailboxd/
-
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 USER mailboxd:mailboxd
 WORKDIR /data
@@ -94,4 +91,5 @@ EXPOSE 15630
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD curl -fsS http://localhost:15630/api/status || exit 1
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# The server runs the storage migration itself on startup; no wrapper needed.
+ENTRYPOINT ["/opt/mailboxd/mailboxd-server"]

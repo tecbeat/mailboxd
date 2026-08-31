@@ -1,0 +1,28 @@
+[package]
+name = "mailboxd-migrate"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+mailboxd-core = { path = "../core" }
+mailboxd-blob.workspace = true
+mailboxd-memdb.workspace = true
+fjall.workspace = true
+tantivy = { version = "0.26.1", features = ["zstd-compression", "quickwit"] }
+native_db = "0.8.2"
+native_model = "0.4.20"
+serde.workspace = true
+mail-parser.workspace = true
+bytes.workspace = true
+uuid.workspace = true
+hex.workspace = true
+itertools.workspace = true
+console.workspace = true
+indicatif.workspace = true
+dialoguer.workspace = true
+tracing.workspace = true
+snafu.workspace = true
+chrono.workspace = true
+
+[dev-dependencies]
+tempfile = "=3.27.0"
