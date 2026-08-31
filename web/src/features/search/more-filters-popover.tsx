@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { useAttachmentMetadata } from "@/hooks/use-attachment-metadata"
-import { MetadataSelectorField } from "./attachment-metadata-selector"
+import { MetadataSelectorField } from "@/features/mail-list/attachment-metadata-selector"
 
 const SIZES = {
     tiny: { min: undefined, max: 15 * 1024 },

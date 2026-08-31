@@ -5,7 +5,7 @@ import { useAttachmentContext } from "./context"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { MetadataSelectorField } from "./attachment-metadata-selector"
+import { MetadataSelectorField } from "@/features/mail-list/attachment-metadata-selector"
 import { useAttachmentMetadata } from "@/hooks/use-attachment-metadata"
 
 interface MetaFilterProps {

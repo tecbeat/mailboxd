@@ -1,6 +1,6 @@
 import { type RowData, type Table } from '@tanstack/react-table'
 import { type MailTableFeatures } from '@/lib/data-table'
-import { DataTableViewOptions } from './view-options'
+import { DataTableViewOptions } from '@/features/mail-list/table/view-options'
 import { TimePopover } from '../time-popover'
 import { SenderFilterPopover } from '../sender-popover'
 import { TextSearchInput } from '../text-search-input'
