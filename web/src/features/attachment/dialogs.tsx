@@ -21,7 +21,7 @@ import { useAttachmentContext } from './context';
 import { MailDisplayDrawer } from './mail-display-dialog';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
 import { RestoreMessageDialog } from '@/features/mail-list/restore-message-dialog';
-import { NestedEmailDialog } from './nested-email-dialog';
+import { NestedEmailDialog } from '@/features/mail-list/nested-email-dialog';
 import { MailBoxDeleteDialog } from '@/features/mail-list/delete-mailbox-dialog';
 
 /**
@@ -30,7 +30,7 @@ import { MailBoxDeleteDialog } from '@/features/mail-list/delete-mailbox-dialog'
  * isolation and every dialog type has exactly one render site.
  */
 export function AttachmentDialogs() {
-  const { open, setOpen } = useAttachmentContext();
+  const { open, setOpen, currentItem } = useAttachmentContext();
 
   return (
     <>
@@ -56,6 +56,10 @@ export function AttachmentDialogs() {
         key="nested-eml-attachment-dialog"
         open={open === 'nested-eml'}
         onOpenChange={() => setOpen('nested-eml')}
+        accountId={currentItem?.account_id}
+        envelopeId={currentItem?.envelope_id}
+        fileName={currentItem?.name}
+        content_hash={currentItem?.content_hash}
       />
 
       <MailBoxDeleteDialog
