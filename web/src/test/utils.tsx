@@ -6,28 +6,38 @@ import { I18nextProvider } from 'react-i18next';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import i18n from '@/i18n';
 
-function createWrapper() {
-  const queryClient = new QueryClient({
+function createQueryClient() {
+  return new QueryClient({
     defaultOptions: {
       queries: { retry: false },
       mutations: { retry: false },
     },
   });
-  return function Wrapper({ children }: { children: ReactNode }) {
+}
+
+interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
+  /** Inject a pre-seeded QueryClient so a test can assert cache state after mutations. */
+  queryClient?: QueryClient;
+}
+
+/**
+ * Render a component with the app's query and i18n providers. Each test gets a
+ * fresh QueryClient unless one is injected; the client is returned so tests can
+ * seed queries and assert invalidation.
+ */
+export function renderWithProviders(
+  ui: ReactElement,
+  { queryClient, ...options }: RenderWithProvidersOptions = {},
+) {
+  const client = queryClient ?? createQueryClient();
+  function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={client}>
         <I18nextProvider i18n={i18n}>
           <SidebarProvider>{children}</SidebarProvider>
         </I18nextProvider>
       </QueryClientProvider>
     );
-  };
-}
-
-/** Render a component with the app's query and i18n providers, each test getting a fresh QueryClient. */
-export function renderWithProviders(
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>,
-) {
-  return render(ui, { wrapper: createWrapper(), ...options });
+  }
+  return { queryClient: client, ...render(ui, { wrapper: Wrapper, ...options }) };
 }

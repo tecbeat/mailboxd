@@ -26,6 +26,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { delete_messages } from '@/api/mailbox/envelope/api'
 import { useAttachmentContext } from './context'
 import { mapToRecordOfArrays } from '@/lib/utils'
+import { invalidateMessageViews } from '@/lib/message-cache'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
@@ -43,8 +44,7 @@ export function EnvelopeDeleteDialog({ open, onOpenChange }: Props) {
       delete_messages(payload),
     retry: false,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['search-attachments'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['attachment-tags'] })
+      invalidateMessageViews(queryClient)
       onOpenChange(false)
       setToDelete(new Map())
       setSelected(new Map())
