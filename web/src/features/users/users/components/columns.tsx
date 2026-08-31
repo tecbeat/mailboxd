@@ -28,8 +28,12 @@ import { format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { User, UserRole } from '@/api/users/api'
 import { Lock as LockIcon } from 'lucide-react'
+import { resolveRoles, rolesById } from './role-lookup'
 
-export const getColumns = (t: (key: string) => string, roles: UserRole[]): ColumnDef<DataTableFeatures, User>[] => [
+export const getColumns = (t: (key: string) => string, roles: UserRole[]): ColumnDef<DataTableFeatures, User>[] => {
+  const roleById = rolesById(roles)
+
+  return [
   {
     accessorKey: 'id',
     header: ({ column }) => (
@@ -90,11 +94,7 @@ export const getColumns = (t: (key: string) => string, roles: UserRole[]): Colum
     ),
     cell: ({ row }) => {
       const user = row.original
-      const userRoleIds = user.global_roles || []
-
-      const mapped = userRoleIds
-        .map((rid) => roles.find((r) => r.id === rid))
-        .filter(Boolean) as UserRole[]
+      const mapped = resolveRoles(user.global_roles || [], roleById)
 
       if (mapped.length === 0) {
         return <span className="text-muted-foreground">-</span>
@@ -147,4 +147,5 @@ export const getColumns = (t: (key: string) => string, roles: UserRole[]): Colum
     ),
     cell: DataTableRowActions,
   },
-]
+  ]
+}
