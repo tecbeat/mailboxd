@@ -21,7 +21,8 @@
 
 import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Loader, Download, Trash2, MessageSquareMore, FileText, FileImage, Video as FileVideo, FileArchive, FileSpreadsheet, FileCode, File as FileIcon, FileMusic as FileAudio, Upload, ShieldCheck, Pencil } from 'lucide-react';
+import { Loader, Download, Trash2, MessageSquareMore, Upload, ShieldCheck, Pencil } from 'lucide-react';
+import { getFileConfig } from '@/features/mail-list/file-config';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -88,34 +89,6 @@ const Multilines: React.FC<{ title: string; lines: string[] }> = ({ title, lines
       </div>
     </div>
   );
-};
-
-export const getFileConfig = (mimeType: string) => {
-  const type = mimeType.toLowerCase();
-  if (type.includes('pdf')) {
-    return { icon: <FileText className="h-4 w-4" />, color: 'text-red-600 bg-red-50 border-red-100' };
-  }
-  if (type.includes('image/')) {
-    return { icon: <FileImage className="h-4 w-4" />, color: 'text-blue-600 bg-blue-50 border-blue-100' };
-  }
-  if (type.includes('audio/')) {
-    return { icon: <FileAudio className="h-4 w-4" />, color: 'text-purple-600 bg-purple-50 border-purple-100' };
-  }
-
-  if (type.includes('video/')) {
-    return { icon: <FileVideo className="h-4 w-4" />, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
-  }
-  if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
-    return { icon: <FileSpreadsheet className="h-4 w-4" />, color: 'text-green-600 bg-green-50 border-green-100' };
-  }
-  if (type.includes('zip') || type.includes('compressed') || type.includes('archive')) {
-    return { icon: <FileArchive className="h-4 w-4" />, color: 'text-orange-600 bg-orange-50 border-orange-100' };
-  }
-  if (type.includes('text/') || type.includes('json') || type.includes('javascript')) {
-    return { icon: <FileCode className="h-4 w-4" />, color: 'text-slate-600 bg-slate-50 border-slate-100' };
-  }
-
-  return { icon: <FileIcon className="h-4 w-4" />, color: 'text-gray-600 bg-gray-50 border-gray-100' };
 };
 
 export function MailMessageView({

@@ -31,7 +31,7 @@ import { toast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 
 import { preview_attachment, download_attachment } from '@/api/mailbox/envelope/api';
-import { getFileConfig } from './mail-message-view';
+import { getFileConfig } from '@/features/mail-list/file-config';
 
 const PREVIEWABLE_IMAGE = /^image\/(png|jpeg|gif|webp|svg\+xml)$/;
 const PREVIEWABLE_TEXT = /^(text\/(plain|csv|html|xml|css|javascript|markdown)|application\/(json|xml|javascript|x-httpd-php|x-sh|x-perl|x-python|x-ruby))$/;

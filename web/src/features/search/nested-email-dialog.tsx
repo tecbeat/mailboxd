@@ -28,7 +28,7 @@ import { formatBytes, formatTimestamp } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { Download, Loader, Mail } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { getFileConfig } from './mail-message-view';
+import { getFileConfig } from '@/features/mail-list/file-config';
 
 const MessageHeader = ({
     envelope,
