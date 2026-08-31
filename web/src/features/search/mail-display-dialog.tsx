@@ -33,7 +33,7 @@ interface Props {
 
 export function MailDisplayDrawer({ open, onOpenChange }: Props) {
   const { t } = useTranslation()
-  const { currentEnvelope } = useSearchContext()
+  const { currentItem } = useSearchContext()
 
 
   return (
@@ -51,8 +51,8 @@ export function MailDisplayDrawer({ open, onOpenChange }: Props) {
         </DialogHeader>
         <ScrollArea>
           <div className='m-5'>
-            {currentEnvelope ? (
-              <MailMessageView envelope={currentEnvelope} />
+            {currentItem ? (
+              <MailMessageView envelope={currentItem} />
             ) : (
               <div className="p-8 text-center text-muted-foreground">{t('mail.noMessageSelected')}</div>
             )}

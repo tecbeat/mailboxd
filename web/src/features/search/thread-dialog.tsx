@@ -45,12 +45,12 @@ interface MailThreadDialogProps {
 }
 
 export function MailThreadDialog({ open, onOpenChange }: MailThreadDialogProps) {
-  const { currentEnvelope } = useSearchContext();
+  const { currentItem } = useSearchContext();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
 
-  const threadId = currentEnvelope?.thread_id;
-  const accountId = currentEnvelope?.account_id;
+  const threadId = currentItem?.thread_id;
+  const accountId = currentItem?.account_id;
 
   const {
     data,

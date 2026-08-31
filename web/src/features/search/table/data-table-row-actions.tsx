@@ -40,7 +40,7 @@ interface DataTableRowActionsProps {
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
-  const { setOpen, setCurrentEnvelope, setSelected, setToDelete, setEditTagsOpen } = useSearchContext()
+  const { setOpen, setCurrentItem, setSelected, setToDelete, setEditTagsOpen } = useSearchContext()
   const { t } = useTranslation()
 
   const toggleToDelete = (accountId: number, mailId: string) => {
@@ -83,7 +83,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             className='text-xs'
             onClick={(e) => {
               e.stopPropagation()
-              setCurrentEnvelope(row.original)
+              setCurrentItem(row.original)
               setEditTagsOpen(true)
             }}
           >
@@ -97,7 +97,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             className='text-xs'
             onClick={(e) => {
               e.stopPropagation()
-              setCurrentEnvelope(row.original)
+              setCurrentItem(row.original)
               setSelected(new Map())
               setOpen("restore")
             }}

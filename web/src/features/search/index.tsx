@@ -86,9 +86,9 @@ export default function EmailSearch() {
           value={{
             open,
             setOpen,
-            currentEnvelope: selectedEnvelope,
+            currentItem: selectedEnvelope,
             selectedTags,
-            setCurrentEnvelope: setSelectedEnvelope,
+            setCurrentItem: setSelectedEnvelope,
             toDelete,
             setToDelete,
             selected,

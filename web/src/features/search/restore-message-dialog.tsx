@@ -84,7 +84,7 @@ export function RestoreMessageDialog({
     onOpenChange
 }: RestoreMessageDialogProps) {
     const { t } = useTranslation()
-    const { currentEnvelope, selected } = useSearchContext()
+    const { currentItem, selected } = useSearchContext()
 
     const accountsWithSelection = Array.from(selected.entries()).filter(([_, ids]) => ids.size > 0);
     const selectedCount = accountsWithSelection.reduce((sum, [_, set]) => sum + set.size, 0);
@@ -100,8 +100,8 @@ export function RestoreMessageDialog({
                     restore_message(accountId, Array.from(ids))
                 );
                 return Promise.all(promises);
-            } else if (currentEnvelope) {
-                return restore_message(currentEnvelope.account_id, [currentEnvelope.id]);
+            } else if (currentItem) {
+                return restore_message(currentItem.account_id, [currentItem.id]);
             }
         },
         onSuccess: handleRestoreSuccess,
@@ -175,14 +175,14 @@ export function RestoreMessageDialog({
                         </div>
                     </div>
                 ) : (
-                    currentEnvelope && <MessageSummary envelope={currentEnvelope} t={t} />
+                    currentItem && <MessageSummary envelope={currentItem} t={t} />
                 )}
             </div>}
             confirmText={t('restore_message.confirm', 'Restore')}
             handleConfirm={() => restoreMutation.mutate()}
             className="sm:max-w-sm"
             isLoading={restoreMutation.isPending}
-            disabled={restoreMutation.isPending || (!isBulk && !currentEnvelope)}
+            disabled={restoreMutation.isPending || (!isBulk && !currentItem)}
         />
     )
 }

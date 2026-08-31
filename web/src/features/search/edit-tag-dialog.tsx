@@ -47,15 +47,15 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
     const [commandOpen, setCommandOpen] = useState(false);
     const { t } = useTranslation();
 
-    const { currentEnvelope, setCurrentEnvelope } = useSearchContext()
+    const { currentItem, setCurrentItem } = useSearchContext()
 
     useEffect(() => {
-        if (open && currentEnvelope) {
-            setSelectedTags(currentEnvelope.tags || []);
+        if (open && currentItem) {
+            setSelectedTags(currentItem.tags || []);
         }
-    }, [open, currentEnvelope]);
+    }, [open, currentItem]);
 
-    if (!currentEnvelope) return null;
+    if (!currentItem) return null;
 
     const handleAddTag = (tag: string) => {
         const normalized = tag.toLowerCase().trim();
@@ -101,7 +101,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
         }
 
         const updates = {
-            [currentEnvelope.account_id]: [currentEnvelope.id],
+            [currentItem.account_id]: [currentItem.id],
         };
 
         mutate(
@@ -117,7 +117,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                     const finalTags = inputValue.trim()
                         ? [...selectedTags, inputValue.toLowerCase().trim()]
                         : selectedTags;
-                    setCurrentEnvelope(prev => prev ? { ...prev, tags: finalTags } : prev);
+                    setCurrentItem(prev => prev ? { ...prev, tags: finalTags } : prev);
                     toast({
                         title: t('search.addTags.updatedTitle'),
                         description: (

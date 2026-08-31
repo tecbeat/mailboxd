@@ -36,8 +36,8 @@ function makeContext(overrides: Partial<AttachmentContextValue> = {}): Attachmen
   return {
     open: null,
     setOpen: vi.fn(),
-    currentAttachment: undefined,
-    setCurrentAttachment: vi.fn(),
+    currentItem: undefined,
+    setCurrentItem: vi.fn(),
     toDelete: new Map(),
     setToDelete: vi.fn(),
     selected: new Map(),

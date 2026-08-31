@@ -85,7 +85,7 @@ export function RestoreMessageDialog({
     onOpenChange
 }: RestoreMessageDialogProps) {
     const { t } = useTranslation()
-    const { selected, currentAttachment } = useAttachmentContext()
+    const { selected, currentItem } = useAttachmentContext()
 
     const accountsWithSelection = Array.from(selected.entries()).filter(([_, ids]) => ids.size > 0);
     const selectedCount = accountsWithSelection.reduce((sum, [_, set]) => sum + set.size, 0);
@@ -95,7 +95,7 @@ export function RestoreMessageDialog({
 
     const {
         data: currentEnvelope,
-    } = useEnvelope(currentAttachment?.account_id, currentAttachment?.envelope_id);
+    } = useEnvelope(currentItem?.account_id, currentItem?.envelope_id);
 
 
     const restoreMutation = useMutation({

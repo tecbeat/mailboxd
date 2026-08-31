@@ -35,7 +35,7 @@ import { AttachmentDialogs } from './dialogs';
 
 export default function AttachmentSearch() {
   const { t } = useTranslation()
-  const [currentAttachment, setCurrentAttachment] = React.useState<AttachmentModel | undefined>(undefined);
+  const [currentItem, setCurrentItem] = React.useState<AttachmentModel | undefined>(undefined);
   const [open, setOpen] = useDialogState<AttachmentDialogType>(null)
   const [toDelete, setToDelete] = React.useState<Map<number, Set<string>>>(new Map());
   const [selected, setSelected] = React.useState<Map<number, Set<string>>>(new Map());
@@ -80,9 +80,9 @@ export default function AttachmentSearch() {
           value={{
             open,
             setOpen,
-            currentAttachment,
+            currentItem,
             selectedTags,
-            setCurrentAttachment,
+            setCurrentItem,
             toDelete,
             setToDelete,
             selected,

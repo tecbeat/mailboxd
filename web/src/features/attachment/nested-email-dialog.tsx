@@ -148,12 +148,12 @@ const MessageHeader = ({
 
 
 export function NestedEmailDialog({ open, onOpenChange }: any) {
-    const { currentAttachment } = useAttachmentContext()
+    const { currentItem } = useAttachmentContext()
 
     const { data, isLoading } = useQuery({
-        queryKey: ['nested-message', currentAttachment?.account_id!, currentAttachment?.envelope_id!, currentAttachment?.content_hash!],
-        queryFn: () => load_nested_message(currentAttachment?.account_id!, currentAttachment?.envelope_id!, currentAttachment?.content_hash!, true),
-        enabled: open && !!currentAttachment,
+        queryKey: ['nested-message', currentItem?.account_id!, currentItem?.envelope_id!, currentItem?.content_hash!],
+        queryFn: () => load_nested_message(currentItem?.account_id!, currentItem?.envelope_id!, currentItem?.content_hash!, true),
+        enabled: open && !!currentItem,
     });
 
     return (
@@ -162,7 +162,7 @@ export function NestedEmailDialog({ open, onOpenChange }: any) {
                 <div className="text-white px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-blue-400" />
-                        <span className="text-sm font-medium truncate max-w-[400px] opacity-90">{currentAttachment?.name}</span>
+                        <span className="text-sm font-medium truncate max-w-[400px] opacity-90">{currentItem?.name}</span>
                     </div>
                 </div>
 
@@ -175,9 +175,9 @@ export function NestedEmailDialog({ open, onOpenChange }: any) {
                                 envelope={data.envelope}
                                 attachments={data.attachments}
                                 onDownload={(nested_content_hash, fileName) => download_nested_attachment(
-                                    currentAttachment?.account_id!,
-                                    currentAttachment?.envelope_id!,
-                                    currentAttachment?.content_hash!,
+                                    currentItem?.account_id!,
+                                    currentItem?.envelope_id!,
+                                    currentItem?.content_hash!,
                                     nested_content_hash,
                                     fileName
                                 )}
