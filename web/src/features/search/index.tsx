@@ -33,13 +33,22 @@ import { MailListConfigProvider, type MailListConfig } from '@/features/mail-lis
 import useDialogState from '@/hooks/use-dialog-state';
 import { EditTagsDialog } from './edit-tag-dialog';
 import { useTranslation } from 'react-i18next';
-import { RestoreMessageDialog } from './restore-message-dialog';
+import { RestoreMessageDialog } from '@/features/mail-list/restore-message-dialog';
 import { MailListTable } from './mail-list-table';
 import { SortingState } from '@tanstack/react-table';
 import { MailBoxDeleteDialog } from '@/features/mail-list/delete-mailbox-dialog';
 import { UpdateTagsDialog } from './bulk-add-tag-dialog';
 
-const SEARCH_LIST_CONFIG: MailListConfig = { useListContext: useSearchContext }
+// Search's list item already is a full envelope, so it resolves synchronously.
+function useSearchCurrentEnvelope() {
+  const { currentItem } = useSearchContext()
+  return { data: currentItem, isLoading: false, error: null }
+}
+
+const SEARCH_LIST_CONFIG: MailListConfig = {
+  useListContext: useSearchContext,
+  useCurrentEnvelope: useSearchCurrentEnvelope,
+}
 
 export default function EmailSearch() {
   const { t } = useTranslation()

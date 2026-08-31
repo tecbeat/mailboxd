@@ -68,7 +68,7 @@ describe('attachment delete dialog cross-view invalidation', () => {
 
     renderWithProviders(
       <AttachmentProvider value={makeContext({ open: 'delete', toDelete: new Map([[1, new Set(['msg-1'])]]) })}>
-        <MailListConfigProvider config={{ useListContext: useAttachmentContext }}>
+        <MailListConfigProvider config={{ useListContext: useAttachmentContext, useCurrentEnvelope: () => ({ data: undefined, isLoading: false, error: null }) }}>
           <EnvelopeDeleteDialog open onOpenChange={() => {}} />
         </MailListConfigProvider>
       </AttachmentProvider>,

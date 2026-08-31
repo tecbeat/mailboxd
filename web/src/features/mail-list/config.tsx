@@ -18,6 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import React from 'react'
+import { EmailEnvelope } from '@/api'
 import { MailListContextBase } from './context'
 
 // A feature's list context accessor, entity- and dialog-agnostic. Concrete
@@ -27,8 +28,19 @@ import { MailListContextBase } from './context'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ListContextHook = () => MailListContextBase<any, any>
 
+// Resolves the feature's current list item to a full email envelope. Search's
+// item already is an envelope, so it resolves synchronously; attachment's item
+// only references one, so it fetches. Shared message/dialog components read the
+// envelope through this hook and stay agnostic of the underlying entity.
+export type CurrentEnvelopeHook = () => {
+  data: EmailEnvelope | undefined
+  isLoading: boolean
+  error: unknown
+}
+
 export interface MailListConfig {
   useListContext: ListContextHook
+  useCurrentEnvelope: CurrentEnvelopeHook
 }
 
 const MailListConfigContext = React.createContext<MailListConfig | null>(null)

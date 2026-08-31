@@ -70,7 +70,7 @@ describe('search delete dialog cross-view invalidation', () => {
 
     renderWithProviders(
       <SearchProvider value={makeContext({ open: 'delete', toDelete: new Map([[1, new Set(['msg-1'])]]) })}>
-        <MailListConfigProvider config={{ useListContext: useSearchContext }}>
+        <MailListConfigProvider config={{ useListContext: useSearchContext, useCurrentEnvelope: () => ({ data: undefined, isLoading: false, error: null }) }}>
           <EnvelopeDeleteDialog open onOpenChange={() => {}} />
         </MailListConfigProvider>
       </SearchProvider>,
