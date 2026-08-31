@@ -31,10 +31,7 @@ import { AttachmentListTable } from './mail-list-table';
 import { SortingState } from '@tanstack/react-table';
 import { useSearchAttachments } from '@/hooks/use-search-attachments';
 import { AttachmentModel } from '@/api/attachment/api';
-import { MailDisplayDrawer } from './mail-display-dialog';
-import { EnvelopeDeleteDialog } from './delete-dialog';
-import { RestoreMessageDialog } from './restore-message-dialog';
-import { NestedEmailDialog } from './nested-email-dialog';
+import { AttachmentDialogs } from './dialogs';
 
 export default function AttachmentSearch() {
   const { t } = useTranslation()
@@ -133,29 +130,7 @@ export default function AttachmentSearch() {
             </div>
           </div>
 
-          <MailDisplayDrawer
-            key='attachment-mail-display'
-            open={open === 'display'}
-            onOpenChange={() => setOpen('display')}
-          />
-
-          <EnvelopeDeleteDialog
-            key='delete-attachment-envelope'
-            open={open === 'delete'}
-            onOpenChange={() => setOpen('delete')}
-          />
-
-          <RestoreMessageDialog
-            key='attachment-restore-mail-dialog'
-            open={open === 'restore'}
-            onOpenChange={() => setOpen('restore')}
-          />
-
-          <NestedEmailDialog
-            key="nested-eml-attachment-dialog"
-            open={open === 'nested-eml'}
-            onOpenChange={() => setOpen('nested-eml')}
-          />
+          <AttachmentDialogs />
         </AttachmentProvider>
       </Main>
     </>
