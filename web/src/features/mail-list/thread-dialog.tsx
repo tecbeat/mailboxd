@@ -34,23 +34,23 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { get_thread_messages } from '@/api/mailbox/envelope/api';
+import { EmailEnvelope } from '@/api';
 import { MailMessageView } from './mail-message-view';
-import { useSearchContext } from './context';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 
 interface MailThreadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  currentEnvelope: EmailEnvelope;
 }
 
-export function MailThreadDialog({ open, onOpenChange }: MailThreadDialogProps) {
-  const { currentItem } = useSearchContext();
+export function MailThreadDialog({ open, onOpenChange, currentEnvelope }: MailThreadDialogProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
 
-  const threadId = currentItem?.thread_id;
-  const accountId = currentItem?.account_id;
+  const threadId = currentEnvelope?.thread_id;
+  const accountId = currentEnvelope?.account_id;
 
   const {
     data,

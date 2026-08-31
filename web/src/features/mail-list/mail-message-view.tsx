@@ -39,7 +39,8 @@ import {
   load_message,
 } from '@/api/mailbox/envelope/api';
 import { AxiosError } from 'axios';
-import { useSearchContext } from './context';
+import { EmailEnvelope } from '@/api';
+import { useMailListConfig } from '@/features/mail-list/config';
 import { MailThreadDialog } from './thread-dialog';
 import useMinimalAccountList from '@/hooks/use-minimal-account-list';
 import { useTranslation } from 'react-i18next';
@@ -48,17 +49,7 @@ import AttachmentPreview, { type PreviewAttachment } from '@/features/mail-list/
 
 
 interface MailMessageViewProps {
-  envelope: {
-    id: string;
-    account_id: number,
-    from?: string;
-    to?: string[];
-    cc?: string[];
-    bcc?: string[];
-    subject?: string;
-    internal_date?: number;
-    tags: string[];
-  };
+  envelope: EmailEnvelope;
   showActions?: boolean;
   showHeader?: boolean;
   showAttachments?: boolean;
@@ -98,7 +89,8 @@ export function MailMessageView({
   showHeader = true
 }: MailMessageViewProps) {
   const { t } = useTranslation()
-  const { setToDelete, setOpen, setSelected, setEditTagsOpen } = useSearchContext();
+  const { useListContext } = useMailListConfig();
+  const { setToDelete, setOpen, setSelected, setEditTagsOpen } = useListContext();
   const [content, setContent] = useState<string | null>(null);
   const [contentType, setContentType] = useState<'Plain' | 'Html' | null>(null);
   const [attachments, setAttachments] = useState<AttachmentInfo[] | null>(null);
@@ -237,28 +229,30 @@ export function MailMessageView({
             <span>{formatTimestamp(envelope.internal_date)}</span>
           </div>
         )}
-        <div className="flex items-center space-x-2">
-          <span className="font-medium text-gray-400">{t('mail.tags')}:</span>
-          <div className="flex flex-wrap gap-1 items-center">
-            {envelope.tags && envelope.tags.length > 0 ? (
-              envelope.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-[10px] h-5 px-1.5">
-                  {tag}
-                </Badge>
-              ))
-            ) : (
-              <span className="text-gray-400 italic">{t('mail.noTagsYet')}</span>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 ml-0.5"
-              onClick={() => setEditTagsOpen(true)}
-            >
-              <Pencil className="h-3 w-3" />
-            </Button>
+        {setEditTagsOpen && (
+          <div className="flex items-center space-x-2">
+            <span className="font-medium text-gray-400">{t('mail.tags')}:</span>
+            <div className="flex flex-wrap gap-1 items-center">
+              {envelope.tags && envelope.tags.length > 0 ? (
+                envelope.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="text-[10px] h-5 px-1.5">
+                    {tag}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-gray-400 italic">{t('mail.noTagsYet')}</span>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 ml-0.5"
+                onClick={() => setEditTagsOpen?.(true)}
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>}
 
       {showActions && (
@@ -450,7 +444,7 @@ export function MailMessageView({
         )}
       </div>
 
-      <MailThreadDialog open={threadOpen} onOpenChange={setThreadOpen} />
+      <MailThreadDialog open={threadOpen} onOpenChange={setThreadOpen} currentEnvelope={envelope} />
       <NestedEmailDialog
         open={!!nestedEmlFile}
         onOpenChange={(open: boolean) => !open && setNestedEmlFile(null)}
