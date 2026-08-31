@@ -187,10 +187,9 @@ export default function ImportPage() {
         setHeaderFolder('INBOX');
         setFolderMode('');
       } else {
-        // EML/MBOX: default to header auto-detect if no mode selected yet
-        if (!folderMode) {
-          setFolderMode('header');
-        }
+        // EML/MBOX: default to header auto-detect if no mode selected yet.
+        // Functional update so we don't clobber a mode the user already picked.
+        setFolderMode((prev) => prev || 'header');
         try {
           const hint = await extractFolderHint(firstOk.file);
           if (hint) {
@@ -202,7 +201,7 @@ export default function ImportPage() {
         }
       }
     }
-  }, []);
+  }, [maxMbox, maxPst]);
 
   const removeFile = (idx: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== idx));
