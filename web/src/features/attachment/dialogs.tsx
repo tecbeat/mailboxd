@@ -10,6 +10,7 @@ import { MailDisplayDrawer } from './mail-display-dialog';
 import { EnvelopeDeleteDialog } from './delete-dialog';
 import { RestoreMessageDialog } from './restore-message-dialog';
 import { NestedEmailDialog } from './nested-email-dialog';
+import { MailBoxDeleteDialog } from './delete-mailbox-dialog';
 
 /**
  * All modal dialogs for the attachment view, keyed off the `open` value in
@@ -43,6 +44,12 @@ export function AttachmentDialogs() {
         key="nested-eml-attachment-dialog"
         open={open === 'nested-eml'}
         onOpenChange={() => setOpen('nested-eml')}
+      />
+
+      <MailBoxDeleteDialog
+        key="attachment-delete-mailbox"
+        open={open === 'delete-mailbox'}
+        onOpenChange={() => setOpen('delete-mailbox')}
       />
     </>
   );
