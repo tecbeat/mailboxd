@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.4.0) - 2026-08-31
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies - ([2627328](https://git.teccave.de/tecbeat/mailboxd/commit/2627328af9989238e3229c046669afd41b770e23))
+- *(deps)* Update node.js to e67514e - ([b0c1543](https://git.teccave.de/tecbeat/mailboxd/commit/b0c1543f02070d19976b05248fe57607f0d4a656))
+
+### 🚜 Refactor
+
+- *(migrate)* Run storage migration in the server, drop entrypoint script - ([889ea79](https://git.teccave.de/tecbeat/mailboxd/commit/889ea799facff1c4b4483b04119f2ed8d72e2306))
+
+## [1.3.4](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.4) - 2026-08-25
+
 ## [1.3.3](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.3) - 2026-08-25
 
 ## [1.3.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.3.2) - 2026-08-25
