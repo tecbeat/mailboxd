@@ -58,6 +58,7 @@ import { list_mailboxes } from '@/api/mailbox/api';
 import useMinimalAccountList from '@/hooks/use-minimal-account-list';
 import { useSearchContext } from './context';
 import { buildTree, ExtendedTreeItemProps } from '@/lib/build-tree';
+import { countSelectedMailboxes } from './mailbox-selection';
 
 const CustomCollapse = styled(Collapse)({ padding: 0 });
 const AnimatedCollapse = animated(CustomCollapse);
@@ -200,14 +201,17 @@ export function MailboxPopover() {
         setLocalOpen(false);
     };
 
-    const handleDeleteClick = (id: string) => {
+    const handleDeleteClick = React.useCallback((id: string) => {
         setDeleteMailboxId(id);
         setSelectedAccountId(activeAccountId);
         setOpen('delete-mailbox');
-    };
+    }, [activeAccountId, setDeleteMailboxId, setSelectedAccountId, setOpen]);
 
+    const selectedIdSet = React.useMemo(() => new Set(localSelectedIds), [localSelectedIds]);
 
-    const CustomTreeItem = React.forwardRef(function CustomTreeItem(
+    // Memoized so the tree slot keeps a stable identity across re-renders (e.g.
+    // typing in the search box); otherwise RichTreeView remounts every render.
+    const CustomTreeItem = React.useMemo(() => React.forwardRef(function CustomTreeItem(
         props: CustomTreeItemProps,
         ref: React.Ref<HTMLLIElement>,
     ) {
@@ -259,7 +263,9 @@ export function MailboxPopover() {
                 </TreeItemRoot>
             </TreeItemProvider>
         );
-    });
+    }), [handleDeleteClick]);
+
+    const treeSlots = React.useMemo(() => ({ item: CustomTreeItem }), [CustomTreeItem]);
 
     return (
         <Popover open={localOpen} onOpenChange={setLocalOpen} >
@@ -318,8 +324,8 @@ export function MailboxPopover() {
                                 {accountIds.map(id => {
                                     const acc = minimalList.find(a => a.id === id);
                                     const isActive = activeAccountId === id;
-                                    const cachedData = queryClient.getQueryData<any[]>(['search-mailboxes', id]);
-                                    const count = cachedData?.filter(m => localSelectedIds.includes(m.id)).length ?? 0;
+                                    const cachedData = queryClient.getQueryData<{ id: number }[]>(['search-mailboxes', id]);
+                                    const count = countSelectedMailboxes(cachedData, selectedIdSet);
 
                                     return (
                                         <button
@@ -365,7 +371,7 @@ export function MailboxPopover() {
                                         onSelectedItemsChange={(_, itemIds) => {
                                             setLocalSelectedIds(itemIds.map(id => parseInt(id)).filter(id => !isNaN(id)));
                                         }}
-                                        slots={{ item: CustomTreeItem }}
+                                        slots={treeSlots}
                                         sx={{ width: '100%' }}
                                     />
                                 ) : (
