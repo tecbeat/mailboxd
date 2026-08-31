@@ -32,7 +32,7 @@ import { enUS } from "date-fns/locale"
 import { ColumnDef } from "@tanstack/react-table"
 import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
-import { DataTableColumnHeader } from "./table/data-table-column-header"
+import { DataTableColumnHeader } from "@/features/mail-list/table/data-table-column-header"
 import { SearchTable } from "./table/table"
 import { DataTableRowActions } from "./table/data-table-row-actions"
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'

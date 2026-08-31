@@ -27,7 +27,7 @@ import { useTranslation } from 'react-i18next'
 import { useAttachmentContext } from "./context"
 import { userAttachmentSenders } from "@/hooks/use-attachment-senders"
 import { Group } from "@/api/system/api"
-import { MetadataSelectorField } from "./attachment-metadata-selector"
+import { MetadataSelectorField } from "@/features/mail-list/attachment-metadata-selector"
 
 export function SenderFilterPopover() {
     const { t } = useTranslation()
