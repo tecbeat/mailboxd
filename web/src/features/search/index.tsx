@@ -27,8 +27,9 @@ import { AttachmentListPagination } from '@/components/pagination';
 import React from 'react';
 import { EmailEnvelope } from '@/api';
 import { MailDisplayDrawer } from './mail-display-dialog';
-import { EnvelopeDeleteDialog } from './delete-dialog';
-import SearchProvider, { SearchDialogType } from './context';
+import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
+import SearchProvider, { SearchDialogType, useSearchContext } from './context';
+import { MailListConfigProvider, type MailListConfig } from '@/features/mail-list/config';
 import useDialogState from '@/hooks/use-dialog-state';
 import { EditTagsDialog } from './edit-tag-dialog';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +38,8 @@ import { MailListTable } from './mail-list-table';
 import { SortingState } from '@tanstack/react-table';
 import { MailBoxDeleteDialog } from './delete-mailbox-dialog';
 import { UpdateTagsDialog } from './bulk-add-tag-dialog';
+
+const SEARCH_LIST_CONFIG: MailListConfig = { useListContext: useSearchContext }
 
 export default function EmailSearch() {
   const { t } = useTranslation()
@@ -106,6 +109,7 @@ export default function EmailSearch() {
             setEditTagsOpen,
           }}
         >
+          <MailListConfigProvider config={SEARCH_LIST_CONFIG}>
           <div className="mx-auto w-full px-4">
             <div className="flex gap-6">
               <div className="flex-1 min-w-0 space-y-4">
@@ -177,6 +181,7 @@ export default function EmailSearch() {
             open={open === 'delete-mailbox'}
             onOpenChange={() => setOpen('delete-mailbox')}
           />
+          </MailListConfigProvider>
         </SearchProvider>
       </Main>
     </>

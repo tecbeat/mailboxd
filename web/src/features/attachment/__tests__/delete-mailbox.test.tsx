@@ -26,6 +26,7 @@ import { server } from '@/test/server';
 
 import AttachmentProvider, { useAttachmentContext } from '../context';
 import { AttachmentDialogs } from '../dialogs';
+import { MailListConfigProvider } from '@/features/mail-list/config';
 
 const BASE = 'http://localhost:15630';
 
@@ -58,7 +59,9 @@ function makeContext(overrides: Partial<AttachmentContextValue> = {}): Attachmen
 function renderDialogs(overrides: Partial<AttachmentContextValue>) {
   return renderWithProviders(
     <AttachmentProvider value={makeContext(overrides)}>
-      <AttachmentDialogs />
+      <MailListConfigProvider config={{ useListContext: useAttachmentContext }}>
+        <AttachmentDialogs />
+      </MailListConfigProvider>
     </AttachmentProvider>,
   );
 }
