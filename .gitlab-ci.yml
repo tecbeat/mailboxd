@@ -67,7 +67,7 @@ migration_tests:
   script:
     # v1.x fjall -> v2, v0.3.7 Tantivy -> v2 (incl. a byte-identical
     # end-to-end fixture), and the guard/idempotency cases.
-    - cargo test -p mailboxd-admin --locked --no-default-features migrate -- --test-threads=1 --nocapture
+    - cargo test -p mailboxd-migrate --locked --no-default-features -- --test-threads=1 --nocapture
     # Bichon layout adoption (bichon-* -> mailboxd-*) and the shared core helpers.
     - cargo test -p mailboxd-core --locked --no-default-features migrate -- --test-threads=1
   tags:
@@ -81,12 +81,12 @@ migration_tests:
 #
 # Both run *inside* the freshly built `${CI_REGISTRY_IMAGE}:${VERSION}` image
 # (via the teccave `.test_image` template, non-default branches only). The image
-# ENTRYPOINT (`docker-entrypoint.sh`) is replaced with an empty entrypoint so the
-# job script drives startup explicitly and can assert on each step. Booting an
-# *old* release image to prove the v1.x/v0.3.7 conversions is not possible here
-# (buildkit CI has no Docker daemon and only the new image is available), so
-# those paths stay covered by `migration_tests`; these jobs cover the artifact
-# itself and the v2 upgrade no-op.
+# ENTRYPOINT (the `mailboxd-server` binary) is replaced with an empty entrypoint
+# so the job script drives startup explicitly and can assert on each step.
+# Booting an *old* release image to prove the v1.x/v0.3.7 conversions is not
+# possible here (buildkit CI has no Docker daemon and only the new image is
+# available), so those paths stay covered by `migration_tests`; these jobs cover
+# the artifact itself and the v2 upgrade no-op.
 .image_test:
   extends: .test_image
   image:
@@ -132,8 +132,7 @@ image_integration_test:
     - grep -qx "2" "$MAILBOXD_ROOT_DIR/STORAGE_VERSION"
     - stop_server
 
-# Prove an upgrade of an already-v2 volume is a clean, idempotent no-op: the
-# entrypoint's migration step reports nothing to do and the server still boots.
+# Prove an upgrade of an already-v2 volume is a clean, idempotent no-op.
 image_update_test:
   extends: .image_test
   script:
@@ -141,8 +140,7 @@ image_update_test:
     - start_server
     - stop_server
     - grep -qx "2" "$MAILBOXD_ROOT_DIR/STORAGE_VERSION"
-    # 2. The next container start runs the migration step first (as the
-    #    entrypoint does); on a v2 volume it must be a clean no-op.
+    # 2. The standalone migration must be a clean no-op on a v2 volume.
     - MIGRATE_OUT=$(/usr/local/bin/mailboxd-admin --auto-migrate 2>&1); echo "$MIGRATE_OUT"
     - echo "$MIGRATE_OUT" | grep -q "storage layout already current; nothing to do"
     # 3. The server still boots and serves on the migrated volume, unchanged.

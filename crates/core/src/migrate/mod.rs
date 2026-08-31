@@ -17,40 +17,12 @@ const VERSION_FILE: &str = "STORAGE_VERSION";
 const BICHON_INDICES: &str = "bichon-indices";
 const BICHON_STORAGE: &str = "bichon-storage";
 
-/// Adopt an existing Bichon 2.x data volume in place by renaming its top-level
-/// storage directories to the mailboxd names.
-///
-/// This runs before any directory is created, opened, or version-checked, so a
-/// Bichon installation can be migrated by swapping the image and the
-/// `BICHON_*` → `MAILBOXD_*` environment variables while keeping the same data
-/// volume and encryption password. Idempotent: if the mailboxd-named directory
-/// already exists, or no Bichon directory is present, it does nothing.
-pub fn migrate_bichon_layout() -> std::io::Result<()> {
-    let root_dir = PathBuf::from(&SETTINGS.mailboxd_root_dir);
-
-    let index_base = SETTINGS
-        .mailboxd_index_dir
-        .as_ref()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| root_dir.clone());
-
-    let data_base = SETTINGS
-        .mailboxd_data_dir
-        .as_ref()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| root_dir.clone());
-
-    adopt_bichon_layout(&index_base, &data_base)
-}
-
-/// Rename Bichon's top-level `bichon-indices` / `bichon-storage` directories to
-/// the mailboxd names under the given base directories.
-///
-/// This is the path-parameterized core of [`migrate_bichon_layout`]. It is
-/// shared with the admin binary's unattended startup migration so that the
-/// server startup path and the pre-server migration adopt a Bichon volume
-/// identically. Idempotent: does nothing if the mailboxd-named directory
-/// already exists or no Bichon directory is present.
+/// Adopt an existing Bichon data volume in place by renaming its top-level
+/// `bichon-indices` / `bichon-storage` directories to the mailboxd names under
+/// the given base directories. Runs before any directory is opened or
+/// version-checked, so a Bichon install migrates by swapping the image and the
+/// `BICHON_*` → `MAILBOXD_*` variables. Idempotent: does nothing if the
+/// mailboxd-named directory already exists or no Bichon directory is present.
 pub fn adopt_bichon_layout(index_base: &Path, data_base: &Path) -> std::io::Result<()> {
     adopt_legacy_dir(&index_base.join(BICHON_INDICES), &index_base.join(INDICES))?;
     adopt_legacy_dir(&data_base.join(BICHON_STORAGE), &data_base.join(STORAGE))?;

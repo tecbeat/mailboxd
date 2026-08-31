@@ -10,6 +10,7 @@ embed-web = ["dep:rust-embed"]
 
 [dependencies]
 mailboxd-core = { path = "../core", features = ["web-api"] }
+mailboxd-migrate = { path = "../migrate" }
 mailboxd-smtp = { path = "../smtp" }
 poem = { version = "3.1.12", features = ["embed", "compression", "rustls"] }
 poem-derive = "3.1.12"
