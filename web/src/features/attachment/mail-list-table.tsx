@@ -54,7 +54,7 @@ export function AttachmentListTable({
   const { t, i18n } = useTranslation()
 
   const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
-  const { selected, setSelected, setOpen, setCurrentAttachment } = useAttachmentContext()
+  const { selected, setSelected, setOpen, setCurrentItem } = useAttachmentContext()
 
   const columns: ColumnDef<MailTableFeatures, AttachmentModel>[] = [
     {
@@ -148,7 +148,7 @@ export function AttachmentListTable({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setCurrentAttachment(row.original);
+                    setCurrentItem(row.original);
                     setOpen("display");
                   }}
                   className="hover:text-primary hover:underline transition-colors truncate"
@@ -193,7 +193,7 @@ export function AttachmentListTable({
                       title={t('attachment.viewEmbeddedEmail')}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setCurrentAttachment(row.original);
+                        setCurrentItem(row.original);
                         setOpen("nested-eml");
                       }}
                       className="hover:text-primary hover:underline transition-colors truncate"

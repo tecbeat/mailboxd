@@ -36,8 +36,8 @@ function makeContext(overrides: Partial<SearchContextValue> = {}): SearchContext
   return {
     open: null,
     setOpen: vi.fn(),
-    currentEnvelope: undefined,
-    setCurrentEnvelope: vi.fn(),
+    currentItem: undefined,
+    setCurrentItem: vi.fn(),
     toDelete: new Map(),
     setToDelete: vi.fn(),
     selected: new Map(),

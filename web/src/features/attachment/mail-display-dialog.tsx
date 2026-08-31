@@ -34,13 +34,13 @@ interface Props {
 
 export function MailDisplayDrawer({ open, onOpenChange }: Props) {
   const { t } = useTranslation()
-  const { currentAttachment } = useAttachmentContext()
+  const { currentItem } = useAttachmentContext()
 
   const {
     data: envelope,
     isLoading,
     error
-  } = useEnvelope(currentAttachment?.account_id, currentAttachment?.envelope_id);
+  } = useEnvelope(currentItem?.account_id, currentItem?.envelope_id);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
