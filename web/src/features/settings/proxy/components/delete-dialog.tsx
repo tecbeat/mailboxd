@@ -92,6 +92,7 @@ export function ProxyDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       onOpenChange={onOpenChange}
       handleConfirm={handleDelete}
       disabled={value !== `${currentRow.id}`}
+      isLoading={deleteMutation.isPending}
       className='max-w-2xl'
       title={
         <span className='text-destructive'>
