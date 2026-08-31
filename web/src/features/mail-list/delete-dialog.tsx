@@ -24,7 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { delete_messages } from '@/api/mailbox/envelope/api'
-import { useAttachmentContext } from './context'
+import { useMailListConfig } from '@/features/mail-list/config'
 import { mapToRecordOfArrays } from '@/lib/utils'
 import { invalidateMessageViews } from '@/lib/message-cache'
 import { useTranslation } from 'react-i18next'
@@ -36,7 +36,8 @@ interface Props {
 
 export function EnvelopeDeleteDialog({ open, onOpenChange }: Props) {
   const queryClient = useQueryClient()
-  const { toDelete, setToDelete, setSelected } = useAttachmentContext()
+  const { useListContext } = useMailListConfig()
+  const { toDelete, setToDelete, setSelected } = useListContext()
   const { t } = useTranslation()
 
   const deleteMutation = useMutation({

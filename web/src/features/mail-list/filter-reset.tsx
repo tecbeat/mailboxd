@@ -21,12 +21,13 @@
 
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useAttachmentContext } from "./context"
+import { useMailListConfig } from "@/features/mail-list/config"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next";
 
 export function FilterResetButton() {
-    const { filter, setFilter } = useAttachmentContext();
+    const { useListContext } = useMailListConfig();
+    const { filter, setFilter } = useListContext();
     const { t } = useTranslation()
     const { q, ...restFilters } = filter;
 

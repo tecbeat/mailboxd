@@ -24,7 +24,8 @@ import { FixedHeader } from '@/components/layout/fixed-header';
 import { Main } from '@/components/layout/main';
 import { AttachmentListPagination } from '@/components/pagination';
 import React from 'react';
-import AttachmentProvider, { AttachmentDialogType } from './context';
+import AttachmentProvider, { AttachmentDialogType, useAttachmentContext } from './context';
+import { MailListConfigProvider, type MailListConfig } from '@/features/mail-list/config';
 import useDialogState from '@/hooks/use-dialog-state';
 import { useTranslation } from 'react-i18next';
 import { AttachmentListTable } from './mail-list-table';
@@ -32,6 +33,8 @@ import { SortingState } from '@tanstack/react-table';
 import { useSearchAttachments } from '@/hooks/use-search-attachments';
 import { AttachmentModel } from '@/api/attachment/api';
 import { AttachmentDialogs } from './dialogs';
+
+const ATTACHMENT_LIST_CONFIG: MailListConfig = { useListContext: useAttachmentContext }
 
 export default function AttachmentSearch() {
   const { t } = useTranslation()
@@ -98,6 +101,7 @@ export default function AttachmentSearch() {
             handleTagToggle
           }}
         >
+          <MailListConfigProvider config={ATTACHMENT_LIST_CONFIG}>
           <div className="mx-auto w-full px-4">
             <div className="flex gap-6">
               <div className="flex-1 min-w-0 space-y-4">
@@ -131,6 +135,7 @@ export default function AttachmentSearch() {
           </div>
 
           <AttachmentDialogs />
+          </MailListConfigProvider>
         </AttachmentProvider>
       </Main>
     </>

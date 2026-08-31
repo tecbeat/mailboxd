@@ -30,14 +30,15 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { useAttachmentContext } from './context'
+import { useMailListConfig } from '@/features/mail-list/config'
 import { DatePicker } from '@/components/date-picker'
 
 const DAY = 86400000
 
 export function TimePopover() {
     const { t } = useTranslation()
-    const { filter, setFilter } = useAttachmentContext()
+    const { useListContext } = useMailListConfig()
+    const { filter, setFilter } = useListContext()
     const [customDays, setCustomDays] = React.useState<string>('')
 
     const since = filter.since
