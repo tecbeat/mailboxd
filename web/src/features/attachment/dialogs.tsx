@@ -20,7 +20,7 @@
 import { useAttachmentContext } from './context';
 import { MailDisplayDrawer } from './mail-display-dialog';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
-import { RestoreMessageDialog } from './restore-message-dialog';
+import { RestoreMessageDialog } from '@/features/mail-list/restore-message-dialog';
 import { NestedEmailDialog } from './nested-email-dialog';
 import { MailBoxDeleteDialog } from '@/features/mail-list/delete-mailbox-dialog';
 

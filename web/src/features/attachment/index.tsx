@@ -26,6 +26,7 @@ import { AttachmentListPagination } from '@/components/pagination';
 import React from 'react';
 import AttachmentProvider, { AttachmentDialogType, useAttachmentContext } from './context';
 import { MailListConfigProvider, type MailListConfig } from '@/features/mail-list/config';
+import { useEnvelope } from '@/hooks/use-envelope';
 import useDialogState from '@/hooks/use-dialog-state';
 import { useTranslation } from 'react-i18next';
 import { AttachmentListTable } from './mail-list-table';
@@ -34,7 +35,16 @@ import { useSearchAttachments } from '@/hooks/use-search-attachments';
 import { AttachmentModel } from '@/api/attachment/api';
 import { AttachmentDialogs } from './dialogs';
 
-const ATTACHMENT_LIST_CONFIG: MailListConfig = { useListContext: useAttachmentContext }
+// Attachment's list item only references an envelope, so it must be fetched.
+function useAttachmentCurrentEnvelope() {
+  const { currentItem } = useAttachmentContext()
+  return useEnvelope(currentItem?.account_id, currentItem?.envelope_id)
+}
+
+const ATTACHMENT_LIST_CONFIG: MailListConfig = {
+  useListContext: useAttachmentContext,
+  useCurrentEnvelope: useAttachmentCurrentEnvelope,
+}
 
 export default function AttachmentSearch() {
   const { t } = useTranslation()

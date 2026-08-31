@@ -59,7 +59,7 @@ function makeContext(overrides: Partial<AttachmentContextValue> = {}): Attachmen
 function renderDialogs(overrides: Partial<AttachmentContextValue>) {
   return renderWithProviders(
     <AttachmentProvider value={makeContext(overrides)}>
-      <MailListConfigProvider config={{ useListContext: useAttachmentContext }}>
+      <MailListConfigProvider config={{ useListContext: useAttachmentContext, useCurrentEnvelope: () => ({ data: undefined, isLoading: false, error: null }) }}>
         <AttachmentDialogs />
       </MailListConfigProvider>
     </AttachmentProvider>,

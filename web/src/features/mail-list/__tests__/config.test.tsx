@@ -20,26 +20,33 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { render, screen } from '@/test/test-utils'
-import { MailListConfigProvider, useMailListConfig, type ListContextHook } from '../config'
+import {
+  MailListConfigProvider,
+  useMailListConfig,
+  type ListContextHook,
+  type CurrentEnvelopeHook,
+} from '../config'
 
 describe('useMailListConfig', () => {
-  it('exposes the feature list-context hook supplied by the provider', () => {
+  it('exposes the feature hooks supplied by the provider', () => {
     const useListContext = vi.fn() as unknown as ListContextHook
-    let seen: ListContextHook | undefined
+    const useCurrentEnvelope = vi.fn() as unknown as CurrentEnvelopeHook
+    let seen: ReturnType<typeof useMailListConfig> | undefined
 
     function Consumer() {
-      seen = useMailListConfig().useListContext
+      seen = useMailListConfig()
       return <span>ok</span>
     }
 
     render(
-      <MailListConfigProvider config={{ useListContext }}>
+      <MailListConfigProvider config={{ useListContext, useCurrentEnvelope }}>
         <Consumer />
       </MailListConfigProvider>,
     )
 
     expect(screen.getByText('ok')).toBeInTheDocument()
-    expect(seen).toBe(useListContext)
+    expect(seen?.useListContext).toBe(useListContext)
+    expect(seen?.useCurrentEnvelope).toBe(useCurrentEnvelope)
   })
 
   it('throws when used outside a provider', () => {

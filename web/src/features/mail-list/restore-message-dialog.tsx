@@ -26,8 +26,8 @@ import { useMutation } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { useTranslation } from 'react-i18next'
 import { ToastAction } from '@/components/ui/toast'
-import { useSearchContext } from './context'
 import { EmailEnvelope } from '@/api'
+import { useMailListConfig } from '@/features/mail-list/config'
 
 function MessageSummary({ envelope, t }: { envelope: EmailEnvelope, t: (key: string) => string }) {
     return (
@@ -84,13 +84,18 @@ export function RestoreMessageDialog({
     onOpenChange
 }: RestoreMessageDialogProps) {
     const { t } = useTranslation()
-    const { currentItem, selected } = useSearchContext()
+    const { useListContext, useCurrentEnvelope } = useMailListConfig()
+    const { selected } = useListContext()
 
     const accountsWithSelection = Array.from(selected.entries()).filter(([_, ids]) => ids.size > 0);
     const selectedCount = accountsWithSelection.reduce((sum, [_, set]) => sum + set.size, 0);
     const accountCount = accountsWithSelection.length;
 
     const isBulk = selectedCount > 0;
+
+    const {
+        data: currentEnvelope,
+    } = useCurrentEnvelope();
 
 
     const restoreMutation = useMutation({
@@ -100,8 +105,8 @@ export function RestoreMessageDialog({
                     restore_message(accountId, Array.from(ids))
                 );
                 return Promise.all(promises);
-            } else if (currentItem) {
-                return restore_message(currentItem.account_id, [currentItem.id]);
+            } else if (currentEnvelope) {
+                return restore_message(currentEnvelope.account_id, [currentEnvelope.id]);
             }
         },
         onSuccess: handleRestoreSuccess,
@@ -175,14 +180,14 @@ export function RestoreMessageDialog({
                         </div>
                     </div>
                 ) : (
-                    currentItem && <MessageSummary envelope={currentItem} t={t} />
+                    currentEnvelope && <MessageSummary envelope={currentEnvelope} t={t} />
                 )}
             </div>}
             confirmText={t('restore_message.confirm', 'Restore')}
             handleConfirm={() => restoreMutation.mutate()}
             className="sm:max-w-sm"
             isLoading={restoreMutation.isPending}
-            disabled={restoreMutation.isPending || (!isBulk && !currentItem)}
+            disabled={restoreMutation.isPending || (!isBulk && !currentEnvelope)}
         />
     )
 }
