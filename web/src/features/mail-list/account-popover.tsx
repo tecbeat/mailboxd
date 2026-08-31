@@ -33,14 +33,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 import useMinimalAccountList from '@/hooks/use-minimal-account-list'
 import { cn } from '@/lib/utils'
-import { useAttachmentContext } from './context'
+import { useMailListConfig } from '@/features/mail-list/config'
 
 export function AccountPopover() {
   const { t } = useTranslation()
-  const { filter, setFilter } = useAttachmentContext()
+  const { useListContext } = useMailListConfig()
+  const { filter, setFilter } = useListContext()
   const [search, setSearch] = React.useState('')
   const { minimalList = [] } = useMinimalAccountList()
 
@@ -85,6 +91,7 @@ export function AccountPopover() {
       .filter(a =>
         !q ||
         a.email.toLowerCase().includes(q) ||
+        a.name?.toLowerCase().includes(q) ||
         String(a.id).includes(q)
       )
       .sort((a, b) => {
@@ -104,7 +111,7 @@ export function AccountPopover() {
           size="sm"
           variant="outline"
           className={cn(
-            'h-6 gap-1.5 px-3 rounded-none ',
+            'h-6 gap-1.5 px-3 rounded-none',
             selectedIds.length > 0 &&
             'bg-primary/10 border-primary text-primary'
           )}
@@ -186,9 +193,22 @@ export function AccountPopover() {
                     className="flex-1 truncate text-xs cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="truncate">
-                        {account.email}
-                      </span>
+                      {account.name ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="truncate">
+                              {account.name}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {account.email}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <span className="truncate">
+                          {account.email}
+                        </span>
+                      )}
                       <span className="text-[10px] text-muted-foreground">
                         #{account.id}
                       </span>
