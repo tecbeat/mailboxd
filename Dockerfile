@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 # Stage 1: build the React web UI with pnpm
 # ---------------------------------------------------------------------------
-FROM node:24-alpine3.24@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS web-builder
+FROM node:24-alpine3.24@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS web-builder
 
 WORKDIR /build
 
@@ -81,10 +81,7 @@ RUN groupadd -g 1000 mailboxd \
 COPY --from=rust-builder /out/mailboxd-server /opt/mailboxd/mailboxd-server
 COPY --from=rust-builder /out/mailboxd-cli    /usr/local/bin/mailboxd-cli
 COPY --from=rust-builder /out/mailboxd-admin  /usr/local/bin/mailboxd-admin
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY LICENSE NOTICE /opt/mailboxd/
-
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 USER mailboxd:mailboxd
 WORKDIR /data
@@ -94,4 +91,5 @@ EXPOSE 15630
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD curl -fsS http://localhost:15630/api/status || exit 1
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# The server runs the storage migration itself on startup; no wrapper needed.
+ENTRYPOINT ["/opt/mailboxd/mailboxd-server"]

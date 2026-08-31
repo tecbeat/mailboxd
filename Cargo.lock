@@ -2470,28 +2470,11 @@ dependencies = [
 name = "mailboxd-admin"
 version = "1.6.2"
 dependencies = [
- "bytes 1.12.0",
- "chrono",
  "console",
  "dialoguer",
- "fjall",
- "hex",
- "indicatif",
- "itertools 0.15.0",
- "mail-parser",
- "mailboxd-blob",
  "mailboxd-core",
- "mailboxd-memdb",
- "native_db",
- "native_model",
- "serde",
- "serde_json",
- "snafu",
- "tantivy",
- "tempfile",
+ "mailboxd-migrate",
  "tokio",
- "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -2570,7 +2553,7 @@ dependencies = [
  "oauth2",
  "outlook-pst",
  "poem-openapi",
- "quick-xml 0.41.0",
+ "quick-xml 0.42.0",
  "rand 0.10.2",
  "regex",
  "reqwest",
@@ -2612,6 +2595,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "mailboxd-migrate"
+version = "1.6.2"
+dependencies = [
+ "bytes 1.12.0",
+ "chrono",
+ "console",
+ "dialoguer",
+ "fjall",
+ "hex",
+ "indicatif",
+ "itertools 0.15.0",
+ "mail-parser",
+ "mailboxd-blob",
+ "mailboxd-core",
+ "mailboxd-memdb",
+ "native_db",
+ "native_model",
+ "serde",
+ "snafu",
+ "tantivy",
+ "tempfile",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "mailboxd-server"
 version = "1.6.2"
 dependencies = [
@@ -2621,6 +2630,7 @@ dependencies = [
  "governor",
  "http",
  "mailboxd-core",
+ "mailboxd-migrate",
  "mailboxd-smtp",
  "poem",
  "poem-derive",
@@ -3622,6 +3632,15 @@ name = "quick-xml"
 version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.42.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41b1177fdf999d2321d3fb46ff47159d9c1fb9ad66a4879f8c50a0b504615e9b"
 dependencies = [
  "memchr",
  "serde",

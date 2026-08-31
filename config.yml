@@ -215,17 +215,17 @@ repo:
     "Upgrading from an older data layout (storage v1 or v0.3.7)": >-
       Older installs used earlier on-disk layouts — the fjall-based v1.x blob
       storage (Bichon 1.x era) or the Tantivy-based v0.3.7 layout. mailboxd
-      migrates these to the current v2 layout automatically on first boot: the
-      container runs the migration **before** starting the server, with no
-      operator interaction. The migration is non-destructive and idempotent —
+      migrates these to the current v2 layout automatically: the server runs
+      the migration on startup, before it begins serving, with no operator
+      interaction. The migration is non-destructive and idempotent —
       it reads the legacy data, writes the v2 store alongside it and records a
       `STORAGE_VERSION` marker — so it is a no-op on volumes already on v2 and
       safe to run on every start. Just swap the image for the new version and
-      start the container. If migration fails the container refuses to start
-      rather than run the server against half-converted data; check the
-      `[auto-migrate]` log lines. A partially-completed v0.3.7 migration is not
-      resumed automatically — run the interactive `mailboxd-admin` tool in that
-      case. **Back up the data volume before upgrading.**
+      start the container. If migration fails the server refuses to start
+      rather than run against half-converted data; check the startup logs. A
+      partially-completed v0.3.7 migration is not resumed automatically — run
+      the interactive `mailboxd-admin` tool in that case. **Back up the data
+      volume before upgrading.**
     "CORS errors when accessing the WebUI": >-
       Enable debug logging with `MAILBOXD_LOG_LEVEL=debug`, check the server logs
       for the incoming `Origin` header, and ensure the browser's exact origin
