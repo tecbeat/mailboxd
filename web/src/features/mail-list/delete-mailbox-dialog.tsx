@@ -1,8 +1,9 @@
 //
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
 // Copyright (c) 2026 tecbeat
 //
 // This file is part of mailboxd, a fork of the Bichon email archiving
-// project.
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +25,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { delete_mailbox } from '@/api/mailbox/api';
-import { useAttachmentContext } from './context';
+import { useMailListConfig } from '@/features/mail-list/config';
 
 interface Props {
   open: boolean;
@@ -33,7 +34,8 @@ interface Props {
 
 export function MailBoxDeleteDialog({ open, onOpenChange }: Props) {
   const queryClient = useQueryClient();
-  const { selectedAccountId, deleteMailboxId, setDeleteMailboxId } = useAttachmentContext();
+  const { useListContext } = useMailListConfig();
+  const { selectedAccountId, deleteMailboxId, setDeleteMailboxId } = useListContext();
   const { t } = useTranslation();
 
   const deleteMutation = useMutation<unknown, Error, { accountId: number; mailboxId: string }>({

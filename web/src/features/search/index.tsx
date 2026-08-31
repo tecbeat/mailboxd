@@ -36,7 +36,7 @@ import { useTranslation } from 'react-i18next';
 import { RestoreMessageDialog } from './restore-message-dialog';
 import { MailListTable } from './mail-list-table';
 import { SortingState } from '@tanstack/react-table';
-import { MailBoxDeleteDialog } from './delete-mailbox-dialog';
+import { MailBoxDeleteDialog } from '@/features/mail-list/delete-mailbox-dialog';
 import { UpdateTagsDialog } from './bulk-add-tag-dialog';
 
 const SEARCH_LIST_CONFIG: MailListConfig = { useListContext: useSearchContext }

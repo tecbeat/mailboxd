@@ -7,7 +7,7 @@ import { MailFilterPopover } from '../contact-popover'
 import { TextSearchInput } from '../text-search-input'
 import { MoreFiltersPopover } from '../more-filters-popover'
 import { FilterResetButton } from '@/features/mail-list/filter-reset'
-import { MailboxPopover } from '../mailbox-popover'
+import { MailboxPopover } from '@/features/mail-list/mailbox-popover'
 import { AccountPopover } from '../account-popover'
 
 type DataTableToolbarProps<TData extends RowData> = {
