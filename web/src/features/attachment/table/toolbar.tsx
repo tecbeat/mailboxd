@@ -3,13 +3,24 @@ import { type MailTableFeatures } from '@/lib/data-table'
 import { DataTableViewOptions } from '@/features/mail-list/table/view-options'
 import { TimePopover } from '@/features/mail-list/time-popover'
 import { SenderFilterPopover } from '../sender-popover'
-import { TextSearchInput } from '../text-search-input'
+import { TextSearchInput, type TextSearchConfig } from '@/features/mail-list/text-search-input'
 import { MoreFiltersPopover } from '../more-filters-popover'
 import { FilterResetButton } from '@/features/mail-list/filter-reset'
 import { MailboxPopover } from '@/features/mail-list/mailbox-popover'
 import { AccountPopover } from '../account-popover'
 import { MetadataFilter } from '../attachment-metadata-filter'
 import { FileType, Laptop, Tag } from 'lucide-react'
+
+const ATTACHMENT_TEXT_CONFIG: TextSearchConfig = {
+  storageKey: 'mailboxd_attachment_search_history',
+  searchFields: ['text', 'subject', 'attachment_name', 'from'],
+  placeholderKey: 'attachment.search_input_placeholder',
+  options: [
+    { value: 'text', labelKey: 'search_input.all', descKey: 'attachment.all_fields_desc' },
+    { value: 'subject', labelKey: 'search_input.subject' },
+    { value: 'body', labelKey: 'attachment.name' },
+  ],
+}
 
 type DataTableToolbarProps<TData extends RowData> = {
   table: Table<MailTableFeatures, TData>
@@ -22,7 +33,7 @@ export function DataTableToolbar<TData extends RowData>({
     <div className="flex flex-col gap-1 p-1 bg-background">
       <div className="mb-4 flex items-center justify-center w-full">
         <div className="w-full max-w-3xl">
-          <TextSearchInput />
+          <TextSearchInput config={ATTACHMENT_TEXT_CONFIG} />
         </div>
       </div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-1">

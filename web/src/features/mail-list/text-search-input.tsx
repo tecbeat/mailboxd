@@ -23,23 +23,38 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, X, Clock, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useAttachmentContext } from "./context"
+import { useMailListConfig } from "@/features/mail-list/config"
 import { useTranslation } from "react-i18next"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const STORAGE_KEY = "mailboxd_attachment_search_history"
 const MAX_HISTORY = 20
 
+// One selectable search scope. `descKey`, when present, renders a secondary
+// description line (used for the "all fields" option).
+export interface TextSearchOption {
+    value: string
+    labelKey: string
+    descKey?: string
+}
 
-type SearchField = "text" | "subject" | "attachment_name" | "from"
-const SEARCH_FIELDS: SearchField[] = ["text", "subject", "attachment_name", "from"]
+// Feature-specific search configuration. Supplied by each feature's toolbar so
+// the shared input can serve both search (subject/body) and attachment
+// (attachment_name/from) scopes without knowing about either.
+export interface TextSearchConfig {
+    storageKey: string
+    searchFields: string[]
+    placeholderKey: string
+    options: TextSearchOption[]
+}
 
-export function TextSearchInput() {
+export function TextSearchInput({ config }: { config: TextSearchConfig }) {
+    const { storageKey, searchFields, placeholderKey, options } = config
     const { t } = useTranslation()
-    const { filter, setFilter } = useAttachmentContext()
+    const { useListContext } = useMailListConfig()
+    const { filter, setFilter } = useListContext()
 
     const [value, setValue] = useState("")
-    const [field, setField] = useState<SearchField>("text")
+    const [field, setField] = useState<string>(options[0]?.value ?? "text")
     const [history, setHistory] = useState<string[]>([])
     const [showHistory, setShowHistory] = useState(false)
 
@@ -47,28 +62,28 @@ export function TextSearchInput() {
     const containerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        const activeField = SEARCH_FIELDS.find(key => !!filter[key]) || "text"
+        const activeField = searchFields.find(key => !!filter[key]) || "text"
         const activeValue = filter[activeField] as string || ""
 
         setField(activeField)
         setValue(activeValue)
-    }, [filter])
+    }, [filter, searchFields])
 
     useEffect(() => {
         try {
-            const saved = localStorage.getItem(STORAGE_KEY)
+            const saved = localStorage.getItem(storageKey)
             if (saved) setHistory(JSON.parse(saved))
         } catch (err) {
-            console.warn("Failed to load attachment search history", err)
+            console.warn("Failed to load search history", err)
         }
-    }, [])
+    }, [storageKey])
 
-    const applyFilter = (currentField: SearchField, searchTerm: string) => {
+    const applyFilter = (currentField: string, searchTerm: string) => {
         const trimmed = searchTerm.trim()
 
         setFilter((prev) => {
             const next = { ...prev }
-            SEARCH_FIELDS.forEach(f => {
+            searchFields.forEach(f => {
                 delete next[f]
             })
             if (trimmed) {
@@ -88,7 +103,7 @@ export function TextSearchInput() {
         setHistory((prev) => {
             const trimmed = term.trim()
             const newHistory = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(0, MAX_HISTORY)
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory))
+            localStorage.setItem(storageKey, JSON.stringify(newHistory))
             return newHistory
         })
     }
@@ -108,7 +123,7 @@ export function TextSearchInput() {
     const handleClearHistory = (e: React.MouseEvent) => {
         e.stopPropagation()
         setHistory([])
-        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(storageKey)
     }
 
     useEffect(() => {
@@ -127,9 +142,8 @@ export function TextSearchInput() {
                 <Select
                     value={field}
                     onValueChange={(val) => {
-                        const newField = val as SearchField
-                        setField(newField)
-                        if (value.trim()) applyFilter(newField, value)
+                        setField(val)
+                        if (value.trim()) applyFilter(val, value)
                     }}
                 >
                     <SelectTrigger
@@ -141,18 +155,20 @@ export function TextSearchInput() {
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="min-w-[240px]">
-                        <SelectItem value="text" className="font-medium cursor-pointer text-xs">
-                            {t("search_input.all")}
-                            <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
-                                {t("attachment.all_fields_desc")}
-                            </p>
-                        </SelectItem>
-                        <SelectItem value="subject" className="cursor-pointer text-xs">
-                            {t("search_input.subject")}
-                        </SelectItem>
-                        <SelectItem value="body" className="cursor-pointer text-xs">
-                            {t("attachment.name")}
-                        </SelectItem>
+                        {options.map((opt) => (
+                            <SelectItem
+                                key={opt.value}
+                                value={opt.value}
+                                className={cn("cursor-pointer text-xs", opt.descKey && "font-medium")}
+                            >
+                                {t(opt.labelKey)}
+                                {opt.descKey && (
+                                    <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                                        {t(opt.descKey)}
+                                    </p>
+                                )}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
                 <div className="relative flex-1">
@@ -163,7 +179,7 @@ export function TextSearchInput() {
                         onChange={(e) => setValue(e.target.value)}
                         onFocus={() => setShowHistory(true)}
                         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        placeholder={t("attachment.search_input_placeholder")}
+                        placeholder={t(placeholderKey)}
                         className="h-9 border-none shadow-none focus-visible:ring-0 pl-9 pr-10 text-sm bg-transparent w-full"
                     />
                     {value && (
