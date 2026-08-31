@@ -22,7 +22,7 @@ import { MailDisplayDrawer } from './mail-display-dialog';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
 import { RestoreMessageDialog } from './restore-message-dialog';
 import { NestedEmailDialog } from './nested-email-dialog';
-import { MailBoxDeleteDialog } from './delete-mailbox-dialog';
+import { MailBoxDeleteDialog } from '@/features/mail-list/delete-mailbox-dialog';
 
 /**
  * All modal dialogs for the attachment view, keyed off the `open` value in
