@@ -7,7 +7,7 @@ import { TextSearchInput, type TextSearchConfig } from '@/features/mail-list/tex
 import { MoreFiltersPopover } from '../more-filters-popover'
 import { FilterResetButton } from '@/features/mail-list/filter-reset'
 import { MailboxPopover } from '@/features/mail-list/mailbox-popover'
-import { AccountPopover } from '../account-popover'
+import { AccountPopover } from '@/features/mail-list/account-popover'
 import { MetadataFilter } from '../attachment-metadata-filter'
 import { FileType, Laptop, Tag } from 'lucide-react'
 
