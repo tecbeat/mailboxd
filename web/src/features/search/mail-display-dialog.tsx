@@ -22,7 +22,7 @@
 import { useSearchContext } from './context'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { MailMessageView } from './mail-message-view'
+import { MailMessageView } from '@/features/mail-list/mail-message-view'
 import { useTranslation } from 'react-i18next'
 
 

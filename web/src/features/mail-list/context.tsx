@@ -47,6 +47,10 @@ export interface MailListContextBase<TEntity, TDialog extends string> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setFilter: React.Dispatch<React.SetStateAction<Record<string, any>>>
   handleTagToggle: (tag: string) => void
+  // Optional capability: features that support editing an envelope's tags from
+  // the message viewer provide this opener. When absent (e.g. attachment view),
+  // the in-viewer tags editor is not rendered.
+  setEditTagsOpen?: (open: boolean) => void
 }
 
 interface ProviderProps<TValue> {
