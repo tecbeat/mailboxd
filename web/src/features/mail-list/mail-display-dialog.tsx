@@ -19,11 +19,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { useSearchContext } from './context'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { MailMessageView } from '@/features/mail-list/mail-message-view'
 import { useTranslation } from 'react-i18next'
+import { MailMessageView } from '@/features/mail-list/mail-message-view'
+import { useMailListConfig } from '@/features/mail-list/config'
 
 
 interface Props {
@@ -33,31 +33,35 @@ interface Props {
 
 export function MailDisplayDrawer({ open, onOpenChange }: Props) {
   const { t } = useTranslation()
-  const { currentItem } = useSearchContext()
+  const { useCurrentEnvelope } = useMailListConfig()
 
+  const {
+    data: envelope,
+    isLoading,
+    error
+  } = useCurrentEnvelope();
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='w-full md:max-w-6xl mx-auto h-full'>
         <DialogHeader className="p-4 pb-3 border-b shrink-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              {t('mail.emailViewer')}
-            </DialogTitle>
-          </div>
+          <DialogTitle>{t('mail.emailViewer')}</DialogTitle>
         </DialogHeader>
-        <ScrollArea>
+
+        <ScrollArea className="h-[calc(100vh-100px)]">
           <div className='m-5'>
-            {currentItem ? (
-              <MailMessageView envelope={currentItem} />
+            {isLoading ? (
+              <div className="p-8 text-center text-muted-foreground">{t('common.loading')}...</div>
+            ) : error ? (
+              <div className="p-8 text-center text-red-500">{t('attachment.emailMessageNotFound')}</div>
+            ) : envelope ? (
+              <MailMessageView envelope={envelope} />
             ) : (
               <div className="p-8 text-center text-muted-foreground">{t('mail.noMessageSelected')}</div>
             )}
           </div>
         </ScrollArea>
       </DialogContent>
-    </Dialog>)
+    </Dialog>
+  )
 }

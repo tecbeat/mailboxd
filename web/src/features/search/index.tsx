@@ -26,7 +26,7 @@ import { useSearchMessages } from '@/hooks/use-search-messages';
 import { AttachmentListPagination } from '@/components/pagination';
 import React from 'react';
 import { EmailEnvelope } from '@/api';
-import { MailDisplayDrawer } from './mail-display-dialog';
+import { MailDisplayDrawer } from '@/features/mail-list/mail-display-dialog';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
 import SearchProvider, { SearchDialogType, useSearchContext } from './context';
 import { MailListConfigProvider, type MailListConfig } from '@/features/mail-list/config';
