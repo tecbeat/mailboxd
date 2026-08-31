@@ -38,7 +38,7 @@ import { useSearchAttachments } from '@/hooks/use-search-attachments'
 import { useToast } from '@/hooks/use-toast'
 import { useMutation } from '@tanstack/react-query'
 import { download_attachment } from '@/api/mailbox/envelope/api'
-import AttachmentPreview from '@/features/attachment/attachment-preview'
+import AttachmentPreview from '@/features/mail-list/attachment-preview'
 
 interface DataTableRowActionsProps {
   row: Row<MailTableFeatures, AttachmentModel>

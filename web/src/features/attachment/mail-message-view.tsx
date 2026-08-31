@@ -43,7 +43,7 @@ import { MailThreadDialog } from './thread-dialog';
 import useMinimalAccountList from '@/hooks/use-minimal-account-list';
 import { useTranslation } from 'react-i18next';
 import { NestedEmailDialog } from '@/features/mail-list/nested-email-dialog';
-import AttachmentPreview, { type PreviewAttachment } from './attachment-preview';
+import AttachmentPreview, { type PreviewAttachment } from '@/features/mail-list/attachment-preview';
 import { EmailEnvelope } from '@/api';
 
 
