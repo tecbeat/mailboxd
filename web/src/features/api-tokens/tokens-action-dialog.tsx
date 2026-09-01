@@ -145,8 +145,6 @@ export function TokensActionDialog({ currentRow, open, onOpenChange, userId }: P
         </ToastAction>
       ),
     })
-
-    console.error(error)
   }
 
   const onSubmit = (values: AccessTokenForm) => {
