@@ -42,29 +42,6 @@ export const formatBytes = (sizeInBytes: number): string => {
 
 
 
-export const validateFlag = (input: string): string | null => {
-  // Check if the string is empty
-  if (input.length === 0) {
-    return `'input' cannot be empty.`;
-  }
-
-  // Check if the length is greater than 64 characters
-  if (input.length > 64) {
-    return `'input' cannot be longer than 64 characters.`;
-  }
-
-  // Check if the string starts with a letter and contains only letters, numbers, underscores, or dashes
-  const regex = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
-  if (!regex.test(input)) {
-    return `'input' must start with a letter and can only contain letters, numbers, underscores, or dashes.`;
-  }
-
-  // If all checks pass, return null
-  return null;
-};
-
-
-
 export function mapToRecordOfArrays(
   map: Map<number, Set<string>>
 ): Record<number, string[]> {

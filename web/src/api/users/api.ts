@@ -131,20 +131,6 @@ export const login = async (data: Record<string, any>) => {
     return response.data;
 };
 
-export const reset_admin_token = async () => {
-    const response = await axiosInstance.post("api/v1/reset-admin-token");
-    return response.data;
-};
-
-export const reset_admin_password = async (password: string) => {
-    const response = await axiosInstance.post("api/v1/reset-admin-password", password, {
-        headers: {
-            "Content-Type": "text/plain",
-        },
-    });
-    return response.data;
-};
-
 export const list_access_tokens = async () => {
     const response = await axiosInstance.get<AccessToken[]>("api/v1/access-token-list");
     return response.data;

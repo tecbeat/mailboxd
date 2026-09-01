@@ -33,7 +33,6 @@ import { LoaderCircle as Loader2, SquareCheck as CheckSquare, Square } from 'luc
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { list_mailboxes, MailboxData } from '@/api/mailbox/api'
-//import { MOCK_MAILBOX_LIST } from '@/api/mailbox/mock-mailboxes'
 import { buildTree, ExtendedTreeItemProps } from '@/lib/build-tree'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AccountModel, update_account } from '@/api/account/api'
