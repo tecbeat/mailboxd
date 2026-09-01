@@ -25,7 +25,7 @@ import {
   CaretSortIcon,
   EyeNoneIcon,
 } from '@radix-ui/react-icons'
-import { Column, RowData } from '@tanstack/react-table'
+import { Column, type RowData } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -43,12 +43,18 @@ interface DataTableColumnHeaderProps<TData extends RowData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<DataTableFeatures, TData, TValue>
   title: string
+  // Truncate the title with LongText instead of a plain span (accounts).
+  longText?: boolean
+  // Offer a "hide column" menu item (accounts, oauth2).
+  showHideColumn?: boolean
 }
 
 export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
   title,
   className,
+  longText = false,
+  showHideColumn = false,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>
@@ -63,7 +69,11 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
             size='sm'
             className=' h-8 data-[state=open]:bg-accent'
           >
-            <LongText className='max-w-[80px]'>{title}</LongText>
+            {longText ? (
+              <LongText className='max-w-[80px]'>{title}</LongText>
+            ) : (
+              <span>{title}</span>
+            )}
             {column.getIsSorted() === 'desc' ? (
               <ArrowDownIcon className='ml-2 h-4 w-4' />
             ) : column.getIsSorted() === 'asc' ? (
@@ -82,11 +92,15 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
             <ArrowDownIcon className='mr-2 h-3.5 w-3.5 text-muted-foreground/70' />
             {t('table.desc')}
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-            <EyeNoneIcon className='mr-2 h-3.5 w-3.5 text-muted-foreground/70' />
-            {t('table.hide')}
-          </DropdownMenuItem>
+          {showHideColumn && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
+                <EyeNoneIcon className='mr-2 h-3.5 w-3.5 text-muted-foreground/70' />
+                {t('table.hide')}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

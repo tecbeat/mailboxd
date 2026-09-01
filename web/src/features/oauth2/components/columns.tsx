@@ -24,7 +24,7 @@ import { type DataTableFeatures } from '@/lib/data-table'
 import { Checkbox } from '@/components/ui/checkbox'
 import LongText from '@/components/long-text'
 import { OAuth2Entity } from '../data/schema'
-import { DataTableColumnHeader } from './data-table-column-header'
+import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
 import { format } from 'date-fns'
 import { EnableAction } from './enable-action'
@@ -33,7 +33,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
   {
     accessorKey: 'id',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('settings.id')} />
+      <DataTableColumnHeader showHideColumn column={column} title={t('settings.id')} />
     ),
     cell: ({ row }) => {
       return <LongText className='max-w-[140px]'>{row.original.id}</LongText>
@@ -45,7 +45,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
   {
     accessorKey: 'enabled',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('settings.enabled')} className='ml-4' />
+      <DataTableColumnHeader showHideColumn column={column} title={t('settings.enabled')} className='ml-4' />
     ),
     cell: EnableAction,
     meta: { className: 'w-8 text-center' },
@@ -53,7 +53,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
   {
     accessorKey: 'use_proxy',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('settings.useProxy')} className='ml-4' />
+      <DataTableColumnHeader showHideColumn column={column} title={t('settings.useProxy')} className='ml-4' />
     ),
     cell: ({ row }) => {
       const enabled = row.original.use_proxy;
@@ -68,7 +68,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
   {
     accessorKey: 'auth_url',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('settings.authUrl')} />
+      <DataTableColumnHeader showHideColumn column={column} title={t('settings.authUrl')} />
     ),
     cell: ({ row }) => {
       return <LongText className='max-w-[100px]'>{row.original.auth_url}</LongText>
@@ -80,7 +80,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
   {
     accessorKey: 'token_url',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('settings.tokenUrl')} />
+      <DataTableColumnHeader showHideColumn column={column} title={t('settings.tokenUrl')} />
     ),
     cell: ({ row }) => {
       return <LongText className='max-w-[100px]'>{row.original.token_url}</LongText>
@@ -92,7 +92,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
   {
     accessorKey: 'description',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('settings.description')} />
+      <DataTableColumnHeader showHideColumn column={column} title={t('settings.description')} />
     ),
     cell: ({ row }) => (
       <LongText className='max-w-[180px]'>{row.original.description}</LongText>
@@ -104,7 +104,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
   {
     accessorKey: 'created_at',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('settings.createdAt')} />
+      <DataTableColumnHeader showHideColumn column={column} title={t('settings.createdAt')} />
     ),
     cell: ({ row }) => {
       const created_at = row.original.created_at;
@@ -117,7 +117,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
   {
     accessorKey: 'updated_at',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('settings.updatedAt')} />
+      <DataTableColumnHeader showHideColumn column={column} title={t('settings.updatedAt')} />
     ),
     cell: ({ row }) => {
       const updated_at = row.original.updated_at;
