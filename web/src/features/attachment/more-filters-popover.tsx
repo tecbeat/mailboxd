@@ -20,34 +20,13 @@
 
 import * as React from "react"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Info, ListFilter } from "lucide-react"
+import { Info } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useAttachmentContext } from "./context"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-
-const SIZES = {
-    tiny: { min: undefined, max: 15 * 1024 },
-    small: { min: undefined, max: 2 * 1024 * 1024 },
-    medium: { min: 2 * 1024 * 1024, max: 10 * 1024 * 1024 },
-    large: { min: 10 * 1024 * 1024, max: 20 * 1024 * 1024 },
-    huge: { min: 20 * 1024 * 1024, max: undefined },
-};
-
-const getPresetFromSize = (min?: number, max?: number) => {
-    if (min === SIZES.huge.min) return 'huge';
-    if (min === SIZES.large.min && max === SIZES.large.max) return 'large';
-    if (min === SIZES.medium.min && max === SIZES.medium.max) return 'medium';
-    if (!min && max === SIZES.small.max) return 'small';
-    if (!min && max === SIZES.tiny.max) return 'tiny';
-    return 'any';
-};
+import { MoreFiltersShell } from "@/features/mail-list/more-filters-shell"
+import { SIZES, SizePresetSelect, getPresetFromSize } from "@/features/mail-list/size-presets"
 
 export function MoreFiltersPopover() {
     const { t } = useTranslation();
@@ -84,6 +63,17 @@ export function MoreFiltersPopover() {
         setOpen(false);
     };
 
+    const handleReset = () => {
+        setFilter(prev => {
+            const next = { ...prev };
+            delete next.min_size;
+            delete next.max_size;
+            delete next.is_message;
+            return next;
+        });
+        setOpen(false);
+    };
+
     const activeCount = [
         filter?.min_size,
         filter?.max_size,
@@ -91,101 +81,52 @@ export function MoreFiltersPopover() {
     ].filter(Boolean).length;
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                        "h-6 gap-2 px-3 rounded-none border-l-0",
-                        activeCount > 0 && "bg-primary/10 border-primary text-primary"
-                    )}
+        <MoreFiltersShell
+            open={open}
+            onOpenChange={setOpen}
+            activeCount={activeCount}
+            triggerLabel={t('search_more.trigger_label')}
+            title={t('search_more.title')}
+            resetLabel={t('search_more.reset')}
+            applyLabel={t('search_more.apply')}
+            onReset={handleReset}
+            onApply={handleApply}
+        >
+            <div className="flex items-center space-x-2 px-1">
+                <Checkbox
+                    id="is_message"
+                    checked={localState.is_message}
+                    onCheckedChange={(checked) => {
+                        const isChecked = checked as boolean;
+                        setLocalState(prev => ({
+                            ...prev,
+                            is_message: isChecked
+                        }));
+                    }}
+                />
+                <Label
+                    htmlFor="is_message"
+                    className="text-xs font-normal cursor-pointer select-none"
                 >
-                    <ListFilter className="h-3.5 w-3.5" />
-                    <span className="text-xs">{t('search_more.trigger_label')}</span>
-                    {activeCount > 0 && (
-                        <Badge className="ml-1 h-4 px-1 text-[10px] bg-primary text-primary-foreground border-none rounded-xs">
-                            {activeCount}
-                        </Badge>
-                    )}
-                </Button>
-            </PopoverTrigger>
+                    {t('search_more.is_message')}
+                </Label>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Info className="w-3 h-3 ml-1.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p className="max-w-xs">{t('search_more.is_message_desc')}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </div>
 
-            <PopoverContent align="end" className="w-72 p-4 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-medium">{t('search_more.title')}</h4>
-                    {activeCount > 0 && (
-                        <Button
-                            variant="ghost"
-                            className="h-auto p-0 text-[10px] text-muted-foreground hover:text-destructive"
-                            onClick={() => {
-                                setFilter(prev => {
-                                    const next = { ...prev };
-                                    delete next.min_size;
-                                    delete next.max_size;
-                                    delete next.is_message;
-                                    return next;
-                                });
-                                setOpen(false);
-                            }}
-                        >
-                            {t('search_more.reset')}
-                        </Button>
-                    )}
-                </div>
-                <Separator />
-                <div className="flex items-center space-x-2 px-1">
-                    <Checkbox
-                        id="is_message"
-                        checked={localState.is_message}
-                        onCheckedChange={(checked) => {
-                            const isChecked = checked as boolean;
-                            setLocalState(prev => ({
-                                ...prev,
-                                is_message: isChecked
-                            }));
-                        }}
-                    />
-                    <Label
-                        htmlFor="is_message"
-                        className="text-xs font-normal cursor-pointer select-none"
-                    >
-                        {t('search_more.is_message')}
-                    </Label>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Info className="w-3 h-3 ml-1.5 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="max-w-xs">{t('search_more.is_message_desc')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-                <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{t('attachment.size')}</Label>
-                    <Select
-                        value={localState.size_preset}
-                        onValueChange={(v) => setLocalState(prev => ({ ...prev, size_preset: v }))}
-                    >
-                        <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Object.keys(SIZES).concat('any').map((key) => (
-                                <SelectItem key={key} className="text-xs" value={key}>
-                                    {t(`search_more.size_presets.${key}`)}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <Button size="sm" className="w-full h-8 text-xs mt-2" onClick={handleApply}>
-                    {t('search_more.apply')}
-                </Button>
-            </PopoverContent>
-        </Popover>
+            <SizePresetSelect
+                label={t('attachment.size')}
+                value={localState.size_preset}
+                onChange={(v) => setLocalState(prev => ({ ...prev, size_preset: v }))}
+            />
+        </MoreFiltersShell>
     );
 }
