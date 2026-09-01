@@ -18,9 +18,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
+import { AxiosError } from 'axios'
+import { LoaderCircle as Loader2, Clock } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,12 +45,7 @@ import {
 } from '@/components/ui/form'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { invalidateAccessTokenViews } from '@/lib/access-cache'
 import { ToastAction } from '@/components/ui/toast'
-import { AxiosError } from 'axios'
-import { LoaderCircle as Loader2, Clock } from 'lucide-react'
-import { AccessToken, create_access_token, update_access_token } from '@/api/users/api'
 import {
   Select,
   SelectContent,
@@ -55,24 +53,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useTranslation } from 'react-i18next'
-
-const createSchema = (t: any) => z.object({
-  name: z
-    .string()
-    .max(32, t('users.tokens.schema.name_max'))
-    .optional()
-    .or(z.literal('')),
-  expire_in: z
-    .number({
-      error: t('users.tokens.schema.expire_number'),
-    })
-    .int(t('users.tokens.schema.expire_int'))
-    .positive(t('users.tokens.schema.expire_positive'))
-    .optional(),
-})
-
-export type AccessTokenForm = z.infer<ReturnType<typeof createSchema>>
+import { invalidateAccessTokenViews } from '@/lib/access-cache'
+import { AccessToken, create_access_token, update_access_token } from '@/api/users/api'
+import { getAccessTokenSchema, type AccessTokenForm } from './schema'
 
 interface Props {
   currentRow?: AccessToken
@@ -81,28 +64,33 @@ interface Props {
   onOpenChange: (open: boolean) => void
 }
 
+interface AccessTokenPayload {
+  user_id: number
+  name?: string
+  expire_in?: number
+}
+
 const defaultValues: AccessTokenForm = {
   name: '',
   expire_in: undefined,
 }
 
-export function TokensActionDialog({
-  currentRow,
-  open,
-  onOpenChange,
-  userId,
-}: Props) {
+/**
+ * Create/edit dialog for a single access token. Shared by the settings
+ * ("My API Tokens") and user-management token views.
+ */
+export function TokensActionDialog({ currentRow, open, onOpenChange, userId }: Props) {
   const { t } = useTranslation()
   const isEdit = !!currentRow
   const queryClient = useQueryClient()
 
   const form = useForm<AccessTokenForm>({
-    resolver: zodResolver(createSchema(t)),
+    resolver: zodResolver(getAccessTokenSchema(t)),
     defaultValues: isEdit
       ? {
-        name: currentRow.name ?? '',
-        expire_in: undefined,
-      }
+          name: currentRow.name ?? '',
+          expire_in: undefined,
+        }
       : defaultValues,
   })
 
@@ -113,7 +101,7 @@ export function TokensActionDialog({
   })
 
   const updateMutation = useMutation({
-    mutationFn: (data: Record<string, any>) =>
+    mutationFn: (data: AccessTokenPayload) =>
       update_access_token(currentRow?.token ?? '', data),
     onSuccess: handleSuccess,
     onError: handleError,
@@ -122,14 +110,14 @@ export function TokensActionDialog({
   function handleSuccess() {
     toast({
       title: isEdit
-        ? t('users.tokens.toast.update_success_title')
-        : t('users.tokens.toast.create_success_title'),
+        ? t('apiTokens.notifications.updateSuccess')
+        : t('apiTokens.notifications.createSuccess'),
       description: isEdit
-        ? t('users.tokens.toast.update_success_desc')
-        : t('users.tokens.toast.create_success_desc'),
+        ? t('apiTokens.notifications.updateSuccessDesc')
+        : t('apiTokens.notifications.createSuccessDesc'),
       action: (
-        <ToastAction altText={t('common.close')}>
-          {t('common.close')}
+        <ToastAction altText={t('apiTokens.notifications.close')}>
+          {t('apiTokens.notifications.close')}
         </ToastAction>
       ),
     })
@@ -143,17 +131,17 @@ export function TokensActionDialog({
     const errorMessage =
       (error.response?.data as { message?: string })?.message ||
       error.message ||
-      t('users.tokens.error.fallback')
+      t('apiTokens.notifications.genericError')
 
     toast({
       variant: 'destructive',
       title: isEdit
-        ? t('users.tokens.toast.update_failed_title')
-        : t('users.tokens.toast.create_failed_title'),
+        ? t('apiTokens.notifications.updateFailed')
+        : t('apiTokens.notifications.createFailed'),
       description: errorMessage,
       action: (
-        <ToastAction altText={t('common.tryAgain')}>
-          {t('common.tryAgain')}
+        <ToastAction altText={t('apiTokens.notifications.tryAgain')}>
+          {t('apiTokens.notifications.tryAgain')}
         </ToastAction>
       ),
     })
@@ -162,20 +150,20 @@ export function TokensActionDialog({
   }
 
   const onSubmit = (values: AccessTokenForm) => {
-    const payload = {
+    const payload: AccessTokenPayload = {
       user_id: userId,
       name: values.name?.trim() || undefined,
       expire_in: values.expire_in || undefined,
     }
 
-    isEdit
-      ? updateMutation.mutate(payload)
-      : createMutation.mutate(payload)
+    if (isEdit) {
+      updateMutation.mutate(payload)
+    } else {
+      createMutation.mutate(payload)
+    }
   }
 
-  const isPending = isEdit
-    ? updateMutation.isPending
-    : createMutation.isPending
+  const isPending = isEdit ? updateMutation.isPending : createMutation.isPending
 
   return (
     <Dialog
@@ -188,11 +176,9 @@ export function TokensActionDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="text-left mb-4">
           <DialogTitle>
-            {isEdit ? t('users.tokens.dialog.edit_title') : t('users.tokens.dialog.create_title')}
+            {isEdit ? t('apiTokens.dialog.editTitle') : t('apiTokens.dialog.createTitle')}
           </DialogTitle>
-          <DialogDescription>
-            {t('users.tokens.dialog.description')}
-          </DialogDescription>
+          <DialogDescription>{t('apiTokens.dialog.description')}</DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="h-[14rem] w-full pr-4 -mr-4">
@@ -202,26 +188,26 @@ export function TokensActionDialog({
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-6"
             >
+              {/* name */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('users.tokens.fields.name_label')}</FormLabel>
+                    <FormLabel>{t('apiTokens.form.nameLabel')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         maxLength={32}
-                        placeholder={t('users.tokens.fields.name_placeholder')}
+                        placeholder={t('apiTokens.form.namePlaceholder')}
                       />
                     </FormControl>
-                    <FormDescription>
-                      {t('users.tokens.fields.name_hint')}
-                    </FormDescription>
+                    <FormDescription>{t('apiTokens.form.nameDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              {/* expire_in */}
               <FormField
                 control={form.control}
                 name="expire_in"
@@ -229,39 +215,36 @@ export function TokensActionDialog({
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      {t('users.tokens.fields.expire_label')}
+                      {t('apiTokens.form.expirationLabel')}
                     </FormLabel>
 
                     <Select
                       value={field.value?.toString() ?? 'never'}
                       onValueChange={(value) => {
-                        field.onChange(
-                          value === 'never' ? undefined : Number(value)
-                        )
+                        field.onChange(value === 'never' ? undefined : Number(value))
                       }}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('users.tokens.fields.expire_placeholder')} />
+                          <SelectValue placeholder={t('apiTokens.form.expirationPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
 
                       <SelectContent>
-                        <SelectItem value="never">{t('users.tokens.expire_options.never')}</SelectItem>
-                        <SelectItem value="24">{t('users.tokens.expire_options.1_day')}</SelectItem>
-                        <SelectItem value="168">{t('users.tokens.expire_options.7_days')}</SelectItem>
-                        <SelectItem value="720">{t('users.tokens.expire_options.30_days')}</SelectItem>
+                        <SelectItem value="never">{t('apiTokens.form.never')}</SelectItem>
+                        <SelectItem value="24">{t('apiTokens.form.1day')}</SelectItem>
+                        <SelectItem value="168">{t('apiTokens.form.7days')}</SelectItem>
+                        <SelectItem value="720">{t('apiTokens.form.30days')}</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <FormDescription>
-                      {t('users.tokens.fields.expire_hint')}
+                      {t('apiTokens.form.expirationDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
             </form>
           </Form>
         </ScrollArea>
@@ -273,10 +256,8 @@ export function TokensActionDialog({
             disabled={isPending}
             className="min-w-[120px]"
           >
-            {isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {isEdit ? t('common.save_changes') : t('common.save')}
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isEdit ? t('apiTokens.dialog.saveChanges') : t('apiTokens.dialog.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

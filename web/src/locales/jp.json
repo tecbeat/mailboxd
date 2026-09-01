@@ -1719,51 +1719,9 @@
       "roles": "ロール",
       "users": "ユーザー"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "アクセストークンの作成",
-        "description": "完了したら保存をクリックしてください。",
-        "edit_title": "アクセストークンの編集"
-      },
-      "error": {
-        "fallback": "操作に失敗しました。後でもう一度お試しください。"
-      },
-      "expire_options": {
-        "1_day": "1 日",
-        "30_days": "30 日",
-        "7_days": "7 日",
-        "never": "無期限"
-      },
-      "fields": {
-        "expire_hint": "トークンは選択した時間の経過後に自動的に失効します。",
-        "expire_label": "有効期限",
-        "expire_placeholder": "期限を選択",
-        "name_hint": "任意 · 最大 32 文字",
-        "name_label": "名前",
-        "name_placeholder": "このトークンに短い名前を付けてください"
-      },
-      "schema": {
-        "expire_int": "整数である必要があります",
-        "expire_number": "数字である必要があります",
-        "expire_positive": "0 より大きい必要があります",
-        "name_max": "最大 32 文字"
-      },
-      "toast": {
-        "create_failed_title": "作成失敗",
-        "create_success_desc": "アクセストークンが正常に作成されました。",
-        "create_success_title": "アクセストークンを作成しました",
-        "update_failed_title": "更新失敗",
-        "update_success_desc": "アクセストークンが正常に更新されました。",
-        "update_success_title": "アクセストークンを更新しました"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "トークンを追加"
-      },
-      "delete_dialog": {
-        "description": "この操作は取り消せません。",
-        "title": "アクセストークンを削除しますか？"
       },
       "dialog": {
         "description": "このユーザーの API トークンを管理します。",
@@ -1772,19 +1730,6 @@
       "empty": {
         "description": "このユーザーには現在 API トークンがありません。",
         "title": "API トークンなし"
-      },
-      "list": {
-        "button_delete": "トークンを削除",
-        "expires_on_brief": "{{date}} に期限切れ",
-        "label_created": "作成日",
-        "label_expires_at": "有効期限",
-        "label_last_used": "最終使用",
-        "label_token": "トークン",
-        "never": "なし",
-        "never_expires": "無期限",
-        "status_active": "アクティブ",
-        "status_expired": "期限切れ",
-        "unnamed_token": "未命名トークン"
       }
     }
   },

@@ -1719,51 +1719,9 @@
       "roles": "Roller",
       "users": "Användare"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Skapa åtkomstnyckel",
-        "description": "Klicka på spara när du är klar.",
-        "edit_title": "Redigera åtkomstnyckel"
-      },
-      "error": {
-        "fallback": "Åtgärden misslyckades, försök igen senare."
-      },
-      "expire_options": {
-        "1_day": "1 dag",
-        "30_days": "30 dagar",
-        "7_days": "7 dagar",
-        "never": "Går aldrig ut"
-      },
-      "fields": {
-        "expire_hint": "Nyckeln går ut automatiskt efter den valda tiden.",
-        "expire_label": "Utgångsdatum",
-        "expire_placeholder": "Välj utgångsdatum",
-        "name_hint": "Valfritt · Max 32 tecken",
-        "name_label": "Namn",
-        "name_placeholder": "Ge nyckeln ett kort namn"
-      },
-      "schema": {
-        "expire_int": "Måste vara ett heltal",
-        "expire_number": "Måste vara ett nummer",
-        "expire_positive": "Måste vara större än 0",
-        "name_max": "Max 32 tecken"
-      },
-      "toast": {
-        "create_failed_title": "Skapande misslyckades",
-        "create_success_desc": "Åtkomstnyckeln har skapats.",
-        "create_success_title": "Åtkomstnyckel skapad",
-        "update_failed_title": "Uppdatering misslyckades",
-        "update_success_desc": "Åtkomstnyckeln har uppdaterats.",
-        "update_success_title": "Åtkomstnyckel uppdaterad"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Lägg till nyckel"
-      },
-      "delete_dialog": {
-        "description": "Denna åtgärd kan inte ångras.",
-        "title": "Ta bort åtkomstnyckel?"
       },
       "dialog": {
         "description": "Hantera API-nycklar för denna användare.",
@@ -1772,19 +1730,6 @@
       "empty": {
         "description": "Användaren har inga API-nycklar för tillfället.",
         "title": "Inga API-nycklar"
-      },
-      "list": {
-        "button_delete": "Ta bort nyckel",
-        "expires_on_brief": "Går ut {{date}}",
-        "label_created": "Skapad",
-        "label_expires_at": "Går ut den",
-        "label_last_used": "Senast använd",
-        "label_token": "Nyckel",
-        "never": "Aldrig",
-        "never_expires": "Går aldrig ut",
-        "status_active": "Aktiv",
-        "status_expired": "Gått ut",
-        "unnamed_token": "Namnlös nyckel"
       }
     }
   },

@@ -1719,51 +1719,9 @@
       "roles": "역할",
       "users": "사용자"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "액세스 토큰 생성",
-        "description": "완료되면 저장을 클릭하세요.",
-        "edit_title": "액세스 토큰 편집"
-      },
-      "error": {
-        "fallback": "작업에 실패했습니다. 나중에 다시 시도해 주세요."
-      },
-      "expire_options": {
-        "1_day": "1일",
-        "30_days": "30일",
-        "7_days": "7일",
-        "never": "만료되지 않음"
-      },
-      "fields": {
-        "expire_hint": "토큰은 선택한 시간 이후에 자동으로 만료됩니다.",
-        "expire_label": "만료",
-        "expire_placeholder": "만료일 선택",
-        "name_hint": "선택 사항 · 최대 32자",
-        "name_label": "이름",
-        "name_placeholder": "이 토큰에 대한 짧은 이름을 지정하세요"
-      },
-      "schema": {
-        "expire_int": "정수여야 합니다",
-        "expire_number": "숫자여야 합니다",
-        "expire_positive": "0보다 커야 합니다",
-        "name_max": "최대 32자"
-      },
-      "toast": {
-        "create_failed_title": "생성 실패",
-        "create_success_desc": "액세스 토큰이 성공적으로 생성되었습니다.",
-        "create_success_title": "액세스 토큰 생성됨",
-        "update_failed_title": "업데이트 실패",
-        "update_success_desc": "액세스 토큰이 성공적으로 업데이트되었습니다.",
-        "update_success_title": "액세스 토큰 업데이트됨"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "토큰 추가"
-      },
-      "delete_dialog": {
-        "description": "이 작업은 되돌릴 수 없습니다.",
-        "title": "액세스 토큰을 삭제하시겠습니까?"
       },
       "dialog": {
         "description": "이 사용자의 API 토큰을 관리합니다.",
@@ -1772,19 +1730,6 @@
       "empty": {
         "description": "이 사용자에게는 현재 API 토큰이 없습니다.",
         "title": "API 토큰 없음"
-      },
-      "list": {
-        "button_delete": "토큰 삭제",
-        "expires_on_brief": "{{date}}에 만료",
-        "label_created": "생성일",
-        "label_expires_at": "만료일",
-        "label_last_used": "마지막 사용",
-        "label_token": "토큰",
-        "never": "없음",
-        "never_expires": "만료되지 않음",
-        "status_active": "활성",
-        "status_expired": "만료됨",
-        "unnamed_token": "이름 없는 토큰"
       }
     }
   },
