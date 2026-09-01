@@ -1719,51 +1719,9 @@
       "roles": "Funções",
       "users": "Usuários"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Criar token de acesso",
-        "description": "Clique em salvar quando terminar.",
-        "edit_title": "Editar token de acesso"
-      },
-      "error": {
-        "fallback": "A operação falhou, tente novamente mais tarde."
-      },
-      "expire_options": {
-        "1_day": "1 dia",
-        "30_days": "30 dias",
-        "7_days": "7 dias",
-        "never": "Nunca expira"
-      },
-      "fields": {
-        "expire_hint": "O token expirará automaticamente após o tempo selecionado.",
-        "expire_label": "Expiração",
-        "expire_placeholder": "Escolha a expiração",
-        "name_hint": "Opcional · Máx. 32 caracteres",
-        "name_label": "Nome",
-        "name_placeholder": "Dê um nome curto ao token"
-      },
-      "schema": {
-        "expire_int": "Deve ser um número inteiro",
-        "expire_number": "Deve ser um número",
-        "expire_positive": "Deve ser maior que 0",
-        "name_max": "Máx. 32 caracteres"
-      },
-      "toast": {
-        "create_failed_title": "Falha na criação",
-        "create_success_desc": "O token de acesso foi criado com sucesso.",
-        "create_success_title": "Token criado",
-        "update_failed_title": "Falha na atualização",
-        "update_success_desc": "O token de acesso foi atualizado com sucesso.",
-        "update_success_title": "Token atualizado"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Adicionar token"
-      },
-      "delete_dialog": {
-        "description": "Esta ação não pode ser desfeita.",
-        "title": "Excluir token de acesso?"
       },
       "dialog": {
         "description": "Gerenciar tokens de API para este usuário.",
@@ -1772,19 +1730,6 @@
       "empty": {
         "description": "Este usuário não possui tokens de API no momento.",
         "title": "Sem tokens de API"
-      },
-      "list": {
-        "button_delete": "Excluir token",
-        "expires_on_brief": "Expira em {{date}}",
-        "label_created": "Criado em",
-        "label_expires_at": "Expira em",
-        "label_last_used": "Último uso",
-        "label_token": "Token",
-        "never": "Nunca",
-        "never_expires": "Nunca expira",
-        "status_active": "Ativo",
-        "status_expired": "Expirado",
-        "unnamed_token": "Token sem nome"
       }
     }
   },

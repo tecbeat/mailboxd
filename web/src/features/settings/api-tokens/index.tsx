@@ -27,8 +27,7 @@ import Logo from '@/assets/logo.svg'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { TokenCardList } from './token-list'
-import { TokensActionDialog } from './access-token-action'
+import { TokenCardList, TokensActionDialog } from '@/features/api-tokens'
 import { useTranslation } from 'react-i18next'
 
 export function APITokens() {
