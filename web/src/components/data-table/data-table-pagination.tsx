@@ -37,16 +37,23 @@ import {
 } from '@/components/ui/select'
 import { useTranslation } from 'react-i18next'
 
+const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50, 100, 150]
+
 interface DataTablePaginationProps<TData extends RowData> {
   table: ReactTable<DataTableFeatures, TData>
-  showSelected?: boolean,
+  // localStorage namespace; the chosen size persists as mailboxd_<storageKey>_page_size.
+  storageKey: string
+  pageSizeOptions?: number[]
+  showSelected?: boolean
   showPageSizeSelector?: boolean
 }
 
 export function DataTablePagination<TData extends RowData>({
   table,
+  storageKey,
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   showSelected = false,
-  showPageSizeSelector = true
+  showPageSizeSelector = true,
 }: DataTablePaginationProps<TData>) {
   const { t } = useTranslation()
 
@@ -56,7 +63,7 @@ export function DataTablePagination<TData extends RowData>({
         <div className='hidden flex-1 text-sm text-muted-foreground sm:block'>
           {t('table.pagination.selected', {
             selected: table.getFilteredSelectedRowModel().rows.length,
-            total: table.getFilteredRowModel().rows.length
+            total: table.getFilteredRowModel().rows.length,
           })}
         </div>
       )}
@@ -68,11 +75,13 @@ export function DataTablePagination<TData extends RowData>({
       <div className='flex items-center sm:space-x-6 lg:space-x-8 ml-auto'>
         {showPageSizeSelector && (
           <div className='flex items-center space-x-2'>
-            <p className='hidden text-sm font-medium sm:block'>{t('table.pagination.rows_per_page')}</p>
+            <p className='hidden text-sm font-medium sm:block'>
+              {t('table.pagination.rows_per_page')}
+            </p>
             <Select
               value={`${table.state.pagination.pageSize}`}
               onValueChange={(value) => {
-                localStorage.setItem('mailboxd_users_page_size', value);
+                localStorage.setItem(`mailboxd_${storageKey}_page_size`, value)
                 table.setPageSize(Number(value))
               }}
             >
@@ -80,7 +89,7 @@ export function DataTablePagination<TData extends RowData>({
                 <SelectValue placeholder={table.state.pagination.pageSize} />
               </SelectTrigger>
               <SelectContent side='top'>
-                {[10, 20, 30, 40, 50, 100].map((pageSize) => (
+                {pageSizeOptions.map((pageSize) => (
                   <SelectItem key={pageSize} value={`${pageSize}`}>
                     {pageSize}
                   </SelectItem>
@@ -92,7 +101,7 @@ export function DataTablePagination<TData extends RowData>({
         <div className='flex w-[130px] items-center justify-center text-sm font-medium'>
           {t('table.pagination.page_info', {
             page: table.state.pagination.pageIndex + 1,
-            total: table.getPageCount()
+            total: table.getPageCount(),
           })}
         </div>
         <div className='flex items-center space-x-2'>

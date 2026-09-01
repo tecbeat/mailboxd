@@ -22,7 +22,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
 import LongText from '@/components/long-text'
-import { DataTableColumnHeader } from './data-table-column-header'
+import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
 import { format } from 'date-fns'
 import { Proxy } from '@/api/system/api'
