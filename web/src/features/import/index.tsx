@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn } from '@/lib/utils';
+import { cn, formatBytes } from '@/lib/utils';
 import { Main } from '@/components/layout/main';
 import { FixedHeader } from '@/components/layout/fixed-header';
 import { useToast } from '@/hooks/use-toast';
@@ -49,12 +49,6 @@ const DEFAULT_MAX_MBOX = 1024 * 1024 * 1024; // 1 GB (fallback; actual limit fro
 const DEFAULT_MAX_PST = 2048 * 1024 * 1024; // 2 GB (fallback; actual limit from server settings)
 
 type FolderMode = '' | 'header' | 'existing' | 'custom';
-
-function formatSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
 
 function folderHintLabel(hint: FolderHint): string {
   switch (hint.source) {
@@ -585,7 +579,7 @@ export default function ImportPage() {
                       <FileText className="h-4 w-4 shrink-0" />
                       <span className="flex-1 truncate">{qf.file.name}</span>
                       <span className={cn('text-xs shrink-0', qf.sizeOk && qf.typeOk ? 'text-muted-foreground' : 'font-medium')}>
-                        {formatSize(qf.file.size)}
+                        {formatBytes(qf.file.size)}
                       </span>
                       {!qf.typeOk && (
                         <span className="text-xs font-medium text-destructive shrink-0">Invalid type</span>

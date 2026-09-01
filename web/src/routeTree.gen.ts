@@ -17,7 +17,6 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated/route
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
 import { Route as authSsoCallbackImport } from './routes/(auth)/sso-callback'
 import { Route as authSignInImport } from './routes/(auth)/sign-in'
-import { Route as auth500Import } from './routes/(auth)/500'
 import { Route as AuthenticatedSearchIndexImport } from './routes/_authenticated/search/index'
 import { Route as AuthenticatedImportIndexImport } from './routes/_authenticated/import/index'
 import { Route as AuthenticatedAttachmentIndexImport } from './routes/_authenticated/attachment/index'
@@ -164,12 +163,6 @@ const authSsoCallbackRoute = authSsoCallbackImport.update({
 const authSignInRoute = authSignInImport.update({
   id: '/(auth)/sign-in',
   path: '/sign-in',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const auth500Route = auth500Import.update({
-  id: '/(auth)/500',
-  path: '/500',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -359,13 +352,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRoute
-    }
-    '/(auth)/500': {
-      id: '/(auth)/500'
-      path: '/500'
-      fullPath: '/500'
-      preLoaderRoute: typeof auth500Import
       parentRoute: typeof rootRoute
     }
     '/(auth)/sign-in': {
@@ -727,7 +713,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/(auth)/500': typeof auth500Route
   '/(auth)/sign-in': typeof authSignInRoute
   '/(auth)/sso-callback': typeof authSsoCallbackRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteLazyRouteWithChildren
@@ -824,7 +809,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
-    | '/(auth)/500'
     | '/(auth)/sign-in'
     | '/(auth)/sso-callback'
     | '/_authenticated/settings'
@@ -859,7 +843,6 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  auth500Route: typeof auth500Route
   authSignInRoute: typeof authSignInRoute
   authSsoCallbackRoute: typeof authSsoCallbackRoute
   errors401LazyRoute: typeof errors401LazyRoute
@@ -871,7 +854,6 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  auth500Route: auth500Route,
   authSignInRoute: authSignInRoute,
   authSsoCallbackRoute: authSsoCallbackRoute,
   errors401LazyRoute: errors401LazyRoute,
@@ -892,7 +874,6 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_authenticated",
-        "/(auth)/500",
         "/(auth)/sign-in",
         "/(auth)/sso-callback",
         "/(errors)/401",
@@ -918,9 +899,6 @@ export const routeTree = rootRoute
         "/_authenticated/oauth2/",
         "/_authenticated/accounts/$id/settings"
       ]
-    },
-    "/(auth)/500": {
-      "filePath": "(auth)/500.tsx"
     },
     "/(auth)/sign-in": {
       "filePath": "(auth)/sign-in.tsx"
