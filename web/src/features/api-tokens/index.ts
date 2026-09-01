@@ -20,4 +20,3 @@
 
 export { TokensActionDialog } from './tokens-action-dialog'
 export { TokenCardList } from './token-card-list'
-export { getAccessTokenSchema, type AccessTokenForm } from './schema'
