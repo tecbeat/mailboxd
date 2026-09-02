@@ -19,10 +19,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { MoreHorizontal as DotsHorizontalIcon, Trash2 as IconTrash } from 'lucide-react'
 import { Row } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
-import { IconTrash } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,

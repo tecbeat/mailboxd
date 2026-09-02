@@ -20,11 +20,11 @@
 
 
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DoubleArrowLeftIcon,
-  DoubleArrowRightIcon,
-} from '@radix-ui/react-icons'
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  ChevronsLeft as DoubleArrowLeftIcon,
+  ChevronsRight as DoubleArrowRightIcon,
+} from 'lucide-react'
 import { ReactTable, RowData } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'

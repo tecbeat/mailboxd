@@ -20,11 +20,11 @@
 
 
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  CaretSortIcon,
-  EyeNoneIcon,
-} from '@radix-ui/react-icons'
+  ArrowDown as ArrowDownIcon,
+  ArrowUp as ArrowUpIcon,
+  ChevronsUpDown as CaretSortIcon,
+  EyeOff as EyeNoneIcon,
+} from 'lucide-react'
 import { Column, type RowData } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
 import { cn } from '@/lib/utils'

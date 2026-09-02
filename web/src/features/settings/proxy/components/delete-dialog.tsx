@@ -20,7 +20,7 @@
 import { useState } from 'react'
 import { AxiosError } from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { IconAlertTriangle } from '@tabler/icons-react'
+import { TriangleAlert as IconAlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { delete_proxy } from '@/api/system/api'
 import { Proxy } from '@/api/system/api'
