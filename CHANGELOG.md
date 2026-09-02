@@ -2,6 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.5.0) - 2026-09-02
+
+### 🐛 Bug Fixes
+
+- *(web)* Resolve all ESLint errors (#16) - ([b4145d8](https://git.teccave.de/tecbeat/mailboxd/commit/b4145d827345ad68f43ba836f606c8a28266f065))
+- *(web)* Guard proxy and oauth2 delete dialogs against double submit - ([6749284](https://git.teccave.de/tecbeat/mailboxd/commit/67492848e65db651e5788c9ccda8f422d29c63f5))
+- *(web)* Correct stale react-query invalidation keys - ([5d5e4da](https://git.teccave.de/tecbeat/mailboxd/commit/5d5e4da7d95ffc91ada2e0d9cfe2198d00d4ac75))
+- *(web)* Refresh both message views when deleting messages - ([13d59d0](https://git.teccave.de/tecbeat/mailboxd/commit/13d59d0dd863f09ca4bba15e262c80cee324d190))
+- *(web)* Render delete-mailbox dialog in attachment view - ([76f1098](https://git.teccave.de/tecbeat/mailboxd/commit/76f109810b1b2eb48f69f7113d375930c268152f))
+- *(web)* Read current upload limits when queuing import files - ([a5a1ae2](https://git.teccave.de/tecbeat/mailboxd/commit/a5a1ae2bbd0822c904e9314d0e0e462a8d7043c5))
+- *(web)* Pin typescript to 6.0.3 to keep eslint compatible - ([f5bc45c](https://git.teccave.de/tecbeat/mailboxd/commit/f5bc45ca39cd143a7189d119b947788ae03ad3eb))
+
+### 🚜 Refactor
+
+- *(api-tokens)* Drop redundant console.error in token dialog - ([f99d005](https://git.teccave.de/tecbeat/mailboxd/commit/f99d005320c52c538fcf8234c7906055cbaaa8a3))
+- *(api-tokens)* Consolidate duplicate token UIs into shared module - ([611b7c0](https://git.teccave.de/tecbeat/mailboxd/commit/611b7c0fc3956ebc8d572212be769d384a62c492))
+- *(web)* Standardize icons on lucide-react (#12) - ([b9f862c](https://git.teccave.de/tecbeat/mailboxd/commit/b9f862cdf976b49272919285d9c9cb3acea350ef))
+- *(web)* Share generic DataTable scaffold across CRUD features (#15) - ([49b8de5](https://git.teccave.de/tecbeat/mailboxd/commit/49b8de5c294e962fcae2622c1e9583faaa9a2f7b))
+- *(web)* Remove duplicated route, helpers, and Button primitive (#13) - ([a60edc3](https://git.teccave.de/tecbeat/mailboxd/commit/a60edc3986623e85b2f6c2a8b53c5d5a8c0813e0))
+- *(web)* Unify search/attachment tables into shared MailListDataTable - ([c1afe22](https://git.teccave.de/tecbeat/mailboxd/commit/c1afe228c2cbaee311cef0b5c8024f40d054b2d5))
+- *(web)* Extract shared more-filters shell and size presets - ([299f9ef](https://git.teccave.de/tecbeat/mailboxd/commit/299f9ef906ae6018729c4bd9c37fb313753c6f02))
+- *(web)* Unify mail-display-dialog via the envelope keystone - ([2378b81](https://git.teccave.de/tecbeat/mailboxd/commit/2378b81896aa9a1561760e93bd2a75449f6e9724))
+- *(web)* Unify mail-message-view and thread-dialog - ([b663b6b](https://git.teccave.de/tecbeat/mailboxd/commit/b663b6b024912dc9393c93615b0e31bfa9c4d33c))
+- *(web)* Move attachment-preview into shared mail-list - ([df594eb](https://git.teccave.de/tecbeat/mailboxd/commit/df594eb3e176e2d0cbe3649e260fe16e0112bf91))
+- *(web)* Unify nested-email-dialog on a props contract - ([da0fe99](https://git.teccave.de/tecbeat/mailboxd/commit/da0fe99116bfa02dfc4b3a6acc6fc9f9afe44db2))
+- *(web)* Unify account-popover, normalize to richer variant - ([8e5bf44](https://git.teccave.de/tecbeat/mailboxd/commit/8e5bf44f148780a8ab3961a1b71cf76e89f43f7e))
+- *(web)* Unify text-search-input via a feature config prop - ([df55e02](https://git.teccave.de/tecbeat/mailboxd/commit/df55e0239b575fe199ca98a672814040ceabea15))
+- *(web)* Share restore-message dialog via useCurrentEnvelope - ([9ffe238](https://git.teccave.de/tecbeat/mailboxd/commit/9ffe2380495b2a62d905800596623d4356544111))
+- *(web)* Merge behavior-identical mailbox dialog and popover - ([1af45df](https://git.teccave.de/tecbeat/mailboxd/commit/1af45df551e63a783ff5a5e8966709a5f4af09ee))
+- *(web)* Share identical list primitives via mail-list config - ([1dc60e2](https://git.teccave.de/tecbeat/mailboxd/commit/1dc60e2ff18c52e4e22bdd9051a3eb9efb2965b0))
+- *(web)* Unify search and attachment list contexts - ([3b508aa](https://git.teccave.de/tecbeat/mailboxd/commit/3b508aa14f3f2fd43fbd17c3644afd61660249fe))
+- *(web)* Extract shared getFileConfig into mail-list module - ([da60184](https://git.teccave.de/tecbeat/mailboxd/commit/da6018454074ac089fa3f47df38ef09800e14c17))
+- *(web)* Extract shared mail-list table primitives - ([8d4f2ed](https://git.teccave.de/tecbeat/mailboxd/commit/8d4f2edfce83a677cce84ad344c74228816feef6))
+- *(web)* Extract attachment dialogs into one component - ([f458afd](https://git.teccave.de/tecbeat/mailboxd/commit/f458afd3afc12bf1d01d228da7a28caaf8640d80))
+- *(web)* Extract import file validation into pure module - ([20f128b](https://git.teccave.de/tecbeat/mailboxd/commit/20f128ba512e9f900c4e116a98aeb79b9f603432))
+
+### ⚡ Performance
+
+- *(web)* Stop remounting the mailbox tree and memoize selection counts - ([7f0b3e2](https://git.teccave.de/tecbeat/mailboxd/commit/7f0b3e2dbabd825d185178db621fb9fed2f97e15))
+- *(web)* Resolve user roles via a map instead of nested scans - ([c389eae](https://git.teccave.de/tecbeat/mailboxd/commit/c389eae801720b2ddf383cb3d90539b4b3ebbffd))
+
+### 🧪 Testing
+
+- *(web)* Characterize shared formatBytes and formatTimestamp (#13) - ([f5a5344](https://git.teccave.de/tecbeat/mailboxd/commit/f5a534486f789d0db2b7fb8ab68fb46ef1ad117f))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(web)* Make eslint a hard gate (#16) - ([d78cc02](https://git.teccave.de/tecbeat/mailboxd/commit/d78cc02d0aef2ba8430ec731aaf46c0b50a860f7))
+- *(web)* Remove dead code and unused dependencies (#14) - ([588e78a](https://git.teccave.de/tecbeat/mailboxd/commit/588e78a35d65cc876e0fbb46f93631d9178e3afc))
+- *(web)* Use tecbeat-only license header on new files - ([368308d](https://git.teccave.de/tecbeat/mailboxd/commit/368308db702fddad0ec0f3cc0689e79abe0e2824))
+- Gate frontend with typecheck, tests and lint - ([a8e7f19](https://git.teccave.de/tecbeat/mailboxd/commit/a8e7f1998184ecc13aba457d03d87e2ae101f92c))
+
 ## [1.4.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.4.0) - 2026-08-31
 
 ### 🐛 Bug Fixes
