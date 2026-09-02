@@ -101,6 +101,8 @@
     "authType": "認証タイプ",
     "autoConfiguring": "自動設定中…",
     "autoDiscover": "サーバー設定の自動検出",
+    "autoDiscoverFailed": "自動検出に失敗しました",
+    "autoDiscoverFailedDesc": "サーバー設定を検出できませんでした。手動で入力してください。",
     "autoDownloadNewMailboxes": "新着フォルダーの自動追加",
     "autoDownloadNewMailboxesDescription": "新しく見つかったフォルダーを自動的にダウンロード一覧に追加します。",
     "beforeRelative": "古いメールのみダウンロード",

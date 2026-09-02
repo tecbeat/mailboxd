@@ -132,12 +132,14 @@ export default function AttachmentPreview({
 
   const [currentIndex, setCurrentIndex] = useState(attachmentIndex ?? 0);
 
-  // Reset to the clicked attachment every time the dialog opens.
-  useEffect(() => {
+  // Reset to the clicked attachment every time the dialog opens (adjust state during render).
+  const [prevOpenIdx, setPrevOpenIdx] = useState({ open, attachmentIndex });
+  if (prevOpenIdx.open !== open || prevOpenIdx.attachmentIndex !== attachmentIndex) {
+    setPrevOpenIdx({ open, attachmentIndex });
     if (open) {
       setCurrentIndex(attachmentIndex ?? 0);
     }
-  }, [open, attachmentIndex]);
+  }
 
   // Resolve which attachment to display.
   const resolved = useMemo(() => {
@@ -188,7 +190,7 @@ export default function AttachmentPreview({
         setBlobUrl(URL.createObjectURL(typedBlob));
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('attachment_preview.failedToLoad'),
         description: error.message,
@@ -197,11 +199,20 @@ export default function AttachmentPreview({
     },
   });
 
-  useEffect(() => {
+  // Clear the previous preview when the dialog opens or the resolved attachment
+  // changes (adjust state during render); the fetch itself is kicked off in the effect below.
+  const [prevPreviewKey, setPrevPreviewKey] = useState<{ open: boolean; contentHash: string } | null>(null);
+  if (!prevPreviewKey || prevPreviewKey.open !== open || prevPreviewKey.contentHash !== resolved.contentHash) {
+    setPrevPreviewKey({ open, contentHash: resolved.contentHash });
     if (open) {
       setBlobUrl(null);
       setTextContent(null);
       setImageZoom(1);
+    }
+  }
+
+  useEffect(() => {
+    if (open) {
       previewMutation.mutate();
     }
   }, [open, resolved.contentHash]);

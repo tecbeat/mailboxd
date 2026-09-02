@@ -101,6 +101,8 @@
     "authType": "Authentifizierungstyp",
     "autoConfiguring": "Automatische Konfiguration…",
     "autoDiscover": "Servereinstellungen automatisch erkennen",
+    "autoDiscoverFailed": "Automatische Erkennung fehlgeschlagen",
+    "autoDiscoverFailedDesc": "Servereinstellungen konnten nicht erkannt werden. Bitte geben Sie sie manuell ein.",
     "autoDownloadNewMailboxes": "Neue Ordner automatisch hinzufügen",
     "autoDownloadNewMailboxesDescription": "Neu entdeckte Ordner automatisch zur Download-Liste hinzufügen.",
     "beforeRelative": "Nur alte E-Mails herunterladen",

@@ -36,8 +36,8 @@ export function APITokens() {
   const [addOpen, setAddOpen] = useState(false)
 
   const { data: tokens = [], isLoading: tokensLoading } = useQuery({
-    queryKey: ['user-tokens', user?.id!],
-    queryFn: () => get_user_tokens(user?.id!),
+    queryKey: ['user-tokens', user?.id],
+    queryFn: () => get_user_tokens(user!.id),
     enabled: !!user?.id,
   })
 

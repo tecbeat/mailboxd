@@ -101,6 +101,8 @@
     "authType": "auth_type",
     "autoConfiguring": "Automatyczna konfiguracja…",
     "autoDiscover": "Automatyczne wykrywanie ustawień serwera",
+    "autoDiscoverFailed": "Automatyczne wykrywanie nie powiodło się",
+    "autoDiscoverFailedDesc": "Nie można wykryć ustawień serwera. Wprowadź je ręcznie.",
     "autoDownloadNewMailboxes": "Automatycznie dodawaj nowe foldery",
     "autoDownloadNewMailboxesDescription": "Automatycznie dodawaj nowo wykryte foldery do listy pobierania.",
     "beforeRelative": "Pobierz tylko stare e-maile",

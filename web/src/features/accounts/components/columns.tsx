@@ -105,7 +105,7 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
         <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.incSync')} className="justify-center" />
       ),
       cell: ({ row }) => {
-        let account_type = row.original.account_type;
+        const account_type = row.original.account_type;
         if (account_type === "NoSync") {
           return <LongText className="text-center">n/a</LongText>
         }

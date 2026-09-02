@@ -87,8 +87,8 @@ export function RestoreMessageDialog({
     const { useListContext, useCurrentEnvelope } = useMailListConfig()
     const { selected } = useListContext()
 
-    const accountsWithSelection = Array.from(selected.entries()).filter(([_, ids]) => ids.size > 0);
-    const selectedCount = accountsWithSelection.reduce((sum, [_, set]) => sum + set.size, 0);
+    const accountsWithSelection = Array.from(selected.entries()).filter(([, ids]) => ids.size > 0);
+    const selectedCount = accountsWithSelection.reduce((sum, [, set]) => sum + set.size, 0);
     const accountCount = accountsWithSelection.length;
 
     const isBulk = selectedCount > 0;
@@ -148,8 +148,6 @@ export function RestoreMessageDialog({
                 </ToastAction>
             ),
         });
-
-        console.error(error);
     }
 
 

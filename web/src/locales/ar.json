@@ -101,6 +101,8 @@
     "authType": "نوع_المصادقة",
     "autoConfiguring": "جاري التكوين التلقائي…",
     "autoDiscover": "اكتشاف إعدادات الخادم تلقائيًا",
+    "autoDiscoverFailed": "فشل الاكتشاف التلقائي",
+    "autoDiscoverFailedDesc": "تعذر اكتشاف إعدادات الخادم. الرجاء إدخالها يدويًا.",
     "autoDownloadNewMailboxes": "إضافة المجلدات الجديدة تلقائيًا",
     "autoDownloadNewMailboxesDescription": "إضافة المجلدات الجديدة المكتشفة تلقائيًا إلى قائمة التنزيل.",
     "beforeRelative": "تنزيل رسائل البريد الإلكتروني القديمة فقط",

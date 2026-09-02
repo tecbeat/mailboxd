@@ -38,7 +38,7 @@ import { TabDownload } from "./components/tab-download";
 import { TabFilters } from "./components/tab-filters";
 import { create_account, autoconfig } from "@/api/account/api";
 import { getAccountSchema, type AccountFormValues } from "./components/schema";
-import type { AxiosError } from "axios";
+import axios, { type AxiosError } from "axios";
 
 const defaultValues: AccountFormValues = {
   login_name: undefined,
@@ -111,10 +111,12 @@ export function AccountNewPage() {
     },
   });
 
+  const { mutate: createAccount } = createMutation;
+
   const onSubmit = useCallback(
     (data: AccountFormValues) => {
       const { use_proxy, ...imapRest } = data.imap;
-      createMutation.mutate({
+      createAccount({
         email: data.email,
         account_name: data.account_name,
         login_name: data.login_name,
@@ -139,7 +141,7 @@ export function AccountNewPage() {
         archive_rules: data.archive_rules || null,
       });
     },
-    [createMutation]
+    [createAccount]
   );
 
   const handleAutoConfig = async () => {
@@ -158,7 +160,17 @@ export function AccountNewPage() {
         if (result.oauth2) form.setValue('imap.auth.auth_type', 'OAuth2');
       }
     } catch (error) {
-      console.error('Auto-configuration failed:', error);
+      // Auto-config is best-effort (settings can be entered manually), but the
+      // failure must be surfaced rather than swallowed.
+      const description =
+        (axios.isAxiosError(error) &&
+          (error.response?.data as { message?: string })?.message) ||
+        (error instanceof Error ? error.message : t('accounts.autoDiscoverFailedDesc'));
+      toast({
+        variant: "destructive",
+        title: t('accounts.autoDiscoverFailed'),
+        description,
+      });
     }
     setAutoConfigLoading(false);
   };

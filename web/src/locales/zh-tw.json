@@ -101,6 +101,8 @@
     "authType": "驗證類型",
     "autoConfiguring": "正在自動設定…",
     "autoDiscover": "自動偵測伺服器設定",
+    "autoDiscoverFailed": "自動偵測失敗",
+    "autoDiscoverFailedDesc": "無法偵測伺服器設定，請手動輸入。",
     "autoDownloadNewMailboxes": "自動添加新郵件夾",
     "autoDownloadNewMailboxesDescription": "自動將新發現的郵件夾添加到下載列表中。",
     "beforeRelative": "僅下載舊郵件",

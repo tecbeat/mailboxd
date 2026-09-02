@@ -111,7 +111,7 @@ export function MailMessageView({
     mutationFn: ({ content_hash }: { content_hash: string }) =>
       download_attachment(envelope.account_id, envelope.id, content_hash, downloadingAttachmentFileName!),
     onSuccess: () => setDownloadingAttachmentFileName(null),
-    onError: (error: any) => {
+    onError: (error: Error) => {
       setDownloadingAttachmentFileName(null);
       toast({
         title: t('mail.failedToDownloadFile'),
@@ -130,7 +130,7 @@ export function MailMessageView({
       setContentType(data.html ? 'Html' : 'Plain');
       setHasRemoteContent(!!data.has_remote_content);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       setLoading(false);
       toast({
         title: t('mail.failedToLoadEmail'),
@@ -140,12 +140,21 @@ export function MailMessageView({
     },
   });
 
-  useEffect(() => {
+  // Re-block remote content whenever the message changes (adjust state during render).
+  const [prevEnvId, setPrevEnvId] = useState(envelope.id);
+  if (envelope.id !== prevEnvId) {
+    setPrevEnvId(envelope.id);
     setBlockRemote(true);
-  }, [envelope.id]);
+  }
+
+  // Show the loading state whenever the message or remote-content toggle changes.
+  const [prevLoadKey, setPrevLoadKey] = useState({ id: envelope.id, blockRemote });
+  if (prevLoadKey.id !== envelope.id || prevLoadKey.blockRemote !== blockRemote) {
+    setPrevLoadKey({ id: envelope.id, blockRemote });
+    setLoading(true);
+  }
 
   useEffect(() => {
-    setLoading(true);
     loadMessageMutation.mutate();
   }, [envelope.id, blockRemote]);
 

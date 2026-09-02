@@ -314,7 +314,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                                     </TabsTrigger>
                                   </TabsList>
                                   <TabsContent value="h-folders" className="space-y-1">
-                                    {Object.values(h.folder_details).map((f: any, idx) => (
+                                    {Object.values(h.folder_details).map((f: FolderProgress, idx) => (
                                       <FolderDetailItem key={idx} f={f} t={t} />
                                     ))}
                                   </TabsContent>

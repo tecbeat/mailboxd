@@ -8,6 +8,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -248,11 +249,11 @@ export default function ImportPage() {
       setPhase('processing');
       startPolling(result.import_id);
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       setPhase('idle');
       toast({
         title: t('common.failed'),
-        description: err?.response?.data?.message || err.message,
+        description: err.response?.data?.message || err.message,
         variant: 'destructive',
       });
     },

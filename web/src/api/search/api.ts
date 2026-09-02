@@ -22,7 +22,7 @@
 import axiosInstance from "@/api/axiosInstance";
 import { EmailEnvelope, PaginatedResponse } from "..";
 
-export const search_messages = async (payload: Record<string, any>) => {
+export const search_messages = async (payload: object) => {
     const response = await axiosInstance.post<PaginatedResponse<EmailEnvelope>>("api/v1/search-messages", payload);
     return response.data;
 };
@@ -37,7 +37,7 @@ export const get_tags = async () => {
     return response.data;
 }
 
-export const update_tags = async (data: Record<string, any>) => {
+export const update_tags = async (data: object) => {
     const response = await axiosInstance.post("api/v1/update-tags", data);
     return response.data;
 };

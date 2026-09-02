@@ -55,28 +55,29 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
 
     const [value, setValue] = useState("")
     const [field, setField] = useState<string>(options[0]?.value ?? "text")
-    const [history, setHistory] = useState<string[]>([])
+    const [history, setHistory] = useState<string[]>(() => {
+        try {
+            const saved = localStorage.getItem(storageKey)
+            return saved ? JSON.parse(saved) : []
+        } catch {
+            return []
+        }
+    })
     const [showHistory, setShowHistory] = useState(false)
 
     const inputRef = useRef<HTMLInputElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
+    // Sync the active field/value from the current filter on mount and whenever the
+    // filter or search fields change (adjust state during render).
+    const [prevSync, setPrevSync] = useState<{ filter: typeof filter; searchFields: string[] } | null>(null)
+    if (!prevSync || prevSync.filter !== filter || prevSync.searchFields !== searchFields) {
+        setPrevSync({ filter, searchFields })
         const activeField = searchFields.find(key => !!filter[key]) || "text"
         const activeValue = filter[activeField] as string || ""
-
         setField(activeField)
         setValue(activeValue)
-    }, [filter, searchFields])
-
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem(storageKey)
-            if (saved) setHistory(JSON.parse(saved))
-        } catch (err) {
-            console.warn("Failed to load search history", err)
-        }
-    }, [storageKey])
+    }
 
     const applyFilter = (currentField: string, searchTerm: string) => {
         const trimmed = searchTerm.trim()

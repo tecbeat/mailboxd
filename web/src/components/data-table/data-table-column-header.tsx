@@ -56,10 +56,10 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
   longText = false,
   showHideColumn = false,
 }: DataTableColumnHeaderProps<TData, TValue>) {
+  const { t } = useTranslation()
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>
   }
-  const { t } = useTranslation()
   return (
     <div className={cn('flex items-center space-x-2', className)}>
       <DropdownMenu>

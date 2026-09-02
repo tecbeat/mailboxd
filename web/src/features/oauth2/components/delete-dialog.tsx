@@ -66,7 +66,6 @@ export function TokenDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       description: errorMessage as string,
       action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
     });
-    console.error(error);
   }
 
   const deleteMutation = useMutation({

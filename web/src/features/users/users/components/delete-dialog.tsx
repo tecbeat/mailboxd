@@ -69,8 +69,6 @@ export function UserDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       description: errorMessage,
       action: <ToastAction altText={t('common.retry')}>{t('common.retry')}</ToastAction>,
     })
-
-    console.error(error)
   }
 
   const deleteMutation = useMutation({

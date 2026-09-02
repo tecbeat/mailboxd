@@ -88,15 +88,17 @@ interface CustomLabelProps {
 }
 
 function CustomLabel({
-    expandable,
-    exists,
-    attributes,
     children,
     id,
     onDelete,
-    ...other
+    ...rest
 }: CustomLabelProps) {
     const { t } = useTranslation()
+    // Strip our custom (non-DOM) fields so they are not forwarded to the label element.
+    delete rest.exists
+    delete rest.attributes
+    delete rest.expandable
+    const other = rest as Pick<CustomLabelProps, 'icon'>
     return (
         <TreeItemLabel
             {...other}
@@ -163,7 +165,27 @@ export function MailboxPopover() {
 
     const queryClient = useQueryClient();
 
-    React.useEffect(() => {
+    // Initialise the local selection / active account when the popover opens, the
+    // active account switches, or the underlying filter changes (adjust state during render).
+    const [prevSync, setPrevSync] = React.useState<{
+        localOpen: boolean;
+        activeAccountId: number | undefined;
+        accountIds: number[] | undefined;
+        mailboxIds: number[] | undefined;
+    } | null>(null);
+    if (
+        !prevSync ||
+        prevSync.localOpen !== localOpen ||
+        prevSync.activeAccountId !== activeAccountId ||
+        prevSync.accountIds !== filter.account_ids ||
+        prevSync.mailboxIds !== filter.mailbox_ids
+    ) {
+        setPrevSync({
+            localOpen,
+            activeAccountId,
+            accountIds: filter.account_ids,
+            mailboxIds: filter.mailbox_ids,
+        });
         if (localOpen) {
             const globalMailboxIds = filter.mailbox_ids ?? [];
             setLocalSelectedIds(globalMailboxIds);
@@ -177,7 +199,7 @@ export function MailboxPopover() {
                 setActiveAccountId(undefined);
             }
         }
-    }, [localOpen, activeAccountId, filter.account_ids, filter.mailbox_ids]);
+    }
 
     const { data: activeMailboxes = [], isLoading: activeIsLoading } = useQuery({
         queryKey: ['search-mailboxes', activeAccountId],

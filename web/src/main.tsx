@@ -39,11 +39,11 @@ import { ToastAction } from './components/ui/toast'
 import i18n from './i18n'
 
 
-const handleAxiosError = (error: any) => {
+const handleAxiosError = (error: unknown) => {
   if (!(error instanceof AxiosError)) return;
 
   switch (error.response?.status) {
-    case 401:
+    case 401: {
       resetToken();
       const currentPath = router.history.location.pathname;
       if (currentPath !== '/sign-in') {
@@ -51,11 +51,12 @@ const handleAxiosError = (error: any) => {
         router.navigate({ to: '/sign-in', search: { redirect } });
       }
       break;
+    }
     case 403:
       toast({
         variant: 'destructive',
         title: "Forbidden",
-        description: error.response.data.message,
+        description: (error.response?.data as { message?: string } | undefined)?.message,
         action: <ToastAction altText={i18n.t('common.close')}>{i18n.t('common.close')}</ToastAction>,
       });
       break;
@@ -90,9 +91,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-        // eslint-disable-next-line no-console
-        if (import.meta.env.DEV) console.log({ failureCount, error })
-
         if (failureCount >= 0 && import.meta.env.DEV) return false
         if (failureCount > 3 && import.meta.env.PROD) return false
 
@@ -117,8 +115,13 @@ const queryClient = new QueryClient({
   }),
 })
 
-const basepath = (window as any).__MAILBOXD_BASE__ || '/';
-console.log('Current Basepath:', basepath);
+declare global {
+  interface Window {
+    __MAILBOXD_BASE__?: string
+  }
+}
+
+const basepath = window.__MAILBOXD_BASE__ || '/';
 // Create a new router instance
 const router = createRouter({
   routeTree,

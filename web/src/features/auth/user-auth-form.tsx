@@ -100,7 +100,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: Record<string, any>) => login(data),
+    mutationFn: (data: LoginFormValues) => login(data),
     retry: 0,
   });
 

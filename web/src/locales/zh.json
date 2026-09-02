@@ -102,6 +102,8 @@
     "authType": "认证类型",
     "autoConfiguring": "正在自动配置…",
     "autoDiscover": "自动检测服务器设置",
+    "autoDiscoverFailed": "自动检测失败",
+    "autoDiscoverFailedDesc": "无法检测服务器设置，请手动输入。",
     "autoDownloadNewMailboxes": "自动添加新邮件夹",
     "autoDownloadNewMailboxesDescription": "自动将新发现的邮件夹添加到下载列表中。",
     "beforeRelative": "仅下载旧邮件",

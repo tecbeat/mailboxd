@@ -99,7 +99,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
             updates[accountId] = Array.from(tagSet);
         });
 
-        let finalTags = inputValue.trim()
+        const finalTags = inputValue.trim()
             ? [...selectedTags, inputValue.toLowerCase().trim()]
             : selectedTags;
 
@@ -127,7 +127,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
                     queryClient.invalidateQueries({ queryKey: ['all-tags'] });
                     onOpenChange(false);
                 },
-                onError: (error: any) => {
+                onError: (error: Error) => {
                     toast({
                         title: t('search.updateTags.updateFailedTitle'),
                         description: error?.message || t('search.updateTags.tryAgain'),

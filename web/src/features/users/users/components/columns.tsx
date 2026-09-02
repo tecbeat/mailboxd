@@ -53,7 +53,7 @@ export const getColumns = (t: (key: string) => string, roles: UserRole[]): Colum
     ),
     cell: ({ row }) => {
       if (row.original.avatar) {
-        let avatarSrc = `data:image/png;base64,${row.original.avatar}`;
+        const avatarSrc = `data:image/png;base64,${row.original.avatar}`;
         return <div className="flex justify-center">
           <img
             src={avatarSrc}

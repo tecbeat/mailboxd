@@ -101,6 +101,8 @@
     "authType": "Tipo de Autenticação",
     "autoConfiguring": "Configurando automaticamente…",
     "autoDiscover": "Autodetectar configurações do servidor",
+    "autoDiscoverFailed": "Falha na detecção automática",
+    "autoDiscoverFailedDesc": "Não foi possível detectar as configurações do servidor. Insira-as manualmente.",
     "autoDownloadNewMailboxes": "Adicionar automaticamente novas pastas",
     "autoDownloadNewMailboxesDescription": "Adicionar automaticamente novas pastas à lista de download.",
     "beforeRelative": "Baixar apenas e-mails antigos",

@@ -27,6 +27,10 @@ interface HandoffResponse {
   redirect_to: string
 }
 
+interface SignInSearch {
+  sso_error?: string
+}
+
 function SsoCallback() {
   const navigate = useNavigate()
 
@@ -41,7 +45,7 @@ function SsoCallback() {
     if (!handoffId) {
       navigate({
         to: '/sign-in',
-        search: { sso_error: 'Missing SSO handoff id' } as any,
+        search: { sso_error: 'Missing SSO handoff id' } as SignInSearch,
       })
       return
     }
@@ -55,17 +59,14 @@ function SsoCallback() {
         if (!access_token) {
           navigate({
             to: '/sign-in',
-            search: { sso_error: 'Empty handoff response from server' } as any,
+            search: { sso_error: 'Empty handoff response from server' } as SignInSearch,
           })
           return
         }
         setToken({
           success: true,
           access_token,
-          theme: null,
-          language: null,
-          error_message: null,
-        } as any)
+        })
         const target = redirect_to && redirect_to.startsWith('/') ? redirect_to : '/'
         navigate({ to: target })
       })
@@ -77,7 +78,7 @@ function SsoCallback() {
             : 'Failed to complete SSO login'
         navigate({
           to: '/sign-in',
-          search: { sso_error: msg } as any,
+          search: { sso_error: msg } as SignInSearch,
         })
       })
 

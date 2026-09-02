@@ -63,7 +63,7 @@ const defaultValues = {
 
 
 const mapCurrentRowToFormValues = (currentRow: Proxy) => {
-  let data = {
+  const data = {
     url: currentRow.url
   };
   return data;
@@ -88,7 +88,7 @@ export function ProxyActionDialog({ currentRow, open, onOpenChange }: Props) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (url: string) => update_proxy(currentRow?.id!, url),
+    mutationFn: (url: string) => update_proxy(currentRow!.id, url),
     onSuccess: handleSuccess,
     onError: handleError
   })

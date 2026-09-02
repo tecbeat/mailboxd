@@ -169,7 +169,7 @@ export const download_state = async (account_id: number) => {
     return response.data;
 };
 
-export const create_account = async (data: Record<string, any>) => {
+export const create_account = async (data: object) => {
     const response = await axiosInstance.post("api/v1/account", data);
     return response.data;
 };
@@ -179,7 +179,7 @@ export const list_accounts = async () => {
     return response.data;
 };
 
-export const update_account = async (account_id: number, data: Record<string, any>) => {
+export const update_account = async (account_id: number, data: object) => {
     const response = await axiosInstance.post(`api/v1/account/${account_id}`, data);
     return response.data;
 };
@@ -223,7 +223,7 @@ export const autoconfig = async (email: string) => {
     return response.data;
 };
 
-export const access_assign = async (data: Record<string, any>) => {
+export const access_assign = async (data: object) => {
     const response = await axiosInstance.post("api/v1/accounts/access/assignments", data);
     return response.data;
 };

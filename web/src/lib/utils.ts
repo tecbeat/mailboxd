@@ -187,7 +187,7 @@ export function showNumbers(current: number, total: number) {
 }
 
 
-export function toSearchParams(obj: Record<string, any>): URLSearchParams {
+export function toSearchParams(obj: object): URLSearchParams {
   const params = new URLSearchParams();
   Object.entries(obj).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {

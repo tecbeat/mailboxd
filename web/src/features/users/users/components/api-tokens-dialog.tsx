@@ -42,8 +42,8 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
   const [addOpen, setAddOpen] = useState(false)
 
   const { data: tokens = [], isLoading: tokensLoading } = useQuery({
-    queryKey: ['user-tokens', currentRow?.id!],
-    queryFn: () => get_user_tokens(currentRow?.id!),
+    queryKey: ['user-tokens', currentRow?.id],
+    queryFn: () => get_user_tokens(currentRow!.id),
     enabled: !!currentRow?.id,
   })
 
@@ -91,7 +91,7 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
               </Button>
             </div>
             <ScrollArea className='h-[32rem] w-full pr-4 -mr-4 py-1'>
-              <TokenCardList tokens={tokens} userId={currentRow?.id!} />
+              <TokenCardList tokens={tokens} userId={currentRow!.id} />
             </ScrollArea>
           </>
         )}
@@ -99,7 +99,7 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
         <TokensActionDialog
           key='api-token-add'
           open={addOpen}
-          userId={currentRow?.id!}
+          userId={currentRow!.id}
           onOpenChange={setAddOpen}
         />
       </DialogContent>

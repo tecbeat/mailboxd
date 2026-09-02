@@ -37,6 +37,7 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { AccountModel, cancel_account_download, start_account_download } from '@/api/account/api'
 import { toast } from '@/hooks/use-toast'
 import { useNavigate } from '@tanstack/react-router'
+import { AxiosError } from 'axios'
 
 interface DataTableRowActionsProps {
   row: Row<DataTableFeatures, AccountModel>
@@ -68,11 +69,12 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     try {
       await start_account_download(row.original.id);
       toast({ title: t('accounts.downloadStarted') });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>
       toast({
         variant: "destructive",
         title: t('accounts.downloadFailed'),
-        description: error.response?.data?.message || error.message
+        description: axiosError.response?.data?.message || axiosError.message
       });
     }
   }
@@ -82,11 +84,12 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     try {
       await cancel_account_download(row.original.id);
       toast({ title: t('accounts.downloadCancelled') });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>
       toast({
         variant: "destructive",
         title: t('accounts.cancelFailed'),
-        description: error.response?.data?.message || error.message
+        description: axiosError.response?.data?.message || axiosError.message
       });
     }
   }
