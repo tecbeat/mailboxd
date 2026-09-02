@@ -20,10 +20,10 @@
 
 
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  CaretSortIcon,
-} from '@radix-ui/react-icons'
+  ArrowDown as ArrowDownIcon,
+  ArrowUp as ArrowUpIcon,
+  ChevronsUpDown as CaretSortIcon,
+} from 'lucide-react'
 import { Column, type RowData } from '@tanstack/react-table'
 import { type MailTableFeatures } from '@/lib/data-table'
 import { cn } from '@/lib/utils'

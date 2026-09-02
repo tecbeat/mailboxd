@@ -19,10 +19,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { Row } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
-import { IconEdit, IconPlayerPlay, IconPlayerStop, IconShieldLock, IconTrash } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -33,7 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAccountContext } from '../context'
-import { Mailbox, MessageSquareMore, Settings } from 'lucide-react'
+import { Mailbox, MessageSquareMore, Settings, MoreHorizontal as DotsHorizontalIcon, Pencil as IconEdit, Play as IconPlayerPlay, Square as IconPlayerStop, ShieldCheck as IconShieldLock, Trash2 as IconTrash } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { AccountModel, cancel_account_download, start_account_download } from '@/api/account/api'

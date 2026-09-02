@@ -1,5 +1,5 @@
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
-import { MixerHorizontalIcon } from '@radix-ui/react-icons'
+import { SlidersHorizontal as MixerHorizontalIcon } from 'lucide-react'
 import { type RowData, type Table } from '@tanstack/react-table'
 import { type MailTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'

@@ -20,7 +20,7 @@
 
 
 import * as React from 'react'
-import { IconEye, IconEyeOff } from '@tabler/icons-react'
+import { Eye as IconEye, EyeOff as IconEyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 
