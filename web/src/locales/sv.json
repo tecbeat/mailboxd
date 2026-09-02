@@ -101,6 +101,8 @@
     "authType": "auth_typ",
     "autoConfiguring": "Konfigurerar automatiskt…",
     "autoDiscover": "Hitta serverinställningar automatiskt",
+    "autoDiscoverFailed": "Automatisk identifiering misslyckades",
+    "autoDiscoverFailedDesc": "Det gick inte att hitta serverinställningarna. Ange dem manuellt.",
     "autoDownloadNewMailboxes": "Lägg till nya mappar automatiskt",
     "autoDownloadNewMailboxesDescription": "Lägg automatiskt till nya mappar i hämtningslistan.",
     "beforeRelative": "Ladda ner endast gamla e-postmeddelanden",

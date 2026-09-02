@@ -54,7 +54,7 @@ export function EnvelopeDeleteDialog({ open, onOpenChange }: Props) {
         description: t('search.delete.successDesc'),
       })
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('search.delete.errorTitle'),
         description: `${error.message}`,

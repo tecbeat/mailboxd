@@ -133,7 +133,7 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: Record<string, any>) => update_oauth2(currentRow?.id!, data),
+    mutationFn: (data: Record<string, unknown>) => update_oauth2(currentRow!.id, data),
     onSuccess: handleSuccess,
     onError: handleError
   })
@@ -160,7 +160,6 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
       description: errorMessage as string,
       action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
     });
-    console.error(error);
   }
 
   const onSubmit = (values: OAuth2FormValues) => {

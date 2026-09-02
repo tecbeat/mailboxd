@@ -38,14 +38,18 @@ export function MoreFiltersPopover() {
         is_message: filter?.is_message || false
     });
 
-    React.useEffect(() => {
+    // Re-sync local draft from the active filter whenever the popover opens or the
+    // filter changes while open (adjust state during render).
+    const [prevDeps, setPrevDeps] = React.useState({ open, filter });
+    if (prevDeps.open !== open || prevDeps.filter !== filter) {
+        setPrevDeps({ open, filter });
         if (open) {
             setLocalState({
                 size_preset: getPresetFromSize(filter?.min_size, filter?.max_size),
                 is_message: filter?.is_message || false
             });
         }
-    }, [open, filter]);
+    }
 
     const handleApply = () => {
         setFilter(prev => {

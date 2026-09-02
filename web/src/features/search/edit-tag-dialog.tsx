@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Plus, Tag as TagIcon, X, LoaderCircle as Loader2, Check, Search } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAvailableTags } from '@/hooks/use-available-tags';
 import { useUpdateTags } from '@/hooks/use-update-tags';
 import { toast } from '@/hooks/use-toast';
@@ -49,11 +49,14 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
 
     const { currentItem, setCurrentItem } = useSearchContext()
 
-    useEffect(() => {
+    // Load the item's tags when the dialog opens or the item changes (adjust state during render).
+    const [prevDeps, setPrevDeps] = useState({ open, currentItem });
+    if (prevDeps.open !== open || prevDeps.currentItem !== currentItem) {
+        setPrevDeps({ open, currentItem });
         if (open && currentItem) {
             setSelectedTags(currentItem.tags || []);
         }
-    }, [open, currentItem]);
+    }
 
     if (!currentItem) return null;
 
@@ -130,7 +133,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                     queryClient.invalidateQueries({ queryKey: ['all-tags'] });
                     onOpenChange(false);
                 },
-                onError: (error: any) => {
+                onError: (error) => {
                     toast({
                         title: t('search.addTags.updateFailedTitle'),
                         description: error?.message || t('search.addTags.tryAgain'),

@@ -101,6 +101,8 @@
     "authType": "todennustyyppi",
     "autoConfiguring": "Määritetään automaattisesti…",
     "autoDiscover": "Hae palvelinasetukset automaattisesti",
+    "autoDiscoverFailed": "Automaattinen tunnistus epäonnistui",
+    "autoDiscoverFailedDesc": "Palvelinasetuksia ei voitu tunnistaa. Anna ne manuaalisesti.",
     "autoDownloadNewMailboxes": "Lisää uudet kansiot automaattisesti",
     "autoDownloadNewMailboxesDescription": "Lisää uudet löydetyt kansiot automaattisesti latausluetteloon.",
     "beforeRelative": "Lataa vain vanhat sähköpostit",

@@ -25,6 +25,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle as Loader2, ShieldCheck, Users, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { AxiosError } from 'axios'
 
 import {
     Dialog,
@@ -107,7 +108,7 @@ export function AccountAccessAssignmentDialog({
         defaultValues: {
             account_ids: [currentRow.id],
             user_ids: [],
-            role_id: undefined as any,
+            role_id: undefined,
         },
     })
 
@@ -131,11 +132,11 @@ export function AccountAccessAssignmentDialog({
             invalidateAccountAccessViews(queryClient)
             onOpenChange(false)
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError) => {
             toast({
                 variant: 'destructive',
                 title: t('accounts.access_control.toast.failed_title'),
-                description: error.response?.data?.message || error.message,
+                description: (error.response?.data as { message?: string })?.message || error.message,
             })
         },
     })

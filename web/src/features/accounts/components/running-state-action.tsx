@@ -41,7 +41,7 @@ export function RunningStateCellAction({ row }: Props) {
   if (row.original.deleting) {
     return <span className="text-xs text-muted-foreground italic">Deleting...</span>
   }
-  let account_type = row.original.account_type;
+  const account_type = row.original.account_type;
   if (account_type === "NoSync") {
     return <span className="text-xs text-muted-foreground">n/a</span>
   }

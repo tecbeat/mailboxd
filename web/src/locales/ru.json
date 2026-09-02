@@ -101,6 +101,8 @@
     "authType": "тип_авторизации",
     "autoConfiguring": "Автоматическая настройка…",
     "autoDiscover": "Автоопределение настроек сервера",
+    "autoDiscoverFailed": "Не удалось выполнить автоопределение",
+    "autoDiscoverFailedDesc": "Не удалось определить настройки сервера. Введите их вручную.",
     "autoDownloadNewMailboxes": "Автодобавление новых папок",
     "autoDownloadNewMailboxesDescription": "Автоматически добавлять новые папки в список загрузки.",
     "beforeRelative": "Скачать только старые письма",

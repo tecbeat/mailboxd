@@ -46,7 +46,11 @@ export function MoreFiltersPopover() {
         has_attachment: filter?.has_attachment || false
     });
 
-    React.useEffect(() => {
+    // Re-sync local draft from the active filter whenever the popover opens or the
+    // filter changes while open (adjust state during render).
+    const [prevDeps, setPrevDeps] = React.useState({ open, filter });
+    if (prevDeps.open !== open || prevDeps.filter !== filter) {
+        setPrevDeps({ open, filter });
         if (open) {
             setLocalState({
                 attachment_name: filter?.attachment_name || '',
@@ -58,7 +62,7 @@ export function MoreFiltersPopover() {
                 has_attachment: filter?.has_attachment || false
             });
         }
-    }, [open, filter]);
+    }
 
     const handleApply = () => {
         setFilter(prev => {

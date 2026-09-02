@@ -53,7 +53,7 @@ export interface AttachmentModel {
     auto_tags?: string[];
 }
 
-export const search_attachment = async (payload: Record<string, any>) => {
+export const search_attachment = async (payload: object) => {
     const response = await axiosInstance.post<PaginatedResponse<AttachmentModel>>("api/v1/search-attachment", payload);
     return response.data;
 };

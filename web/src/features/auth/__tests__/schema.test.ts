@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { getFormSchema } from '../schema'
 
 // Simple mock t function that returns the key
-const t = (key: string, _options?: Record<string, any>) => key
+const t = (key: string) => key
 
 describe('Login Form Schema', () => {
   const schema = getFormSchema(t)

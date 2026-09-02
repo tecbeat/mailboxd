@@ -66,8 +66,6 @@ export function RoleDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       description: errorMessage,
       action: <ToastAction altText={t('roles.actions.retry')}>{t('roles.actions.retry')}</ToastAction>,
     })
-
-    console.error(error)
   }
 
   const deleteMutation = useMutation({

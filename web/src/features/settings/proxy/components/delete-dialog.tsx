@@ -72,7 +72,6 @@ export function ProxyDeleteDialog({ open, onOpenChange, currentRow }: Props) {
         </ToastAction>
       ),
     })
-    console.error(error)
   }
 
   const deleteMutation = useMutation({

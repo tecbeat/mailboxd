@@ -29,7 +29,6 @@ export interface StoredToken {
 
 export const setToken = (result: LoginResult) => {
   if (!result.success || !result.access_token) {
-    console.error("Invalid login result");
     return;
   }
 
@@ -47,8 +46,7 @@ export const getToken = (): StoredToken | null => {
 
   try {
     return JSON.parse(item) as StoredToken;
-  } catch (error) {
-    console.error("Error parsing access token:", error);
+  } catch {
     resetToken();
     return null;
   }

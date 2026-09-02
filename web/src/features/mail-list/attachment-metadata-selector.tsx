@@ -112,7 +112,8 @@ export function MetadataSelectorField({
                                 <CommandItem
                                     key={opt.key}
                                     onSelect={() => {
-                                        value === opt.key ? onReset() : onSelect(opt.key)
+                                        if (value === opt.key) onReset()
+                                        else onSelect(opt.key)
                                     }}
                                     className="flex items-center justify-between py-2 px-3 cursor-pointer text-xs"
                                 >

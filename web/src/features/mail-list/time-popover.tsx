@@ -58,8 +58,10 @@ export function TimePopover() {
     const setRange = (s?: number, b?: number) => {
         setFilter(prev => {
             const next = { ...prev }
-            s ? (next.since = s) : delete next.since
-            b ? (next.before = b) : delete next.before
+            if (s) next.since = s
+            else delete next.since
+            if (b) next.before = b
+            else delete next.before
             return next
         })
     }

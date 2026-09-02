@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import type { TOptions } from 'i18next'
 
 export const getFormSchema = (
-  t: (key: string, options?: Record<string, any>) => string
+  t: (key: string, options?: TOptions) => string
 ) =>
   z.object({
     username: z

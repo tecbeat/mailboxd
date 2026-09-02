@@ -102,6 +102,8 @@
     "authType": "auth_type",
     "autoConfiguring": "Auto-configuring...",
     "autoDiscover": "Auto-discover Server Settings",
+    "autoDiscoverFailed": "Auto-discovery Failed",
+    "autoDiscoverFailedDesc": "Could not detect server settings. Please enter them manually.",
     "autoDownloadNewMailboxes": "Auto-add new mailboxes",
     "autoDownloadNewMailboxesDescription": "Automatically add newly discovered folders to the download list.",
     "beforeRelative": "Download Old Emails Only",

@@ -74,7 +74,7 @@ const defaultValues: NoSyncAccount = {
 
 
 const mapCurrentRowToFormValues = (currentRow: AccountModel): NoSyncAccount => {
-  let account = {
+  const account = {
     account_name: currentRow.account_name === null ? '' : currentRow.account_name,
     email: currentRow.email,
     enabled: currentRow.enabled
@@ -103,10 +103,14 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: Record<string, any>) => update_account(currentRow?.id!, data),
+    // Only reachable in edit mode, where currentRow is guaranteed to exist.
+    mutationFn: (data: Record<string, unknown>) => update_account(currentRow!.id, data),
     onSuccess: handleSuccess,
     onError: handleError,
   });
+
+  const { mutate: updateAccount } = updateMutation;
+  const { mutate: createAccount } = createMutation;
 
   function handleSuccess() {
     toast({
@@ -132,7 +136,6 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
       description: errorMessage as string,
       action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
     });
-    console.error(error);
   }
 
   const onSubmit = React.useCallback(
@@ -144,16 +147,16 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
         use_dangerous: false
       };
       if (isEdit) {
-        updateMutation.mutate(commonData);
+        updateAccount(commonData);
       } else {
         const payload = {
           ...commonData,
           account_type: "NoSync"
         };
-        createMutation.mutate(payload);
+        createAccount(payload);
       }
     },
-    [isEdit, updateMutation, createMutation]
+    [isEdit, updateAccount, createAccount]
   );
   return (
     <Dialog

@@ -140,10 +140,10 @@ export default function MailArchiveDashboard() {
     return account?.name || null;
   };
 
-  const handleQuickSearch = (filter: Record<string, any>) => {
+  const handleQuickSearch = (filter: Record<string, unknown>) => {
     navigate({
       to: '/search',
-      search: (prev: any) => ({
+      search: (prev) => ({
         page: 1,
         pageSize: prev.pageSize ?? 50,
         sortBy: prev.sortBy ?? "DATE",
@@ -154,10 +154,10 @@ export default function MailArchiveDashboard() {
   };
 
 
-  const handleQuickAttachmentSearch = (filter: Record<string, any>) => {
+  const handleQuickAttachmentSearch = (filter: Record<string, unknown>) => {
     navigate({
       to: '/attachment',
-      search: (prev: any) => ({
+      search: (prev) => ({
         page: 1,
         pageSize: prev.pageSize ?? 50,
         sortBy: prev.sortBy ?? "DATE",

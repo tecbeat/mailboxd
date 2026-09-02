@@ -101,6 +101,8 @@
     "authType": "authenticatie_type",
     "autoConfiguring": "Automatisch configureren…",
     "autoDiscover": "Serverinstellingen automatisch detecteren",
+    "autoDiscoverFailed": "Automatische detectie mislukt",
+    "autoDiscoverFailedDesc": "Kan serverinstellingen niet detecteren. Voer ze handmatig in.",
     "autoDownloadNewMailboxes": "Nieuwe mappen automatisch importeren",
     "autoDownloadNewMailboxesDescription": "Voeg automatisch nieuw ontdekte mappen toe aan de downloadlijst.",
     "beforeRelative": "Download alleen oude e-mails",

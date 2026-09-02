@@ -100,7 +100,7 @@ export function AppearanceForm() {
         resolver: zodResolver(appearanceSchema(t)),
         mode: 'onChange',
         defaultValues: {
-            theme: (theme as any) || 'light',
+            theme: theme || 'light',
             language: i18n.language || 'en',
         },
     })
@@ -117,7 +117,7 @@ export function AppearanceForm() {
             toast({
                 variant: 'destructive',
                 title: t('settings.profile.toast.update_failed'),
-                description: (err.response?.data as any)?.message || err.message,
+                description: (err.response?.data as { message?: string })?.message || err.message,
             })
         },
     })

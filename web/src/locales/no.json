@@ -101,6 +101,8 @@
     "authType": "autentiseringstype",
     "autoConfiguring": "Konfigurerer automatisk…",
     "autoDiscover": "Finn serverinnstillinger automatisk",
+    "autoDiscoverFailed": "Automatisk gjenkjenning mislyktes",
+    "autoDiscoverFailedDesc": "Kunne ikke finne serverinnstillinger. Skriv dem inn manuelt.",
     "autoDownloadNewMailboxes": "Legg til nye mapper automatisk",
     "autoDownloadNewMailboxesDescription": "Legg automatisk til nye mapper i nedlastingslisten.",
     "beforeRelative": "Last ned kun gamle e-poster",

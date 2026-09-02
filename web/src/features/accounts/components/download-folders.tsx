@@ -78,12 +78,14 @@ interface CustomLabelProps {
 }
 
 function CustomLabel({
-    expandable,
     exists,
     attributes,
     children,
-    ...other
+    ...rest
 }: CustomLabelProps) {
+    // Strip the custom (non-DOM) `expandable` field so it is not forwarded to the label element.
+    delete rest.expandable;
+    const other = rest as Pick<CustomLabelProps, 'icon'>;
     return (
         <TreeItemLabel
             {...other}
@@ -169,6 +171,16 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
     const { t } = useTranslation()
     const { theme } = useTheme()
 
+    // Show the loading state when the dialog opens or the account changes
+    // (adjust state during render); the fetch itself runs in the effect below.
+    const [prevFetchKey, setPrevFetchKey] = useState<{ currentRow: typeof currentRow; open: boolean } | null>(null);
+    if (!prevFetchKey || prevFetchKey.currentRow !== currentRow || prevFetchKey.open !== open) {
+        setPrevFetchKey({ currentRow, open });
+        if (open) {
+            setIsLoading(true);
+        }
+    }
+
     useEffect(() => {
         if (!open) return;
         let cancelled = false;
@@ -209,7 +221,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                     setIsLoading(false);
                     setError(response.error || "Unknown error");
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (!cancelled) {
                     if (axios.isAxiosError(err)) {
                         const resData = err.response?.data;
@@ -219,14 +231,13 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                             setError(err.message);
                         }
                     } else {
-                        setError(err.message || String(err));
+                        setError(err instanceof Error ? err.message : String(err));
                     }
                     setIsLoading(false);
                 }
             }
         };
 
-        setIsLoading(true);
         fetchMailboxes();
         return () => {
             cancelled = true;
@@ -327,7 +338,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
 
 
     const updateMutation = useMutation({
-        mutationFn: (data: Record<string, any>) => update_account(currentRow?.id ?? '', data),
+        mutationFn: (data: { sync_folders: string[] }) => update_account(currentRow?.id ?? '', data),
         onSuccess: handleSuccess,
         onError: handleError
     })
@@ -356,7 +367,6 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
             action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
         });
         setIsSubmitting(false);
-        console.error(error);
     }
 
     const handleSelectedItemsChange = (

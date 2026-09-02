@@ -53,6 +53,7 @@ export function AttachmentListTable({
 
   const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
   const { setOpen, setCurrentItem } = useAttachmentContext()
+  const { setFilter } = useSearchAttachments();
 
   const columns: ColumnDef<MailTableFeatures, AttachmentModel>[] = [
     {
@@ -60,7 +61,6 @@ export function AttachmentListTable({
       header: t('attachment.source'),
       cell: ({ row }) => {
         const { from, account_email, mailbox_name, account_id, mailbox_id } = row.original;
-        const { setFilter } = useSearchAttachments();
         const accountPrefix = account_email.split('@')[0];
 
         return (
@@ -69,7 +69,7 @@ export function AttachmentListTable({
               className="cursor-pointer hover:text-primary transition-colors flex items-center gap-1.5"
               onClick={(e) => {
                 e.stopPropagation();
-                setFilter((prev: any) => ({ ...prev, from: from }));
+                setFilter((prev) => ({ ...prev, from: from }));
               }}
             >
               <LongText className="text-xs truncate">
@@ -83,7 +83,7 @@ export function AttachmentListTable({
                 title={account_email}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFilter((prev: any) => ({ ...prev, account_ids: [account_id], mailbox_ids: undefined }));
+                  setFilter((prev) => ({ ...prev, account_ids: [account_id], mailbox_ids: undefined }));
                 }}
               >
                 {accountPrefix}
@@ -94,7 +94,7 @@ export function AttachmentListTable({
                 className="truncate max-w-[70px] hover:text-primary cursor-pointer transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFilter((prev: any) => ({ ...prev, account_ids: [account_id], mailbox_ids: [mailbox_id] }));
+                  setFilter((prev) => ({ ...prev, account_ids: [account_id], mailbox_ids: [mailbox_id] }));
                 }}
               >
                 {mailbox_name}

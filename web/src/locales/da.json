@@ -101,6 +101,8 @@
     "authType": "godkendelsestype",
     "autoConfiguring": "Konfigurerer automatisk…",
     "autoDiscover": "Find serverindstillinger automatisk",
+    "autoDiscoverFailed": "Automatisk registrering mislykkedes",
+    "autoDiscoverFailedDesc": "Kunne ikke finde serverindstillinger. Indtast dem manuelt.",
     "autoDownloadNewMailboxes": "Tilføj automatisk nye mapper",
     "autoDownloadNewMailboxesDescription": "Føj automatisk nye mapper til downloadlisten.",
     "beforeRelative": "Download kun gamle e-mails",

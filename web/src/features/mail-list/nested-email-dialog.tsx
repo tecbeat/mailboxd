@@ -146,11 +146,20 @@ const MessageHeader = ({
 
 
 
-export function NestedEmailDialog({ open, onOpenChange, accountId, envelopeId, fileName, content_hash }: any) {
+interface NestedEmailDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    accountId?: number;
+    envelopeId?: string;
+    fileName?: string;
+    content_hash?: string;
+}
+
+export function NestedEmailDialog({ open, onOpenChange, accountId, envelopeId, fileName, content_hash }: NestedEmailDialogProps) {
 
     const { data, isLoading } = useQuery({
         queryKey: ['nested-message', accountId, envelopeId, content_hash],
-        queryFn: () => load_nested_message(accountId, envelopeId, content_hash, true),
+        queryFn: () => load_nested_message(accountId!, envelopeId!, content_hash!, true),
         enabled: open && !!content_hash,
     });
 
@@ -172,7 +181,7 @@ export function NestedEmailDialog({ open, onOpenChange, accountId, envelopeId, f
                             <MessageHeader
                                 envelope={data.envelope}
                                 attachments={data.attachments}
-                                onDownload={(nested_content_hash, fileName) => download_nested_attachment(accountId, envelopeId, content_hash, nested_content_hash, fileName)}
+                                onDownload={(nested_content_hash, fileName) => download_nested_attachment(accountId!, envelopeId!, content_hash!, nested_content_hash, fileName)}
                             />
 
                             <div className="mt-8 pt-8 border-t border-slate-100">

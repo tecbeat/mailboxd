@@ -126,7 +126,7 @@ export interface MinimalUser {
 }
 
 
-export const login = async (data: Record<string, any>) => {
+export const login = async (data: object) => {
     const response = await axiosInstance.post<LoginResult>(`api/login`, data);
     return response.data;
 };
@@ -136,12 +136,12 @@ export const list_access_tokens = async () => {
     return response.data;
 };
 
-export const create_access_token = async (data: Record<string, any>) => {
+export const create_access_token = async (data: object) => {
     const response = await axiosInstance.post("api/v1/access-token", data);
     return response.data;
 }
 
-export const update_access_token = async (token: string, data: Record<string, any>) => {
+export const update_access_token = async (token: string, data: object) => {
     const response = await axiosInstance.post(`api/v1/access-token/${token}`, data);
     return response.data;
 }
@@ -164,13 +164,13 @@ export const remove_role = async (id: number) => {
 };
 
 
-export const create_role = async (data: Record<string, any>) => {
+export const create_role = async (data: object) => {
     const response = await axiosInstance.post("api/v1/roles", data);
     return response.data;
 };
 
 
-export const update_role = async (id: number, data: Record<string, any>) => {
+export const update_role = async (id: number, data: object) => {
     const response = await axiosInstance.post(`api/v1/roles/${id}`, data);
     return response.data;
 };
@@ -198,13 +198,13 @@ export const remove_user = async (id: number) => {
 };
 
 
-export const create_user = async (data: Record<string, any>) => {
+export const create_user = async (data: object) => {
     const response = await axiosInstance.post("api/v1/users", data);
     return response.data;
 };
 
 
-export const update_user = async (id: number, data: Record<string, any>) => {
+export const update_user = async (id: number, data: object) => {
     const response = await axiosInstance.post(`api/v1/users/${id}`, data);
     return response.data;
 };

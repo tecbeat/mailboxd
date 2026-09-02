@@ -97,7 +97,7 @@ export interface LargestEmail {
 export interface LargestAttachment {
     name: string;        // Attachment name
     size_bytes: number;     // Email size in bytes
-    id: String // attachment id
+    id: string // attachment id
 }
 
 export interface Proxy {

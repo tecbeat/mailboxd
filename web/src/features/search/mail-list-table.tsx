@@ -55,6 +55,7 @@ export function MailListTable({
   const { t, i18n } = useTranslation()
 
   const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
+  const { setFilter } = useSearchMessages();
 
   const columns: ColumnDef<MailTableFeatures, EmailEnvelope>[] = [
     {
@@ -62,7 +63,6 @@ export function MailListTable({
       header: t('search.source'),
       cell: ({ row }) => {
         const { from, account_email, account_name, mailbox_name, account_id, mailbox_id } = row.original;
-        const { setFilter } = useSearchMessages();
         const accountPrefix = account_name ?? account_email.split('@')[0];
 
         return (
@@ -71,7 +71,7 @@ export function MailListTable({
               className="cursor-pointer hover:text-primary transition-colors flex items-center gap-1.5"
               onClick={(e) => {
                 e.stopPropagation();
-                setFilter((prev: any) => ({ ...prev, from: from }));
+                setFilter((prev) => ({ ...prev, from: from }));
               }}
             >
               <LongText className="text-xs truncate">
@@ -85,7 +85,7 @@ export function MailListTable({
                 title={account_email}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFilter((prev: any) => ({ ...prev, account_ids: [account_id], mailbox_ids: undefined }));
+                  setFilter((prev) => ({ ...prev, account_ids: [account_id], mailbox_ids: undefined }));
                 }}
               >
                 {accountPrefix}
@@ -96,7 +96,7 @@ export function MailListTable({
                 className="truncate max-w-[70px] hover:text-primary cursor-pointer transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFilter((prev: any) => ({ ...prev, account_ids: [account_id], mailbox_ids: [mailbox_id] }));
+                  setFilter((prev) => ({ ...prev, account_ids: [account_id], mailbox_ids: [mailbox_id] }));
                 }}
               >
                 {mailbox_name}
@@ -112,14 +112,13 @@ export function MailListTable({
       header: t('search.to'),
       cell: ({ row }) => {
         const recipients: string[] = row.original.to || [];
-        const { setFilter } = useSearchMessages();
         const MAX_VISIBLE = 2;
         const visible = recipients.slice(0, MAX_VISIBLE);
         const hidden = recipients.slice(MAX_VISIBLE);
 
         const handleClick = (e: React.MouseEvent, email: string) => {
           e.stopPropagation();
-          setFilter((prev: Record<string, any>) => ({ ...prev, to: email }));
+          setFilter((prev) => ({ ...prev, to: email }));
         };
 
         return (

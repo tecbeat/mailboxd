@@ -101,6 +101,8 @@
     "authType": "type_auth",
     "autoConfiguring": "Configuration automatique…",
     "autoDiscover": "Détection automatique des paramètres du serveur",
+    "autoDiscoverFailed": "Échec de la détection automatique",
+    "autoDiscoverFailedDesc": "Impossible de détecter les paramètres du serveur. Veuillez les saisir manuellement.",
     "autoDownloadNewMailboxes": "Ajouter automatiquement les nouveaux dossiers",
     "autoDownloadNewMailboxesDescription": "Ajouter automatiquement les nouveaux dossiers à la liste de téléchargement.",
     "beforeRelative": "Télécharger uniquement les anciens e-mails",

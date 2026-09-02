@@ -25,14 +25,14 @@ import { cn } from "@/lib/utils"
 import { ChevronDown, Mail } from "lucide-react"
 import { useTranslation } from 'react-i18next'
 import { useAttachmentContext } from "./context"
-import { userAttachmentSenders } from "@/hooks/use-attachment-senders"
+import { useAttachmentSenders } from "@/hooks/use-attachment-senders"
 import { Group } from "@/api/system/api"
 import { MetadataSelectorField } from "@/features/mail-list/attachment-metadata-selector"
 
 export function SenderFilterPopover() {
     const { t } = useTranslation()
     const { filter, setFilter } = useAttachmentContext()
-    const { senders, isLoading } = userAttachmentSenders("")
+    const { senders, isLoading } = useAttachmentSenders("")
 
     const activeCount = filter.from ? 1 : 0
     const senderOptions: Group[] = React.useMemo(() => {
