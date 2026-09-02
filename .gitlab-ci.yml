@@ -104,12 +104,10 @@ web_test:
     - pnpm exec tsc -b
     - pnpm test
 
-# eslint runs but does not block yet: fixing #6 made lint runnable again and
-# exposed a pre-existing violation backlog, tracked in #16. Drop allow_failure
-# to turn lint into a hard gate once #16 is done.
+# Hard gate: the frontend must lint clean. The pre-existing violation backlog
+# (#16) has been cleared, so lint now blocks the pipeline like web_test.
 web_lint:
   extends: .web_check
-  allow_failure: true
   script:
     - pnpm run lint
 
