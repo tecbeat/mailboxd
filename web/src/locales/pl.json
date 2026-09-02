@@ -101,6 +101,8 @@
     "authType": "auth_type",
     "autoConfiguring": "Automatyczna konfiguracja…",
     "autoDiscover": "Automatyczne wykrywanie ustawień serwera",
+    "autoDiscoverFailed": "Automatyczne wykrywanie nie powiodło się",
+    "autoDiscoverFailedDesc": "Nie można wykryć ustawień serwera. Wprowadź je ręcznie.",
     "autoDownloadNewMailboxes": "Automatycznie dodawaj nowe foldery",
     "autoDownloadNewMailboxesDescription": "Automatycznie dodawaj nowo wykryte foldery do listy pobierania.",
     "beforeRelative": "Pobierz tylko stare e-maile",
@@ -1719,51 +1721,9 @@
       "roles": "Role",
       "users": "Użytkownicy"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Utwórz token dostępu",
-        "description": "Kliknij zapisz po zakończeniu.",
-        "edit_title": "Edytuj token dostępu"
-      },
-      "error": {
-        "fallback": "Operacja nie powiodła się, spróbuj ponownie później."
-      },
-      "expire_options": {
-        "1_day": "1 dzień",
-        "30_days": "30 dni",
-        "7_days": "7 dni",
-        "never": "Nigdy nie wygasa"
-      },
-      "fields": {
-        "expire_hint": "Token wygaśnie automatycznie po wybranym czasie.",
-        "expire_label": "Wygasanie",
-        "expire_placeholder": "Wybierz czas",
-        "name_hint": "Opcjonalnie · Maks. 32 znaki",
-        "name_label": "Nazwa",
-        "name_placeholder": "Nadaj krótką nazwę tokenowi"
-      },
-      "schema": {
-        "expire_int": "Musi być liczbą całkowitą",
-        "expire_number": "Musi być liczbą",
-        "expire_positive": "Musi być większa niż 0",
-        "name_max": "Maks. 32 znaki"
-      },
-      "toast": {
-        "create_failed_title": "Błąd tworzenia",
-        "create_success_desc": "Token dostępu został pomyślnie utworzony.",
-        "create_success_title": "Token utworzony",
-        "update_failed_title": "Błąd aktualizacji",
-        "update_success_desc": "Token dostępu został pomyślnie zaktualizowany.",
-        "update_success_title": "Token zaktualizowany"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Dodaj token"
-      },
-      "delete_dialog": {
-        "description": "Tej operacji nie można cofnąć.",
-        "title": "Usunąć token dostępu?"
       },
       "dialog": {
         "description": "Zarządzaj tokenami API tego użytkownika.",
@@ -1772,19 +1732,6 @@
       "empty": {
         "description": "Ten użytkownik nie posiada obecnie żadnych tokenów API.",
         "title": "Brak tokenów API"
-      },
-      "list": {
-        "button_delete": "Usuń token",
-        "expires_on_brief": "Wygasa {{date}}",
-        "label_created": "Utworzono",
-        "label_expires_at": "Wygasa",
-        "label_last_used": "Użyto",
-        "label_token": "Token",
-        "never": "Nigdy",
-        "never_expires": "Nigdy nie wygasa",
-        "status_active": "Aktywny",
-        "status_expired": "Wygasł",
-        "unnamed_token": "Token bez nazwy"
       }
     }
   },

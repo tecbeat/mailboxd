@@ -101,6 +101,8 @@
     "authType": "نوع_المصادقة",
     "autoConfiguring": "جاري التكوين التلقائي…",
     "autoDiscover": "اكتشاف إعدادات الخادم تلقائيًا",
+    "autoDiscoverFailed": "فشل الاكتشاف التلقائي",
+    "autoDiscoverFailedDesc": "تعذر اكتشاف إعدادات الخادم. الرجاء إدخالها يدويًا.",
     "autoDownloadNewMailboxes": "إضافة المجلدات الجديدة تلقائيًا",
     "autoDownloadNewMailboxesDescription": "إضافة المجلدات الجديدة المكتشفة تلقائيًا إلى قائمة التنزيل.",
     "beforeRelative": "تنزيل رسائل البريد الإلكتروني القديمة فقط",
@@ -1719,51 +1721,9 @@
       "roles": "الأدوار",
       "users": "المستخدمون"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "إنشاء رمز وصول",
-        "description": "انقر على حفظ عند الانتهاء.",
-        "edit_title": "تعديل رمز الوصول"
-      },
-      "error": {
-        "fallback": "فشلت العملية، يرجى المحاولة لاحقاً."
-      },
-      "expire_options": {
-        "1_day": "يوم واحد",
-        "30_days": "30 يوماً",
-        "7_days": "7 أيام",
-        "never": "لا ينتهي أبداً"
-      },
-      "fields": {
-        "expire_hint": "سينتهي الرمز تلقائياً بعد الوقت المحدد.",
-        "expire_label": "انتهاء الصلاحية",
-        "expire_placeholder": "اختر مدة الصلاحية",
-        "name_hint": "اختياري · 32 حرفاً كحد أقصى",
-        "name_label": "الاسم",
-        "name_placeholder": "أعطِ الرمز اسماً قصيراً"
-      },
-      "schema": {
-        "expire_int": "يجب أن يكون رقماً صحيحاً",
-        "expire_number": "يجب أن يكون رقماً",
-        "expire_positive": "يجب أن يكون أكبر من 0",
-        "name_max": "32 حرفاً كحد أقصى"
-      },
-      "toast": {
-        "create_failed_title": "فشل الإنشاء",
-        "create_success_desc": "تم إنشاء رمز الوصول بنجاح.",
-        "create_success_title": "تم إنشاء الرمز",
-        "update_failed_title": "فشل التحديث",
-        "update_success_desc": "تم تحديث رمز الوصول بنجاح.",
-        "update_success_title": "تم تحديث الرمز"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "إضافة رمز"
-      },
-      "delete_dialog": {
-        "description": "هذا الإجراء لا يمكن التراجع عنه.",
-        "title": "حذف رمز الوصول؟"
       },
       "dialog": {
         "description": "إدارة رموز API لهذا المستخدم.",
@@ -1772,19 +1732,6 @@
       "empty": {
         "description": "هذا المستخدم ليس لديه أي رموز API حالياً.",
         "title": "لا توجد رموز API"
-      },
-      "list": {
-        "button_delete": "حذف الرمز",
-        "expires_on_brief": "ينتهي في {{date}}",
-        "label_created": "تاريخ الإنشاء",
-        "label_expires_at": "ينتهي في",
-        "label_last_used": "آخر استخدام",
-        "label_token": "الرمز",
-        "never": "أبداً",
-        "never_expires": "لا ينتهي أبداً",
-        "status_active": "نشط",
-        "status_expired": "منتهي الصلاحية",
-        "unnamed_token": "رمز بدون اسم"
       }
     }
   },

@@ -25,6 +25,13 @@ import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import React from 'react';
 
+interface SearchSubmitValues {
+    has_attachment?: boolean;
+    since?: Date;
+    before?: Date;
+    [key: string]: unknown;
+}
+
 const routeApi = getRouteApi('/_authenticated/search/')
 
 export function useSearchMessages() {
@@ -41,8 +48,7 @@ export function useSearchMessages() {
         if (!search.q) return {};
         try {
             return JSON.parse(search.q);
-        } catch (e) {
-            console.error("URL 'q' parameter parse error:", e);
+        } catch {
             return {};
         }
     }, [search.q]);
@@ -60,13 +66,13 @@ export function useSearchMessages() {
     }, [navigate]);
 
 
-    const setFilter = React.useCallback((val: any | ((prev: any) => any)) => {
+    const setFilter = React.useCallback((val: Record<string, unknown> | ((prev: Record<string, unknown>) => Record<string, unknown>)) => {
         navigate({
             search: (prev) => {
-                let currentFilter = {};
+                let currentFilter: Record<string, unknown>;
                 try {
                     currentFilter = prev.q ? JSON.parse(prev.q) : {};
-                } catch (e) {
+                } catch {
                     currentFilter = {};
                 }
                 const nextFilter = typeof val === 'function' ? val(currentFilter) : val;
@@ -90,7 +96,7 @@ export function useSearchMessages() {
     const setSortBy = (val: "DATE" | "SIZE") => updateParams({ sortBy: val });
     const setSortOrder = (val: "desc" | "asc") => updateParams({ sortOrder: val });
 
-    const onSubmit = (cleaned: Record<string, any>) => {
+    const onSubmit = (cleaned: SearchSubmitValues) => {
         if ('has_attachment' in cleaned && cleaned.has_attachment === false) {
             delete cleaned.has_attachment;
         }

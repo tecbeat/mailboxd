@@ -21,35 +21,13 @@
 import * as React from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { ListFilter } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useSearchContext } from "./context"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { cn } from "@/lib/utils"
 import { useAttachmentMetadata } from "@/hooks/use-attachment-metadata"
-import { MetadataSelectorField } from "./attachment-metadata-selector"
-
-const SIZES = {
-    tiny: { min: undefined, max: 15 * 1024 },
-    small: { min: undefined, max: 2 * 1024 * 1024 },
-    medium: { min: 2 * 1024 * 1024, max: 10 * 1024 * 1024 },
-    large: { min: 10 * 1024 * 1024, max: 20 * 1024 * 1024 },
-    huge: { min: 20 * 1024 * 1024, max: undefined },
-};
-
-const getPresetFromSize = (min?: number, max?: number) => {
-    if (min === SIZES.huge.min) return 'huge';
-    if (min === SIZES.large.min && max === SIZES.large.max) return 'large';
-    if (min === SIZES.medium.min && max === SIZES.medium.max) return 'medium';
-    if (!min && max === SIZES.small.max) return 'small';
-    if (!min && max === SIZES.tiny.max) return 'tiny';
-    return 'any';
-};
+import { MetadataSelectorField } from "@/features/mail-list/attachment-metadata-selector"
+import { MoreFiltersShell } from "@/features/mail-list/more-filters-shell"
+import { SIZES, SizePresetSelect, getPresetFromSize } from "@/features/mail-list/size-presets"
 
 export function MoreFiltersPopover() {
     const { t } = useTranslation();
@@ -68,7 +46,11 @@ export function MoreFiltersPopover() {
         has_attachment: filter?.has_attachment || false
     });
 
-    React.useEffect(() => {
+    // Re-sync local draft from the active filter whenever the popover opens or the
+    // filter changes while open (adjust state during render).
+    const [prevDeps, setPrevDeps] = React.useState({ open, filter });
+    if (prevDeps.open !== open || prevDeps.filter !== filter) {
+        setPrevDeps({ open, filter });
         if (open) {
             setLocalState({
                 attachment_name: filter?.attachment_name || '',
@@ -80,7 +62,7 @@ export function MoreFiltersPopover() {
                 has_attachment: filter?.has_attachment || false
             });
         }
-    }, [open, filter]);
+    }
 
     const handleApply = () => {
         setFilter(prev => {
@@ -113,6 +95,22 @@ export function MoreFiltersPopover() {
         setOpen(false);
     };
 
+    const handleReset = () => {
+        setFilter(prev => {
+            const next = { ...prev };
+            delete next.attachment_name;
+            delete next.min_size;
+            delete next.max_size;
+            delete next.message_id;
+            delete next.has_attachment;
+            delete next.attachment_extension;
+            delete next.attachment_category;
+            delete next.attachment_content_type;
+            return next;
+        });
+        setOpen(false);
+    };
+
     const activeCount = [
         filter?.attachment_name,
         filter?.min_size,
@@ -125,156 +123,101 @@ export function MoreFiltersPopover() {
     ].filter(Boolean).length;
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                        "h-6 gap-2 px-3 rounded-none border-l-0",
-                        activeCount > 0 && "bg-primary/10 border-primary text-primary"
-                    )}
+        <MoreFiltersShell
+            open={open}
+            onOpenChange={setOpen}
+            activeCount={activeCount}
+            triggerLabel={t('search_more.trigger_label')}
+            title={t('search_more.title')}
+            resetLabel={t('search_more.reset')}
+            applyLabel={t('search_more.apply')}
+            onReset={handleReset}
+            onApply={handleApply}
+        >
+            <div className="flex items-center space-x-2 px-1">
+                <Checkbox
+                    id="has_attachment"
+                    checked={localState.has_attachment}
+                    onCheckedChange={(checked) => {
+                        const isChecked = checked as boolean;
+                        setLocalState(prev => ({
+                            ...prev,
+                            has_attachment: isChecked,
+                            ...(isChecked ? {} : {
+                                attachment_name: '',
+                                attachment_extension: '',
+                                attachment_category: '',
+                                attachment_content_type: ''
+                            })
+                        }));
+                    }}
+                />
+                <Label
+                    htmlFor="has_attachment"
+                    className="text-xs font-normal cursor-pointer select-none"
                 >
-                    <ListFilter className="h-3.5 w-3.5" />
-                    <span className="text-xs">{t('search_more.trigger_label')}</span>
-                    {activeCount > 0 && (
-                        <Badge className="ml-1 h-4 px-1 text-[10px] bg-primary text-primary-foreground border-none rounded-xs">
-                            {activeCount}
-                        </Badge>
-                    )}
-                </Button>
-            </PopoverTrigger>
+                    {t('search_more.has_attachment')}
+                </Label>
+            </div>
 
-            <PopoverContent align="end" className="w-72 p-4 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-medium">{t('search_more.title')}</h4>
-                    {activeCount > 0 && (
-                        <Button
-                            variant="ghost"
-                            className="h-auto p-0 text-[10px] text-muted-foreground hover:text-destructive"
-                            onClick={() => {
-                                setFilter(prev => {
-                                    const next = { ...prev };
-                                    delete next.attachment_name;
-                                    delete next.min_size;
-                                    delete next.max_size;
-                                    delete next.message_id;
-                                    delete next.has_attachment;
-                                    delete next.attachment_extension;
-                                    delete next.attachment_category;
-                                    delete next.attachment_content_type;
-                                    return next;
-                                });
-                                setOpen(false);
-                            }}
-                        >
-                            {t('search_more.reset')}
-                        </Button>
-                    )}
-                </div>
-                <Separator />
-                <div className="flex items-center space-x-2 px-1">
-                    <Checkbox
-                        id="has_attachment"
-                        checked={localState.has_attachment}
-                        onCheckedChange={(checked) => {
-                            const isChecked = checked as boolean;
-                            setLocalState(prev => ({
-                                ...prev,
-                                has_attachment: isChecked,
-                                ...(isChecked ? {} : {
-                                    attachment_name: '',
-                                    attachment_extension: '',
-                                    attachment_category: '',
-                                    attachment_content_type: ''
-                                })
-                            }));
-                        }}
+            {localState.has_attachment && (
+                <div className="space-y-3 p-2 bg-muted/30 rounded-lg border border-dashed border-border animate-in fade-in slide-in-from-top-1">
+                    <MetadataSelectorField
+                        label={t('search_more.extension')}
+                        value={localState.attachment_extension}
+                        options={meta?.extensions || []}
+                        isLoading={metaLoading}
+                        onSelect={(v) => setLocalState(p => ({ ...p, attachment_extension: v, attachment_category: '', attachment_content_type: '' }))}
+                        onReset={() => setLocalState(p => ({ ...p, attachment_extension: '' }))}
                     />
-                    <Label
-                        htmlFor="has_attachment"
-                        className="text-xs font-normal cursor-pointer select-none"
-                    >
-                        {t('search_more.has_attachment')}
-                    </Label>
-                </div>
 
-                {localState.has_attachment && (
-                    <div className="space-y-3 p-2 bg-muted/30 rounded-lg border border-dashed border-border animate-in fade-in slide-in-from-top-1">
-                        <MetadataSelectorField
-                            label={t('search_more.extension')}
-                            value={localState.attachment_extension}
-                            options={meta?.extensions || []}
-                            isLoading={metaLoading}
-                            onSelect={(v) => setLocalState(p => ({ ...p, attachment_extension: v, attachment_category: '', attachment_content_type: '' }))}
-                            onReset={() => setLocalState(p => ({ ...p, attachment_extension: '' }))}
+                    <MetadataSelectorField
+                        label={t('search_more.category')}
+                        value={localState.attachment_category}
+                        options={meta?.categories || []}
+                        isLoading={metaLoading}
+                        onSelect={(v) => setLocalState(p => ({ ...p, attachment_category: v, attachment_extension: '', attachment_content_type: '' }))}
+                        onReset={() => setLocalState(p => ({ ...p, attachment_category: '' }))}
+                    />
+
+                    <MetadataSelectorField
+                        label={t('search_more.content_type')}
+                        value={localState.attachment_content_type}
+                        options={meta?.content_types || []}
+                        isLoading={metaLoading}
+                        onSelect={(v) => setLocalState(p => ({ ...p, attachment_content_type: v, attachment_extension: '', attachment_category: '' }))}
+                        onReset={() => setLocalState(p => ({ ...p, attachment_content_type: '' }))}
+                    />
+
+                    <div className="space-y-1 px-1">
+                        <Label className="text-xs text-muted-foreground">{t('search_more.attachment_name_label')}</Label>
+                        <Input
+                            className="h-8 text-xs"
+                            value={localState.attachment_name}
+                            onChange={(e) => setLocalState(prev => ({ ...prev, attachment_name: e.target.value }))}
+                            placeholder={t('search_more.attachment_name_placeholder')}
                         />
-
-                        <MetadataSelectorField
-                            label={t('search_more.category')}
-                            value={localState.attachment_category}
-                            options={meta?.categories || []}
-                            isLoading={metaLoading}
-                            onSelect={(v) => setLocalState(p => ({ ...p, attachment_category: v, attachment_extension: '', attachment_content_type: '' }))}
-                            onReset={() => setLocalState(p => ({ ...p, attachment_category: '' }))}
-                        />
-
-                        <MetadataSelectorField
-                            label={t('search_more.content_type')}
-                            value={localState.attachment_content_type}
-                            options={meta?.content_types || []}
-                            isLoading={metaLoading}
-                            onSelect={(v) => setLocalState(p => ({ ...p, attachment_content_type: v, attachment_extension: '', attachment_category: '' }))}
-                            onReset={() => setLocalState(p => ({ ...p, attachment_content_type: '' }))}
-                        />
-
-                        <div className="space-y-1 px-1">
-                            <Label className="text-xs text-muted-foreground">{t('search_more.attachment_name_label')}</Label>
-                            <Input
-                                className="h-8 text-xs"
-                                value={localState.attachment_name}
-                                onChange={(e) => setLocalState(prev => ({ ...prev, attachment_name: e.target.value }))}
-                                placeholder={t('search_more.attachment_name_placeholder')}
-                            />
-                        </div>
                     </div>
-                )}
-
-                <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{t('search_more.message_size_label')}</Label>
-                    <Select
-                        value={localState.size_preset}
-                        onValueChange={(v) => setLocalState(prev => ({ ...prev, size_preset: v }))}
-                    >
-                        <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Object.keys(SIZES).concat('any').map((key) => (
-                                <SelectItem key={key} className="text-xs" value={key}>
-                                    {t(`search_more.size_presets.${key}`)}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
                 </div>
+            )}
 
-                <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{t('search_more.message_id_label')}</Label>
-                    <Input
-                        className="h-8 text-xs"
-                        value={localState.message_id}
-                        onChange={(e) => setLocalState(prev => ({ ...prev, message_id: e.target.value }))}
-                    />
-                    <p className="text-[10px] text-muted-foreground opacity-70 leading-tight">
-                        {t('search_more.message_id_description')}
-                    </p>
-                </div>
+            <SizePresetSelect
+                label={t('search_more.message_size_label')}
+                value={localState.size_preset}
+                onChange={(v) => setLocalState(prev => ({ ...prev, size_preset: v }))}
+            />
 
-                <Button size="sm" className="w-full h-8 text-xs mt-2" onClick={handleApply}>
-                    {t('search_more.apply')}
-                </Button>
-            </PopoverContent>
-        </Popover>
+            <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">{t('search_more.message_id_label')}</Label>
+                <Input
+                    className="h-8 text-xs"
+                    value={localState.message_id}
+                    onChange={(e) => setLocalState(prev => ({ ...prev, message_id: e.target.value }))}
+                />
+                <p className="text-[10px] text-muted-foreground opacity-70 leading-tight">
+                    {t('search_more.message_id_description')}
+                </p>
+            </div>
+        </MoreFiltersShell>
     );
 }

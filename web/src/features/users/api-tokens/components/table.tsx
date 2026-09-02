@@ -19,27 +19,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { useState } from 'react'
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  ColumnVisibilityState,
-  SortingState,
-  flexRender,
-  useTable,
-} from '@tanstack/react-table'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table'
-import { DataTablePagination } from './data-table-pagination'
+import { ColumnDef } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
+import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from './data-table-toolbar'
-import { useTranslation } from 'react-i18next'
 import { AccessToken } from '@/api/users/api'
 
 interface DataTableProps {
@@ -47,112 +30,27 @@ interface DataTableProps {
   data: AccessToken[]
 }
 
-
 export function ApiTokensTable({ columns, data }: DataTableProps) {
-  const { t } = useTranslation()
-  const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [sorting, setSorting] = useState<SortingState>([])
-
-  const table = useTable({
-    features: dataTableFeatures,
-    data,
-    columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-    },
-    initialState: {
-      pagination: {
-        pageIndex: 0,
-        pageSize: Number(localStorage.getItem('mailboxd_apitoken_page_size')) || 10
-      }
-    },
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    globalFilterFn: (row, _, filterValue) => {
-      const searchValue = filterValue.toLowerCase();
-      const name = row.original.name?.toLowerCase() ?? '';
-      const owner = row.original.user_name?.toLowerCase() ?? '';
-      const email = row.original.user_email?.toLowerCase() ?? '';
-      const token = row.original.token?.toLowerCase() ?? '';
-      return (
-        name.includes(searchValue) ||
-        owner.includes(searchValue) ||
-        email.includes(searchValue) ||
-        token.includes(searchValue)
-      );
-    },
-  })
-
   return (
-    <div className='space-y-4'>
-      <DataTableToolbar table={table} />
-      <div className='rounded-md border'>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className='group/row'>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      className={header.column.columnDef.meta?.className ?? ''}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={cell.column.columnDef.meta?.className ?? ''}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className='h-24 text-center'
-                >
-                  {t('common.table.noResults')}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      <DataTablePagination table={table} />
-    </div>
+    <DataTable
+      columns={columns}
+      data={data}
+      storageKey='apitoken'
+      pageSizeOptions={[10, 20, 30, 40, 50]}
+      globalFilterFn={(row, _, filterValue) => {
+        const searchValue = filterValue.toLowerCase()
+        const name = row.original.name?.toLowerCase() ?? ''
+        const owner = row.original.user_name?.toLowerCase() ?? ''
+        const email = row.original.user_email?.toLowerCase() ?? ''
+        const token = row.original.token?.toLowerCase() ?? ''
+        return (
+          name.includes(searchValue) ||
+          owner.includes(searchValue) ||
+          email.includes(searchValue) ||
+          token.includes(searchValue)
+        )
+      }}
+      toolbar={(table) => <DataTableToolbar table={table} />}
+    />
   )
 }

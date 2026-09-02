@@ -32,18 +32,18 @@ export const delete_oauth2 = async (id: number) => {
     return response.data;
 };
 
-export const create_oauth2 = async (data: Record<string, any>) => {
+export const create_oauth2 = async (data: object) => {
     const response = await axiosInstance.post<OAuth2Entity>("api/v1/oauth2", data);
     return response.data;
 };
 
-export const update_oauth2 = async (id: number, data: Record<string, any>) => {
+export const update_oauth2 = async (id: number, data: object) => {
     const response = await axiosInstance.post<OAuth2Entity>(`api/v1/oauth2/${id}`, data);
     return response.data;
 };
 
 
-export const get_authorize_url = async (data: Record<string, any>) => {
+export const get_authorize_url = async (data: object) => {
     const response = await axiosInstance.post('api/v1/oauth2-authorize-url', data);
     return response.data;
 };

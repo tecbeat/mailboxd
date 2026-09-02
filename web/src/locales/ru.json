@@ -101,6 +101,8 @@
     "authType": "тип_авторизации",
     "autoConfiguring": "Автоматическая настройка…",
     "autoDiscover": "Автоопределение настроек сервера",
+    "autoDiscoverFailed": "Не удалось выполнить автоопределение",
+    "autoDiscoverFailedDesc": "Не удалось определить настройки сервера. Введите их вручную.",
     "autoDownloadNewMailboxes": "Автодобавление новых папок",
     "autoDownloadNewMailboxesDescription": "Автоматически добавлять новые папки в список загрузки.",
     "beforeRelative": "Скачать только старые письма",
@@ -1719,51 +1721,9 @@
       "roles": "Роли",
       "users": "Пользователи"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Создать токен доступа",
-        "description": "Нажмите «Сохранить» по завершении.",
-        "edit_title": "Редактировать токен"
-      },
-      "error": {
-        "fallback": "Операция не удалась, попробуйте позже."
-      },
-      "expire_options": {
-        "1_day": "1 день",
-        "30_days": "30 дней",
-        "7_days": "7 дней",
-        "never": "Бессрочно"
-      },
-      "fields": {
-        "expire_hint": "Токен автоматически истечет через выбранное время.",
-        "expire_label": "Срок действия",
-        "expire_placeholder": "Выберите срок",
-        "name_hint": "Опционально · макс. 32 символа",
-        "name_label": "Имя",
-        "name_placeholder": "Короткое имя для токена"
-      },
-      "schema": {
-        "expire_int": "Должно быть целым числом",
-        "expire_number": "Должно быть числом",
-        "expire_positive": "Должно быть больше 0",
-        "name_max": "Макс. 32 символа"
-      },
-      "toast": {
-        "create_failed_title": "Ошибка создания",
-        "create_success_desc": "Токен доступа успешно создан.",
-        "create_success_title": "Токен создан",
-        "update_failed_title": "Ошибка обновления",
-        "update_success_desc": "Токен доступа успешно обновлен.",
-        "update_success_title": "Токен обновлен"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Добавить токен"
-      },
-      "delete_dialog": {
-        "description": "Это действие нельзя отменить.",
-        "title": "Удалить токен доступа?"
       },
       "dialog": {
         "description": "Управление API токенами этого пользователя.",
@@ -1772,19 +1732,6 @@
       "empty": {
         "description": "У этого пользователя пока нет API токенов.",
         "title": "Нет API токенов"
-      },
-      "list": {
-        "button_delete": "Удалить токен",
-        "expires_on_brief": "Истекает {{date}}",
-        "label_created": "Создан",
-        "label_expires_at": "Истекает",
-        "label_last_used": "Использован",
-        "label_token": "Токен",
-        "never": "Никогда",
-        "never_expires": "Бессрочно",
-        "status_active": "Активен",
-        "status_expired": "Истек",
-        "unnamed_token": "Безымянный токен"
       }
     }
   },

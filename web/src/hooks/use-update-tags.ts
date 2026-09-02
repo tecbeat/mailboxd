@@ -21,6 +21,7 @@
 
 import { update_tags } from '@/api/search/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { toast } from './use-toast';
 
 
@@ -47,7 +48,7 @@ export function useUpdateTags() {
             queryClient.invalidateQueries({ queryKey: ['search-messages'], exact: false });
             queryClient.invalidateQueries({ queryKey: ['all-tags'] });
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError) => {
             toast({
                 title: 'Failed to update tags',
                 description: error?.message || 'Please try again later.',

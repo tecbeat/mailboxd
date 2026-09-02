@@ -101,6 +101,8 @@
     "authType": "authenticatie_type",
     "autoConfiguring": "Automatisch configureren…",
     "autoDiscover": "Serverinstellingen automatisch detecteren",
+    "autoDiscoverFailed": "Automatische detectie mislukt",
+    "autoDiscoverFailedDesc": "Kan serverinstellingen niet detecteren. Voer ze handmatig in.",
     "autoDownloadNewMailboxes": "Nieuwe mappen automatisch importeren",
     "autoDownloadNewMailboxesDescription": "Voeg automatisch nieuw ontdekte mappen toe aan de downloadlijst.",
     "beforeRelative": "Download alleen oude e-mails",
@@ -1719,51 +1721,9 @@
       "roles": "Rollen",
       "users": "Gebruikers"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Toegangstoken aanmaken",
-        "description": "Klik op opslaan als u klaar bent.",
-        "edit_title": "Toegangstoken bewerken"
-      },
-      "error": {
-        "fallback": "Bewerking mislukt, probeer het later opnieuw."
-      },
-      "expire_options": {
-        "1_day": "1 dag",
-        "30_days": "30 dagen",
-        "7_days": "7 dagen",
-        "never": "Verloopt nooit"
-      },
-      "fields": {
-        "expire_hint": "De token verloopt automatisch na de gekozen tijd.",
-        "expire_label": "Vervalsetermijn",
-        "expire_placeholder": "Kies termijn",
-        "name_hint": "Optioneel · Max 32 tekens",
-        "name_label": "Naam",
-        "name_placeholder": "Geef de token een korte naam"
-      },
-      "schema": {
-        "expire_int": "Moet een geheel getal zijn",
-        "expire_number": "Moet een getal zijn",
-        "expire_positive": "Moet groter zijn dan 0",
-        "name_max": "Max 32 tekens"
-      },
-      "toast": {
-        "create_failed_title": "Aanmaken mislukt",
-        "create_success_desc": "Toegangstoken succesvol aangemaakt.",
-        "create_success_title": "Token aangemaakt",
-        "update_failed_title": "Update mislukt",
-        "update_success_desc": "Toegangstoken succesvol bijgewerkt.",
-        "update_success_title": "Token bijgewerkt"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Token toevoegen"
-      },
-      "delete_dialog": {
-        "description": "Deze actie kan niet ongedaan worden gemaakt.",
-        "title": "Toegangstoken verwijderen?"
       },
       "dialog": {
         "description": "Beheer API-tokens voor deze gebruiker.",
@@ -1772,19 +1732,6 @@
       "empty": {
         "description": "Deze gebruiker heeft momenteel geen API-tokens.",
         "title": "Geen API-tokens"
-      },
-      "list": {
-        "button_delete": "Token verwijderen",
-        "expires_on_brief": "Verloopt op {{date}}",
-        "label_created": "Aangemaakt op",
-        "label_expires_at": "Verloopt op",
-        "label_last_used": "Laatst gebruikt",
-        "label_token": "Token",
-        "never": "Nooit",
-        "never_expires": "Verloopt nooit",
-        "status_active": "Actief",
-        "status_expired": "Verlopen",
-        "unnamed_token": "Naamloze token"
       }
     }
   },

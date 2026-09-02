@@ -101,6 +101,8 @@
     "authType": "tipo_autenticazione",
     "autoConfiguring": "Configurazione automatica…",
     "autoDiscover": "Rilevamento automatico impostazioni server",
+    "autoDiscoverFailed": "Rilevamento automatico non riuscito",
+    "autoDiscoverFailedDesc": "Impossibile rilevare le impostazioni del server. Inseriscile manualmente.",
     "autoDownloadNewMailboxes": "Aggiungi automaticamente nuove cartelle",
     "autoDownloadNewMailboxesDescription": "Aggiungi automaticamente le nuove cartelle all'elenco di download.",
     "beforeRelative": "Scarica solo le vecchie email",
@@ -1719,51 +1721,9 @@
       "roles": "Ruoli",
       "users": "Utenti"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Crea token di accesso",
-        "description": "Clicca su salva al termine.",
-        "edit_title": "Modifica token di accesso"
-      },
-      "error": {
-        "fallback": "L'operazione è fallita, riprova più tardi."
-      },
-      "expire_options": {
-        "1_day": "1 giorno",
-        "30_days": "30 giorni",
-        "7_days": "7 giorni",
-        "never": "Non scade mai"
-      },
-      "fields": {
-        "expire_hint": "Il token scadrà automaticamente dopo il tempo selezionato.",
-        "expire_label": "Scadenza",
-        "expire_placeholder": "Scegli scadenza",
-        "name_hint": "Opzionale · Max 32 caratteri",
-        "name_label": "Nome",
-        "name_placeholder": "Dai un nome breve al token"
-      },
-      "schema": {
-        "expire_int": "Deve essere un numero intero",
-        "expire_number": "Deve essere un numero",
-        "expire_positive": "Deve essere maggiore di 0",
-        "name_max": "Max 32 caratteri"
-      },
-      "toast": {
-        "create_failed_title": "Creazione fallita",
-        "create_success_desc": "Token di accesso creato con successo.",
-        "create_success_title": "Token creato",
-        "update_failed_title": "Aggiornamento fallito",
-        "update_success_desc": "Token di accesso aggiornato con successo.",
-        "update_success_title": "Token aggiornato"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Aggiungi token"
-      },
-      "delete_dialog": {
-        "description": "Questa azione è irreversibile.",
-        "title": "Eliminare il token di accesso?"
       },
       "dialog": {
         "description": "Gestisci i token API per questo utente.",
@@ -1772,19 +1732,6 @@
       "empty": {
         "description": "Questo utente non ha token API al momento.",
         "title": "Nessun token API"
-      },
-      "list": {
-        "button_delete": "Elimina token",
-        "expires_on_brief": "Scade il {{date}}",
-        "label_created": "Creato il",
-        "label_expires_at": "Scadenza",
-        "label_last_used": "Ultimo uso",
-        "label_token": "Token",
-        "never": "Mai",
-        "never_expires": "Non scade mai",
-        "status_active": "Attivo",
-        "status_expired": "Scaduto",
-        "unnamed_token": "Token senza nome"
       }
     }
   },

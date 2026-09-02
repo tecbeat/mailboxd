@@ -31,7 +31,7 @@ import {
 import i18n from '@/i18n'
 import { dateFnsLocaleMap } from '@/lib/utils'
 import { enUS } from 'date-fns/locale'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 type DatePickerProps = {
   selected: Date | undefined
@@ -50,11 +50,14 @@ export function DatePicker({
 
   const [month, setMonth] = useState<Date | undefined>(selected || new Date());
 
-  useEffect(() => {
+  // Sync the visible month when `selected` changes (adjust state during render).
+  const [prevSelected, setPrevSelected] = useState(selected);
+  if (selected !== prevSelected) {
+    setPrevSelected(selected);
     if (selected) {
       setMonth(selected);
     }
-  }, [selected]);
+  }
 
   return (
     <Popover>

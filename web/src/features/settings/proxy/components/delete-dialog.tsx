@@ -20,7 +20,7 @@
 import { useState } from 'react'
 import { AxiosError } from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { IconAlertTriangle } from '@tabler/icons-react'
+import { TriangleAlert as IconAlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { delete_proxy } from '@/api/system/api'
 import { Proxy } from '@/api/system/api'
@@ -72,7 +72,6 @@ export function ProxyDeleteDialog({ open, onOpenChange, currentRow }: Props) {
         </ToastAction>
       ),
     })
-    console.error(error)
   }
 
   const deleteMutation = useMutation({
@@ -92,6 +91,7 @@ export function ProxyDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       onOpenChange={onOpenChange}
       handleConfirm={handleDelete}
       disabled={value !== `${currentRow.id}`}
+      isLoading={deleteMutation.isPending}
       className='max-w-2xl'
       title={
         <span className='text-destructive'>

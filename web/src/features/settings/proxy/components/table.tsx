@@ -19,27 +19,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { useState } from 'react'
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  ColumnVisibilityState,
-  SortingState,
-  flexRender,
-  useTable,
-} from '@tanstack/react-table'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table'
-import { DataTablePagination } from './data-table-pagination'
+import { ColumnDef } from '@tanstack/react-table'
+import { type DataTableFeatures } from '@/lib/data-table'
+import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from './data-table-toolbar'
-import { useTranslation } from 'react-i18next'
 import { Proxy } from '@/api/system/api'
 
 interface DataTableProps {
@@ -47,99 +30,18 @@ interface DataTableProps {
   data: Proxy[]
 }
 
-
 export function ProxyTable({ columns, data }: DataTableProps) {
-  const { t } = useTranslation()
-  const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [sorting, setSorting] = useState<SortingState>([])
-
-  const table = useTable({
-    features: dataTableFeatures,
-    data,
-    columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-    },
-    initialState: {
-      pagination: {
-        pageIndex: 0,
-        pageSize: Number(localStorage.getItem('mailboxd_proxy_page_size')) || 10,
-      },
-    },
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-  })
-
   return (
-    <div className='space-y-4'>
-      <DataTableToolbar table={table} />
-      <div className='overflow-x-auto rounded-md border'>
-        <Table className='w-full table-fixed'>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className='group/row'>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      className={header.column.columnDef.meta?.className ?? ''}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={`overflow-hidden ${cell.column.columnDef.meta?.className ?? ''}`}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className='h-24 text-center'
-                >
-                  {t('common.table.noResults')}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      {data.length > 10 && <DataTablePagination table={table} />}
-    </div>
+    <DataTable
+      columns={columns}
+      data={data}
+      storageKey='proxy'
+      pageSizeOptions={[10, 20, 30, 40, 50]}
+      containerClassName='overflow-x-auto rounded-md border'
+      tableClassName='w-full table-fixed'
+      cellClassName='overflow-hidden'
+      showPagination={data.length > 10}
+      toolbar={(table) => <DataTableToolbar table={table} />}
+    />
   )
 }

@@ -19,11 +19,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { MoreHorizontal as DotsHorizontalIcon, Pencil as IconEdit, Trash2 as IconTrash } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { Row } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
-import { IconEdit, IconTrash } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
 import { Button } from '@/components/ui/button'
 import {

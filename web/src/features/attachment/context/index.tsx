@@ -19,52 +19,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import React from 'react'
-import { SortingState } from '@tanstack/react-table'
 import { AttachmentModel } from '@/api/attachment/api'
+import { createMailListContext, MailListContextBase } from '@/features/mail-list/context'
 
 export type AttachmentDialogType = 'mailbox' | 'display' | 'delete' | 'filters' | 'tags' | 'edit-tags' | 'update-tags' | 'restore' | 'delete-mailbox' | 'nested-eml'
 
-interface AttachmentContextType {
-  open: AttachmentDialogType | null
-  setOpen: (str: AttachmentDialogType | null) => void
-  currentAttachment: AttachmentModel | undefined
-  setCurrentAttachment: React.Dispatch<React.SetStateAction<AttachmentModel | undefined>>
-  toDelete: Map<number, Set<string>>
-  setToDelete: React.Dispatch<React.SetStateAction<Map<number, Set<string>>>>
-  selected: Map<number, Set<string>>
-  setSelected: React.Dispatch<React.SetStateAction<Map<number, Set<string>>>>
-  deleteMailboxId: string | undefined
-  setDeleteMailboxId: React.Dispatch<React.SetStateAction<string | undefined>>
-  selectedAccountId: number | undefined
-  setSelectedAccountId: React.Dispatch<React.SetStateAction<number | undefined>>
-  selectedTags: string[]
-  sorting: SortingState
-  setSorting: React.Dispatch<React.SetStateAction<SortingState>>
-  filter: Record<string, any>
-  setFilter: React.Dispatch<React.SetStateAction<Record<string, any>>>
-  handleTagToggle: (tag: string) => void
-}
+export type AttachmentContextType = MailListContextBase<AttachmentModel, AttachmentDialogType>
 
-const AttachmentContext = React.createContext<AttachmentContextType | null>(null)
+const { Provider, useMailListContext } = createMailListContext<AttachmentContextType>('useAttachmentContext')
 
-interface Props {
-  children: React.ReactNode
-  value: AttachmentContextType
-}
-
-export default function AttachmentProvider({ children, value }: Props) {
-  return <AttachmentContext.Provider value={value}>{children}</AttachmentContext.Provider>
-}
-
-export const useAttachmentContext = () => {
-  const attachmentContext = React.useContext(AttachmentContext)
-
-  if (!attachmentContext) {
-    throw new Error(
-      'useAttachmentContext has to be used within <AttachmentContext.Provider>'
-    )
-  }
-
-  return attachmentContext
-}
+export default Provider
+export const useAttachmentContext = useMailListContext

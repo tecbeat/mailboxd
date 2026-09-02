@@ -18,10 +18,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { formatBytes, useFileUpload, type FileWithPreview } from '@/hooks/use-file-upload';
+import { useFileUpload, type FileWithPreview } from '@/hooks/use-file-upload';
 import { Button } from '@/components/ui/button';
 import { TriangleAlert, User, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatBytes } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTranslation } from 'react-i18next';
 

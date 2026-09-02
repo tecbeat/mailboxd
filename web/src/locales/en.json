@@ -102,6 +102,8 @@
     "authType": "auth_type",
     "autoConfiguring": "Auto-configuring...",
     "autoDiscover": "Auto-discover Server Settings",
+    "autoDiscoverFailed": "Auto-discovery Failed",
+    "autoDiscoverFailedDesc": "Could not detect server settings. Please enter them manually.",
     "autoDownloadNewMailboxes": "Auto-add new mailboxes",
     "autoDownloadNewMailboxesDescription": "Automatically add newly discovered folders to the download list.",
     "beforeRelative": "Download Old Emails Only",
@@ -1740,51 +1742,9 @@
       "roles": "Roles",
       "users": "Users"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Create Access Token",
-        "description": "Click save when you're done.",
-        "edit_title": "Edit Access Token"
-      },
-      "error": {
-        "fallback": "Operation failed, please try again later."
-      },
-      "expire_options": {
-        "1_day": "1 Day",
-        "30_days": "30 Days",
-        "7_days": "7 Days",
-        "never": "Never expires"
-      },
-      "fields": {
-        "expire_hint": "The token will automatically expire after the selected time.",
-        "expire_label": "Expiration",
-        "expire_placeholder": "Select expiration",
-        "name_hint": "Optional · Max 32 characters",
-        "name_label": "Name",
-        "name_placeholder": "Give this access token a short name"
-      },
-      "schema": {
-        "expire_int": "Must be an integer",
-        "expire_number": "Must be a number",
-        "expire_positive": "Must be greater than 0",
-        "name_max": "Max 32 characters"
-      },
-      "toast": {
-        "create_failed_title": "Creation Failed",
-        "create_success_desc": "Access token has been successfully created.",
-        "create_success_title": "Access Token Created",
-        "update_failed_title": "Update Failed",
-        "update_success_desc": "Access token has been successfully updated.",
-        "update_success_title": "Access Token Updated"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Add Token"
-      },
-      "delete_dialog": {
-        "description": "This action cannot be undone.",
-        "title": "Delete Access Token?"
       },
       "dialog": {
         "description": "Manage API tokens for this user.",
@@ -1793,19 +1753,6 @@
       "empty": {
         "description": "This user currently has no API tokens.",
         "title": "No API Tokens"
-      },
-      "list": {
-        "button_delete": "Delete Token",
-        "expires_on_brief": "Expires on {{date}}",
-        "label_created": "Created At",
-        "label_expires_at": "Expires At",
-        "label_last_used": "Last Used",
-        "label_token": "Token",
-        "never": "Never",
-        "never_expires": "Never expires",
-        "status_active": "Active",
-        "status_expired": "Expired",
-        "unnamed_token": "Unnamed Token"
       }
     }
   },

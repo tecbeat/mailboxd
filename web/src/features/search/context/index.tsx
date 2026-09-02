@@ -19,54 +19,17 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import React from 'react'
 import { EmailEnvelope } from '@/api'
-import { SortingState } from '@tanstack/react-table'
+import { createMailListContext, MailListContextBase } from '@/features/mail-list/context'
 
 export type SearchDialogType = 'mailbox' | 'display' | 'delete' | 'filters' | 'tags' | 'edit-tags' | 'update-tags' | 'restore' | 'delete-mailbox'
 
-interface SearchContextType {
-  open: SearchDialogType | null
-  setOpen: (str: SearchDialogType | null) => void
-  currentEnvelope: EmailEnvelope | undefined
-  setCurrentEnvelope: React.Dispatch<React.SetStateAction<EmailEnvelope | undefined>>
-  toDelete: Map<number, Set<string>>
-  setToDelete: React.Dispatch<React.SetStateAction<Map<number, Set<string>>>>
-  selected: Map<number, Set<string>>
-  setSelected: React.Dispatch<React.SetStateAction<Map<number, Set<string>>>>
-  deleteMailboxId: string | undefined
-  setDeleteMailboxId: React.Dispatch<React.SetStateAction<string | undefined>>
-  selectedAccountId: number | undefined
-  setSelectedAccountId: React.Dispatch<React.SetStateAction<number | undefined>>
-  selectedTags: string[]
-  sorting: SortingState
-  setSorting: React.Dispatch<React.SetStateAction<SortingState>>
-  filter: Record<string, any>
-  setFilter: React.Dispatch<React.SetStateAction<Record<string, any>>>
-  handleTagToggle: (tag: string) => void
+export interface SearchContextType extends MailListContextBase<EmailEnvelope, SearchDialogType> {
   editTagsOpen: boolean
   setEditTagsOpen: (open: boolean) => void
 }
 
-const SearchContext = React.createContext<SearchContextType | null>(null)
+const { Provider, useMailListContext } = createMailListContext<SearchContextType>('useSearchContext')
 
-interface Props {
-  children: React.ReactNode
-  value: SearchContextType
-}
-
-export default function SearchProvider({ children, value }: Props) {
-  return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>
-}
-
-export const useSearchContext = () => {
-  const searchContext = React.useContext(SearchContext)
-
-  if (!searchContext) {
-    throw new Error(
-      'useSearchContext has to be used within <SearchContext.Provider>'
-    )
-  }
-
-  return searchContext
-}
+export default Provider
+export const useSearchContext = useMailListContext

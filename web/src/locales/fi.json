@@ -101,6 +101,8 @@
     "authType": "todennustyyppi",
     "autoConfiguring": "Määritetään automaattisesti…",
     "autoDiscover": "Hae palvelinasetukset automaattisesti",
+    "autoDiscoverFailed": "Automaattinen tunnistus epäonnistui",
+    "autoDiscoverFailedDesc": "Palvelinasetuksia ei voitu tunnistaa. Anna ne manuaalisesti.",
     "autoDownloadNewMailboxes": "Lisää uudet kansiot automaattisesti",
     "autoDownloadNewMailboxesDescription": "Lisää uudet löydetyt kansiot automaattisesti latausluetteloon.",
     "beforeRelative": "Lataa vain vanhat sähköpostit",
@@ -1719,51 +1721,9 @@
       "roles": "Roolit",
       "users": "Käyttäjät"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Luo pääsyavain",
-        "description": "Napsauta Tallenna, kun olet valmis.",
-        "edit_title": "Muokkaa pääsyavainta"
-      },
-      "error": {
-        "fallback": "Toiminto epäonnistui, yritä myöhemmin uudelleen."
-      },
-      "expire_options": {
-        "1_day": "1 päivä",
-        "30_days": "30 päivää",
-        "7_days": "7 päivää",
-        "never": "Ei koskaan"
-      },
-      "fields": {
-        "expire_hint": "Avain vanhenee automaattisesti valitun ajan kuluttua.",
-        "expire_label": "Vanhentuminen",
-        "expire_placeholder": "Valitse aika",
-        "name_hint": "Valinnainen · Enintään 32 merkkiä",
-        "name_label": "Nimi",
-        "name_placeholder": "Anna avaimelle lyhyt nimi"
-      },
-      "schema": {
-        "expire_int": "On oltava kokonaisluku",
-        "expire_number": "On oltava luku",
-        "expire_positive": "On oltava suurempi kuin 0",
-        "name_max": "Enintään 32 merkkiä"
-      },
-      "toast": {
-        "create_failed_title": "Luonti epäonnistui",
-        "create_success_desc": "Pääsyavain luotiin onnistuneesti.",
-        "create_success_title": "Avain luotu",
-        "update_failed_title": "Päivitys epäonnistui",
-        "update_success_desc": "Pääsyavain päivitettiin onnistuneesti.",
-        "update_success_title": "Avain päivitetty"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Lisää avain"
-      },
-      "delete_dialog": {
-        "description": "Tätä toimintoa ei voi peruuttaa.",
-        "title": "Poistetaanko pääsyavain?"
       },
       "dialog": {
         "description": "Hallitse tämän käyttäjän API-avaimia.",
@@ -1772,19 +1732,6 @@
       "empty": {
         "description": "Tällä käyttäjällä ei ole tällä hetkellä API-avaimia.",
         "title": "Ei API-avaimia"
-      },
-      "list": {
-        "button_delete": "Poista avain",
-        "expires_on_brief": "Vanhenee {{date}}",
-        "label_created": "Luotu",
-        "label_expires_at": "Vanhenee",
-        "label_last_used": "Käytetty",
-        "label_token": "Avain",
-        "never": "Ei koskaan",
-        "never_expires": "Ei koskaan",
-        "status_active": "Aktiivinen",
-        "status_expired": "Vanhentunut",
-        "unnamed_token": "Nimetön avain"
       }
     }
   },
