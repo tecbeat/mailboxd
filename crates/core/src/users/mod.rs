@@ -159,6 +159,21 @@ impl MemDbModel for MailboxdUserV2 {
     }
 }
 
+/// A local password must never be set for an SSO-managed user; their
+/// credentials are owned by the external identity provider.
+fn ensure_password_change_allowed(
+    sso_provider: Option<&str>,
+    password_requested: bool,
+) -> MailboxdResult<()> {
+    if password_requested && sso_provider.is_some() {
+        return Err(raise_error!(
+            "Cannot set a local password for an SSO-managed user; credentials are managed by the identity provider.".to_string(),
+            ErrorCode::Forbidden
+        ));
+    }
+    Ok(())
+}
+
 impl MailboxdUserV2 {
     pub fn is_using_role(&self, role_id: u64) -> bool {
         if self.global_roles.contains(&role_id) {
@@ -642,6 +657,7 @@ impl MailboxdUserV2 {
         }
 
         update_impl::<UserModel>(DB_MANAGER.db(), &id.to_string(), move |current| {
+            ensure_password_change_allowed(current.sso_provider.as_deref(), password_changed)?;
             let mut updated = current.clone();
             if let Some(username) = request.username {
                 updated.username = username;
@@ -720,5 +736,25 @@ impl MailboxdUserV2 {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_password_change_for_sso_user() {
+        assert!(ensure_password_change_allowed(Some("oidc"), true).is_err());
+    }
+
+    #[test]
+    fn allows_password_change_for_local_user() {
+        assert!(ensure_password_change_allowed(None, true).is_ok());
+    }
+
+    #[test]
+    fn ignores_absent_password_for_sso_user() {
+        assert!(ensure_password_change_allowed(Some("oidc"), false).is_ok());
     }
 }

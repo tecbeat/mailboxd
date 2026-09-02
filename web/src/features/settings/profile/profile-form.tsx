@@ -69,6 +69,8 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
   const [permissionsOpen, setPermissionsOpen] = useState(false)
   const [permissionsAccountId, setPermissionsAccountId] = useState<number | undefined>(undefined)
 
+  const isSsoUser = Boolean(user.sso_provider)
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema(t)),
     mode: 'onChange',
@@ -91,8 +93,10 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
         avatar_base64 = await fileToBase64(avatarFile.file)
       }
 
+      const { password, ...profile } = values
       return update_user(user.id, {
-        ...values,
+        ...profile,
+        ...(isSsoUser ? {} : { password }),
         avatar_base64,
       })
     },
@@ -190,26 +194,28 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t('settings.profile.field.password')}
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        placeholder={t(
-                          'settings.profile.placeholder.password_keep',
-                        )}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isSsoUser && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('settings.profile.field.password')}
+                      </FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          placeholder={t(
+                            'settings.profile.placeholder.password_keep',
+                          )}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
           </div>
 
