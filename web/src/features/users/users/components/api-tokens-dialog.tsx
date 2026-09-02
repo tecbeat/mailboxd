@@ -22,12 +22,11 @@
 import { get_user_tokens, User } from '@/api/users/api'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { useQuery } from '@tanstack/react-query'
-import { TokenCardList } from './token-list'
+import { TokenCardList, TokensActionDialog } from '@/features/api-tokens'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import Logo from '@/assets/logo.svg'
 import { useState } from 'react'
-import { TokensActionDialog } from './access-token-action'
 import { Plus } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useTranslation } from 'react-i18next'
@@ -43,8 +42,8 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
   const [addOpen, setAddOpen] = useState(false)
 
   const { data: tokens = [], isLoading: tokensLoading } = useQuery({
-    queryKey: ['user-tokens', currentRow?.id!],
-    queryFn: () => get_user_tokens(currentRow?.id!),
+    queryKey: ['user-tokens', currentRow?.id],
+    queryFn: () => get_user_tokens(currentRow!.id),
     enabled: !!currentRow?.id,
   })
 
@@ -92,7 +91,7 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
               </Button>
             </div>
             <ScrollArea className='h-[32rem] w-full pr-4 -mr-4 py-1'>
-              <TokenCardList tokens={tokens} userId={currentRow?.id!} />
+              <TokenCardList tokens={tokens} userId={currentRow!.id} />
             </ScrollArea>
           </>
         )}
@@ -100,7 +99,7 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
         <TokensActionDialog
           key='api-token-add'
           open={addOpen}
-          userId={currentRow?.id!}
+          userId={currentRow!.id}
           onOpenChange={setAddOpen}
         />
       </DialogContent>

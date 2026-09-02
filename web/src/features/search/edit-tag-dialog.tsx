@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Plus, Tag as TagIcon, X, LoaderCircle as Loader2, Check, Search } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAvailableTags } from '@/hooks/use-available-tags';
 import { useUpdateTags } from '@/hooks/use-update-tags';
 import { toast } from '@/hooks/use-toast';
@@ -47,15 +47,18 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
     const [commandOpen, setCommandOpen] = useState(false);
     const { t } = useTranslation();
 
-    const { currentEnvelope, setCurrentEnvelope } = useSearchContext()
+    const { currentItem, setCurrentItem } = useSearchContext()
 
-    useEffect(() => {
-        if (open && currentEnvelope) {
-            setSelectedTags(currentEnvelope.tags || []);
+    // Load the item's tags when the dialog opens or the item changes (adjust state during render).
+    const [prevDeps, setPrevDeps] = useState({ open, currentItem });
+    if (prevDeps.open !== open || prevDeps.currentItem !== currentItem) {
+        setPrevDeps({ open, currentItem });
+        if (open && currentItem) {
+            setSelectedTags(currentItem.tags || []);
         }
-    }, [open, currentEnvelope]);
+    }
 
-    if (!currentEnvelope) return null;
+    if (!currentItem) return null;
 
     const handleAddTag = (tag: string) => {
         const normalized = tag.toLowerCase().trim();
@@ -101,7 +104,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
         }
 
         const updates = {
-            [currentEnvelope.account_id]: [currentEnvelope.id],
+            [currentItem.account_id]: [currentItem.id],
         };
 
         mutate(
@@ -117,7 +120,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                     const finalTags = inputValue.trim()
                         ? [...selectedTags, inputValue.toLowerCase().trim()]
                         : selectedTags;
-                    setCurrentEnvelope(prev => prev ? { ...prev, tags: finalTags } : prev);
+                    setCurrentItem(prev => prev ? { ...prev, tags: finalTags } : prev);
                     toast({
                         title: t('search.addTags.updatedTitle'),
                         description: (
@@ -130,7 +133,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                     queryClient.invalidateQueries({ queryKey: ['all-tags'] });
                     onOpenChange(false);
                 },
-                onError: (error: any) => {
+                onError: (error) => {
                     toast({
                         title: t('search.addTags.updateFailedTitle'),
                         description: error?.message || t('search.addTags.tryAgain'),

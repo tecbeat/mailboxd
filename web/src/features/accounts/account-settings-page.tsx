@@ -111,7 +111,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
   }, [account?.id]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: Record<string, any>) => update_account(accountId, data),
+    mutationFn: (data: Record<string, unknown>) => update_account(accountId, data),
     onSuccess: () => {
       toast({
         title: t('accounts.settings.saved'),
@@ -134,10 +134,12 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
     },
   });
 
+  const { mutate: updateAccount } = updateMutation;
+
   const onSubmit = useCallback(
     (data: AccountFormValues) => {
       const { use_proxy, ...imapRest } = data.imap;
-      const payload: Record<string, any> = {
+      const payload: Record<string, unknown> = {
         email: data.email,
         account_name: data.account_name,
         login_name: data.login_name,
@@ -170,9 +172,9 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
         payload.clear_download_schedule = true;
       }
 
-      updateMutation.mutate(payload);
+      updateAccount(payload);
     },
-    [updateMutation, account]
+    [updateAccount, account]
   );
 
   if (!account) {

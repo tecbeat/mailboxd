@@ -130,13 +130,15 @@ describe('Account Schema - missing required nested fields', () => {
   const schema = getAccountSchema(false, t)
 
   it('rejects missing imap entirely', () => {
-    const { imap, ...noImap } = baseData
+    const noImap: Partial<typeof baseData> = { ...baseData }
+    delete noImap.imap
     const result = schema.safeParse(noImap)
     expect(result.success).toBe(false)
   })
 
   it('rejects missing imap.auth', () => {
-    const { auth, ...noAuth } = baseData.imap
+    const noAuth: Partial<typeof baseData.imap> = { ...baseData.imap }
+    delete noAuth.auth
     const result = schema.safeParse({
       ...baseData,
       imap: noAuth,

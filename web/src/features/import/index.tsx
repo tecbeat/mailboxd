@@ -8,6 +8,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn } from '@/lib/utils';
+import { cn, formatBytes } from '@/lib/utils';
 import { Main } from '@/components/layout/main';
 import { FixedHeader } from '@/components/layout/fixed-header';
 import { useToast } from '@/hooks/use-toast';
@@ -43,45 +44,12 @@ import {
 import { get_system_configurations } from '@/api/system/api';
 import { list_mailboxes } from '@/api/mailbox/api';
 import { extractFolderHint, type FolderHint } from './folder-hint';
+import { buildQueue, getExtension, type QueuedFile } from './file-validation';
 
-const MAX_EML = 100 * 1024 * 1024;   // 100 MB (hardcoded)
 const DEFAULT_MAX_MBOX = 1024 * 1024 * 1024; // 1 GB (fallback; actual limit from server settings)
 const DEFAULT_MAX_PST = 2048 * 1024 * 1024; // 2 GB (fallback; actual limit from server settings)
 
-// MIME types that are clearly NOT email files — reject these upfront.
-const BLOCKED_MIME_PREFIXES = [
-  'video/', 'audio/', 'image/', 'font/',
-  'application/zip', 'application/gzip', 'application/x-tar',
-  'application/x-7z', 'application/x-rar',
-  'application/vnd.', 'application/pdf',
-  'application/x-msdownload', 'application/x-executable',
-];
-
-function isValidFileType(file: File, ext: string): boolean {
-  // Check MIME type: reject known binary types
-  const mime = file.type.toLowerCase();
-  if (mime) {
-    for (const prefix of BLOCKED_MIME_PREFIXES) {
-      if (mime.startsWith(prefix)) return false;
-    }
-  }
-  // Check extension
-  return ext === 'eml' || ext === 'mbox' || ext === 'pst';
-}
-
 type FolderMode = '' | 'header' | 'existing' | 'custom';
-
-interface QueuedFile {
-  file: File;
-  sizeOk: boolean;
-  typeOk: boolean;
-}
-
-function formatSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
 
 function folderHintLabel(hint: FolderHint): string {
   switch (hint.source) {
@@ -194,15 +162,7 @@ export default function ImportPage() {
   }, []);
 
   const handleFiles = useCallback(async (newFiles: FileList | File[]) => {
-    const arr = Array.from(newFiles) as File[];
-    const queued: QueuedFile[] = arr.map((f) => {
-      const ext = f.name.split('.').pop()?.toLowerCase() || '';
-      const isMbox = ext === 'mbox';
-      const isPst = ext === 'pst';
-      const max = isMbox ? maxMbox : isPst ? maxPst : MAX_EML;
-      const typeOk = isValidFileType(f, ext);
-      return { file: f, sizeOk: f.size <= max, typeOk };
-    });
+    const queued = buildQueue(newFiles, { maxMbox, maxPst });
 
     setFiles(queued);
     setPhase('idle');
@@ -213,7 +173,7 @@ export default function ImportPage() {
     // PST files are binary (OLE2) — headers can't be extracted in-browser.
     const firstOk = queued.find((q) => q.sizeOk && q.typeOk);
     if (firstOk) {
-      const ext = firstOk.file.name.split('.').pop()?.toLowerCase() || '';
+      const ext = getExtension(firstOk.file.name);
       const isPstFile = ext === 'pst';
       setIsPstSelected(isPstFile);
       if (isPstFile) {
@@ -222,10 +182,9 @@ export default function ImportPage() {
         setHeaderFolder('INBOX');
         setFolderMode('');
       } else {
-        // EML/MBOX: default to header auto-detect if no mode selected yet
-        if (!folderMode) {
-          setFolderMode('header');
-        }
+        // EML/MBOX: default to header auto-detect if no mode selected yet.
+        // Functional update so we don't clobber a mode the user already picked.
+        setFolderMode((prev) => prev || 'header');
         try {
           const hint = await extractFolderHint(firstOk.file);
           if (hint) {
@@ -237,7 +196,7 @@ export default function ImportPage() {
         }
       }
     }
-  }, []);
+  }, [maxMbox, maxPst]);
 
   const removeFile = (idx: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== idx));
@@ -290,11 +249,11 @@ export default function ImportPage() {
       setPhase('processing');
       startPolling(result.import_id);
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       setPhase('idle');
       toast({
         title: t('common.failed'),
-        description: err?.response?.data?.message || err.message,
+        description: err.response?.data?.message || err.message,
         variant: 'destructive',
       });
     },
@@ -621,7 +580,7 @@ export default function ImportPage() {
                       <FileText className="h-4 w-4 shrink-0" />
                       <span className="flex-1 truncate">{qf.file.name}</span>
                       <span className={cn('text-xs shrink-0', qf.sizeOk && qf.typeOk ? 'text-muted-foreground' : 'font-medium')}>
-                        {formatSize(qf.file.size)}
+                        {formatBytes(qf.file.size)}
                       </span>
                       {!qf.typeOk && (
                         <span className="text-xs font-medium text-destructive shrink-0">Invalid type</span>

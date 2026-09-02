@@ -39,7 +39,7 @@ type MailBulkActionsProps = {
 }
 
 export function MailBulkActions({ children }: MailBulkActionsProps) {
-    const { selected, setSelected, setOpen, setToDelete, setCurrentEnvelope } = useSearchContext()
+    const { selected, setSelected, setOpen, setToDelete, setCurrentItem } = useSearchContext()
     const toolbarRef = useRef<HTMLDivElement>(null)
     const { t } = useTranslation()
 
@@ -64,7 +64,7 @@ export function MailBulkActions({ children }: MailBulkActionsProps) {
 
 
     const handleRestore = () => {
-        setCurrentEnvelope(undefined);
+        setCurrentItem(undefined);
         setOpen('restore')
     }
 

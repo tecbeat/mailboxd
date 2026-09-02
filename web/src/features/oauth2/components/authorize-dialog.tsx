@@ -77,7 +77,6 @@ export function AuthorizeDialog({ currentRow, open, onOpenChange }: Props) {
       description: errorMessage as string,
       action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
     });
-    console.error(error);
   }
 
 

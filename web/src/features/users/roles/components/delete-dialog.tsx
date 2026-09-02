@@ -20,7 +20,7 @@
 //
 
 import { useState } from 'react'
-import { IconAlertTriangle } from '@tabler/icons-react'
+import { TriangleAlert as IconAlertTriangle } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
@@ -66,8 +66,6 @@ export function RoleDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       description: errorMessage,
       action: <ToastAction altText={t('roles.actions.retry')}>{t('roles.actions.retry')}</ToastAction>,
     })
-
-    console.error(error)
   }
 
   const deleteMutation = useMutation({

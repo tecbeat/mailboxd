@@ -101,6 +101,8 @@
     "authType": "autentiseringstype",
     "autoConfiguring": "Konfigurerer automatisk…",
     "autoDiscover": "Finn serverinnstillinger automatisk",
+    "autoDiscoverFailed": "Automatisk gjenkjenning mislyktes",
+    "autoDiscoverFailedDesc": "Kunne ikke finne serverinnstillinger. Skriv dem inn manuelt.",
     "autoDownloadNewMailboxes": "Legg til nye mapper automatisk",
     "autoDownloadNewMailboxesDescription": "Legg automatisk til nye mapper i nedlastingslisten.",
     "beforeRelative": "Last ned kun gamle e-poster",
@@ -1719,51 +1721,9 @@
       "roles": "Roller",
       "users": "Brukere"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Opprett tilgangstoken",
-        "description": "Klikk på lagre når du er ferdig.",
-        "edit_title": "Rediger tilgangstoken"
-      },
-      "error": {
-        "fallback": "Handlingen mislyktes, vennligst prøv igjen senere."
-      },
-      "expire_options": {
-        "1_day": "1 dag",
-        "30_days": "30 dager",
-        "7_days": "7 dager",
-        "never": "Utløper aldri"
-      },
-      "fields": {
-        "expire_hint": "Tokenet utløper automatisk etter den valgte tiden.",
-        "expire_label": "Utløp",
-        "expire_placeholder": "Velg utløpstid",
-        "name_hint": "Valgfritt · Maks 32 tegn",
-        "name_label": "Navn",
-        "name_placeholder": "Gi tokenet et kort navn"
-      },
-      "schema": {
-        "expire_int": "Må være et heltall",
-        "expire_number": "Må være et tall",
-        "expire_positive": "Må være større enn 0",
-        "name_max": "Maks 32 tegn"
-      },
-      "toast": {
-        "create_failed_title": "Opprettelse mislyktes",
-        "create_success_desc": "Tilgangstoken ble opprettet.",
-        "create_success_title": "Token opprettet",
-        "update_failed_title": "Oppdatering mislyktes",
-        "update_success_desc": "Tilgangstoken ble oppdatert.",
-        "update_success_title": "Token oppdatert"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Legg til token"
-      },
-      "delete_dialog": {
-        "description": "Denne handlingen kan ikke angres.",
-        "title": "Slette tilgangstoken?"
       },
       "dialog": {
         "description": "Administrer API-tokens for denne brukeren.",
@@ -1772,19 +1732,6 @@
       "empty": {
         "description": "Denne brukeren har ingen API-tokens for øyeblikket.",
         "title": "Ingen API-tokens"
-      },
-      "list": {
-        "button_delete": "Slett token",
-        "expires_on_brief": "Utløper {{date}}",
-        "label_created": "Opprettet",
-        "label_expires_at": "Utløpsdato",
-        "label_last_used": "Sist brukt",
-        "label_token": "Token",
-        "never": "Aldri",
-        "never_expires": "Utløper aldri",
-        "status_active": "Aktiv",
-        "status_expired": "Utløpt",
-        "unnamed_token": "Navnløst token"
       }
     }
   },

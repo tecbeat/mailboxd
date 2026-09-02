@@ -20,7 +20,7 @@
 
 
 import { useState } from 'react'
-import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react'
+import { CircleAlert as IconAlertCircle, TriangleAlert as IconAlertTriangle } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
@@ -65,7 +65,6 @@ export function AccountDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       description: errorMessage as string,
       action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
     });
-    console.error(error);
   }
 
   const deleteMutation = useMutation({

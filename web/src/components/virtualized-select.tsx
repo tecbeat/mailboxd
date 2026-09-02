@@ -256,11 +256,14 @@ export function VirtualizedSelect({
         : []
   );
 
-  React.useEffect(() => {
+  // Sync selection when the controlled `value` changes (adjust state during render).
+  const [prevValue, setPrevValue] = React.useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     if (value !== undefined) {
       setSelectedOptions(Array.isArray(value) ? value : value ? [value] : []);
     }
-  }, [value]);
+  }
 
   const getDisplayText = () => {
     if (isLoading) return 'Loading...';

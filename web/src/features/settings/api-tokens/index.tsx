@@ -27,8 +27,7 @@ import Logo from '@/assets/logo.svg'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { TokenCardList } from './token-list'
-import { TokensActionDialog } from './access-token-action'
+import { TokenCardList, TokensActionDialog } from '@/features/api-tokens'
 import { useTranslation } from 'react-i18next'
 
 export function APITokens() {
@@ -37,8 +36,8 @@ export function APITokens() {
   const [addOpen, setAddOpen] = useState(false)
 
   const { data: tokens = [], isLoading: tokensLoading } = useQuery({
-    queryKey: ['user-tokens', user?.id!],
-    queryFn: () => get_user_tokens(user?.id!),
+    queryKey: ['user-tokens', user?.id],
+    queryFn: () => get_user_tokens(user!.id),
     enabled: !!user?.id,
   })
 

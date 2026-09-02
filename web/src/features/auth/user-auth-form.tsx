@@ -40,7 +40,7 @@ import { toast } from '@/hooks/use-toast'
 import { AxiosError } from 'axios'
 import { ToastAction } from '@/components/ui/toast'
 import { useLocation, useNavigate } from '@tanstack/react-router'
-import { Button } from '@/components/button'
+import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
 import { LoaderCircle as Loader2, LogIn, Shield } from 'lucide-react'
@@ -100,7 +100,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: Record<string, any>) => login(data),
+    mutationFn: (data: LoginFormValues) => login(data),
     retry: 0,
   });
 

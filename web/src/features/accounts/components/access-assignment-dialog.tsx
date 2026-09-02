@@ -25,6 +25,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle as Loader2, ShieldCheck, Users, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { AxiosError } from 'axios'
 
 import {
     Dialog,
@@ -56,6 +57,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { access_assign, AccountModel } from '@/api/account/api'
 import { list_account_roles, list_minimal_users, MinimalUser, UserRole } from '@/api/users/api'
+import { invalidateAccountAccessViews } from '@/lib/access-cache'
 
 interface Props {
     currentRow: AccountModel
@@ -106,7 +108,7 @@ export function AccountAccessAssignmentDialog({
         defaultValues: {
             account_ids: [currentRow.id],
             user_ids: [],
-            role_id: undefined as any,
+            role_id: undefined,
         },
     })
 
@@ -127,14 +129,14 @@ export function AccountAccessAssignmentDialog({
                 title: t('accounts.access_control.toast.success_title'),
                 description: t('accounts.access_control.toast.success_desc', { email: currentRow.email }),
             })
-            queryClient.invalidateQueries({ queryKey: ['account-access-list'] })
+            invalidateAccountAccessViews(queryClient)
             onOpenChange(false)
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError) => {
             toast({
                 variant: 'destructive',
                 title: t('accounts.access_control.toast.failed_title'),
-                description: error.response?.data?.message || error.message,
+                description: (error.response?.data as { message?: string })?.message || error.message,
             })
         },
     })

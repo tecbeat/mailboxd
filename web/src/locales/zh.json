@@ -102,6 +102,8 @@
     "authType": "认证类型",
     "autoConfiguring": "正在自动配置…",
     "autoDiscover": "自动检测服务器设置",
+    "autoDiscoverFailed": "自动检测失败",
+    "autoDiscoverFailedDesc": "无法检测服务器设置，请手动输入。",
     "autoDownloadNewMailboxes": "自动添加新邮件夹",
     "autoDownloadNewMailboxesDescription": "自动将新发现的邮件夹添加到下载列表中。",
     "beforeRelative": "仅下载旧邮件",
@@ -1729,51 +1731,9 @@
       "roles": "角色",
       "users": "用户"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "创建访问令牌",
-        "description": "完成后点击保存。",
-        "edit_title": "编辑访问令牌"
-      },
-      "error": {
-        "fallback": "操作失败，请稍后重试。"
-      },
-      "expire_options": {
-        "1_day": "1 天",
-        "30_days": "30 天",
-        "7_days": "7 天",
-        "never": "永不过期"
-      },
-      "fields": {
-        "expire_hint": "令牌将在选定的时间后自动过期。",
-        "expire_label": "有效期",
-        "expire_placeholder": "选择有效期",
-        "name_hint": "可选 · 最多 32 个字符",
-        "name_label": "名称",
-        "name_placeholder": "为该访问令牌起一个简短的名称"
-      },
-      "schema": {
-        "expire_int": "必须是整数",
-        "expire_number": "必须是数字",
-        "expire_positive": "必须大于 0",
-        "name_max": "最多 32 个字符"
-      },
-      "toast": {
-        "create_failed_title": "创建失败",
-        "create_success_desc": "访问令牌已成功创建。",
-        "create_success_title": "访问令牌已创建",
-        "update_failed_title": "更新失败",
-        "update_success_desc": "访问令牌已成功更新。",
-        "update_success_title": "访问令牌已更新"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "添加令牌"
-      },
-      "delete_dialog": {
-        "description": "此操作无法撤销。任何正在使用此令牌的应用程序都将立即失去访问权限。",
-        "title": "删除访问令牌？"
       },
       "dialog": {
         "description": "管理此用户的 API 令牌。您可以查看、复制或监控令牌使用情况。",
@@ -1782,19 +1742,6 @@
       "empty": {
         "description": "该用户目前没有 API 令牌。点击下方按钮创建一个。",
         "title": "无 API 令牌"
-      },
-      "list": {
-        "button_delete": "删除令牌",
-        "expires_on_brief": "有效期至 {{date}}",
-        "label_created": "创建于",
-        "label_expires_at": "过期时间",
-        "label_last_used": "上次使用",
-        "label_token": "令牌",
-        "never": "从未",
-        "never_expires": "永不过期",
-        "status_active": "活跃",
-        "status_expired": "已过期",
-        "unnamed_token": "未命名令牌"
       }
     }
   },

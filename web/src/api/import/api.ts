@@ -48,11 +48,6 @@ export const get_import_progress = async (importId: string): Promise<ImportProgr
   return response.data;
 };
 
-export const check_disk_space = async (): Promise<number> => {
-  const response = await axiosInstance.get<number>('api/v1/check-disk-space');
-  return response.data;
-};
-
 export const get_nosync_accounts = async (): Promise<AccountModel[]> => {
   const data = await list_accounts();
   return (data.items || []).filter(

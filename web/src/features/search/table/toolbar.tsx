@@ -1,14 +1,25 @@
 import { type RowData, type Table } from '@tanstack/react-table'
 import { type MailTableFeatures } from '@/lib/data-table'
-import { DataTableViewOptions } from './view-options'
+import { DataTableViewOptions } from '@/features/mail-list/table/view-options'
 import { TagFilterPopover } from '../tag-filter-popover'
-import { TimePopover } from '../time-popover'
+import { TimePopover } from '@/features/mail-list/time-popover'
 import { MailFilterPopover } from '../contact-popover'
-import { TextSearchInput } from '../text-search-input'
+import { TextSearchInput, type TextSearchConfig } from '@/features/mail-list/text-search-input'
 import { MoreFiltersPopover } from '../more-filters-popover'
-import { FilterResetButton } from '../filter-reset'
-import { MailboxPopover } from '../mailbox-popover'
-import { AccountPopover } from '../account-popover'
+import { FilterResetButton } from '@/features/mail-list/filter-reset'
+import { MailboxPopover } from '@/features/mail-list/mailbox-popover'
+import { AccountPopover } from '@/features/mail-list/account-popover'
+
+const SEARCH_TEXT_CONFIG: TextSearchConfig = {
+  storageKey: 'mailboxd_mail_search_history',
+  searchFields: ['text', 'subject', 'body'],
+  placeholderKey: 'search_input.placeholder',
+  options: [
+    { value: 'text', labelKey: 'search_input.all', descKey: 'search_input.all_fields_desc' },
+    { value: 'subject', labelKey: 'search_input.subject' },
+    { value: 'body', labelKey: 'search_input.body' },
+  ],
+}
 
 type DataTableToolbarProps<TData extends RowData> = {
   table: Table<MailTableFeatures, TData>
@@ -21,7 +32,7 @@ export function DataTableToolbar<TData extends RowData>({
     <div className="flex flex-col gap-1 p-1 bg-background">
       <div className="mb-4 flex items-center justify-center w-full">
         <div className="w-full max-w-3xl">
-          <TextSearchInput />
+          <TextSearchInput config={SEARCH_TEXT_CONFIG} />
         </div>
       </div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-1">

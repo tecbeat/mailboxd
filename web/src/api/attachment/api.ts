@@ -21,7 +21,6 @@
 
 import axiosInstance from "@/api/axiosInstance";
 import { PaginatedResponse } from "..";
-import { TagCount } from "../search/api";
 
 
 export interface AttachmentModel {
@@ -54,21 +53,10 @@ export interface AttachmentModel {
     auto_tags?: string[];
 }
 
-export const search_attachment = async (payload: Record<string, any>) => {
+export const search_attachment = async (payload: object) => {
     const response = await axiosInstance.post<PaginatedResponse<AttachmentModel>>("api/v1/search-attachment", payload);
     return response.data;
 };
-
-export const get_all_attachment_tags = async () => {
-    const response = await axiosInstance.get<TagCount[]>("api/v1/all-attachment-tags");
-    return response.data;
-}
-
-export const update_attachment_tags = async (data: Record<string, any>) => {
-    const response = await axiosInstance.post("api/v1//update-attachment-tags", data);
-    return response.data;
-};
-
 
 export const get_attachment_senders = async () => {
     const response = await axiosInstance.get<string[]>("api/v1/attachment-senders");

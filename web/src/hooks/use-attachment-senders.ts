@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { get_attachment_senders } from '@/api/attachment/api';
 
-export const userAttachmentSenders = (searchTerm: string = "") => {
+export const useAttachmentSenders = (searchTerm: string = "") => {
     const { data: senders = [], isLoading, isError } = useQuery({
         queryKey: ['attachment-senders', 'all'],
         queryFn: get_attachment_senders,

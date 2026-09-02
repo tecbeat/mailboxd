@@ -34,7 +34,7 @@ export function PermissionsCellAction({ row }: Props) {
   const { t } = useTranslation()
   const { setOpen, setCurrentRow } = useRoleContext()
 
-  let permissions = row.original.permissions;
+  const permissions = row.original.permissions;
   if (Array.from(permissions || []).length === 0) {
     return <span className="text-xs text-muted-foreground">*</span>
   }

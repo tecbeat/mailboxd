@@ -29,7 +29,6 @@ export interface StoredToken {
 
 export const setToken = (result: LoginResult) => {
   if (!result.success || !result.access_token) {
-    console.error("Invalid login result");
     return;
   }
 
@@ -41,28 +40,13 @@ export const setToken = (result: LoginResult) => {
 };
 
 
-export const updateToken = (newToken: string) => {
-  const item = localStorage.getItem(WEBUITOKEN);
-  if (!item) return;
-
-  try {
-    const data: StoredToken = JSON.parse(item);
-    data.accessToken = newToken;
-    localStorage.setItem(WEBUITOKEN, JSON.stringify(data));
-  } catch (error) {
-    console.error("Error updating access token:", error);
-    resetToken();
-  }
-};
-
 export const getToken = (): StoredToken | null => {
   const item = localStorage.getItem(WEBUITOKEN);
   if (!item) return null;
 
   try {
     return JSON.parse(item) as StoredToken;
-  } catch (error) {
-    console.error("Error parsing access token:", error);
+  } catch {
     resetToken();
     return null;
   }

@@ -24,21 +24,31 @@ import { FixedHeader } from '@/components/layout/fixed-header';
 import { Main } from '@/components/layout/main';
 import { AttachmentListPagination } from '@/components/pagination';
 import React from 'react';
-import AttachmentProvider, { AttachmentDialogType } from './context';
+import AttachmentProvider, { AttachmentDialogType, useAttachmentContext } from './context';
+import { MailListConfigProvider, type MailListConfig } from '@/features/mail-list/config';
+import { useEnvelope } from '@/hooks/use-envelope';
 import useDialogState from '@/hooks/use-dialog-state';
 import { useTranslation } from 'react-i18next';
 import { AttachmentListTable } from './mail-list-table';
 import { SortingState } from '@tanstack/react-table';
 import { useSearchAttachments } from '@/hooks/use-search-attachments';
 import { AttachmentModel } from '@/api/attachment/api';
-import { MailDisplayDrawer } from './mail-display-dialog';
-import { EnvelopeDeleteDialog } from './delete-dialog';
-import { RestoreMessageDialog } from './restore-message-dialog';
-import { NestedEmailDialog } from './nested-email-dialog';
+import { AttachmentDialogs } from './dialogs';
+
+// Attachment's list item only references an envelope, so it must be fetched.
+function useAttachmentCurrentEnvelope() {
+  const { currentItem } = useAttachmentContext()
+  return useEnvelope(currentItem?.account_id, currentItem?.envelope_id)
+}
+
+const ATTACHMENT_LIST_CONFIG: MailListConfig = {
+  useListContext: useAttachmentContext,
+  useCurrentEnvelope: useAttachmentCurrentEnvelope,
+}
 
 export default function AttachmentSearch() {
   const { t } = useTranslation()
-  const [currentAttachment, setCurrentAttachment] = React.useState<AttachmentModel | undefined>(undefined);
+  const [currentItem, setCurrentItem] = React.useState<AttachmentModel | undefined>(undefined);
   const [open, setOpen] = useDialogState<AttachmentDialogType>(null)
   const [toDelete, setToDelete] = React.useState<Map<number, Set<string>>>(new Map());
   const [selected, setSelected] = React.useState<Map<number, Set<string>>>(new Map());
@@ -83,9 +93,9 @@ export default function AttachmentSearch() {
           value={{
             open,
             setOpen,
-            currentAttachment,
+            currentItem,
             selectedTags,
-            setCurrentAttachment,
+            setCurrentItem,
             toDelete,
             setToDelete,
             selected,
@@ -101,6 +111,7 @@ export default function AttachmentSearch() {
             handleTagToggle
           }}
         >
+          <MailListConfigProvider config={ATTACHMENT_LIST_CONFIG}>
           <div className="mx-auto w-full px-4">
             <div className="flex gap-6">
               <div className="flex-1 min-w-0 space-y-4">
@@ -133,29 +144,8 @@ export default function AttachmentSearch() {
             </div>
           </div>
 
-          <MailDisplayDrawer
-            key='attachment-mail-display'
-            open={open === 'display'}
-            onOpenChange={() => setOpen('display')}
-          />
-
-          <EnvelopeDeleteDialog
-            key='delete-attachment-envelope'
-            open={open === 'delete'}
-            onOpenChange={() => setOpen('delete')}
-          />
-
-          <RestoreMessageDialog
-            key='attachment-restore-mail-dialog'
-            open={open === 'restore'}
-            onOpenChange={() => setOpen('restore')}
-          />
-
-          <NestedEmailDialog
-            key="nested-eml-attachment-dialog"
-            open={open === 'nested-eml'}
-            onOpenChange={() => setOpen('nested-eml')}
-          />
+          <AttachmentDialogs />
+          </MailListConfigProvider>
         </AttachmentProvider>
       </Main>
     </>

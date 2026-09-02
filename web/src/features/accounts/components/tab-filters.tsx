@@ -39,6 +39,8 @@ import { useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AccountFormValues } from "./schema";
 
+type FilterFieldPrefix = 'archive_rules.senders' | 'archive_rules.subjects';
+
 const SUGGESTED_SPAM_HEADERS = [
   'X-Spam-Flag',
   'X-Spam',
@@ -101,12 +103,12 @@ export function TabFilters() {
   const syncToForm = (
     includeEntries: PatternEntry[],
     excludeEntries: PatternEntry[],
-    fieldPrefix: string
+    fieldPrefix: FilterFieldPrefix
   ) => {
     const include = patternsToRegexList(includeEntries);
     const exclude = patternsToRegexList(excludeEntries);
-    setValue(`${fieldPrefix}.include` as any, include);
-    setValue(`${fieldPrefix}.exclude` as any, exclude);
+    setValue(`${fieldPrefix}.include`, include);
+    setValue(`${fieldPrefix}.exclude`, exclude);
   };
 
   const addEntry = (
@@ -115,7 +117,7 @@ export function TabFilters() {
     excludeEntries: PatternEntry[],
     setIncludeEntries: React.Dispatch<React.SetStateAction<PatternEntry[]>>,
     setExcludeEntries: React.Dispatch<React.SetStateAction<PatternEntry[]>>,
-    fieldPrefix: string
+    fieldPrefix: FilterFieldPrefix
   ) => {
     const newEntry: PatternEntry = { id: newPatternId(), matchType: 'contains', value: '' };
     const newInclude = side === 'include' ? [...includeEntries, newEntry] : includeEntries;
@@ -133,7 +135,7 @@ export function TabFilters() {
     excludeEntries: PatternEntry[],
     setIncludeEntries: React.Dispatch<React.SetStateAction<PatternEntry[]>>,
     setExcludeEntries: React.Dispatch<React.SetStateAction<PatternEntry[]>>,
-    fieldPrefix: string
+    fieldPrefix: FilterFieldPrefix
   ) => {
     if (side === 'include') {
       const updated = includeEntries.map((e) => (e.id === id ? { ...e, ...partial } : e));
@@ -153,7 +155,7 @@ export function TabFilters() {
     excludeEntries: PatternEntry[],
     setIncludeEntries: React.Dispatch<React.SetStateAction<PatternEntry[]>>,
     setExcludeEntries: React.Dispatch<React.SetStateAction<PatternEntry[]>>,
-    fieldPrefix: string
+    fieldPrefix: FilterFieldPrefix
   ) => {
     if (side === 'include') {
       const filtered = includeEntries.filter((e) => e.id !== id);

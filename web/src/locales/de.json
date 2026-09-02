@@ -101,6 +101,8 @@
     "authType": "Authentifizierungstyp",
     "autoConfiguring": "Automatische Konfiguration…",
     "autoDiscover": "Servereinstellungen automatisch erkennen",
+    "autoDiscoverFailed": "Automatische Erkennung fehlgeschlagen",
+    "autoDiscoverFailedDesc": "Servereinstellungen konnten nicht erkannt werden. Bitte geben Sie sie manuell ein.",
     "autoDownloadNewMailboxes": "Neue Ordner automatisch hinzufügen",
     "autoDownloadNewMailboxesDescription": "Neu entdeckte Ordner automatisch zur Download-Liste hinzufügen.",
     "beforeRelative": "Nur alte E-Mails herunterladen",
@@ -1725,51 +1727,9 @@
       "roles": "Rollen",
       "users": "Benutzer"
     },
-    "tokens": {
-      "dialog": {
-        "create_title": "Zugriffstoken erstellen",
-        "description": "Klicken Sie auf Speichern, wenn Sie fertig sind.",
-        "edit_title": "Zugriffstoken bearbeiten"
-      },
-      "error": {
-        "fallback": "Vorgang fehlgeschlagen, bitte versuchen Sie es später erneut."
-      },
-      "expire_options": {
-        "1_day": "1 Tag",
-        "30_days": "30 Tage",
-        "7_days": "7 Tage",
-        "never": "Läuft nie ab"
-      },
-      "fields": {
-        "expire_hint": "Der Token läuft nach der gewählten Zeit automatisch ab.",
-        "expire_label": "Ablauf",
-        "expire_placeholder": "Ablauf wählen",
-        "name_hint": "Optional · Max. 32 Zeichen",
-        "name_label": "Name",
-        "name_placeholder": "Geben Sie dem Token einen kurzen Namen"
-      },
-      "schema": {
-        "expire_int": "Muss eine ganze Zahl sein",
-        "expire_number": "Muss eine Zahl sein",
-        "expire_positive": "Muss größer als 0 sein",
-        "name_max": "Max. 32 Zeichen"
-      },
-      "toast": {
-        "create_failed_title": "Erstellung fehlgeschlagen",
-        "create_success_desc": "Der Zugriffstoken wurde erfolgreich erstellt.",
-        "create_success_title": "Zugriffstoken erstellt",
-        "update_failed_title": "Aktualisierung fehlgeschlagen",
-        "update_success_desc": "Der Zugriffstoken wurde erfolgreich aktualisiert.",
-        "update_success_title": "Zugriffstoken aktualisiert"
-      }
-    },
     "tokens_action": {
       "buttons": {
         "add": "Token hinzufügen"
-      },
-      "delete_dialog": {
-        "description": "Diese Aktion kann nicht rückgängig gemacht werden.",
-        "title": "Zugriffstoken löschen?"
       },
       "dialog": {
         "description": "Verwalten Sie die API-Token für diesen Benutzer.",
@@ -1778,19 +1738,6 @@
       "empty": {
         "description": "Dieser Benutzer hat derzeit keine API-Token.",
         "title": "Keine API-Token"
-      },
-      "list": {
-        "button_delete": "Token löschen",
-        "expires_on_brief": "Läuft ab am {{date}}",
-        "label_created": "Erstellt am",
-        "label_expires_at": "Ablaufdatum",
-        "label_last_used": "Zuletzt verwendet",
-        "label_token": "Token",
-        "never": "Nie",
-        "never_expires": "Läuft nie ab",
-        "status_active": "Aktiv",
-        "status_expired": "Abgelaufen",
-        "unnamed_token": "Unbenannter Token"
       }
     }
   },

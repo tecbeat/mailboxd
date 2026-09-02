@@ -19,10 +19,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { Row } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
-import { IconEdit, IconPlayerPlay, IconPlayerStop, IconShieldLock, IconTrash } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -33,12 +31,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAccountContext } from '../context'
-import { Mailbox, MessageSquareMore, Settings } from 'lucide-react'
+import { Mailbox, MessageSquareMore, Settings, MoreHorizontal as DotsHorizontalIcon, Pencil as IconEdit, Play as IconPlayerPlay, Square as IconPlayerStop, ShieldCheck as IconShieldLock, Trash2 as IconTrash } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { AccountModel, cancel_account_download, start_account_download } from '@/api/account/api'
 import { toast } from '@/hooks/use-toast'
 import { useNavigate } from '@tanstack/react-router'
+import { AxiosError } from 'axios'
 
 interface DataTableRowActionsProps {
   row: Row<DataTableFeatures, AccountModel>
@@ -70,11 +69,12 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     try {
       await start_account_download(row.original.id);
       toast({ title: t('accounts.downloadStarted') });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>
       toast({
         variant: "destructive",
         title: t('accounts.downloadFailed'),
-        description: error.response?.data?.message || error.message
+        description: axiosError.response?.data?.message || axiosError.message
       });
     }
   }
@@ -84,11 +84,12 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     try {
       await cancel_account_download(row.original.id);
       toast({ title: t('accounts.downloadCancelled') });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>
       toast({
         variant: "destructive",
         title: t('accounts.cancelFailed'),
-        description: error.response?.data?.message || error.message
+        description: axiosError.response?.data?.message || axiosError.message
       });
     }
   }

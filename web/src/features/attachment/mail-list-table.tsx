@@ -21,16 +21,14 @@
 
 import { dateFnsLocaleMap, formatBytes } from "@/lib/utils"
 import { format, formatDistanceToNow } from "date-fns"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useAttachmentContext } from "./context"
 import { useTranslation } from 'react-i18next'
 import { enUS } from "date-fns/locale"
 import { ColumnDef } from "@tanstack/react-table"
 import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
-import { DataTableColumnHeader } from "./table/data-table-column-header"
-import { SearchTable } from "./table/table"
+import { DataTableColumnHeader } from "@/features/mail-list/table/data-table-column-header"
+import { MailListDataTable } from "@/features/mail-list/mail-list-data-table"
 import { DataTableRowActions } from "./table/data-table-row-actions"
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DataTableToolbar } from "./table/toolbar"
@@ -54,42 +52,15 @@ export function AttachmentListTable({
   const { t, i18n } = useTranslation()
 
   const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
-  const { selected, setSelected, setOpen, setCurrentAttachment } = useAttachmentContext()
+  const { setOpen, setCurrentItem } = useAttachmentContext()
+  const { setFilter } = useSearchAttachments();
 
   const columns: ColumnDef<MailTableFeatures, AttachmentModel>[] = [
-    {
-      accessorKey: "id",
-      header: () => (
-        <Checkbox
-          checked={
-            totalSelected === items.length && items.length > 0
-              ? true
-              : totalSelected > 0
-                ? "indeterminate"
-                : false
-          }
-          onCheckedChange={handleToggleAll}
-          className="h-4 w-4"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={hasSelected(row.original.account_id, row.original.id)}
-          onCheckedChange={() => toggleSelected(row.original.account_id, row.original.id)}
-          onClick={(e) => e.stopPropagation()}
-          className="h-4 w-4 shrink-0"
-        />
-      ),
-      meta: { className: 'text-left text-sm' },
-      minSize: 25,
-      maxSize: 25,
-    },
     {
       accessorKey: "source",
       header: t('attachment.source'),
       cell: ({ row }) => {
         const { from, account_email, mailbox_name, account_id, mailbox_id } = row.original;
-        const { setFilter } = useSearchAttachments();
         const accountPrefix = account_email.split('@')[0];
 
         return (
@@ -98,7 +69,7 @@ export function AttachmentListTable({
               className="cursor-pointer hover:text-primary transition-colors flex items-center gap-1.5"
               onClick={(e) => {
                 e.stopPropagation();
-                setFilter((prev: any) => ({ ...prev, from: from }));
+                setFilter((prev) => ({ ...prev, from: from }));
               }}
             >
               <LongText className="text-xs truncate">
@@ -112,7 +83,7 @@ export function AttachmentListTable({
                 title={account_email}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFilter((prev: any) => ({ ...prev, account_ids: [account_id], mailbox_ids: undefined }));
+                  setFilter((prev) => ({ ...prev, account_ids: [account_id], mailbox_ids: undefined }));
                 }}
               >
                 {accountPrefix}
@@ -123,7 +94,7 @@ export function AttachmentListTable({
                 className="truncate max-w-[70px] hover:text-primary cursor-pointer transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFilter((prev: any) => ({ ...prev, account_ids: [account_id], mailbox_ids: [mailbox_id] }));
+                  setFilter((prev) => ({ ...prev, account_ids: [account_id], mailbox_ids: [mailbox_id] }));
                 }}
               >
                 {mailbox_name}
@@ -148,7 +119,7 @@ export function AttachmentListTable({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setCurrentAttachment(row.original);
+                    setCurrentItem(row.original);
                     setOpen("display");
                   }}
                   className="hover:text-primary hover:underline transition-colors truncate"
@@ -193,7 +164,7 @@ export function AttachmentListTable({
                       title={t('attachment.viewEmbeddedEmail')}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setCurrentAttachment(row.original);
+                        setCurrentItem(row.original);
                         setOpen("nested-eml");
                       }}
                       className="hover:text-primary hover:underline transition-colors truncate"
@@ -260,74 +231,15 @@ export function AttachmentListTable({
     },
   ]
 
-  const handleToggleAll = () => {
-    const total = Array.from(selected.values()).reduce((sum, set) => sum + set.size, 0)
-
-    if (total === items.length && items.length > 0) {
-      setSelected(new Map())
-    } else {
-      setSelected(prev => {
-        const next = new Map(prev)
-        for (const item of items) {
-          const set = new Set(next.get(item.account_id) || [])
-          set.add(item.id)
-          next.set(item.account_id, set)
-        }
-        return next
-      })
-    }
-  }
-
-  const toggleSelected = (accountId: number, mailId: string) => {
-    setSelected(prev => {
-      const next = new Map(prev)
-      const set = new Set(next.get(accountId) || [])
-
-      if (set.has(mailId)) {
-        set.delete(mailId)
-        if (set.size === 0) next.delete(accountId)
-        else next.set(accountId, set)
-      } else {
-        set.add(mailId)
-        next.set(accountId, set)
-      }
-      return next
-    })
-  }
-
-  const totalSelected = Array.from(selected.values()).reduce((sum, set) => sum + set.size, 0)
-
-  const hasSelected = (accountId: number, mailId: string) => selected.get(accountId)?.has(mailId) ?? false
-
-  if (isLoading) {
-    return (
-      <div className="divide-y divide-border">
-        {Array.from({ length: 30 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-2 px-2 py-1.5">
-            <Skeleton className="h-3 w-3" />
-            <Skeleton className="h-3 w-3 rounded-full" />
-            <Skeleton className="h-3 flex-1" />
-            <Skeleton className="h-2.5 w-16" />
-          </div>
-        ))}
-      </div>
-    )
-  }
-
   return (
-    <>
-      <SearchTable
-        data={items}
-        columns={columns}
-        onRowClick={() => { }}
-        setSortBy={setSortBy}
-        setSortOrder={setSortOrder}
-      >
-        {(table) => {
-          return <DataTableToolbar table={table} />
-        }}
-
-      </SearchTable>
-    </>
+    <MailListDataTable
+      items={items}
+      isLoading={isLoading}
+      columns={columns}
+      setSortBy={setSortBy}
+      setSortOrder={setSortOrder}
+      onRowClick={() => { }}
+      toolbar={(table) => <DataTableToolbar table={table} />}
+    />
   )
 }

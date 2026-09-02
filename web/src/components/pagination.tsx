@@ -20,11 +20,11 @@
 
 
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DoubleArrowLeftIcon,
-  DoubleArrowRightIcon,
-} from '@radix-ui/react-icons'
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  ChevronsLeft as DoubleArrowLeftIcon,
+  ChevronsRight as DoubleArrowRightIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from "@/components/ui/input"
 import {
@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/select'
 import { useTranslation } from 'react-i18next'
 import { showNumbers } from '@/lib/utils'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 interface PaginationProps {
   totalItems: number
@@ -59,9 +59,12 @@ export function AttachmentListPagination({
   const [pageInput, setPageInput] = useState(pageIndex + 1)
   const pageCount = Math.ceil(totalItems / pageSize)
 
-  useEffect(() => {
+  // Keep the page input in sync when pageIndex changes (adjust state during render).
+  const [prevPageIndex, setPrevPageIndex] = useState(pageIndex)
+  if (pageIndex !== prevPageIndex) {
+    setPrevPageIndex(pageIndex)
     setPageInput(pageIndex + 1)
-  }, [pageIndex])
+  }
 
   const handlePageSizeChange = (value: string) => {
     const newPageSize = Number(value)

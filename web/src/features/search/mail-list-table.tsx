@@ -22,18 +22,15 @@
 import { dateFnsLocaleMap, formatBytes } from "@/lib/utils"
 import { format, formatDistanceToNow } from "date-fns"
 import { MessageSquareText, Paperclip } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Checkbox } from "@/components/ui/checkbox"
 import { EmailEnvelope } from "@/api"
-import { useSearchContext } from "./context"
 import { MailBulkActions } from "./bulk-actions"
 import { useTranslation } from 'react-i18next'
 import { enUS } from "date-fns/locale"
 import { ColumnDef } from "@tanstack/react-table"
 import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
-import { DataTableColumnHeader } from "./table/data-table-column-header"
-import { SearchTable } from "./table/table"
+import { DataTableColumnHeader } from "@/features/mail-list/table/data-table-column-header"
+import { MailListDataTable } from "@/features/mail-list/mail-list-data-table"
 import { DataTableRowActions } from "./table/data-table-row-actions"
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DataTableToolbar } from "./table/toolbar"
@@ -58,42 +55,14 @@ export function MailListTable({
   const { t, i18n } = useTranslation()
 
   const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
-  const { selected, setSelected } = useSearchContext()
+  const { setFilter } = useSearchMessages();
 
   const columns: ColumnDef<MailTableFeatures, EmailEnvelope>[] = [
-    {
-      accessorKey: "id",
-      header: () => (
-        <Checkbox
-          checked={
-            totalSelected === items.length && items.length > 0
-              ? true
-              : totalSelected > 0
-                ? "indeterminate"
-                : false
-          }
-          onCheckedChange={handleToggleAll}
-          className="h-4 w-4"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={hasSelected(row.original.account_id, row.original.id)}
-          onCheckedChange={() => toggleSelected(row.original.account_id, row.original.id)}
-          onClick={(e) => e.stopPropagation()}
-          className="h-4 w-4 shrink-0"
-        />
-      ),
-      meta: { className: 'text-left text-sm' },
-      minSize: 25,
-      maxSize: 25,
-    },
     {
       accessorKey: "source",
       header: t('search.source'),
       cell: ({ row }) => {
         const { from, account_email, account_name, mailbox_name, account_id, mailbox_id } = row.original;
-        const { setFilter } = useSearchMessages();
         const accountPrefix = account_name ?? account_email.split('@')[0];
 
         return (
@@ -102,7 +71,7 @@ export function MailListTable({
               className="cursor-pointer hover:text-primary transition-colors flex items-center gap-1.5"
               onClick={(e) => {
                 e.stopPropagation();
-                setFilter((prev: any) => ({ ...prev, from: from }));
+                setFilter((prev) => ({ ...prev, from: from }));
               }}
             >
               <LongText className="text-xs truncate">
@@ -116,7 +85,7 @@ export function MailListTable({
                 title={account_email}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFilter((prev: any) => ({ ...prev, account_ids: [account_id], mailbox_ids: undefined }));
+                  setFilter((prev) => ({ ...prev, account_ids: [account_id], mailbox_ids: undefined }));
                 }}
               >
                 {accountPrefix}
@@ -127,7 +96,7 @@ export function MailListTable({
                 className="truncate max-w-[70px] hover:text-primary cursor-pointer transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFilter((prev: any) => ({ ...prev, account_ids: [account_id], mailbox_ids: [mailbox_id] }));
+                  setFilter((prev) => ({ ...prev, account_ids: [account_id], mailbox_ids: [mailbox_id] }));
                 }}
               >
                 {mailbox_name}
@@ -143,14 +112,13 @@ export function MailListTable({
       header: t('search.to'),
       cell: ({ row }) => {
         const recipients: string[] = row.original.to || [];
-        const { setFilter } = useSearchMessages();
         const MAX_VISIBLE = 2;
         const visible = recipients.slice(0, MAX_VISIBLE);
         const hidden = recipients.slice(MAX_VISIBLE);
 
         const handleClick = (e: React.MouseEvent, email: string) => {
           e.stopPropagation();
-          setFilter((prev: Record<string, any>) => ({ ...prev, to: email }));
+          setFilter((prev) => ({ ...prev, to: email }));
         };
 
         return (
@@ -319,79 +287,20 @@ export function MailListTable({
     },
   ]
 
-  const handleToggleAll = () => {
-    const total = Array.from(selected.values()).reduce((sum, set) => sum + set.size, 0)
-
-    if (total === items.length && items.length > 0) {
-      setSelected(new Map())
-    } else {
-      setSelected(prev => {
-        const next = new Map(prev)
-        for (const item of items) {
-          const set = new Set(next.get(item.account_id) || [])
-          set.add(item.id)
-          next.set(item.account_id, set)
-        }
-        return next
-      })
-    }
-  }
-
-  const toggleSelected = (accountId: number, mailId: string) => {
-    setSelected(prev => {
-      const next = new Map(prev)
-      const set = new Set(next.get(accountId) || [])
-
-      if (set.has(mailId)) {
-        set.delete(mailId)
-        if (set.size === 0) next.delete(accountId)
-        else next.set(accountId, set)
-      } else {
-        set.add(mailId)
-        next.set(accountId, set)
-      }
-      return next
-    })
-  }
-
-  const totalSelected = Array.from(selected.values()).reduce((sum, set) => sum + set.size, 0)
-
-  const hasSelected = (accountId: number, mailId: string) => selected.get(accountId)?.has(mailId) ?? false
-
-  if (isLoading) {
-    return (
-      <div className="divide-y divide-border">
-        {Array.from({ length: 30 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-2 px-2 py-1.5">
-            <Skeleton className="h-3 w-3" />
-            <Skeleton className="h-3 w-3 rounded-full" />
-            <Skeleton className="h-3 flex-1" />
-            <Skeleton className="h-2.5 w-16" />
-          </div>
-        ))}
-      </div>
-    )
-  }
-
   return (
-    <>
-      <SearchTable
-        data={items}
-        columns={columns}
-        onRowClick={(e, row) => {
-          const target = e.target as HTMLElement
-          if (target.closest('input[type="checkbox"], button')) return
-          onEnvelopeChanged(row.original)
-        }}
-        setSortBy={setSortBy}
-        setSortOrder={setSortOrder}
-      >
-        {(table) => {
-          return <DataTableToolbar table={table} />
-        }}
-
-      </SearchTable>
-      {totalSelected > 0 && <MailBulkActions />}
-    </>
+    <MailListDataTable
+      items={items}
+      isLoading={isLoading}
+      columns={columns}
+      setSortBy={setSortBy}
+      setSortOrder={setSortOrder}
+      onRowClick={(e, row) => {
+        const target = e.target as HTMLElement
+        if (target.closest('input[type="checkbox"], button')) return
+        onEnvelopeChanged(row.original)
+      }}
+      toolbar={(table) => <DataTableToolbar table={table} />}
+      bulkActions={<MailBulkActions />}
+    />
   )
 }

@@ -190,7 +190,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   }, [global, selectedRoleIds])
 
   const createMutation = useMutation({ mutationFn: create_user, onSuccess: handleSuccess, onError: handleError })
-  const updateMutation = useMutation({ mutationFn: (data: any) => update_user(currentRow!.id, data), onSuccess: handleSuccess, onError: handleError })
+  const updateMutation = useMutation({ mutationFn: (data: Record<string, unknown>) => update_user(currentRow!.id, data), onSuccess: handleSuccess, onError: handleError })
 
   function handleSuccess() {
     toast({ title: isEdit ? t('users.actions.toast.updated') : t('users.actions.toast.created') })
@@ -200,18 +200,21 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   }
 
   function handleError(err: AxiosError) {
-    toast({ variant: 'destructive', title: t('common.error'), description: (err.response?.data as any)?.message || t('common.op_failed') })
+    toast({ variant: 'destructive', title: t('common.error'), description: (err.response?.data as { message?: string })?.message || t('common.op_failed') })
   }
 
   const onSubmit = (values: UserForm) => {
-    const validEntries = (values.account_access_entries ?? []).filter((e: any) => e.accountId > 0 && e.roleId > 0);
+    const validEntries = (values.account_access_entries ?? []).filter((e) => e.accountId > 0 && e.roleId > 0);
     const account_access_map = Object.fromEntries(
-      validEntries.map((e: any) => [e.accountId, e.roleId])
+      validEntries.map((e) => [e.accountId, e.roleId])
     );
-    const { account_access_entries, ...rest } = values;
     const acl = values.acl as { ip_whitelist?: string; rate_limit?: { quota?: number; interval?: number } } | undefined;
     const payload = {
-      ...rest,
+      username: values.username,
+      email: values.email,
+      password: values.password,
+      global_roles: values.global_roles,
+      description: values.description,
       account_access_map,
       acl: acl ? {
         ...acl,
@@ -219,7 +222,11 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
       } : undefined
     }
 
-    isEdit ? updateMutation.mutate(payload) : createMutation.mutate(payload)
+    if (isEdit) {
+      updateMutation.mutate(payload)
+    } else {
+      createMutation.mutate(payload)
+    }
   }
 
   const isSaving = createMutation.isPending || updateMutation.isPending;

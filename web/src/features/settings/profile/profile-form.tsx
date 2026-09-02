@@ -104,7 +104,7 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
       toast({
         variant: 'destructive',
         title: t('settings.profile.toast.update_failed'),
-        description: (err.response?.data as any)?.message || err.message,
+        description: (err.response?.data as { message?: string })?.message || err.message,
       })
     },
   })

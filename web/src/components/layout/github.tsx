@@ -29,7 +29,7 @@ interface SourceLinkButtonProps {
 }
 
 // AGPL §13 — link to the corresponding source of this modified version.
-export const SourceLinkButton: React.FC<SourceLinkButtonProps> = ({
+const SourceLinkButton: React.FC<SourceLinkButtonProps> = ({
   href = "https://git.teccave.de/tecbeat/mailboxd",
   size = 18,
   title = "Source code",
