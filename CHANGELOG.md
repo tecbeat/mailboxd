@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.5.1) - 2026-09-02
+
+### 🐛 Bug Fixes
+
+- *(deps)* Drop user-event and react-refresh bumps blocked by release-age policy - ([6c103cf](https://git.teccave.de/tecbeat/mailboxd/commit/6c103cff27b0ce0ac1ec6f32873afdb6b4f9b478))
+- *(deps)* Update all non-major dependencies - ([606a5da](https://git.teccave.de/tecbeat/mailboxd/commit/606a5da0eabbeb8977628a9ab9ba0263917223b0))
+
 ## [1.5.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.5.0) - 2026-09-02
 
 ### 🐛 Bug Fixes
