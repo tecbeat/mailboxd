@@ -145,10 +145,15 @@
 }
 
 @layer base {
+  /*
+    Single content scroll region: the document itself never scrolls. The
+    authenticated shell pins the sidebar and header and delegates all vertical
+    scrolling to the #content column (see routes/_authenticated/route.tsx).
+  */
   html {
-    @apply overflow-x-hidden;
+    @apply h-svh overflow-hidden;
   }
   body {
-    @apply min-h-svh w-full bg-background text-foreground;
+    @apply h-svh w-full overflow-hidden bg-background text-foreground;
   }
 }
