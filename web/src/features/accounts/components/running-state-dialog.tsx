@@ -40,7 +40,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Clock, LoaderCircle as Loader2, Activity, TriangleAlert as AlertTriangle, Info } from 'lucide-react'
+import { Clock, Activity, TriangleAlert as AlertTriangle, Info } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import LongText from '@/components/long-text'
 import { useTranslation } from 'react-i18next'
 
@@ -169,7 +170,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
           <div className="flex-1 bg-background min-h-0 overflow-hidden relative">
             {isLoading ? (
               <div className="h-full flex flex-col items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
+                <Spinner className="text-primary mb-2" />
                 <p className="text-sm text-muted-foreground font-medium italic">{t('accounts.runningState.loading.fetching_account_state')}</p>
               </div>
             ) : (

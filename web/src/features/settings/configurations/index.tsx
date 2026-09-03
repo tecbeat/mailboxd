@@ -24,7 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { statusBadgeClass } from "@/lib/status-colors"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { PageHeader } from "@/components/layout/page-header"
 import { ShieldCheck, Server, Database, Activity, Mail, Zap } from "lucide-react"
 import { get_system_configurations } from "@/api/system/api"
@@ -96,26 +96,6 @@ function SettingsCard({
   )
 }
 
-function PageSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i}>
-          <CardHeader className="py-4 px-5 border-b">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-3 w-56" />
-          </CardHeader>
-          <CardContent className="px-5 py-3 space-y-3">
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-5/6" />
-            <Skeleton className="h-3 w-4/6" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
-}
-
 export default function ServerConfigurationsPage() {
   const { t } = useTranslation()
   const { data, isLoading, isError } = useQuery({
@@ -142,7 +122,9 @@ export default function ServerConfigurationsPage() {
           />
 
           {isLoading ? (
-            <PageSkeleton />
+            <div className="flex justify-center items-center py-24">
+              <Spinner />
+            </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <SettingsCard

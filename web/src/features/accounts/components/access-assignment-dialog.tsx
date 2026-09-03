@@ -24,6 +24,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle as Loader2, ShieldCheck, Users, Search } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useTranslation } from 'react-i18next'
 import { AxiosError } from 'axios'
 
@@ -215,7 +216,7 @@ export function AccountAccessAssignmentDialog({
                                     <ScrollArea className="h-64">
                                         {isLoadingUsers ? (
                                             <div className="flex justify-center py-8">
-                                                <Loader2 className="h-6 w-6 animate-spin" />
+                                                <Spinner />
                                             </div>
                                         ) : (
                                             <div className="p-3 space-y-1">

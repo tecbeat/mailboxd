@@ -19,7 +19,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { Bell as BellIcon, LoaderCircle as Loader2, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { Bell as BellIcon, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -95,7 +96,7 @@ export function NotificationPopover() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Spinner className="h-5 w-5" />
           ) : (
             <>
               <BellIcon className="h-5 w-5" />
@@ -121,7 +122,7 @@ export function NotificationPopover() {
         <ScrollArea className="h-72">
           {isLoading ? (
             <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <Spinner />
             </div>
           ) : activeNotifications.length === 0 ? (
             <div className="p-8 text-center space-y-2">

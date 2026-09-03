@@ -30,6 +30,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle as Loader2, SquareCheck as CheckSquare, Square } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { list_mailboxes, MailboxData } from '@/api/mailbox/api'
@@ -496,7 +497,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                         {isLoading && (
                             <div className="p-8 space-y-8">
                                 <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                    <Spinner />
                                     <span className="text-sm font-medium">
                                         {fetchProgress && fetchProgress.total > 0
                                             ? `${t('accounts.folderSync.loadingMailboxFolders')} (${fetchProgress.examined}/${fetchProgress.total})`

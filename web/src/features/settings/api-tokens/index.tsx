@@ -19,10 +19,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { LoaderCircle as Loader2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { get_user_tokens } from '@/api/users/api'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 import Logo from '@/assets/logo.svg'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -46,7 +46,7 @@ export function APITokens() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-6 w-6 animate-spin" />
+        <Spinner />
       </div>
     )
   }
@@ -73,10 +73,8 @@ export function APITokens() {
         }
       />
       {tokensLoading ? (
-        <div className="flex flex-col gap-4 mt-4">
-          <Skeleton className="h-16 w-full rounded-lg" />
-          <Skeleton className="h-16 w-full rounded-lg" />
-          <Skeleton className="h-16 w-full rounded-lg" />
+        <div className="flex justify-center items-center h-64">
+          <Spinner />
         </div>
       ) : tokens.length === 0 ? (
         <EmptyState
