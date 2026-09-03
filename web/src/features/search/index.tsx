@@ -25,7 +25,7 @@ import { FixedHeader } from '@/components/layout/fixed-header';
 import { Main } from '@/components/layout/main';
 import { PageHeader } from '@/components/layout/page-header';
 import { useSearchMessages } from '@/hooks/use-search-messages';
-import { AttachmentListPagination } from '@/components/pagination';
+import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import React from 'react';
 import { EmailEnvelope } from '@/api';
 import { MailDisplayDrawer } from '@/features/mail-list/mail-display-dialog';
@@ -150,13 +150,18 @@ export default function EmailSearch() {
                   setSortBy={setSortBy}
                   setSortOrder={setSortOrder}
                 />
-                {total > 0 && <AttachmentListPagination
-                  totalItems={total}
-                  hasNextPage={() => page < totalPages}
+                {total > 0 && <DataTablePagination
+                  storageKey='search'
                   pageIndex={page - 1}
+                  pageCount={Math.max(1, Math.ceil(total / pageSize))}
                   pageSize={pageSize}
-                  setPageIndex={(index) => setPage(index + 1)}
-                  setPageSize={handleSetPageSize}
+                  canPreviousPage={page > 1}
+                  canNextPage={page < totalPages}
+                  onFirst={() => setPage(1)}
+                  onPrevious={() => setPage(page - 1)}
+                  onNext={() => setPage(page + 1)}
+                  onLast={() => setPage(totalPages)}
+                  onPageSizeChange={handleSetPageSize}
                 />}
               </div>
             </div>

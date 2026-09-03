@@ -1506,8 +1506,6 @@
     "hide": "Dölj",
     "loading": "Laddar...",
     "noResults": "Inga resultat hittades",
-    "of": "av",
-    "page": "Sida",
     "pagination": {
       "first": "Första sidan",
       "fixed_page_size": "{{size}} rader per sida.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "Rader per sida",
       "selected": "{{selected}} av {{total}} rader valda."
     },
-    "results": "resultat",
-    "rowsPerPage": "Rader per sida",
     "showing": "Visar",
     "to": "till"
   },

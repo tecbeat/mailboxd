@@ -41,7 +41,11 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table'
+import {
+  dataTableFeatures,
+  getPersistedPageSize,
+  type DataTableFeatures,
+} from '@/lib/data-table'
 import { useTranslation } from 'react-i18next'
 import { DataTablePagination } from './data-table-pagination'
 
@@ -116,7 +120,7 @@ export function DataTable<TData extends RowData>({
     initialState: {
       pagination: {
         pageIndex: 0,
-        pageSize: Number(localStorage.getItem(`mailboxd_${storageKey}_page_size`)) || 10,
+        pageSize: getPersistedPageSize(storageKey, 10),
       },
     },
     enableRowSelection: true,

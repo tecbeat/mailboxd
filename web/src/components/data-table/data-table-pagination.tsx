@@ -26,7 +26,10 @@ import {
   ChevronsRight as DoubleArrowRightIcon,
 } from 'lucide-react'
 import { ReactTable, RowData } from '@tanstack/react-table'
-import { type DataTableFeatures } from '@/lib/data-table'
+import {
+  setPersistedPageSize,
+  type DataTableFeatures,
+} from '@/lib/data-table'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -39,31 +42,106 @@ import { useTranslation } from 'react-i18next'
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50, 100, 150]
 
-interface DataTablePaginationProps<TData extends RowData> {
+// localStorage namespace; the chosen size persists as mailboxd_<storageKey>_page_size.
+interface TablePaginationProps<TData extends RowData> {
   table: ReactTable<DataTableFeatures, TData>
-  // localStorage namespace; the chosen size persists as mailboxd_<storageKey>_page_size.
   storageKey: string
   pageSizeOptions?: number[]
   showSelected?: boolean
   showPageSizeSelector?: boolean
 }
 
-export function DataTablePagination<TData extends RowData>({
-  table,
-  storageKey,
-  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
-  showSelected = false,
-  showPageSizeSelector = true,
-}: DataTablePaginationProps<TData>) {
+interface ControlledPaginationProps {
+  storageKey: string
+  pageIndex: number
+  pageCount: number
+  pageSize: number
+  canPreviousPage: boolean
+  canNextPage: boolean
+  onFirst: () => void
+  onPrevious: () => void
+  onNext: () => void
+  onLast: () => void
+  onPageSizeChange: (size: number) => void
+  pageSizeOptions?: number[]
+  showPageSizeSelector?: boolean
+}
+
+type DataTablePaginationProps<TData extends RowData> =
+  | TablePaginationProps<TData>
+  | ControlledPaginationProps
+
+interface PaginationViewModel {
+  pageIndex: number
+  pageCount: number
+  pageSize: number
+  canPrev: boolean
+  canNext: boolean
+  goFirst: () => void
+  goPrev: () => void
+  goNext: () => void
+  goLast: () => void
+  setSize: (size: number) => void
+}
+
+function isTableMode<TData extends RowData>(
+  props: DataTablePaginationProps<TData>,
+): props is TablePaginationProps<TData> {
+  return 'table' in props
+}
+
+export function DataTablePagination<TData extends RowData>(
+  props: DataTablePaginationProps<TData>,
+) {
   const { t } = useTranslation()
+  const {
+    storageKey,
+    pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
+    showPageSizeSelector = true,
+  } = props
+
+  const tableMode = isTableMode(props)
+  const showSelected = tableMode ? (props.showSelected ?? false) : false
+
+  const view: PaginationViewModel = tableMode
+    ? {
+        pageIndex: props.table.state.pagination.pageIndex,
+        pageCount: props.table.getPageCount(),
+        pageSize: props.table.state.pagination.pageSize,
+        canPrev: props.table.getCanPreviousPage(),
+        canNext: props.table.getCanNextPage(),
+        goFirst: () => props.table.setPageIndex(0),
+        goPrev: () => props.table.previousPage(),
+        goNext: () => props.table.nextPage(),
+        goLast: () => props.table.setPageIndex(props.table.getPageCount() - 1),
+        setSize: (size) => {
+          setPersistedPageSize(storageKey, size)
+          props.table.setPageSize(size)
+        },
+      }
+    : {
+        pageIndex: props.pageIndex,
+        pageCount: props.pageCount,
+        pageSize: props.pageSize,
+        canPrev: props.canPreviousPage,
+        canNext: props.canNextPage,
+        goFirst: props.onFirst,
+        goPrev: props.onPrevious,
+        goNext: props.onNext,
+        goLast: props.onLast,
+        setSize: (size) => {
+          setPersistedPageSize(storageKey, size)
+          props.onPageSizeChange(size)
+        },
+      }
 
   return (
     <div className='flex items-center justify-between overflow-auto px-2'>
-      {showSelected && (
+      {showSelected && tableMode && (
         <div className='hidden flex-1 text-sm text-muted-foreground sm:block'>
           {t('table.pagination.selected', {
-            selected: table.getFilteredSelectedRowModel().rows.length,
-            total: table.getFilteredRowModel().rows.length,
+            selected: props.table.getFilteredSelectedRowModel().rows.length,
+            total: props.table.getFilteredRowModel().rows.length,
           })}
         </div>
       )}
@@ -79,14 +157,11 @@ export function DataTablePagination<TData extends RowData>({
               {t('table.pagination.rows_per_page')}
             </p>
             <Select
-              value={`${table.state.pagination.pageSize}`}
-              onValueChange={(value) => {
-                localStorage.setItem(`mailboxd_${storageKey}_page_size`, value)
-                table.setPageSize(Number(value))
-              }}
+              value={`${view.pageSize}`}
+              onValueChange={(value) => view.setSize(Number(value))}
             >
               <SelectTrigger className='h-8 w-[70px]'>
-                <SelectValue placeholder={table.state.pagination.pageSize} />
+                <SelectValue placeholder={view.pageSize} />
               </SelectTrigger>
               <SelectContent side='top'>
                 {pageSizeOptions.map((pageSize) => (
@@ -100,16 +175,16 @@ export function DataTablePagination<TData extends RowData>({
         )}
         <div className='flex w-[130px] items-center justify-center text-sm font-medium'>
           {t('table.pagination.page_info', {
-            page: table.state.pagination.pageIndex + 1,
-            total: table.getPageCount(),
+            page: view.pageIndex + 1,
+            total: view.pageCount,
           })}
         </div>
         <div className='flex items-center space-x-2'>
           <Button
             variant='outline'
             className='hidden h-8 w-8 p-0 lg:flex'
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
+            onClick={view.goFirst}
+            disabled={!view.canPrev}
           >
             <span className='sr-only'>{t('table.pagination.first')}</span>
             <DoubleArrowLeftIcon className='h-4 w-4' />
@@ -117,8 +192,8 @@ export function DataTablePagination<TData extends RowData>({
           <Button
             variant='outline'
             className='h-8 w-8 p-0'
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={view.goPrev}
+            disabled={!view.canPrev}
           >
             <span className='sr-only'>{t('table.pagination.previous')}</span>
             <ChevronLeftIcon className='h-4 w-4' />
@@ -126,8 +201,8 @@ export function DataTablePagination<TData extends RowData>({
           <Button
             variant='outline'
             className='h-8 w-8 p-0'
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={view.goNext}
+            disabled={!view.canNext}
           >
             <span className='sr-only'>{t('table.pagination.next')}</span>
             <ChevronRightIcon className='h-4 w-4' />
@@ -135,8 +210,8 @@ export function DataTablePagination<TData extends RowData>({
           <Button
             variant='outline'
             className='hidden h-8 w-8 p-0 lg:flex'
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
+            onClick={view.goLast}
+            disabled={!view.canNext}
           >
             <span className='sr-only'>{t('table.pagination.last')}</span>
             <DoubleArrowRightIcon className='h-4 w-4' />

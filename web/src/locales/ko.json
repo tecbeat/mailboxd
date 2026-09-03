@@ -1506,8 +1506,6 @@
     "hide": "숨기기",
     "loading": "로드 중...",
     "noResults": "검색 결과 없음",
-    "of": "의",
-    "page": "페이지",
     "pagination": {
       "first": "첫 페이지로 이동",
       "fixed_page_size": "페이지당 {{size}} 행.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "페이지당 행 수",
       "selected": "{{selected}} / {{total}} 행 선택됨."
     },
-    "results": "결과",
-    "rowsPerPage": "페이지당 행 수",
     "showing": "표시 중",
     "to": "부터"
   },

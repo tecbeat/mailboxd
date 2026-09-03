@@ -1506,8 +1506,6 @@
     "hide": "Verbergen",
     "loading": "Laden...",
     "noResults": "Geen resultaten gevonden",
-    "of": "van",
-    "page": "Pagina",
     "pagination": {
       "first": "Eerste pagina",
       "fixed_page_size": "{{size}} rijen per pagina.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "Rijen per pagina",
       "selected": "{{selected}} van {{total}} rij(en) geselecteerd."
     },
-    "results": "resultaten",
-    "rowsPerPage": "Rijen per pagina",
     "showing": "Toont",
     "to": "tot"
   },
