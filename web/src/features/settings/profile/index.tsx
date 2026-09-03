@@ -46,7 +46,7 @@ export function Profile() {
   }
 
   return (
-    <div className="w-full max-w-7xl ml-0 px-4">
+    <div className="w-full">
       <UserProfileForm user={user!} />
     </div>
   )

@@ -51,7 +51,7 @@ export default function Users() {
   const columns = getColumns(t, global.roles!)
 
   return (
-    <div className="w-full max-w-6xl ml-0 px-4">
+    <div className="w-full">
       <UserProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
         <div className="w-full">
           <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">

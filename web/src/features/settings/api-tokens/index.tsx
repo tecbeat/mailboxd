@@ -58,7 +58,7 @@ export function APITokens() {
   }
 
   return (
-    <div className="w-full max-w-3xl px-4 sm:px-6 lg:px-8">
+    <div className="w-full">
       {tokensLoading ? (
         <div className="flex flex-col gap-4 mt-4">
           <Skeleton className="h-16 w-full rounded-lg" />

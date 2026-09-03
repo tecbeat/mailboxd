@@ -266,7 +266,7 @@ export default function ImportPage() {
     <>
       <FixedHeader />
       <Main>
-        <div className="flex-1 space-y-6 p-6 md:p-8 max-w-3xl mx-auto">
+        <div className="flex-1 space-y-6">
           <div>
             <h1 className="text-xl font-bold tracking-tight">
               {t('import.title', 'Import EML / MBOX / PST')}

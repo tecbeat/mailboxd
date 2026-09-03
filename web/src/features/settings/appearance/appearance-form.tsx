@@ -129,9 +129,9 @@ export function AppearanceForm() {
     }
 
     return (
-        <div className="w-full max-w-6xl ml-0 px-4">
+        <div className="w-full">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 w-full max-w-screen-xl mx-auto px-4 md:px-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 w-full">
                     <FormField
                         control={form.control}
                         name='language'
