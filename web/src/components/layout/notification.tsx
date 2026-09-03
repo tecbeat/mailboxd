@@ -23,6 +23,7 @@ import { Bell as BellIcon, ExternalLink as ExternalLinkIcon } from "lucide-react
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { statusBadgeClass } from "@/lib/status-colors";
 import {
   Popover,
   PopoverContent,
@@ -154,7 +155,7 @@ function ReleaseNotificationView({ data }: { data: Release }) {
           <h3 className="text-sm font-semibold">
             {data.tag_name}
           </h3>
-          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+          <span className={`text-xs px-2 py-1 rounded-full border ${statusBadgeClass.success}`}>
             New Release
           </span>
         </div>
