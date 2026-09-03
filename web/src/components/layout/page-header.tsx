@@ -18,20 +18,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { useTranslation } from 'react-i18next'
-import { PageHeader } from '@/components/layout/page-header'
-import { AppearanceForm } from './appearance-form'
 
-export function SettingsAppearance() {
-    const { t } = useTranslation()
-    return (
-        <div className="w-full">
-            <PageHeader
-                className="mb-4"
-                title={t('settings.appearance.title')}
-                description={t('settings.appearance.pageDescription', 'Customize the language and theme of the Web UI.')}
-            />
-            <AppearanceForm />
-        </div>
-    )
+import React from 'react'
+import { cn } from '@/lib/utils'
+
+interface PageHeaderProps {
+  title: string;
+  description?: string;
+  actions?: React.ReactNode;
+  className?: string;
 }
+
+export function PageHeader({ title, description, actions, className }: PageHeaderProps) {
+  return (
+    <div className={cn('flex items-start justify-between gap-4', className)}>
+      <div className="space-y-1">
+        <h1 className="text-xl font-bold tracking-tight">{title}</h1>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
+      {actions && <div className="flex-shrink-0">{actions}</div>}
+    </div>
+  );
+}
+
+PageHeader.displayName = 'PageHeader';

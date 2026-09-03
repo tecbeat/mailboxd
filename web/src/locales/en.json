@@ -459,12 +459,15 @@
       "addBtn": "Add Token",
       "emptyDescription": "You haven’t created any API tokens yet. Click below to create one.",
       "emptyTitle": "No API tokens",
-      "loadError": "Failed to load API tokens."
+      "loadError": "Failed to load API tokens.",
+      "pageDescription": "Personal API tokens for programmatic access on your behalf.",
+      "title": "API Tokens"
     }
   },
   "attachment": {
     "all_fields_desc": "Matches attachment name, subject, and sender",
     "date": "Date",
+    "description": "Search and browse archived email attachments.",
     "download": "Download",
     "downloading": "Downloading...",
     "emailMessageNotFound": "Unable to find the original email. It may have been deleted.",
@@ -477,6 +480,7 @@
     "size": "File size",
     "source": "Source",
     "subject": "Subject",
+    "title": "Attachments",
     "viewEmbeddedEmail": "View embedded email"
   },
   "attachment_preview": {
@@ -571,6 +575,7 @@
     "count": "Count",
     "dataStorage": "Storage",
     "dayTrend": "30-Day Trend",
+    "description": "Overview of your archived mail, storage, and activity.",
     "efficiency": "Efficiency",
     "emails": "Emails",
     "indexSize": "Index",
@@ -1064,6 +1069,7 @@
       "success_title": "Role Deleted",
       "warning_text": "You are about to permanently delete role {{name}} (ID: {{id}})."
     },
+    "description": "Define roles and the permissions granted to their members.",
     "description_hint": "Define access scope and functional permissions.",
     "details": {
       "close_btn": "Close Details",
@@ -1086,6 +1092,7 @@
       "name_label": "Role Name",
       "type_label": "Role Type"
     },
+    "pageTitle": "Roles",
     "placeholder": {
       "filter": "Search roles..."
     },
@@ -1154,6 +1161,7 @@
       "warningDesc": "Deleted messages will be permanently removed and cannot be recovered.",
       "warningTitle": "Warning"
     },
+    "description": "Search your archived emails across all accounts.",
     "editTag": "Edit Tag",
     "endDate": "End Date",
     "from": "From",
@@ -1327,6 +1335,7 @@
         "language": "Language",
         "theme": "Interface Theme"
       },
+      "pageDescription": "Customize the language and theme of the Web UI.",
       "placeholder": {
         "select_language": "Select language"
       },
@@ -1393,6 +1402,7 @@
       },
       "loadError": "Failed to load user information.",
       "maxSize": "Up to {{size}}",
+      "pageDescription": "Manage your account profile and credentials.",
       "placeholder": {
         "password_keep": "Leave blank to keep current password"
       },
@@ -1401,6 +1411,7 @@
         "accounts": "{{count}} linked accounts",
         "roles": "Roles"
       },
+      "title": "Profile",
       "toast": {
         "update_failed": "Failed to update profile",
         "updated": "Profile updated successfully"
@@ -1424,10 +1435,12 @@
       }
     },
     "proxy": "Proxy",
+    "proxyDescription": "Configure proxy servers used for account connections.",
     "proxyTest": "Check Proxy",
     "proxyTesting": "Checking...",
     "proxyTestFailed": "Proxy check failed",
     "proxyTestSuccess": "Proxy works",
+    "proxyTitle": "Network Proxy",
     "proxyUpdateOrAddFailed": "{{action}} failed, please try again later",
     "reset": "Reset",
     "resetRootPassword": "Reset Root Password",
@@ -1466,7 +1479,9 @@
       "empty": {
         "title": "No account access",
         "description": "You do not have direct access to any email accounts yet. Contact your administrator to request access."
-      }
+      },
+      "pageDescription": "Accounts you can access and your role on each.",
+      "title": "Access Permissions"
     }
   },
   "sign_out": {
@@ -1690,6 +1705,7 @@
         "warning_desc": "Any scripts, services, or integrations using this token will fail. Please ensure you have updated your systems before proceeding.",
         "warning_title": "Warning"
       },
+      "description": "System-wide API tokens for programmatic access.",
       "empty": {
         "description": "No API tokens have been generated in the system yet",
         "title": "No API tokens found"
@@ -1708,6 +1724,7 @@
         "unnamed": "Unnamed Token",
         "web_ui": "Web UI"
       },
+      "title": "API Tokens",
       "toast": {
         "delete_failed": "Failed to delete the token, please try again.",
         "delete_failed_title": "Delete Failed",
@@ -1733,6 +1750,7 @@
       "updated_at": "Updated At",
       "username": "Username"
     },
+    "description": "Manage system users and their roles.",
     "empty": {
       "description": "Click the button below to start adding your first user.",
       "title": "No users found"
@@ -1742,6 +1760,7 @@
       "roles": "Roles",
       "users": "Users"
     },
+    "title": "Users",
     "tokens_action": {
       "buttons": {
         "add": "Add Token"

@@ -20,6 +20,7 @@ import { formatBytes, formatNumber } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { get_dashboard_stats, INITIAL_DASHBOARD_STATS, TimeBucket } from '@/api/system/api';
 import { Main } from '@/components/layout/main';
+import { PageHeader } from '@/components/layout/page-header';
 import { FixedHeader } from '@/components/layout/fixed-header';
 import { useTranslation } from 'react-i18next';
 import LongText from '@/components/long-text';
@@ -192,6 +193,10 @@ export default function MailArchiveDashboard() {
       <FixedHeader />
       <Main higher>
         <div className="flex-1 space-y-6">
+          <PageHeader
+            title={t('dashboard.title')}
+            description={t('dashboard.description', 'Overview of your archived mail, storage, and activity.')}
+          />
           {/* Top Metrics */}
           <div className="grid gap-4 grid-cols-1 md:grid-cols-12">
             <Card className="md:col-span-2 lg:col-span-2">

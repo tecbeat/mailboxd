@@ -22,6 +22,7 @@
 import { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import { UserActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { UserDeleteDialog } from './components/delete-dialog'
@@ -54,14 +55,16 @@ export default function Users() {
     <div className="w-full">
       <UserProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
         <div className="w-full">
-          <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <Button
-              className="mt-2 sm:mt-0 space-x-1"
-              onClick={() => setOpen('add')}
-            >
-              <span>{t('users.buttons.add')}</span> <Plus size={18} />
-            </Button>
-          </div>
+          <PageHeader
+            className="mb-4"
+            title={t('users.title', 'Users')}
+            description={t('users.description', 'Manage system users and their roles.')}
+            actions={
+              <Button className="space-x-1" onClick={() => setOpen('add')}>
+                <span>{t('users.buttons.add')}</span> <Plus size={18} />
+              </Button>
+            }
+          />
 
           <div className="w-full">
             {isLoading ? (

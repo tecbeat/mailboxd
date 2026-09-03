@@ -20,6 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn, formatBytes } from '@/lib/utils';
 import { Main } from '@/components/layout/main';
+import { PageHeader } from '@/components/layout/page-header';
 import { FixedHeader } from '@/components/layout/fixed-header';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -267,14 +268,10 @@ export default function ImportPage() {
       <FixedHeader />
       <Main>
         <div className="flex-1 space-y-6">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">
-              {t('import.title', 'Import EML / MBOX / PST')}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t('import.description', 'Import email files into a NoSync account. For larger files, use the CLI.')}
-            </p>
-          </div>
+          <PageHeader
+            title={t('import.title', 'Import EML / MBOX / PST')}
+            description={t('import.description', 'Import email files into a NoSync account. For larger files, use the CLI.')}
+          />
 
           {/* Step 1: Target account */}
           <Card>

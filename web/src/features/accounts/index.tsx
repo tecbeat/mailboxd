@@ -24,6 +24,7 @@ import useDialogState from '@/hooks/use-dialog-state'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
+import { PageHeader } from '@/components/layout/page-header'
 import { useColumns } from './components/columns'
 import { AccountDeleteDialog } from './components/delete-dialog'
 import { AccountTable } from './components/table'
@@ -71,24 +72,23 @@ export default function Accounts() {
 
       <Main>
         <div>
-          <div className='mb-2 flex items-center justify-between flex-wrap gap-x-4 gap-y-2'>
-            <div>
-              <h2 className='text-2xl font-bold tracking-tight'>{t('accounts.title')}</h2>
-              <p className='text-muted-foreground'>
-                {t('accounts.description')}
-              </p>
-            </div>
-            {require_any_permission(['system:root', 'account:create']) && <div className="flex gap-2">
-              <Button onClick={() => navigate({ to: '/accounts/new' })}>
-                <Mail className="mr-1.5 h-4 w-4" />
-                {t('accounts.imapAccount')}
-              </Button>
-              <Button variant="outline" onClick={() => setOpen("add-nosync")}>
-                <Database className="mr-1.5 h-4 w-4" />
-                {t('accounts.noSyncAccount')}
-              </Button>
-            </div>}
-          </div>
+          <PageHeader
+            className='mb-2'
+            title={t('accounts.title')}
+            description={t('accounts.description')}
+            actions={require_any_permission(['system:root', 'account:create']) && (
+              <div className="flex gap-2">
+                <Button onClick={() => navigate({ to: '/accounts/new' })}>
+                  <Mail className="mr-1.5 h-4 w-4" />
+                  {t('accounts.imapAccount')}
+                </Button>
+                <Button variant="outline" onClick={() => setOpen("add-nosync")}>
+                  <Database className="mr-1.5 h-4 w-4" />
+                  {t('accounts.noSyncAccount')}
+                </Button>
+              </div>
+            )}
+          />
 
           <div className='flex-1 overflow-auto py-1 flex-row lg:space-x-12 space-y-0'>
             {isLoading ? (

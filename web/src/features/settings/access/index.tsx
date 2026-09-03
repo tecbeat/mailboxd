@@ -21,6 +21,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/layout/page-header'
 import { useTranslation } from 'react-i18next'
 import useMinimalAccountList from '@/hooks/use-minimal-account-list'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -46,26 +47,38 @@ export function AccountAccessList() {
 
     const roleSummary = user.account_roles_summary || {}
 
+    const header = (
+        <PageHeader
+            className="mb-4"
+            title={t('settings.access.title', 'Access Permissions')}
+            description={t('settings.access.pageDescription', 'Accounts you can access and your role on each.')}
+        />
+    )
+
     if (accessibleAccountIds.length === 0) {
         return (
-            <div className="flex h-[450px] items-center justify-center rounded-md border border-dashed mt-4">
-                <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center px-4">
-                    <img
-                        src={Logo}
-                        className="max-h-[100px] w-auto opacity-20 saturate-0 object-contain"
-                        alt="mailboxd icon"
-                    />
-                    <h3 className="mt-4 text-lg font-semibold">{t('settings.access.empty.title')}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        {t('settings.access.empty.description')}
-                    </p>
+            <div className="w-full">
+                {header}
+                <div className="flex h-[450px] items-center justify-center rounded-md border border-dashed mt-4">
+                    <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center px-4">
+                        <img
+                            src={Logo}
+                            className="max-h-[100px] w-auto opacity-20 saturate-0 object-contain"
+                            alt="mailboxd icon"
+                        />
+                        <h3 className="mt-4 text-lg font-semibold">{t('settings.access.empty.title')}</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            {t('settings.access.empty.description')}
+                        </p>
+                    </div>
                 </div>
             </div>
         )
     }
 
     return (
-        <>
+        <div className="w-full">
+            {header}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {accessibleAccountIds.map((accountId) => {
                     const email = getEmailById(accountId)
@@ -120,6 +133,6 @@ export function AccountAccessList() {
                 mode="account"
                 accountId={permissionsAccountId}
             />
-        </>
+        </div>
     )
 }
