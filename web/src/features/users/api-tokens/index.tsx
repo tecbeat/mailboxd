@@ -28,6 +28,7 @@ import ApiTokenProvider, {
   type ApiTokenDialogType,
 } from './context'
 import { TableSkeleton } from '@/components/table-skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 import Logo from '@/assets/logo.svg'
 import { AccessToken, list_access_tokens } from '@/api/users/api'
 import { useQuery } from '@tanstack/react-query'
@@ -61,21 +62,17 @@ export default function ApiTokens() {
               <ApiTokensTable data={apiTokens} columns={columns} />
             </div>
           ) : (
-            <div className="flex min-h-[300px] items-center justify-center rounded-md border border-dashed p-4">
-              <div className="mx-auto flex w-full max-w-md flex-col items-center justify-center text-center">
+            <EmptyState
+              icon={
                 <img
                   src={Logo}
                   className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
                   alt="mailboxd icon"
                 />
-                <h3 className="mt-4 text-lg font-semibold">
-                  {t('users.api_tokens.empty.title')}
-                </h3>
-                <p className="mt-2 mb-4 text-sm text-muted-foreground">
-                  {t('users.api_tokens.empty.description')}
-                </p>
-              </div>
-            </div>
+              }
+              title={t('users.api_tokens.empty.title')}
+              description={t('users.api_tokens.empty.description')}
+            />
           )}
 
           {currentRow && (

@@ -297,7 +297,7 @@ export default function MailArchiveDashboard() {
                             const dataPoint = payload[0].payload;
                             const fullDate = formatTooltipDate(dataPoint.timestamp_ms, currentLocale);
                             return (
-                              <div className="p-2 border rounded-lg shadow-md bg-background">
+                              <div className="p-2 rounded-xl border bg-card text-card-foreground shadow-sm">
                                 <p className="font-semibold text-xs mb-1 text-foreground">{fullDate}</p>
                                 <p className="text-xs text-muted-foreground">
                                   {t('dashboard.emails')}: <span className="font-medium text-foreground">{formatNumber(dataPoint.count)}</span>

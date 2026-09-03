@@ -97,7 +97,7 @@ export const TokenCardList: React.FC<Props> = ({ tokens, userId }) => {
             <AccordionItem
               key={itemValue}
               value={itemValue}
-              className={`border rounded-lg shadow-md transition-all duration-300 ${
+              className={`border rounded-xl shadow-sm transition-all duration-300 ${
                 expired ? 'border-red-400 bg-red-50/50' : 'border-gray-200'
               }`}
             >

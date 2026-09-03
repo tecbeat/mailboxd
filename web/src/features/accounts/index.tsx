@@ -36,6 +36,7 @@ import Logo from '@/assets/logo.svg'
 import { AccountDetailDrawer } from './components/account-detail'
 import { AccountModel, list_accounts } from '@/api/account/api'
 import { TableSkeleton } from '@/components/table-skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 import { useQuery } from '@tanstack/react-query'
 import { OAuth2TokensDialog } from './components/oauth2-tokens'
 import { RunningStateDialog } from './components/running-state-dialog'
@@ -96,29 +97,17 @@ export default function Accounts() {
             ) : hasAccounts ? (
               <AccountTable data={accountList.items} columns={columns} />
             ) : (
-              <div className="flex h-[450px] shrink-0 items-center justify-center rounded-md border border-dashed">
-                <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+              <EmptyState
+                icon={
                   <img
                     src={Logo}
                     className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
                     alt="mailboxd icon"
                   />
-                  <h3 className="mt-4 text-lg font-semibold">{t('accounts.noAccountConfigurations')}</h3>
-                  <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                    {t('accounts.noAccountConfigurationsDesc')}
-                  </p>
-                  <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
-                    <Button variant="default" className="w-64" onClick={() => navigate({ to: '/accounts/new' })}>
-                      <Mail className="mr-1.5 h-4 w-4" />
-                      {t('accounts.imapAccount')}
-                    </Button>
-                    <Button variant="outline" className="w-64" onClick={() => setOpen('add-nosync')}>
-                      <Database className="mr-1.5 h-4 w-4" />
-                      {t('accounts.noSyncAccount')}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                }
+                title={t('accounts.noAccountConfigurations')}
+                description={t('accounts.noAccountConfigurationsDesc')}
+              />
             )}
           </div>
         </div>

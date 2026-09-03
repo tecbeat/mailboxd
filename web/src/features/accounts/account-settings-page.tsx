@@ -211,7 +211,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
             description={t('accounts.updateTheEmailAccountHere')}
           />
 
-          <div className="rounded-lg border shadow-xs bg-card p-6 md:p-8">
+          <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 md:p-8">
             <FormProvider {...form}>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
