@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import AttachmentSearch from '@/features/attachment'
+import { getPersistedPageSize } from '@/lib/data-table'
 
 const searchSchema = z.object({
   page: z.number().catch(1),
@@ -17,7 +18,7 @@ export const Route = createFileRoute('/_authenticated/attachment/')({
     return {
       ...result,
       page: result.page ?? 1,
-      pageSize: result.pageSize ?? (Number(localStorage.getItem('mailboxd_search_attachment_page_size')) || 30),
+      pageSize: result.pageSize ?? getPersistedPageSize('attachment', 30),
     }
   }
 })

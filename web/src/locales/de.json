@@ -1512,8 +1512,6 @@
     "hide": "Ausblenden",
     "loading": "Wird geladen...",
     "noResults": "Keine Ergebnisse gefunden",
-    "of": "von",
-    "page": "Seite",
     "pagination": {
       "first": "Erste Seite",
       "fixed_page_size": "{{size}} Zeilen pro Seite.",
@@ -1524,8 +1522,6 @@
       "rows_per_page": "Zeilen pro Seite",
       "selected": "{{selected}} von {{total}} Zeilen ausgewählt."
     },
-    "results": "Ergebnisse",
-    "rowsPerPage": "Zeilen pro Seite",
     "showing": "Anzeige",
     "to": "bis"
   },

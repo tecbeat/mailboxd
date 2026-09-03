@@ -1543,8 +1543,6 @@
     "hide": "Hide",
     "loading": "Loading...",
     "noResults": "No results found",
-    "of": "of",
-    "page": "Page",
     "pagination": {
       "first": "Go to first page",
       "fixed_page_size": "{{size}} rows per page.",
@@ -1555,8 +1553,6 @@
       "rows_per_page": "Rows per page",
       "selected": "Selected {{selected}} / {{total}} row(s)."
     },
-    "results": "results",
-    "rowsPerPage": "Rows per page",
     "showing": "Showing",
     "to": "to"
   },

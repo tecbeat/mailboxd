@@ -1506,8 +1506,6 @@
     "hide": "Skjul",
     "loading": "Indlæser...",
     "noResults": "Ingen resultater fundet",
-    "of": "af",
-    "page": "Side",
     "pagination": {
       "first": "Gå til første side",
       "fixed_page_size": "{{size}} rækker pr. side.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "Rækker pr. side",
       "selected": "{{selected}} af {{total}} række(r) valgt."
     },
-    "results": "resultater",
-    "rowsPerPage": "Rækker pr. side",
     "showing": "Viser",
     "to": "til"
   },

@@ -1506,8 +1506,6 @@
     "hide": "Ukryj",
     "loading": "Ładowanie...",
     "noResults": "Brak wyników",
-    "of": "z",
-    "page": "Strona",
     "pagination": {
       "first": "Pierwsza strona",
       "fixed_page_size": "{{size}} wierszy na stronę.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "Wierszy na stronę",
       "selected": "Wybrano {{selected}} z {{total}} wierszy."
     },
-    "results": "wyniki",
-    "rowsPerPage": "Wierszy na stronę",
     "showing": "Pokazuj",
     "to": "do"
   },
