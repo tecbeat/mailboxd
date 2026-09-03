@@ -37,7 +37,7 @@ export const Main = ({ fixed, higher, className, ...props }: MainProps) => {
         'px-4 py-6',
         fixed
           ? 'fixed-main flex flex-col flex-grow overflow-hidden'
-          : 'w-full max-w-6xl',
+          : 'w-full max-w-6xl mx-auto',
         className
       )}
       {...props}
