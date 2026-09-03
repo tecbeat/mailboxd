@@ -22,7 +22,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/utils'
 import { AccessToken } from '@/api/users/api'
 import { Badge } from '@/components/ui/badge'
 
@@ -85,7 +85,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
         return (
           <div className="text-center text-xs text-muted-foreground">
             {last > 0
-              ? format(new Date(last), 'yyyy-MM-dd HH:mm')
+              ? formatDateTime(last)
               : t('users.api_tokens.table.never')}
           </div>
         )
@@ -119,7 +119,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
               : 'text-muted-foreground'
               }`}
           >
-            {format(new Date(expireAt), 'yyyy-MM-dd HH:mm')}
+            {formatDateTime(expireAt)}
             {isExpired && (
               <span className="ml-1">
                 ({t('users.api_tokens.table.expired')})
@@ -163,7 +163,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
       ),
       cell: ({ row }) => (
         <div className="text-center text-xs text-muted-foreground">
-          {format(new Date(row.original.created_at), 'yyyy-MM-dd HH:mm')}
+          {formatDateTime(row.original.created_at)}
         </div>
       ),
       meta: { className: 'text-center' },

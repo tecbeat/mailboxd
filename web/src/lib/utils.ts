@@ -19,9 +19,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { enUS, zhCN, zhTW, arSA, de, es, fi, fr, it, ja, ko, nl, ptBR, ru, da, sv, nb } from 'date-fns/locale';
+import { format, formatDistanceToNow } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import i18n from '@/i18n'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -98,23 +100,6 @@ export function validateTag(facetPath: string) {
 
 
 
-export function formatTimestamp(milliseconds: number): string {
-  const date = new Date(milliseconds);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  const timezoneOffset = date.getTimezoneOffset();
-  const offsetSign = timezoneOffset > 0 ? '-' : '+';
-  const offsetHours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(2, '0');
-  const offsetMinutes = String(Math.abs(timezoneOffset) % 60).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
-}
-
-
-
 // i18n.language -> date-fns locale
 export const dateFnsLocaleMap: Record<string, Locale> = {
   en: enUS,
@@ -153,6 +138,27 @@ export const dateFnsLocaleMap: Record<string, Locale> = {
   no: nb,
   'no-no': nb,
 };
+
+
+function resolveLocale(locale?: Locale): Locale {
+  return locale ?? dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS;
+}
+
+export function formatDateTime(input: number | string | Date, locale?: Locale): string {
+  const date = new Date(input);
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+  return format(date, 'Pp', { locale: resolveLocale(locale) });
+}
+
+export function formatRelativeTime(input: number | string | Date, locale?: Locale): string {
+  const date = new Date(input);
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+  return formatDistanceToNow(date, { addSuffix: true, locale: resolveLocale(locale) });
+}
 
 
 export function showNumbers(current: number, total: number) {

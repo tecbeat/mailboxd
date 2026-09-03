@@ -26,7 +26,7 @@ import LongText from '@/components/long-text'
 import { OAuth2Entity } from '../data/schema'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/utils'
 import { EnableAction } from './enable-action'
 
 export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatures, OAuth2Entity>[] => [
@@ -108,7 +108,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
     ),
     cell: ({ row }) => {
       const created_at = row.original.created_at;
-      const date = format(new Date(created_at), 'yyyy-MM-dd HH:mm:ss');
+      const date = formatDateTime(created_at);
       return <LongText className='max-w-36'>{date}</LongText>;
     },
     meta: { className: 'w-36' },
@@ -121,7 +121,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
     ),
     cell: ({ row }) => {
       const updated_at = row.original.updated_at;
-      const date = format(new Date(updated_at), 'yyyy-MM-dd HH:mm:ss');
+      const date = formatDateTime(updated_at);
       return <LongText className='max-w-36'>{date}</LongText>;
     },
     meta: { className: 'w-36' },

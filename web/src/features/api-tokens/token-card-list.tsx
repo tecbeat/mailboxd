@@ -20,6 +20,7 @@
 
 import React from 'react'
 import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/utils'
 import { Copy, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -156,7 +157,7 @@ export const TokenCardList: React.FC<Props> = ({ tokens, userId }) => {
                       <span className="block font-medium text-foreground">
                         {t('apiTokens.list.createdLabel')}
                       </span>
-                      {format(new Date(token.created_at), 'yyyy-MM-dd HH:mm')}
+                      {formatDateTime(token.created_at)}
                     </div>
 
                     <div>
@@ -164,7 +165,7 @@ export const TokenCardList: React.FC<Props> = ({ tokens, userId }) => {
                         {t('apiTokens.list.lastUsedLabel')}
                       </span>
                       {token.last_access_at > 0
-                        ? format(new Date(token.last_access_at), 'yyyy-MM-dd HH:mm')
+                        ? formatDateTime(token.last_access_at)
                         : t('apiTokens.list.neverUsed')}
                     </div>
 
@@ -173,7 +174,7 @@ export const TokenCardList: React.FC<Props> = ({ tokens, userId }) => {
                         {t('apiTokens.list.expiresOnLabel')}
                       </span>
                       {token.expire_at
-                        ? format(new Date(token.expire_at), 'yyyy-MM-dd HH:mm')
+                        ? formatDateTime(token.expire_at)
                         : t('apiTokens.list.neverLabel')}
                     </div>
                   </div>
