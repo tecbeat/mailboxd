@@ -17,11 +17,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import { type JSX } from 'react'
 import { useLocation, useNavigate } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import {
@@ -31,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useTranslation } from 'react-i18next'
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
@@ -62,7 +60,9 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
       <div className='p-1 md:hidden'>
         <Select value={activeHref} onValueChange={handleSelect}>
           <SelectTrigger className='h-12 sm:w-48'>
-            <SelectValue placeholder={t('common.selectSection', 'Select a section')} />
+            <SelectValue
+              placeholder={t('common.selectSection', 'Select a section')}
+            />
           </SelectTrigger>
           <SelectContent>
             {items.map((item) => (
@@ -97,7 +97,11 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
               to={item.href}
               className={cn(
                 buttonVariants({ variant: 'ghost' }),
-                pathname === item.href
+                // Match the mobile <Select>: highlight the resolved active item
+                // (longest href prefix, falling back to the first item) rather
+                // than an exact pathname match, so an index redirect like
+                // /settings -> /settings/profile still highlights Profile.
+                activeHref === item.href
                   ? 'bg-muted hover:bg-muted'
                   : 'hover:bg-transparent hover:underline',
                 'justify-start'
