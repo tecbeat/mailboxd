@@ -21,7 +21,7 @@
 
 import { Outlet } from '@tanstack/react-router'
 import { Main } from '@/components/layout/main'
-import SidebarNav from './components/sidebar-nav'
+import { SidebarNav } from '@/components/layout/sidebar-nav'
 import { Users, ShieldCheck, Key } from "lucide-react";
 
 import { FixedHeader } from '@/components/layout/fixed-header'
