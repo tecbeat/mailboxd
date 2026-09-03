@@ -17,65 +17,66 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-import { Card } from "@/components/ui/card";
-import { FixedHeader } from "./layout/fixed-header";
-import { Main } from "./layout/main";
-import Logo from '@/assets/logo.svg'
 import { useTranslation } from 'react-i18next'
-import { Separator } from "./ui/separator";
+import Logo from '@/assets/logo.svg'
+import { Card } from '@/components/ui/card'
+import { FixedHeader } from './layout/fixed-header'
+import { Main } from './layout/main'
+import { PageHeader } from './layout/page-header'
 
 export default function APIDocs() {
   const { t } = useTranslation()
 
-  const rawBase: string = (window as { __MAILBOXD_BASE__?: string }).__MAILBOXD_BASE__ || '';
-  const normalized = rawBase.replace(/\/+$/, '');
+  const rawBase: string =
+    (window as { __MAILBOXD_BASE__?: string }).__MAILBOXD_BASE__ || ''
+  const normalized = rawBase.replace(/\/+$/, '')
   const base_url = normalized.startsWith('http')
     ? normalized
-    : `${window.location.origin}${normalized}`;
+    : `${window.location.origin}${normalized}`
 
   const docsOptions = [
     { name: t('apiDocs.swaggerUI'), path: `${base_url}/api-docs/swagger` },
     { name: t('apiDocs.reDoc'), path: `${base_url}/api-docs/redoc` },
-    { name: t('apiDocs.openAPIExplorer'), path: `${base_url}/api-docs/explorer` },
+    {
+      name: t('apiDocs.openAPIExplorer'),
+      path: `${base_url}/api-docs/explorer`,
+    },
     { name: t('apiDocs.scalar'), path: `${base_url}/api-docs/scalar` },
-    { name: t('apiDocs.downloadSpecYAML'), path: `${base_url}/api-docs/spec.yaml` }
-  ];
+    {
+      name: t('apiDocs.downloadSpecYAML'),
+      path: `${base_url}/api-docs/spec.yaml`,
+    },
+  ]
   const handleCardClick = (path: string) => {
     // Open in new tab
-    window.open(path, '_blank', 'noopener,noreferrer');
-  };
+    window.open(path, '_blank', 'noopener,noreferrer')
+  }
 
   return (
     <>
       <FixedHeader />
       <Main>
-        <div className='mb-2 flex items-center justify-between space-y-2 flex-wrap gap-x-4'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>{t('navigation.apiDocs')}</h2>
-            <p className='text-muted-foreground'>
-              {t('apiDocs.choosePreferredType')}
-            </p>
-          </div>
-        </div>
-        <Separator className='mt-2 mb-4 lg:mt-3 lg:mb-6' />
+        <PageHeader
+          className='mb-4'
+          title={t('navigation.apiDocs')}
+          description={t('apiDocs.choosePreferredType')}
+        />
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1 flex-row lg:space-x-12 space-y-0'>
           <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-6 p-4'>
-            <div className="grid w-full gap-4 sm:grid-cols-1 md:grid-cols-2 xl:max-w-4xl">
+            <div className='grid w-full gap-4 sm:grid-cols-1 md:grid-cols-2 xl:max-w-4xl'>
               {docsOptions.map((option) => (
                 <Card
                   key={option.name}
-                  className="cursor-pointer p-6 transition-all hover:bg-accent hover:text-accent-foreground hover:shadow-md"
+                  className='cursor-pointer p-6 transition-all hover:bg-accent hover:text-accent-foreground hover:shadow-md'
                   onClick={() => handleCardClick(option.path)}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className='flex items-center gap-4'>
                     <img
                       src={Logo}
-                      className="max-h-[66px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                      alt="mailboxd icon"
+                      className='max-h-[66px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain'
+                      alt='mailboxd icon'
                     />
-                    <h3 className="text-sm font-medium">{option.name}</h3>
+                    <h3 className='text-sm font-medium'>{option.name}</h3>
                   </div>
                 </Card>
               ))}
@@ -84,5 +85,5 @@ export default function APIDocs() {
         </div>
       </Main>
     </>
-  );
+  )
 }
