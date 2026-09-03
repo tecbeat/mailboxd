@@ -20,6 +20,7 @@
 
 
 import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
 import { FixedHeader } from '@/components/layout/fixed-header';
 import { Main } from '@/components/layout/main';
 import { PageHeader } from '@/components/layout/page-header';
@@ -125,7 +126,7 @@ export default function AttachmentSearch() {
                   <Card>
                     <CardContent className="py-12">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
+                        <Spinner />
                         <p className="text-sm">{t('search.searching')}</p>
                       </div>
                     </CardContent>

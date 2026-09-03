@@ -21,7 +21,7 @@
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { UserProfileForm } from './profile-form'
 import { PageHeader } from '@/components/layout/page-header'
-import { LoaderCircle as Loader2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useTranslation } from 'react-i18next'
 
 export function Profile() {
@@ -32,7 +32,7 @@ export function Profile() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-6 w-6 animate-spin" />
+        <Spinner />
       </div>
     )
   }
