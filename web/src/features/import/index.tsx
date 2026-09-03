@@ -19,6 +19,7 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
+import { statusTextClass, type StatusKind } from '@/lib/status-colors';
 import { Main } from '@/components/layout/main';
 import { PageHeader } from '@/components/layout/page-header';
 import { FixedHeader } from '@/components/layout/fixed-header';
@@ -720,12 +721,12 @@ export default function ImportPage() {
 // ─── Import history collapsible ──────────────────────────────────────────
 
 function statusColor(status: string) {
-  switch (status) {
-    case 'completed': return 'text-green-600';
-    case 'failed': return 'text-destructive';
-    case 'processing': return 'text-amber-600';
-    default: return 'text-muted-foreground';
-  }
+  const kindMap: Record<string, StatusKind> = {
+    completed: 'success',
+    failed: 'error',
+    processing: 'warning',
+  };
+  return statusTextClass[kindMap[status] ?? 'neutral'];
 }
 
 function statusLabel(status: string) {

@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button'
 import { useQuery } from '@tanstack/react-query'
 import { download_state, AccountModel, FolderProgress } from '@/api/account/api'
 import { formatDateTime } from '@/lib/utils'
+import { statusBadgeClass, type StatusKind } from '@/lib/status-colors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -50,16 +51,17 @@ interface Props {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    Running: 'bg-blue-500/10 text-blue-600',
-    Downloading: 'bg-blue-500/10 text-blue-600',
-    Success: 'bg-green-500/10 text-green-600',
-    Failed: 'bg-red-500/10 text-red-600',
-    Cancelled: 'bg-muted text-muted-foreground',
-    Pending: 'bg-amber-500/10 text-amber-600',
+  const kindMap: Record<string, StatusKind> = {
+    Running: 'info',
+    Downloading: 'info',
+    Success: 'success',
+    Failed: 'error',
+    Cancelled: 'neutral',
+    Pending: 'warning',
   }
+  const kind = kindMap[status]
   return (
-    <Badge variant="outline" className={`${map[status] || ''} border-none font-medium text-[11px] px-1.5 h-5 shrink-0`}>
+    <Badge variant="outline" className={`${kind ? statusBadgeClass[kind] : ''} font-medium text-[11px] px-1.5 h-5 shrink-0`}>
       {status}
     </Badge>
   )

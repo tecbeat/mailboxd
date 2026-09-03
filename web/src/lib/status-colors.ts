@@ -1,9 +1,8 @@
 //
-// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
 // Copyright (c) 2026 tecbeat
 //
 // This file is part of mailboxd, a fork of the Bichon email archiving
-// project. Modifications by tecbeat, 2026.
+// project.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,9 +17,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { getFileTypeConfig } from '@/lib/file-type';
+export type StatusKind = 'success' | 'warning' | 'info' | 'error' | 'neutral';
 
-export const getFileConfig = (mimeType: string) => {
-  const { Icon, badge } = getFileTypeConfig(mimeType);
-  return { icon: <Icon className="h-4 w-4" />, color: badge };
+export const statusBadgeClass: Record<StatusKind, string> = {
+  success: 'bg-green-500/10 text-green-600 border-green-500/20',
+  warning: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  info: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  error: 'bg-red-500/10 text-red-600 border-red-500/20',
+  neutral: 'bg-muted text-muted-foreground border-transparent',
+};
+
+export const statusTextClass: Record<StatusKind, string> = {
+  success: 'text-green-600',
+  warning: 'text-amber-600',
+  info: 'text-blue-600',
+  error: 'text-destructive',
+  neutral: 'text-muted-foreground',
 };

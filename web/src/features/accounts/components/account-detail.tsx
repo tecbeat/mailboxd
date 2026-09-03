@@ -21,6 +21,7 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
+import { statusBadgeClass } from '@/lib/status-colors'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -170,11 +171,11 @@ export function AccountDetailDrawer({ open, onOpenChange, currentRow }: Props) {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-muted-foreground">{t('accounts.auth')}:</span>
                         {currentRow.imap?.auth.auth_type === "OAuth2" ? (
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                          <Badge variant="outline" className={statusBadgeClass.info}>
                             OAuth2
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                          <Badge variant="outline" className={statusBadgeClass.info}>
                             Password
                           </Badge>
                         )}

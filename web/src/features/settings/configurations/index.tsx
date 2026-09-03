@@ -22,6 +22,7 @@
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { statusBadgeClass } from "@/lib/status-colors"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/components/layout/page-header"
@@ -201,11 +202,11 @@ export default function ServerConfigurationsPage() {
                   label="MAILBOXD_ENCRYPT_PASSWORD_SET"
                   value={
                     data!.mailboxd_encrypt_password_set ? (
-                      <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                      <Badge variant="outline" className={statusBadgeClass.success}>
                         {t("systemConfig.status.configured")}
                       </Badge>
                     ) : (
-                      <Badge variant="destructive">{t("systemConfig.status.missing")}</Badge>
+                      <Badge variant="outline" className={statusBadgeClass.error}>{t("systemConfig.status.missing")}</Badge>
                     )
                   }
                 />

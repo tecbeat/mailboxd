@@ -24,15 +24,15 @@ import { getFileConfig } from '../file-config'
 describe('getFileConfig', () => {
   it.each([
     ['application/pdf', 'red'],
-    ['image/png', 'blue'],
-    ['audio/mpeg', 'purple'],
-    ['video/mp4', 'indigo'],
+    ['image/png', 'purple'],
+    ['audio/mpeg', 'amber'],
+    ['video/mp4', 'pink'],
     ['application/vnd.ms-excel', 'green'],
     ['text/csv', 'green'],
-    ['application/zip', 'orange'],
-    ['text/plain', 'slate'],
-    ['application/json', 'slate'],
-    ['application/octet-stream', 'gray'],
+    ['application/zip', 'gray'],
+    ['text/plain', 'sky'],
+    ['application/json', 'sky'],
+    ['application/octet-stream', 'muted'],
   ])('maps %s to the %s palette with a rendered icon', (mime, palette) => {
     const { icon, color } = getFileConfig(mime)
     expect(color).toContain(palette)
