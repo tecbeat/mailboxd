@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { useState, type JSX } from 'react'
+import { type JSX } from 'react'
 import { useLocation, useNavigate } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
@@ -42,27 +42,28 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   }[]
 }
 
-export default function SidebarNav({
-  className,
-  items,
-  ...props
-}: SidebarNavProps) {
+export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const [val, setVal] = useState(pathname ?? '/settings')
 
-  const handleSelect = (e: string) => {
-    setVal(e)
-    navigate({ to: e })
+  const activeHref =
+    items
+      .filter(
+        (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
+      )
+      .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? items[0]?.href
+
+  const handleSelect = (href: string) => {
+    navigate({ to: href })
   }
 
   return (
     <>
       <div className='p-1 md:hidden'>
-        <Select value={val} onValueChange={handleSelect}>
+        <Select value={activeHref} onValueChange={handleSelect}>
           <SelectTrigger className='h-12 sm:w-48'>
-            <SelectValue placeholder={t('settings.theme')} />
+            <SelectValue placeholder={t('common.selectSection', 'Select a section')} />
           </SelectTrigger>
           <SelectContent>
             {items.map((item) => (
