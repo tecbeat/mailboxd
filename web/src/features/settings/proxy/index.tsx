@@ -48,11 +48,11 @@ export default function ProxyManagerPage() {
   const columns = getColumns(t)
 
   return (
-    <div className="w-full">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <ProxyProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
-        <div>
+        <div className="flex min-h-0 w-full flex-1 flex-col">
           <PageHeader
-            className="mb-4"
+            className="mb-4 shrink-0"
             title={t('settings.proxyTitle', 'Network Proxy')}
             description={t('settings.proxyDescription', 'Configure proxy servers used for account connections.')}
             actions={
@@ -61,13 +61,11 @@ export default function ProxyManagerPage() {
               </Button>
             }
           />
-          <div className="flex-1 w-full overflow-auto -mx-4 px-4 py-1">
+          <div className="flex min-h-0 w-full flex-1 flex-col py-1">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : proxyList?.length ? (
-              <div className="overflow-x-auto">
-                <ProxyTable data={proxyList} columns={columns} />
-              </div>
+              <ProxyTable data={proxyList} columns={columns} />
             ) : (
               <EmptyState
                 title={t('settings.noProxies')}

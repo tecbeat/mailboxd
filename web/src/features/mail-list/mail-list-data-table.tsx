@@ -191,14 +191,20 @@ export function MailListDataTable<TEntity extends MailListRow>({
 
   return (
     <>
-      <div className="flex flex-1 flex-col gap-0.5">
+      <div className="flex h-full min-h-0 flex-1 flex-col gap-0.5">
         {toolbar(table)}
         {/*
-          The table flows into the shell's single scroll region (it does not
-          create its own vertical scrollbar). Only horizontal overflow is
-          scrolled locally, for tables wider than the content column.
+          The table region is the scroll container: it fills the remaining
+          height (flex-1 min-h-0) and scrolls internally on both axes, so the
+          pinned header and footer/pagination outside it stay put. The sticky
+          <th> row (see ui/table.tsx) then sticks to the top of THIS box rather
+          than behind the app header. Degrades to natural flow when no bounded
+          height is provided by the parent. `relative` makes this box the
+          containing block for any absolutely-positioned descendants (e.g.
+          screen-reader-only labels), so their overflow stays contained here
+          instead of inflating the app shell's scroll region.
         */}
-        <div className='w-full overflow-x-auto rounded-md border'>
+        <div className='relative min-h-0 flex-1 overflow-auto rounded-md border scrollbar-thin'>
           <ShadcnTable>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

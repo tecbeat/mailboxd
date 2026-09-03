@@ -95,7 +95,7 @@ export default function EmailSearch() {
   return (
     <>
       <FixedHeader />
-      <Main>
+      <Main fixed>
         <SearchProvider
           value={{
             open,
@@ -121,16 +121,16 @@ export default function EmailSearch() {
           }}
         >
           <MailListConfigProvider config={SEARCH_LIST_CONFIG}>
-          <div>
+          <div className="flex h-full min-h-0 flex-col">
             <PageHeader
-              className="mb-4"
+              className="mb-4 shrink-0"
               title={t('search.title')}
               description={t('search.description', 'Search your archived emails across all accounts.')}
             />
-            <div className="flex gap-6">
-              <div className="flex-1 min-w-0 space-y-4">
+            <div className="flex min-h-0 flex-1 gap-6">
+              <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4">
                 {isLoading && (
-                  <Card>
+                  <Card className="shrink-0">
                     <CardContent className="py-12">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <Spinner />
@@ -150,7 +150,8 @@ export default function EmailSearch() {
                   setSortBy={setSortBy}
                   setSortOrder={setSortOrder}
                 />
-                {total > 0 && <DataTablePagination
+                {total > 0 && <div className="shrink-0">
+                  <DataTablePagination
                   storageKey='search'
                   pageIndex={page - 1}
                   pageCount={Math.max(1, Math.ceil(total / pageSize))}
@@ -162,7 +163,8 @@ export default function EmailSearch() {
                   onNext={() => setPage(page + 1)}
                   onLast={() => setPage(totalPages)}
                   onPageSizeChange={handleSetPageSize}
-                />}
+                />
+                </div>}
               </div>
             </div>
           </div>

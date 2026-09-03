@@ -50,11 +50,11 @@ export default function Roles() {
   const columns = getColumns(t)
 
   return (
-    <div className="w-full">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <RoleProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
-        <div className="w-full">
+        <div className="flex min-h-0 w-full flex-1 flex-col">
           <PageHeader
-            className="mb-4"
+            className="mb-4 shrink-0"
             title={t('roles.pageTitle', 'Roles')}
             description={t('roles.description', 'Define roles and the permissions granted to their members.')}
             actions={
@@ -63,13 +63,11 @@ export default function Roles() {
               </Button>
             }
           />
-          <div className="w-full">
+          <div className="flex min-h-0 w-full flex-1 flex-col">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : roles?.length ? (
-              <div className="overflow-x-auto">
-                <RolesTable data={roles} columns={columns} />
-              </div>
+              <RolesTable data={roles} columns={columns} />
             ) : (
               <EmptyState
                 title={t('roles.empty.title')}

@@ -70,10 +70,10 @@ export default function Accounts() {
     <AccountProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
       <FixedHeader />
 
-      <Main>
-        <div>
+      <Main fixed>
+        <div className="flex h-full min-h-0 flex-col">
           <PageHeader
-            className='mb-2'
+            className='mb-2 shrink-0'
             title={t('accounts.title')}
             description={t('accounts.description')}
             actions={require_any_permission(['system:root', 'account:create']) && (
@@ -90,7 +90,7 @@ export default function Accounts() {
             )}
           />
 
-          <div className='flex-1 overflow-auto py-1 flex-row lg:space-x-12 space-y-0'>
+          <div className='flex min-h-0 w-full flex-1 flex-col py-1'>
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : hasAccounts ? (

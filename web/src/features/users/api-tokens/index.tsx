@@ -46,26 +46,26 @@ export default function ApiTokens() {
   const columns = getColumns(t)
 
   return (
-    <div className="w-full">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <ApiTokenProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
-        <div className="w-full">
+        <div className="flex min-h-0 w-full flex-1 flex-col">
           <PageHeader
-            className="mb-4"
+            className="mb-4 shrink-0"
             title={t('users.api_tokens.title', 'API Tokens')}
             description={t('users.api_tokens.description', 'System-wide API tokens for programmatic access.')}
           />
-          {isLoading ? (
-            <TableSkeleton columns={columns.length} rows={10} />
-          ) : apiTokens?.length ? (
-            <div className="overflow-x-auto">
+          <div className="flex min-h-0 w-full flex-1 flex-col">
+            {isLoading ? (
+              <TableSkeleton columns={columns.length} rows={10} />
+            ) : apiTokens?.length ? (
               <ApiTokensTable data={apiTokens} columns={columns} />
-            </div>
-          ) : (
-            <EmptyState
-              title={t('users.api_tokens.empty.title')}
-              description={t('users.api_tokens.empty.description')}
-            />
-          )}
+            ) : (
+              <EmptyState
+                title={t('users.api_tokens.empty.title')}
+                description={t('users.api_tokens.empty.description')}
+              />
+            )}
+          </div>
 
           {currentRow && (
             <ApiTokenDeleteDialog
