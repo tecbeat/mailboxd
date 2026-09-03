@@ -38,7 +38,6 @@ import {
 } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { mailTableFeatures, type MailTableFeatures } from '@/lib/data-table'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
@@ -194,7 +193,12 @@ export function MailListDataTable<TEntity extends MailListRow>({
     <>
       <div className="flex flex-1 flex-col gap-0.5">
         {toolbar(table)}
-        <ScrollArea className='h-[calc(100vh-16rem)] rounded-md border' orientation='both'>
+        {/*
+          The table flows into the shell's single scroll region (it does not
+          create its own vertical scrollbar). Only horizontal overflow is
+          scrolled locally, for tables wider than the content column.
+        */}
+        <div className='w-full overflow-x-auto rounded-md border'>
           <ShadcnTable>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -257,7 +261,7 @@ export function MailListDataTable<TEntity extends MailListRow>({
               )}
             </TableBody>
           </ShadcnTable>
-        </ScrollArea>
+        </div>
       </div>
       {bulkActions && totalSelected > 0 && bulkActions}
     </>
