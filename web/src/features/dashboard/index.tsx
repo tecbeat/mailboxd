@@ -64,8 +64,8 @@ const formatTooltipDate = (timestamp_ms: number, locale: string): string => {
   }).format(date);
 };
 
-const MetricCardSkeleton = () => (
-  <Card>
+const MetricCardSkeleton = ({ className }: { className?: string }) => (
+  <Card className={className}>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <Skeleton className="h-4 w-32" />
       <Skeleton className="h-4 w-4" />
@@ -179,12 +179,80 @@ export default function MailArchiveDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => <MetricCardSkeleton key={i} />)}
-        </div>
-        <Skeleton className="h-36 w-full" />
-      </div>
+      <>
+        <FixedHeader />
+        <Main higher>
+          <div className="flex-1 space-y-6">
+            <PageHeader
+              title={t('dashboard.title')}
+              description={t('dashboard.description', 'Overview of your archived mail, storage, and activity.')}
+            />
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-12">
+              <MetricCardSkeleton className="md:col-span-2 lg:col-span-2" />
+              <MetricCardSkeleton className="md:col-span-2 lg:col-span-2" />
+              <MetricCardSkeleton className="md:col-span-2 lg:col-span-2" />
+              <Card className="md:col-span-6 lg:col-span-6">
+                <CardHeader className="flex flex-row items-center justify-between pt-2 pb-1 px-4">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-6 w-12" />
+                </CardHeader>
+                <CardContent className="py-2.5 space-y-2">
+                  <Skeleton className="h-2 w-full rounded-full" />
+                  <div className="flex flex-col gap-1">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-28" />
+                      <Skeleton className="h-3 w-28" />
+                    </div>
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-6">
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-40" />
+                </CardHeader>
+                <CardContent className="h-36">
+                  <Skeleton className="h-full w-full" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-40" />
+                </CardHeader>
+                <CardContent className="flex items-center justify-center h-36">
+                  <Skeleton className="h-32 w-32 rounded-full" />
+                </CardContent>
+              </Card>
+            </div>
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <CardHeader className="!px-4 !pt-4 !pb-1">
+                    <Skeleton className="h-3 w-32" />
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="space-y-3 p-4">
+                      {[...Array(6)].map((_, j) => (
+                        <div key={j} className="flex items-center justify-between">
+                          <Skeleton className="h-3 w-32" />
+                          <Skeleton className="h-3 w-10" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </Main>
+      </>
     );
   }
 
