@@ -21,6 +21,7 @@
 
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import Logo from '@/assets/logo.svg'
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -30,7 +31,15 @@ interface EmptyStateProps {
   className?: string;
 }
 
-export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
+const defaultIcon = (
+  <img
+    src={Logo}
+    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
+    alt="mailboxd icon"
+  />
+);
+
+export function EmptyState({ icon = defaultIcon, title, description, action, className }: EmptyStateProps) {
   return (
     <div
       className={cn(

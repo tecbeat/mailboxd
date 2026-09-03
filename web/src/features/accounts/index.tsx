@@ -32,7 +32,6 @@ import AccountProvider, {
   type AccountDialogType,
 } from './context'
 import { Mail, Database } from 'lucide-react'
-import Logo from '@/assets/logo.svg'
 import { AccountDetailDrawer } from './components/account-detail'
 import { AccountModel, list_accounts } from '@/api/account/api'
 import { TableSkeleton } from '@/components/table-skeleton'
@@ -98,13 +97,6 @@ export default function Accounts() {
               <AccountTable data={accountList.items} columns={columns} />
             ) : (
               <EmptyState
-                icon={
-                  <img
-                    src={Logo}
-                    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                    alt="mailboxd icon"
-                  />
-                }
                 title={t('accounts.noAccountConfigurations')}
                 description={t('accounts.noAccountConfigurationsDesc')}
               />

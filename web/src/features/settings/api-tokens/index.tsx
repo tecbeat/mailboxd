@@ -23,7 +23,6 @@ import { Plus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { get_user_tokens } from '@/api/users/api'
 import { Spinner } from '@/components/ui/spinner'
-import Logo from '@/assets/logo.svg'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/layout/page-header'
@@ -79,13 +78,6 @@ export function APITokens() {
       ) : tokens.length === 0 ? (
         <EmptyState
           className="mt-4"
-          icon={
-            <img
-              src={Logo}
-              className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-              alt="mailboxd icon"
-            />
-          }
           title={t('apiTokens.page.emptyTitle')}
           description={t('apiTokens.page.emptyDescription')}
         />

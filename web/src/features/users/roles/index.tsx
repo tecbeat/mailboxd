@@ -32,7 +32,6 @@ import RoleProvider, {
 import { Plus } from 'lucide-react'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
-import Logo from '@/assets/logo.svg'
 import { list_roles, UserRole } from '@/api/users/api'
 import { useQuery } from '@tanstack/react-query'
 import { PermissionsDialog } from './components/permissions-dialog'
@@ -73,13 +72,6 @@ export default function Roles() {
               </div>
             ) : (
               <EmptyState
-                icon={
-                  <img
-                    src={Logo}
-                    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                    alt="mailboxd icon"
-                  />
-                }
                 title={t('roles.empty.title')}
                 description={t('roles.empty.desc')}
               />

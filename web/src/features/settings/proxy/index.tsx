@@ -33,7 +33,6 @@ import ProxyProvider, {
 import { Plus } from 'lucide-react'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
-import Logo from '@/assets/logo.svg'
 import useProxyList from '@/hooks/use-proxy'
 import { useTranslation } from 'react-i18next'
 import { Proxy } from '@/api/system/api'
@@ -71,13 +70,6 @@ export default function ProxyManagerPage() {
               </div>
             ) : (
               <EmptyState
-                icon={
-                  <img
-                    src={Logo}
-                    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                    alt="mailboxd icon"
-                  />
-                }
                 title={t('settings.noProxies')}
                 description={t('settings.noProxiesDesc')}
               />

@@ -32,7 +32,6 @@ import OAuth2Provider, {
   type OAuth2DialogType,
 } from './context'
 import { Plus } from 'lucide-react'
-import Logo from '@/assets/logo.svg'
 import { OAuth2Entity } from './data/schema'
 import { useQuery } from '@tanstack/react-query'
 import { get_oauth2_list } from '@/api/oauth2/api'
@@ -79,13 +78,6 @@ export default function OAuth2() {
               <Oauth2Table data={oauth2List.items} columns={columns} />
             ) : (
               <EmptyState
-                icon={
-                  <img
-                    src={Logo}
-                    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                    alt="mailboxd icon"
-                  />
-                }
                 title={t('oauth2.noConfigurations')}
                 description={t('oauth2.noConfigurationsDesc')}
               />
