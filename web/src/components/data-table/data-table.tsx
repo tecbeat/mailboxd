@@ -17,8 +17,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ColumnDef,
@@ -32,6 +30,13 @@ import {
   flexRender,
   useTable,
 } from '@tanstack/react-table'
+import { useTranslation } from 'react-i18next'
+import {
+  dataTableFeatures,
+  getPersistedPageSize,
+  type DataTableFeatures,
+} from '@/lib/data-table'
+import { cn } from '@/lib/utils'
 import {
   Table,
   TableBody,
@@ -40,13 +45,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { cn } from '@/lib/utils'
-import {
-  dataTableFeatures,
-  getPersistedPageSize,
-  type DataTableFeatures,
-} from '@/lib/data-table'
-import { useTranslation } from 'react-i18next'
 import { DataTablePagination } from './data-table-pagination'
 
 interface DataTableProps<TData extends RowData> {
@@ -89,7 +87,8 @@ export function DataTable<TData extends RowData>({
   const { t } = useTranslation()
   const sortingStorageKey = `mailboxd_${storageKey}_sorting`
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>(() => {
     if (!persistSorting) return []
@@ -132,74 +131,105 @@ export function DataTable<TData extends RowData>({
   })
 
   return (
-    <div className='flex h-full min-h-0 flex-col gap-4'>
+    <div className='flex min-h-0 flex-col gap-4'>
       {toolbar?.(table)}
       {/*
-        The bordered table box is the scroll container: it fills the remaining
-        height (flex-1 min-h-0) and scrolls internally, keeping the toolbar
-        above and the pagination below it pinned. Degrades to natural flow when
-        the parent gives no bounded height. `relative` makes this box the
-        containing block for any absolutely-positioned descendants (e.g.
-        screen-reader-only labels), so their overflow stays contained here
-        instead of inflating the app shell's scroll region.
+        Hug-content layout: this root is a normal flex child (flex: 0 1 auto),
+        so it is only as tall as toolbar + rows + pagination and does NOT
+        stretch to fill the parent — no empty bordered box under a short list.
+
+        Two nested layers split the two scroll axes so the rounded border stays
+        wrapped tightly around the header + rows:
+
+        OUTER (this div) scrolls HORIZONTALLY only. It fills the remaining height
+        (flex-1 min-h-0); when the table is wider than the column the horizontal
+        scrollbar sits in its own strip directly BELOW the bordered box — never
+        on top of the rows. overflow-y is hidden because the MIDDLE layer owns
+        the vertical scroll; nothing overflows the outer vertically.
+
+        MIDDLE owns the border (containerClassName) and is only as wide as the
+        table (w-max, min-w-full), so the border hugs the table content. It caps
+        its height at the outer (max-h-full) and scrolls its own content
+        VERTICALLY (overflow-y-auto), so on a long list the border box stays put
+        (top border never scrolls away), the sticky header sticks just inside it,
+        and the vertical scrollbar runs down its right edge. On a short list it
+        shrinks to the rows (hug). `relative` makes it the containing block for
+        any absolutely-positioned descendants (e.g. screen-reader-only labels).
+
+        FOOTGUN: `w-max` is max-content. A `table-fixed` + `w-full` table inside
+        a max-content wrapper degenerates to a ~1,000,000px width. Such callers
+        must override the width by passing `w-full` in containerClassName (see
+        the proxy table), which twMerge resolves ahead of the default `w-max`.
       */}
-      <div className={cn('relative min-h-0 flex-1 overflow-auto scrollbar-thin', containerClassName)}>
-        <Table className={tableClassName}>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className='group/row'>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      className={header.column.columnDef.meta?.className ?? ''}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className={rowClassName ? rowClassName(row) : 'group/row'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={cn(cellClassName, cell.column.columnDef.meta?.className)}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+      <div className='min-h-0 flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin'>
+        <div
+          className={cn(
+            'relative max-h-full w-max min-w-full overflow-y-auto scrollbar-thin',
+            containerClassName
+          )}
+        >
+          <Table className={tableClassName}>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className='group/row'>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        className={
+                          header.column.columnDef.meta?.className ?? ''
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className='h-24 text-center'
-                >
-                  {t('common.table.noResults')}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={rowClassName ? rowClassName(row) : 'group/row'}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          cellClassName,
+                          cell.column.columnDef.meta?.className
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className='h-24 text-center'
+                  >
+                    {t('common.table.noResults')}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
       {showPagination && (
         <div className='shrink-0'>
