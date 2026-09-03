@@ -86,7 +86,6 @@ interface AccountSettingsPageProps {
 
 export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
   const { t } = useTranslation();
-  //const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: accountList } = useQuery({
