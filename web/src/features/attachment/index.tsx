@@ -22,6 +22,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { FixedHeader } from '@/components/layout/fixed-header';
 import { Main } from '@/components/layout/main';
+import { PageHeader } from '@/components/layout/page-header';
 import { AttachmentListPagination } from '@/components/pagination';
 import React from 'react';
 import AttachmentProvider, { AttachmentDialogType, useAttachmentContext } from './context';
@@ -113,6 +114,11 @@ export default function AttachmentSearch() {
         >
           <MailListConfigProvider config={ATTACHMENT_LIST_CONFIG}>
           <div>
+            <PageHeader
+              className="mb-4"
+              title={t('attachment.title', 'Attachments')}
+              description={t('attachment.description', 'Search and browse archived email attachments.')}
+            />
             <div className="flex gap-6">
               <div className="flex-1 min-w-0 space-y-4">
                 {isLoading && (

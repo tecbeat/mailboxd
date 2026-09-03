@@ -24,7 +24,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ShieldCheck, Server, Database, Activity, Info as InfoIcon, Mail, Zap } from "lucide-react"
+import { PageHeader } from "@/components/layout/page-header"
+import { ShieldCheck, Server, Database, Activity, Mail, Zap } from "lucide-react"
 import { get_system_configurations } from "@/api/system/api"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
@@ -134,15 +135,10 @@ export default function ServerConfigurationsPage() {
       <ScrollArea className="h-full w-full">
         <div className="py-8 space-y-6">
 
-          <div className="flex items-start gap-3 p-4 rounded-xl border bg-muted/30">
-            <InfoIcon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-            <div>
-              <h4 className="text-sm font-semibold">{t("systemConfig.pageTitle")}</h4>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                {t("systemConfig.pageDescription")}
-              </p>
-            </div>
-          </div>
+          <PageHeader
+            title={t("systemConfig.pageTitle")}
+            description={t("systemConfig.pageDescription")}
+          />
 
           {isLoading ? (
             <PageSkeleton />

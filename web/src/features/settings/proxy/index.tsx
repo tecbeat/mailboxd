@@ -22,6 +22,7 @@
 import { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import { ProxyActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { ProxyDeleteDialog } from './components/delete-dialog'
@@ -50,13 +51,16 @@ export default function ProxyManagerPage() {
     <div className="w-full">
       <ProxyProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
         <div>
-          <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <div className="flex gap-2">
+          <PageHeader
+            className="mb-4"
+            title={t('settings.proxyTitle', 'Network Proxy')}
+            description={t('settings.proxyDescription', 'Configure proxy servers used for account connections.')}
+            actions={
               <Button className="space-x-1" disabled={!require_any_permission(['system:root'])} onClick={() => setOpen('add')}>
                 <span>{t('settings.add')}</span> <Plus size={18} />
               </Button>
-            </div>
-          </div>
+            }
+          />
           <div className="flex-1 w-full overflow-auto -mx-4 px-4 py-1">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />

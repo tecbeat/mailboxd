@@ -22,6 +22,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { FixedHeader } from '@/components/layout/fixed-header';
 import { Main } from '@/components/layout/main';
+import { PageHeader } from '@/components/layout/page-header';
 import { useSearchMessages } from '@/hooks/use-search-messages';
 import { AttachmentListPagination } from '@/components/pagination';
 import React from 'react';
@@ -120,6 +121,11 @@ export default function EmailSearch() {
         >
           <MailListConfigProvider config={SEARCH_LIST_CONFIG}>
           <div>
+            <PageHeader
+              className="mb-4"
+              title={t('search.title')}
+              description={t('search.description', 'Search your archived emails across all accounts.')}
+            />
             <div className="flex gap-6">
               <div className="flex-1 min-w-0 space-y-4">
                 {isLoading && (

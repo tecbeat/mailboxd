@@ -20,6 +20,7 @@
 
 import { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
+import { PageHeader } from '@/components/layout/page-header'
 import { getColumns } from './components/columns'
 import { ApiTokenDeleteDialog } from './components/delete-dialog'
 import { ApiTokensTable } from './components/table'
@@ -48,6 +49,11 @@ export default function ApiTokens() {
     <div className="w-full">
       <ApiTokenProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
         <div className="w-full">
+          <PageHeader
+            className="mb-4"
+            title={t('users.api_tokens.title', 'API Tokens')}
+            description={t('users.api_tokens.description', 'System-wide API tokens for programmatic access.')}
+          />
           {isLoading ? (
             <TableSkeleton columns={columns.length} rows={10} />
           ) : apiTokens?.length ? (

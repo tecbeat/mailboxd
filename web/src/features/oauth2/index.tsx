@@ -23,6 +23,7 @@ import { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
+import { PageHeader } from '@/components/layout/page-header'
 import { ActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { TokenDeleteDialog } from './components/delete-dialog'
@@ -59,20 +60,17 @@ export default function OAuth2() {
       <FixedHeader />
       <Main>
         <div>
-          <div className="mb-2 flex items-start flex-wrap gap-x-4 gap-y-2">
-            <div className="flex-1 min-w-[300px]">
-              <h2 className="text-2xl font-bold tracking-tight">{t('oauth2.title')}</h2>
-              <p className="text-muted-foreground">
-                {t('oauth2.description')}
-              </p>
-            </div>
-            <div className="flex gap-2 ml-auto">
+          <PageHeader
+            className="mb-2"
+            title={t('oauth2.title')}
+            description={t('oauth2.description')}
+            actions={
               <Button className="space-x-1" disabled={!require_any_permission(['system:root'])} onClick={() => setOpen("add")}>
                 <span>{t('common.add')}</span>
                 <Plus size={18} />
               </Button>
-            </div>
-          </div>
+            }
+          />
           <div className="flex-1 overflow-auto py-1 flex-row lg:space-x-12 space-y-0">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />

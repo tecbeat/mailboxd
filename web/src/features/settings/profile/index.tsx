@@ -20,6 +20,7 @@
 
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { UserProfileForm } from './profile-form'
+import { PageHeader } from '@/components/layout/page-header'
 import { LoaderCircle as Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -47,6 +48,11 @@ export function Profile() {
 
   return (
     <div className="w-full">
+      <PageHeader
+        className="mb-4"
+        title={t('settings.profile.title', 'Profile')}
+        description={t('settings.profile.pageDescription', 'Manage your account profile and credentials.')}
+      />
       <UserProfileForm user={user!} />
     </div>
   )

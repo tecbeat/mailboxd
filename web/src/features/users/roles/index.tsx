@@ -21,6 +21,7 @@
 import { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import { RoleActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { RoleDeleteDialog } from './components/delete-dialog'
@@ -52,14 +53,16 @@ export default function Roles() {
     <div className="w-full">
       <RoleProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
         <div className="w-full">
-          <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <Button
-              className="mt-2 sm:mt-0 space-x-1"
-              onClick={() => setOpen('add')}
-            >
-              <span>{t('roles.actions.add')}</span> <Plus size={18} />
-            </Button>
-          </div>
+          <PageHeader
+            className="mb-4"
+            title={t('roles.pageTitle', 'Roles')}
+            description={t('roles.description', 'Define roles and the permissions granted to their members.')}
+            actions={
+              <Button className="space-x-1" onClick={() => setOpen('add')}>
+                <span>{t('roles.actions.add')}</span> <Plus size={18} />
+              </Button>
+            }
+          />
           <div className="w-full">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />

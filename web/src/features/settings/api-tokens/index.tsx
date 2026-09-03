@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import Logo from '@/assets/logo.svg'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TokenCardList, TokensActionDialog } from '@/features/api-tokens'
 import { useTranslation } from 'react-i18next'
@@ -59,6 +60,17 @@ export function APITokens() {
 
   return (
     <div className="w-full">
+      <PageHeader
+        className="mb-4"
+        title={t('apiTokens.page.title', 'API Tokens')}
+        description={t('apiTokens.page.pageDescription', 'Personal API tokens for programmatic access on your behalf.')}
+        actions={
+          <Button onClick={() => setAddOpen(true)}>
+            <span>{t('apiTokens.page.addBtn')}</span>
+            <Plus size={18} className="ml-2" />
+          </Button>
+        }
+      />
       {tokensLoading ? (
         <div className="flex flex-col gap-4 mt-4">
           <Skeleton className="h-16 w-full rounded-lg" />
@@ -84,18 +96,9 @@ export function APITokens() {
           </div>
         </div>
       ) : (
-        <>
-          <div className="flex justify-end mb-4">
-            <Button onClick={() => setAddOpen(true)}>
-              <span>{t('apiTokens.page.addBtn')}</span>
-              <Plus size={18} className="ml-2" />
-            </Button>
-          </div>
-
-          <ScrollArea className="h-[calc(100vh-16rem)] w-full pr-4 -mr-4 py-1">
-            <TokenCardList tokens={tokens} userId={user.id} />
-          </ScrollArea>
-        </>
+        <ScrollArea className="h-[calc(100vh-16rem)] w-full pr-4 -mr-4 py-1">
+          <TokenCardList tokens={tokens} userId={user.id} />
+        </ScrollArea>
       )}
 
       <TokensActionDialog

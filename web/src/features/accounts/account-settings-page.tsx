@@ -29,9 +29,9 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { FixedHeader } from "@/components/layout/fixed-header";
 import { Main } from "@/components/layout/main";
+import { PageHeader } from "@/components/layout/page-header";
 import { TabGeneral } from "./components/tab-general";
 import { TabServer } from "./components/tab-server";
 import { TabDownload } from "./components/tab-download";
@@ -195,7 +195,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
       <FixedHeader />
       <Main>
         <div>
-          <div className="mb-6 space-y-3">
+          <div className="mb-6">
             <Link
               to="/accounts"
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -203,19 +203,15 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
               <ArrowLeft className="h-4 w-4" />
               {t('accounts.settings.backToAccounts')}
             </Link>
-            <Breadcrumb items={[
-              { label: t('accounts.title'), to: '/accounts' },
-              { label: account.email },
-              { label: t('accounts.settings.settings') },
-            ]} />
           </div>
 
-          <div className="rounded-lg border shadow-xs bg-card p-6 md:p-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold">{account.email}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{t('accounts.updateTheEmailAccountHere')}</p>
-            </div>
+          <PageHeader
+            className="mb-6"
+            title={account.email}
+            description={t('accounts.updateTheEmailAccountHere')}
+          />
 
+          <div className="rounded-lg border shadow-xs bg-card p-6 md:p-8">
             <FormProvider {...form}>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
