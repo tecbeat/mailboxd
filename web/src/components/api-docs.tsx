@@ -61,27 +61,23 @@ export default function APIDocs() {
           title={t('navigation.apiDocs')}
           description={t('apiDocs.choosePreferredType')}
         />
-        <div className='-mx-4 flex-1 overflow-auto px-4 py-1 flex-row lg:space-x-12 space-y-0'>
-          <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-6 p-4'>
-            <div className='grid w-full gap-4 sm:grid-cols-1 md:grid-cols-2 xl:max-w-4xl'>
-              {docsOptions.map((option) => (
-                <Card
-                  key={option.name}
-                  className='cursor-pointer p-6 transition-all hover:bg-accent hover:text-accent-foreground hover:shadow-md'
-                  onClick={() => handleCardClick(option.path)}
-                >
-                  <div className='flex items-center gap-4'>
-                    <img
-                      src={Logo}
-                      className='max-h-[66px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain'
-                      alt='mailboxd icon'
-                    />
-                    <h3 className='text-sm font-medium'>{option.name}</h3>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
+        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+          {docsOptions.map((option) => (
+            <Card
+              key={option.name}
+              className='cursor-pointer p-6 transition-all hover:bg-accent hover:text-accent-foreground hover:shadow-md'
+              onClick={() => handleCardClick(option.path)}
+            >
+              <div className='flex items-center gap-4'>
+                <img
+                  src={Logo}
+                  className='max-h-[66px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain'
+                  alt='mailboxd icon'
+                />
+                <h3 className='text-sm font-medium'>{option.name}</h3>
+              </div>
+            </Card>
+          ))}
         </div>
       </Main>
     </>
