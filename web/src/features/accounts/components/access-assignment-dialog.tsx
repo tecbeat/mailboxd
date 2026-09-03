@@ -54,7 +54,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from '@/hooks/use-toast'
 import { access_assign, AccountModel } from '@/api/account/api'
 import { list_account_roles, list_minimal_users, MinimalUser, UserRole } from '@/api/users/api'
 import { invalidateAccountAccessViews } from '@/lib/access-cache'
@@ -71,7 +71,6 @@ export function AccountAccessAssignmentDialog({
     onOpenChange,
 }: Props) {
     const { t } = useTranslation()
-    const { toast } = useToast()
     const queryClient = useQueryClient()
 
     const { data: roles, isLoading: isLoadingRoles } = useQuery<UserRole[]>({

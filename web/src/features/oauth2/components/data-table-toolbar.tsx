@@ -41,7 +41,7 @@ export function DataTableToolbar<TData extends RowData>({
           onChange={(event) => {
             table.setGlobalFilter(event.target.value);
           }}
-          className='h-8 w-[420px]'
+          className='h-8 w-80'
         />
       </div>
     </div>

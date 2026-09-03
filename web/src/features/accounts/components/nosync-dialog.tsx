@@ -23,7 +23,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ToastAction } from '@/components/ui/toast';
 import { AxiosError } from 'axios';
@@ -86,7 +86,6 @@ const mapCurrentRowToFormValues = (currentRow: AccountModel): NoSyncAccount => {
 export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
   const { t } = useTranslation()
   const isEdit = !!currentRow;
-  const { toast } = useToast();
 
   const form = useForm<NoSyncAccount>({
     mode: "onChange",

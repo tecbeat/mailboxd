@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next'
 import { Copy, Download, Eye, EllipsisVertical as MoreVertical } from 'lucide-react'
 import { AttachmentModel } from '@/api/attachment/api'
 import { useSearchAttachments } from '@/hooks/use-search-attachments'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from '@/hooks/use-toast'
 import { useMutation } from '@tanstack/react-query'
 import { download_attachment } from '@/api/mailbox/envelope/api'
 import AttachmentPreview from '@/features/mail-list/attachment-preview'
@@ -47,7 +47,6 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setFilter } = useSearchAttachments();
   const { t } = useTranslation()
-  const { toast } = useToast();
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const downloadMutation = useMutation({

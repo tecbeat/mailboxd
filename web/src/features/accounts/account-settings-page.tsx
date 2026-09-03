@@ -27,7 +27,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { FixedHeader } from "@/components/layout/fixed-header";
 import { Main } from "@/components/layout/main";
@@ -87,7 +87,6 @@ interface AccountSettingsPageProps {
 export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
   const { t } = useTranslation();
   //const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: accountList } = useQuery({
