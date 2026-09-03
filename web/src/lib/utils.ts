@@ -152,6 +152,14 @@ export function formatDateTime(input: number | string | Date, locale?: Locale): 
   return format(date, 'Pp', { locale: resolveLocale(locale) });
 }
 
+export function formatDate(input: number | string | Date, locale?: Locale): string {
+  const date = new Date(input);
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+  return format(date, 'P', { locale: resolveLocale(locale) });
+}
+
 export function formatRelativeTime(input: number | string | Date, locale?: Locale): string {
   const date = new Date(input);
   if (isNaN(date.getTime())) {
