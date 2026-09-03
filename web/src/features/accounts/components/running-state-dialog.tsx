@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button'
 import { useQuery } from '@tanstack/react-query'
 import { download_state, AccountModel, FolderProgress } from '@/api/account/api'
 import { formatDateTime } from '@/lib/utils'
-import { statusBadgeClass, type StatusKind } from '@/lib/status-colors'
+import { statusBadgeClass, triggerBadgeClass, type StatusKind, type TriggerKind } from '@/lib/status-colors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -69,9 +69,9 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function TriggerBadge({ trigger }: { trigger: string }) {
-  const isScheduled = trigger === 'Scheduled'
+  const kind: TriggerKind = trigger === 'Scheduled' ? 'scheduled' : 'manual'
   return (
-    <Badge variant="secondary" className={`${isScheduled ? 'bg-purple-500/10 text-purple-600' : 'bg-orange-500/10 text-orange-600'} font-normal text-xs shrink-0 border-none`}>
+    <Badge variant="secondary" className={`${triggerBadgeClass[kind]} font-normal text-xs shrink-0 border-none`}>
       {trigger}
     </Badge>
   )

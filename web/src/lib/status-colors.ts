@@ -34,3 +34,10 @@ export const statusTextClass: Record<StatusKind, string> = {
   error: 'text-destructive',
   neutral: 'text-muted-foreground',
 };
+
+export type TriggerKind = 'scheduled' | 'manual';
+
+export const triggerBadgeClass: Record<TriggerKind, string> = {
+  scheduled: 'bg-purple-500/10 text-purple-600',
+  manual: 'bg-orange-500/10 text-orange-600',
+};
