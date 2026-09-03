@@ -29,7 +29,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useQuery } from '@tanstack/react-query'
 import { download_state, AccountModel, FolderProgress } from '@/api/account/api'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -194,7 +194,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                             <div className="p-3 sm:p-4 rounded-xl border bg-card text-card-foreground shadow-sm flex items-center justify-between sm:block">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('accounts.runningState.session.started_at')}</p>
                               <div className="text-sm font-bold font-mono text-foreground">
-                                {format(new Date(session.start_time), 'yyyy-MM-dd HH:mm:ss')}
+                                {formatDateTime(session.start_time)}
                               </div>
                             </div>
                           </div>
@@ -254,7 +254,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                                                   </Badge>
                                                 )}
                                                 <span className="text-[10px] font-mono text-destructive font-bold break-all">
-                                                  {format(new Date(err.at), 'yyyy-MM-dd HH:mm:ss')}
+                                                  {formatDateTime(err.at)}
                                                 </span>
                                               </div>
                                               <AlertTriangle
@@ -291,7 +291,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full pr-4 gap-2">
                                   <div className="flex items-center gap-3">
                                     <div className="text-xs sm:text-xs font-bold font-mono text-foreground">
-                                      {format(new Date(h.start_time), 'yyyy-MM-dd HH:mm:ss')}
+                                      {formatDateTime(h.start_time)}
                                     </div>
                                     <StatusBadge status={h.status} />
                                     <div className="xs:block"><TriggerBadge trigger={h.trigger} /></div>
@@ -357,7 +357,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                                                         </Badge>
                                                       )}
                                                       <span className="text-[10px] font-mono text-destructive font-bold break-all">
-                                                        {format(new Date(err.at), 'yyyy-MM-dd HH:mm:ss')}
+                                                        {formatDateTime(err.at)}
                                                       </span>
                                                     </div>
                                                     <AlertTriangle

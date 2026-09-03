@@ -18,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn, formatBytes } from '@/lib/utils';
+import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
 import { Main } from '@/components/layout/main';
 import { PageHeader } from '@/components/layout/page-header';
 import { FixedHeader } from '@/components/layout/fixed-header';
@@ -738,14 +738,6 @@ function statusLabel(status: string) {
   }
 }
 
-function timeAgo(ts: number) {
-  const seconds = Math.floor((Date.now() - ts) / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return new Date(ts).toLocaleDateString();
-}
-
 function CollapsibleHistory({
   history,
   t,
@@ -792,7 +784,7 @@ function CollapsibleHistory({
                       {accountLabel(h.account_id)} / {h.folder}
                     </span>
                   </div>
-                  <span className="text-muted-foreground">{timeAgo(h.created_at)}</span>
+                  <span className="text-muted-foreground">{formatRelativeTime(h.created_at)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <span>{h.format.toUpperCase()}</span>

@@ -19,11 +19,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { dateFnsLocaleMap, formatBytes } from "@/lib/utils"
-import { format, formatDistanceToNow } from "date-fns"
+import { formatBytes, formatDateTime, formatRelativeTime } from "@/lib/utils"
 import { useAttachmentContext } from "./context"
 import { useTranslation } from 'react-i18next'
-import { enUS } from "date-fns/locale"
 import { ColumnDef } from "@tanstack/react-table"
 import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
@@ -49,9 +47,8 @@ export function AttachmentListTable({
   setSortBy,
   setSortOrder
 }: MailListProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
-  const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
   const { setOpen, setCurrentItem } = useAttachmentContext()
   const { setFilter } = useSearchAttachments();
 
@@ -205,12 +202,12 @@ export function AttachmentListTable({
       ),
       cell: ({ row }) => {
         const date = new Date(row.original.date)
-        const title = format(date, 'yyyy-MM-dd HH:mm:ss')
+        const title = formatDateTime(date)
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <span className='text-xs whitespace-nowrap'>
-                {formatDistanceToNow(date, { addSuffix: true, locale })}
+                {formatRelativeTime(date)}
               </span>
             </TooltipTrigger>
             <TooltipContent>{title}</TooltipContent>

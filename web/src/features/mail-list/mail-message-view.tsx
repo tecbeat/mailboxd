@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
-import { formatBytes, formatTimestamp } from '@/lib/utils';
+import { formatBytes, formatDateTime } from '@/lib/utils';
 import EmailIframe from '@/components/mail-iframe';
 import {
   AttachmentInfo,
@@ -235,7 +235,7 @@ export function MailMessageView({
         {envelope.internal_date && (
           <div className="flex space-x-2">
             <span className="font-medium text-gray-400">{t('mail.date')}:</span>
-            <span>{formatTimestamp(envelope.internal_date)}</span>
+            <span>{formatDateTime(envelope.internal_date)}</span>
           </div>
         )}
         {setEditTagsOpen && (

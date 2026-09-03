@@ -27,6 +27,7 @@ import { AxiosError } from 'axios'
 import { useTranslation } from 'react-i18next'
 import { ToastAction } from '@/components/ui/toast'
 import { EmailEnvelope } from '@/api'
+import { formatDateTime } from '@/lib/utils'
 import { useMailListConfig } from '@/features/mail-list/config'
 
 function MessageSummary({ envelope, t }: { envelope: EmailEnvelope, t: (key: string) => string }) {
@@ -56,7 +57,7 @@ function MessageSummary({ envelope, t }: { envelope: EmailEnvelope, t: (key: str
 
                 <span className="font-medium text-muted-foreground">{t("mail.date")}:</span>
                 <div className="text-foreground/90">
-                    {new Date(envelope.date).toLocaleString()}
+                    {formatDateTime(envelope.date)}
                 </div>
 
                 {envelope.mailbox_name && (
