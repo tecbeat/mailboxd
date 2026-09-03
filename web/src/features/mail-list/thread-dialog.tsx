@@ -38,6 +38,7 @@ import { EmailEnvelope } from '@/api';
 import { MailMessageView } from './mail-message-view';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import { formatDateTime } from '@/lib/utils';
 
 interface MailThreadDialogProps {
   open: boolean;
@@ -128,7 +129,7 @@ export function MailThreadDialog({ open, onOpenChange, currentEnvelope }: MailTh
                     const date = new Date(msg.date);
                     const formattedDate = isNaN(date.getTime())
                       ? t('search.thread.invalidDate')
-                      : format(date, 'yyyy-MM-dd HH:mm:ss');
+                      : formatDateTime(date);
 
                     return (
                       <div key={msg.id} className={`relative pl-10 min-w-0 ${isLatest ? 'mt-6' : ''}`}>

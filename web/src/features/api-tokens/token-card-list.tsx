@@ -19,8 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import React from 'react'
-import { format } from 'date-fns'
-import { formatDateTime } from '@/lib/utils'
+import { formatDate, formatDateTime } from '@/lib/utils'
 import { Copy, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -124,7 +123,7 @@ export const TokenCardList: React.FC<Props> = ({ tokens, userId }) => {
                   <div className="text-xs text-muted-foreground whitespace-nowrap">
                     {token.expire_at
                       ? t('apiTokens.list.expiresOnShort', {
-                          date: format(new Date(token.expire_at), 'yyyy-MM-dd'),
+                          date: formatDate(token.expire_at),
                         })
                       : t('apiTokens.list.neverExpires')}
                   </div>
