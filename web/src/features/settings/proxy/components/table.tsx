@@ -36,7 +36,6 @@ export function ProxyTable({ columns, data }: DataTableProps) {
       columns={columns}
       data={data}
       storageKey='proxy'
-      pageSizeOptions={[10, 20, 30, 40, 50]}
       containerClassName='overflow-x-auto rounded-md border'
       tableClassName='w-full table-fixed'
       cellClassName='overflow-hidden'

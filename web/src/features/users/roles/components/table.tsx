@@ -36,7 +36,6 @@ export function RolesTable({ columns, data }: DataTableProps) {
       columns={columns}
       data={data}
       storageKey='roles'
-      pageSizeOptions={[10, 20, 30, 40, 50, 100]}
       toolbar={(table) => <DataTableToolbar table={table} />}
     />
   )
