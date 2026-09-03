@@ -29,7 +29,6 @@ import ApiTokenProvider, {
 } from './context'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
-import Logo from '@/assets/logo.svg'
 import { AccessToken, list_access_tokens } from '@/api/users/api'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -63,13 +62,6 @@ export default function ApiTokens() {
             </div>
           ) : (
             <EmptyState
-              icon={
-                <img
-                  src={Logo}
-                  className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                  alt="mailboxd icon"
-                />
-              }
               title={t('users.api_tokens.empty.title')}
               description={t('users.api_tokens.empty.description')}
             />

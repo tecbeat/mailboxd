@@ -26,7 +26,6 @@ import { useTranslation } from 'react-i18next'
 import useMinimalAccountList from '@/hooks/use-minimal-account-list'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { PermissionsDialog } from './permissions-dialog'
-import Logo from '@/assets/logo.svg'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import LongText from '@/components/long-text'
@@ -62,13 +61,6 @@ export function AccountAccessList() {
                 {header}
                 <EmptyState
                     className="mt-4"
-                    icon={
-                        <img
-                            src={Logo}
-                            className="max-h-[100px] w-auto opacity-20 saturate-0 object-contain"
-                            alt="mailboxd icon"
-                        />
-                    }
                     title={t('settings.access.empty.title')}
                     description={t('settings.access.empty.description')}
                 />
