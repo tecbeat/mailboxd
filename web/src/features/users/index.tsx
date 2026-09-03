@@ -51,12 +51,14 @@ export default function UsersAndTokens() {
   return (
     <>
       <FixedHeader />
-      <Main>
-        <div className='flex flex-1 flex-col space-y-2 md:space-y-2 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
-          <aside className='top-0 lg:sticky lg:w-1/5'>
+      <Main fixed>
+        <div className='flex min-h-0 flex-1 flex-col space-y-4 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
+          {/* Fixed-width rail so the nav never changes width between sub-pages. */}
+          <aside className='shrink-0 lg:w-56'>
             <SidebarNav items={sidebarNavItems} />
           </aside>
-          <div className='flex w-full p-1 pr-4 overflow-y-hidden'>
+          {/* min-w-0 stops a wide table from widening the row (and the rail). */}
+          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin'>
             <Outlet />
           </div>
         </div>

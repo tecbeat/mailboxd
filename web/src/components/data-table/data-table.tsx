@@ -132,9 +132,18 @@ export function DataTable<TData extends RowData>({
   })
 
   return (
-    <div className='space-y-4'>
+    <div className='flex h-full min-h-0 flex-col gap-4'>
       {toolbar?.(table)}
-      <div className={containerClassName}>
+      {/*
+        The bordered table box is the scroll container: it fills the remaining
+        height (flex-1 min-h-0) and scrolls internally, keeping the toolbar
+        above and the pagination below it pinned. Degrades to natural flow when
+        the parent gives no bounded height. `relative` makes this box the
+        containing block for any absolutely-positioned descendants (e.g.
+        screen-reader-only labels), so their overflow stays contained here
+        instead of inflating the app shell's scroll region.
+      */}
+      <div className={cn('relative min-h-0 flex-1 overflow-auto scrollbar-thin', containerClassName)}>
         <Table className={tableClassName}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -193,11 +202,13 @@ export function DataTable<TData extends RowData>({
         </Table>
       </div>
       {showPagination && (
-        <DataTablePagination
-          table={table}
-          storageKey={storageKey}
-          pageSizeOptions={pageSizeOptions}
-        />
+        <div className='shrink-0'>
+          <DataTablePagination
+            table={table}
+            storageKey={storageKey}
+            pageSizeOptions={pageSizeOptions}
+          />
+        </div>
       )}
     </div>
   )

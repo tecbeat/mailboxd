@@ -52,11 +52,11 @@ export default function Users() {
   const columns = getColumns(t, global.roles!)
 
   return (
-    <div className="w-full">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <UserProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
-        <div className="w-full">
+        <div className="flex min-h-0 w-full flex-1 flex-col">
           <PageHeader
-            className="mb-4"
+            className="mb-4 shrink-0"
             title={t('users.title', 'Users')}
             description={t('users.description', 'Manage system users and their roles.')}
             actions={
@@ -66,13 +66,11 @@ export default function Users() {
             }
           />
 
-          <div className="w-full">
+          <div className="flex min-h-0 w-full flex-1 flex-col">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : users?.length ? (
-              <div className="overflow-x-auto">
-                <UsersTable data={users} columns={columns} />
-              </div>
+              <UsersTable data={users} columns={columns} />
             ) : (
               <EmptyState
                 title={t('users.empty.title')}

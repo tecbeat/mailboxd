@@ -44,7 +44,7 @@ function RouteComponent() {
           // this the containing block for absolutely-positioned descendants
           // (row accents, sr-only spans) so they cannot leak past the scroll
           // clip and give the document a phantom, focus-scrollable height.
-          'relative h-svh flex flex-col overflow-y-auto overflow-x-hidden',
+          'relative h-svh flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin',
           // Freeze background scrolling while a Radix dialog locks the body.
           'group-data-[scroll-locked=1]/body:overflow-hidden',
           'group-data-[scroll-locked=1]/body:h-full',

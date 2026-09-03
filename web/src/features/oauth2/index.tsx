@@ -58,10 +58,10 @@ export default function OAuth2() {
   return (
     <OAuth2Provider value={{ open, setOpen, currentRow, setCurrentRow }}>
       <FixedHeader />
-      <Main>
-        <div>
+      <Main fixed>
+        <div className="flex h-full min-h-0 flex-col">
           <PageHeader
-            className="mb-2"
+            className="mb-2 shrink-0"
             title={t('oauth2.title')}
             description={t('oauth2.description')}
             actions={
@@ -71,7 +71,7 @@ export default function OAuth2() {
               </Button>
             }
           />
-          <div className="flex-1 overflow-auto py-1 flex-row lg:space-x-12 space-y-0">
+          <div className="flex min-h-0 w-full flex-1 flex-col py-1">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : oauth2List?.items.length ? (
