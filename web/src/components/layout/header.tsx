@@ -37,15 +37,16 @@ export const Header = ({
   const [offset, setOffset] = React.useState(0)
 
   React.useEffect(() => {
-    const onScroll = () => {
-      setOffset(document.body.scrollTop || document.documentElement.scrollTop)
-    }
+    // The app shell delegates scrolling to the #content column, so track its
+    // scroll position (not the document, which no longer scrolls) to decide
+    // when the fixed header gains its shadow.
+    const scroller = document.getElementById('content')
+    if (!scroller) return
 
-    // Add scroll listener to the body
-    document.addEventListener('scroll', onScroll, { passive: true })
+    const onScroll = () => setOffset(scroller.scrollTop)
 
-    // Clean up the event listener on unmount
-    return () => document.removeEventListener('scroll', onScroll)
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    return () => scroller.removeEventListener('scroll', onScroll)
   }, [])
 
   return (

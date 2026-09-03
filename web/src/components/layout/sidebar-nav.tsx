@@ -24,7 +24,6 @@ import { useLocation, useNavigate } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -78,11 +77,13 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
         </Select>
       </div>
 
-      <ScrollArea
-        orientation='horizontal'
-        type='always'
-        className='hidden w-full bg-background px-1 py-2 md:block min-w-40'
-      >
+      {/*
+        No Radix ScrollArea here: at `lg` the nav is a vertical column that
+        always fits, and a horizontal scroll rail must never show. `no-scrollbar`
+        keeps the row horizontally scrollable on narrow `md` widths without ever
+        painting a visible scrollbar.
+      */}
+      <div className='no-scrollbar hidden w-full overflow-x-auto bg-background px-1 py-2 md:block min-w-40'>
         <nav
           className={cn(
             'flex py-1 space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1',
@@ -107,7 +108,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
             </Link>
           ))}
         </nav>
-      </ScrollArea>
+      </div>
     </>
   )
 }
