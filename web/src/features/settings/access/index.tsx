@@ -28,6 +28,7 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { PermissionsDialog } from './permissions-dialog'
 import Logo from '@/assets/logo.svg'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import LongText from '@/components/long-text'
 
 
@@ -59,19 +60,18 @@ export function AccountAccessList() {
         return (
             <div className="w-full">
                 {header}
-                <div className="flex h-[450px] items-center justify-center rounded-md border border-dashed mt-4">
-                    <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center px-4">
+                <EmptyState
+                    className="mt-4"
+                    icon={
                         <img
                             src={Logo}
                             className="max-h-[100px] w-auto opacity-20 saturate-0 object-contain"
                             alt="mailboxd icon"
                         />
-                        <h3 className="mt-4 text-lg font-semibold">{t('settings.access.empty.title')}</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            {t('settings.access.empty.description')}
-                        </p>
-                    </div>
-                </div>
+                    }
+                    title={t('settings.access.empty.title')}
+                    description={t('settings.access.empty.description')}
+                />
             </div>
         )
     }

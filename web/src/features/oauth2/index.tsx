@@ -37,6 +37,7 @@ import { OAuth2Entity } from './data/schema'
 import { useQuery } from '@tanstack/react-query'
 import { get_oauth2_list } from '@/api/oauth2/api'
 import { TableSkeleton } from '@/components/table-skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 import { AuthorizeDialog } from './components/authorize-dialog'
 import { FixedHeader } from '@/components/layout/fixed-header'
 import { useTranslation } from 'react-i18next'
@@ -77,20 +78,17 @@ export default function OAuth2() {
             ) : oauth2List?.items.length ? (
               <Oauth2Table data={oauth2List.items} columns={columns} />
             ) : (
-              <div className="flex h-[450px] shrink-0 items-center justify-center rounded-md border border-dashed">
-                <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+              <EmptyState
+                icon={
                   <img
                     src={Logo}
                     className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
                     alt="mailboxd icon"
                   />
-                  <h3 className="mt-4 text-lg font-semibold">{t('oauth2.noConfigurations')}</h3>
-                  <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                    {t('oauth2.noConfigurationsDesc')}
-                  </p>
-                  <Button disabled={!require_any_permission(['system:root'])} onClick={() => setOpen("add")}>{t('oauth2.addConfiguration')}</Button>
-                </div>
-              </div>
+                }
+                title={t('oauth2.noConfigurations')}
+                description={t('oauth2.noConfigurationsDesc')}
+              />
             )}
           </div>
         </div>

@@ -28,6 +28,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/layout/page-header'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { EmptyState } from '@/components/ui/empty-state'
 import { TokenCardList, TokensActionDialog } from '@/features/api-tokens'
 import { useTranslation } from 'react-i18next'
 
@@ -78,23 +79,18 @@ export function APITokens() {
           <Skeleton className="h-16 w-full rounded-lg" />
         </div>
       ) : tokens.length === 0 ? (
-        <div className="flex h-[450px] items-center justify-center rounded-md border border-dashed mt-4">
-          <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center px-4">
+        <EmptyState
+          className="mt-4"
+          icon={
             <img
               src={Logo}
               className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
               alt="mailboxd icon"
             />
-            <h3 className="mt-4 text-lg font-semibold">{t('apiTokens.page.emptyTitle')}</h3>
-            <p className="mb-4 mt-2 text-sm text-muted-foreground">
-              {t('apiTokens.page.emptyDescription')}
-            </p>
-            <Button onClick={() => setAddOpen(true)}>
-              <span>{t('apiTokens.page.addBtn')}</span>
-              <Plus size={18} className="ml-2" />
-            </Button>
-          </div>
-        </div>
+          }
+          title={t('apiTokens.page.emptyTitle')}
+          description={t('apiTokens.page.emptyDescription')}
+        />
       ) : (
         <ScrollArea className="h-[calc(100vh-16rem)] w-full pr-4 -mr-4 py-1">
           <TokenCardList tokens={tokens} userId={user.id} />

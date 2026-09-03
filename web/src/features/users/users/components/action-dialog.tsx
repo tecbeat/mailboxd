@@ -377,7 +377,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
                     <ScrollArea className="flex-1 -mx-2 px-2">
                       <div className="space-y-3 pb-4">
                         {fields.map((item, index) => (
-                          <div key={item.id} className="flex items-start gap-3 p-3 border rounded-xl bg-card shadow-xs hover:border-primary/30 transition-colors">
+                          <div key={item.id} className="flex items-start gap-3 p-3 border rounded-xl bg-card text-card-foreground shadow-sm hover:border-primary/30 transition-colors">
                             <FormField control={form.control} name={`account_access_entries.${index}.accountId`} render={({ field }) => (
                               <FormItem className="flex-1">
                                 <AccountSearchSelect

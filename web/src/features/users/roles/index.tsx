@@ -31,6 +31,7 @@ import RoleProvider, {
 } from './context'
 import { Plus } from 'lucide-react'
 import { TableSkeleton } from '@/components/table-skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 import Logo from '@/assets/logo.svg'
 import { list_roles, UserRole } from '@/api/users/api'
 import { useQuery } from '@tanstack/react-query'
@@ -71,24 +72,17 @@ export default function Roles() {
                 <RolesTable data={roles} columns={columns} />
               </div>
             ) : (
-              <div className="flex min-h-[300px] items-center justify-center rounded-md border border-dashed p-4">
-                <div className="mx-auto flex w-full max-w-md flex-col items-center justify-center text-center">
+              <EmptyState
+                icon={
                   <img
                     src={Logo}
                     className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
                     alt="mailboxd icon"
                   />
-                  <h3 className="mt-4 text-lg font-semibold">
-                    {t('roles.empty.title')}
-                  </h3>
-                  <p className="mt-2 mb-4 text-sm text-muted-foreground">
-                    {t('roles.empty.desc')}
-                  </p>
-                  <Button onClick={() => setOpen('add')}>
-                    {t('roles.actions.add')}
-                  </Button>
-                </div>
-              </div>
+                }
+                title={t('roles.empty.title')}
+                description={t('roles.empty.desc')}
+              />
             )}
           </div>
 
