@@ -36,7 +36,6 @@ export function Oauth2Table({ columns, data }: DataTableProps) {
       columns={columns}
       data={data}
       storageKey='oauth2'
-      pageSizeOptions={[10, 20, 30, 40, 50]}
       toolbar={(table) => <DataTableToolbar table={table} />}
     />
   )

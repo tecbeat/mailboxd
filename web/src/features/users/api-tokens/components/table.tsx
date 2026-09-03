@@ -36,7 +36,6 @@ export function ApiTokensTable({ columns, data }: DataTableProps) {
       columns={columns}
       data={data}
       storageKey='apitoken'
-      pageSizeOptions={[10, 20, 30, 40, 50]}
       globalFilterFn={(row, _, filterValue) => {
         const searchValue = filterValue.toLowerCase()
         const name = row.original.name?.toLowerCase() ?? ''
