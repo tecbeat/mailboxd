@@ -22,7 +22,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import { Main } from '@/components/layout/main';
 import { PageHeader } from '@/components/layout/page-header';
 import { FixedHeader } from '@/components/layout/fixed-header';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -64,7 +64,6 @@ function folderHintLabel(hint: FolderHint): string {
 
 export default function ImportPage() {
   const { t } = useTranslation();
-  const { toast } = useToast();
 
   const [accountId, setAccountId] = useState<string>('');
   const [folderMode, setFolderMode] = useState<FolderMode>('');

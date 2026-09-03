@@ -27,7 +27,7 @@ import { useNavigate, Link } from "@tanstack/react-router";
 import { ArrowLeft, LoaderCircle as Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { FixedHeader } from "@/components/layout/fixed-header";
 import { Main } from "@/components/layout/main";
@@ -75,7 +75,6 @@ function SectionHeader({ title, description }: { title: string; description?: st
 export function AccountNewPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [autoConfigLoading, setAutoConfigLoading] = useState(false);
 

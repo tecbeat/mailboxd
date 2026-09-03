@@ -31,7 +31,6 @@ function RouteComponent() {
   const defaultOpen = localStorage.getItem('sidebar_state') === 'true';
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      {/* <SkipToMain /> */}
       <AppSidebar />
       <div
         id='content'

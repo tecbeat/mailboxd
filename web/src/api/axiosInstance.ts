@@ -59,7 +59,6 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     // Handle response errors
-    //console.error("API error:", error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
