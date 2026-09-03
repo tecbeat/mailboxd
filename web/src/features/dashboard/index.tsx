@@ -181,7 +181,7 @@ export default function MailArchiveDashboard() {
     return (
       <>
         <FixedHeader />
-        <Main higher>
+        <Main higher className="max-w-none">
           <div className="flex-1 space-y-6">
             <PageHeader
               title={t('dashboard.title')}
@@ -259,7 +259,7 @@ export default function MailArchiveDashboard() {
   return (
     <>
       <FixedHeader />
-      <Main higher>
+      <Main higher className="max-w-none">
         <div className="flex-1 space-y-6">
           <PageHeader
             title={t('dashboard.title')}
