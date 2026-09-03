@@ -194,7 +194,11 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
                 )}
               />
 
-              {!isSsoUser && (
+              {isSsoUser ? (
+                <p className="text-sm text-muted-foreground">
+                  {t('settings.profile.sso_managed_credentials')}
+                </p>
+              ) : (
                 <FormField
                   control={form.control}
                   name="password"
