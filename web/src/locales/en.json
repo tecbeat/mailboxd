@@ -1408,6 +1408,7 @@
         "password_keep": "Leave blank to keep current password"
       },
       "removeAvatar": "Remove avatar",
+      "sso_managed_credentials": "Your password is managed by your single sign-on provider and cannot be changed here.",
       "section": {
         "accounts": "{{count}} linked accounts",
         "roles": "Roles"
