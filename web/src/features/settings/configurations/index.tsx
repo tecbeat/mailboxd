@@ -132,7 +132,7 @@ export default function ServerConfigurationsPage() {
   return (
     <div className="w-full">
       <ScrollArea className="h-full w-full">
-        <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+        <div className="py-8 space-y-6">
 
           <div className="flex items-start gap-3 p-4 rounded-xl border bg-muted/30">
             <InfoIcon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />

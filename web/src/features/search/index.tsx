@@ -119,7 +119,7 @@ export default function EmailSearch() {
           }}
         >
           <MailListConfigProvider config={SEARCH_LIST_CONFIG}>
-          <div className="mx-auto w-full px-4">
+          <div>
             <div className="flex gap-6">
               <div className="flex-1 min-w-0 space-y-4">
                 {isLoading && (

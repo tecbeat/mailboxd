@@ -178,7 +178,7 @@ export default function MailArchiveDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 space-y-6 p-6 md:p-8">
+      <div className="flex-1 space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => <MetricCardSkeleton key={i} />)}
         </div>
@@ -191,7 +191,7 @@ export default function MailArchiveDashboard() {
     <>
       <FixedHeader />
       <Main higher>
-        <div className="flex-1 space-y-6 p-6 md:p-8">
+        <div className="flex-1 space-y-6">
           {/* Top Metrics */}
           <div className="grid gap-4 grid-cols-1 md:grid-cols-12">
             <Card className="md:col-span-2 lg:col-span-2">

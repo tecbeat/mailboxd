@@ -38,7 +38,7 @@ export default function OAuth2Result() {
     return (
         <>
             <FixedHeader />
-            <Main className="flex min-h-screen flex-col items-center justify-center p-4">
+            <Main className="flex min-h-screen flex-col items-center justify-center p-4 max-w-none mt-0">
                 <div className="w-full max-w-5xl">
                     {error ? (
                         <Card className="shadow-lg">

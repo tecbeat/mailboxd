@@ -28,14 +28,17 @@ interface MainProps extends React.HTMLAttributes<HTMLElement> {
   ref?: React.Ref<HTMLElement>;
 }
 
-export const Main = ({ fixed, higher, ...props }: MainProps) => {
+export const Main = ({ fixed, higher, className, ...props }: MainProps) => {
   return (
     <main
       className={cn(
         'peer-[.header-fixed]/header',
-        higher ? 'mt-12' : 'mt-16', // Conditional class for 'higher'
+        higher ? 'mt-12' : 'mt-16',
         'px-4 py-6',
-        fixed && 'fixed-main flex flex-col flex-grow overflow-hidden'
+        fixed
+          ? 'fixed-main flex flex-col flex-grow overflow-hidden'
+          : 'w-full max-w-6xl',
+        className
       )}
       {...props}
     />

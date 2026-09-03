@@ -45,7 +45,7 @@ export default function ApiTokens() {
   const columns = getColumns(t)
 
   return (
-    <div className="w-full max-w-5xl ml-0 px-4">
+    <div className="w-full">
       <ApiTokenProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
         <div className="w-full">
           {isLoading ? (

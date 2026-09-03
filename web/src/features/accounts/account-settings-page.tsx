@@ -182,7 +182,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
       <>
         <FixedHeader />
         <Main>
-          <div className="mx-auto w-full max-w-[46rem] px-4 py-12 text-center text-muted-foreground">
+          <div className="text-center text-muted-foreground">
             {t('accounts.settings.loading')}
           </div>
         </Main>
@@ -194,7 +194,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
     <>
       <FixedHeader />
       <Main>
-        <div className="mx-auto w-full max-w-[46rem] px-4 py-6">
+        <div>
           <div className="mb-6 space-y-3">
             <Link
               to="/accounts"

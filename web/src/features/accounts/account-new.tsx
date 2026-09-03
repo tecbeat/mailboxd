@@ -179,7 +179,7 @@ export function AccountNewPage() {
     <>
       <FixedHeader />
       <Main>
-        <div className="mx-auto w-full max-w-[46rem] px-4 py-6">
+        <div>
           <div className="mb-6 space-y-3">
             <Link
               to="/accounts"
