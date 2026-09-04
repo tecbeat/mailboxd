@@ -69,6 +69,10 @@ export function filterSegment(active?: boolean) {
     'rounded-none border-0 bg-transparent px-2.5 text-xs font-normal text-foreground shadow-none',
     'hover:bg-accent focus-visible:ring-0 focus-visible:ring-offset-0',
     'disabled:pointer-events-none disabled:opacity-50',
+    // Once the bar is narrow enough to wrap, let the (now icon-only) segments
+    // grow evenly and centre their icons so each wrapped row fills the bar's
+    // full width instead of leaving empty space on one side.
+    '@max-xl/fbar:flex-1 @max-xl/fbar:justify-center',
     active && 'bg-primary/10 text-primary hover:bg-primary/15'
   )
 }
