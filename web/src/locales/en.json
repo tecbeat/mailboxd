@@ -588,6 +588,7 @@
     "newEmails": "New Emails",
     "noAccountData": "No account data",
     "noAttachments": "No Attachments",
+    "noData": "No Data",
     "noEmailsSynced": "No emails synced yet",
     "noLargeEmails": "No large emails",
     "noRecentActivity": "No recent activity",
@@ -610,6 +611,7 @@
     "totalAttachments": "Total attachments",
     "totalEmailSize": "Total Email Size",
     "totalEmails": "Total Emails",
+    "unnamed": "Unnamed",
     "withAttachments": "With Attachments",
     "noAttachmentData": "No attachment data"
   },
@@ -679,6 +681,7 @@
     "folderMethodDesc": "How should the target mail folder be determined?",
     "folderStructure": "2. Folder structure",
     "importHistory": "Import History",
+    "invalidType": "Invalid type",
     "limits": "Max: EML 100 MB · MBOX {{maxMbox}} MB · PST {{maxPst}} MB. Larger files → CLI.",
     "modeCustom": "Enter a custom folder name",
     "modeCustomDesc": "Manually type the target mail folder name.",
@@ -703,9 +706,20 @@
     "selectMailbox": "Select a mailbox...",
     "source": "source",
     "startImport": "Import",
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "pending": "Pending",
+      "processing": "Processing"
+    },
     "successCount": "{{count}} imported",
+    "summaryDuplicates": "{{count}} dup",
+    "summaryFailed": "{{count}} failed",
+    "summarySuccess": "{{count}} success",
+    "summaryTotal": "{{count}} total",
     "target": "1. Select target account",
     "title": "Import",
+    "tooLarge": "Too large",
     "uploading": "Uploading…",
     "uploadingFile": "Uploading file",
     "willImportTo": "Will import to"
@@ -1492,9 +1506,16 @@
     "title": "Sign out"
   },
   "system": {
-    "notifications": "System Notifications"
+    "newRelease": "New Release",
+    "noNotifications": "No new notifications",
+    "notifications": "System Notifications",
+    "released": "Released {{date}}",
+    "viewReleaseNotes": "View full release notes"
   },
   "systemConfig": {
+    "fields": {
+      "loadError": "Failed to load system configuration."
+    },
     "pageDescription": "These parameters are initialized via CLI flags or Environment Variables. They are currently read-only to ensure environment consistency.",
     "pageTitle": "System-level Configurations",
     "sections": {
