@@ -52,13 +52,20 @@ export default function UsersAndTokens() {
     <>
       <FixedHeader />
       <Main fixed>
-        <div className='flex min-h-0 flex-1 flex-col space-y-4 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
+        <div className='flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
           {/* Fixed-width rail so the nav never changes width between sub-pages. */}
           <aside className='shrink-0 lg:w-56'>
             <SidebarNav items={sidebarNavItems} />
           </aside>
-          {/* min-w-0 stops a wide table from widening the row (and the rail). */}
-          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin'>
+          {/*
+            min-w-0 stops a wide table from widening the row (and the rail).
+            scrollbar-gutter:stable always reserves the vertical scrollbar's
+            space, so the content width stays constant between sub-pages that
+            scroll (e.g. Users) and ones that don't, instead of jumping
+            sideways by the scrollbar width when switching. Mirrors the
+            Settings section shell so both headers align identically.
+          */}
+          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin p-1 pr-4 [scrollbar-gutter:stable]'>
             <Outlet />
           </div>
         </div>
