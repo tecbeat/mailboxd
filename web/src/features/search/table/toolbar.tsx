@@ -30,18 +30,16 @@ export function DataTableToolbar<TData extends RowData>({
   table,
 }: DataTableToolbarProps<TData>) {
   return (
-    <div className="p-1 bg-background">
-      <FilterBar>
-        <TextSearchInput config={SEARCH_TEXT_CONFIG} />
-        <AccountPopover />
-        <MailboxPopover />
-        <MailFilterPopover />
-        <TagFilterPopover />
-        <MoreFiltersPopover />
-        <FilterResetButton />
-        <TimePopover />
-        <DataTableViewOptions table={table} />
-      </FilterBar>
-    </div>
+    <FilterBar className="my-1">
+      <TextSearchInput config={SEARCH_TEXT_CONFIG} />
+      <AccountPopover />
+      <MailboxPopover />
+      <MailFilterPopover />
+      <TagFilterPopover />
+      <MoreFiltersPopover />
+      <FilterResetButton />
+      <TimePopover />
+      <DataTableViewOptions table={table} />
+    </FilterBar>
   )
 }
