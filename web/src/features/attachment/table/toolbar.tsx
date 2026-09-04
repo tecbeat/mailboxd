@@ -31,29 +31,27 @@ export function DataTableToolbar<TData extends RowData>({
   table,
 }: DataTableToolbarProps<TData>) {
   return (
-    <div className="p-1 bg-background">
-      <FilterBar dense>
-        <TextSearchInput config={ATTACHMENT_TEXT_CONFIG} />
-        <AccountPopover />
-        <MailboxPopover />
-        <SenderFilterPopover />
-        <MetadataFilter
-          type="extension"
-          icon={<FileType className="h-4 w-4" />}
-        />
-        <MetadataFilter
-          type="category"
-          icon={<Tag className="h-4 w-4" />}
-        />
-        <MetadataFilter
-          type="content_type"
-          icon={<Laptop className="h-4 w-4" />}
-        />
-        <MoreFiltersPopover />
-        <FilterResetButton />
-        <TimePopover />
-        <DataTableViewOptions table={table} />
-      </FilterBar>
-    </div>
+    <FilterBar dense className="my-1">
+      <TextSearchInput config={ATTACHMENT_TEXT_CONFIG} />
+      <AccountPopover />
+      <MailboxPopover />
+      <SenderFilterPopover />
+      <MetadataFilter
+        type="extension"
+        icon={<FileType className="h-4 w-4" />}
+      />
+      <MetadataFilter
+        type="category"
+        icon={<Tag className="h-4 w-4" />}
+      />
+      <MetadataFilter
+        type="content_type"
+        icon={<Laptop className="h-4 w-4" />}
+      />
+      <MoreFiltersPopover />
+      <FilterResetButton />
+      <TimePopover />
+      <DataTableViewOptions table={table} />
+    </FilterBar>
   )
 }

@@ -21,11 +21,12 @@
 import React, { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, X, Clock, Trash2 } from "lucide-react"
+import { Search, X, Clock, Trash2, LetterText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMailListConfig } from "@/features/mail-list/config"
 import { useTranslation } from "react-i18next"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FilterLabel } from "@/features/mail-list/filter-bar"
 
 const MAX_HISTORY = 20
 
@@ -163,8 +164,12 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
         return () => clearTimeout(handle)
     }, [value, field, filter, searchFields, setFilter])
 
+    // The search unit grows to share one row while the bar is wide (`@xl/fbar`);
+    // once the bar is narrow enough to wrap, `basis-full` claims the whole first
+    // row so the search stays usable and the filters pack onto the next row
+    // instead of leaving a large empty gap.
     return (
-        <div ref={containerRef} className="relative flex flex-1 items-stretch">
+        <div ref={containerRef} className="relative flex flex-1 basis-full items-stretch @xl/fbar:basis-0">
             <Select
                 value={field}
                 onValueChange={(val) => {
@@ -174,11 +179,17 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
             >
                 <SelectTrigger
                     className={cn(
-                        "h-9 w-auto min-w-[72px] gap-1 rounded-none border-0 border-r border-border px-2.5",
+                        "h-9 w-auto gap-1.5 rounded-none border-0 border-r border-border px-2.5",
                         "bg-transparent text-xs font-normal text-muted-foreground shadow-none focus:ring-0 focus:ring-offset-0"
                     )}
                 >
-                    <SelectValue />
+                    <LetterText className="h-4 w-4 shrink-0" />
+                    {/* `contents` wrapper keeps FilterLabel out of the trigger's
+                        direct `[&>span]` line-clamp rule so its container-query
+                        collapse (icon-only when the bar is narrow) still works. */}
+                    <div className="contents">
+                        <FilterLabel><SelectValue /></FilterLabel>
+                    </div>
                 </SelectTrigger>
                 <SelectContent className="min-w-[220px]">
                     {options.map((opt) => (
@@ -208,7 +219,7 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
                     onFocus={() => setShowHistory(true)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     placeholder={t(placeholderKey)}
-                    className="h-9 w-full rounded-none border-0 bg-transparent pl-8 pr-8 text-sm shadow-none focus-visible:ring-0"
+                    className="h-9 w-full rounded-none border-0 bg-transparent pl-8 pr-8 text-xs md:text-xs shadow-none focus-visible:ring-0"
                 />
                 {value && (
                     <Button
