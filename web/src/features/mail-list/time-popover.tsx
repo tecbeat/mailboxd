@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import * as React from 'react'
-import { CalendarRange, ChevronDown, X } from 'lucide-react'
+import { CalendarRange, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import {
@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useMailListConfig } from '@/features/mail-list/config'
 import { DatePicker } from '@/components/date-picker'
+import { filterSegment, FilterLabel, ActiveDot } from '@/features/mail-list/filter-bar'
 
 const DAY = 86400000
 
@@ -85,18 +86,13 @@ export function TimePopover() {
         <Popover>
             <PopoverTrigger asChild>
                 <Button
-                    size="sm"
-                    variant="outline"
-                    className={cn(
-                        'h-6 rounded-none px-3 gap-1.5 transition-colors max-w-full',
-                        (since || before) && 'bg-primary/10 text-primary hover:bg-primary/20'
-                    )}
+                    variant="ghost"
+                    className={filterSegment(!!(since || before))}
+                    title={label(since, before)}
                 >
-                    <CalendarRange className="h-4 w-4 shrink-0" />
-                    <span className="truncate max-w-[120px] sm:max-w-none">
-                        {label(since, before)}
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5 opacity-60 shrink-0" />
+                    <CalendarRange className="h-4 w-4" />
+                    <FilterLabel>{label(since, before)}</FilterLabel>
+                    <ActiveDot active={!!(since || before)} />
                 </Button>
             </PopoverTrigger>
 

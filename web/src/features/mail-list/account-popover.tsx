@@ -19,10 +19,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import * as React from 'react'
-import { AtSign, ChevronDown, X } from 'lucide-react'
+import { AtSign, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -42,6 +41,7 @@ import {
 import useMinimalAccountList from '@/hooks/use-minimal-account-list'
 import { cn } from '@/lib/utils'
 import { useMailListConfig } from '@/features/mail-list/config'
+import { filterSegment, FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
 
 export function AccountPopover() {
   const { t } = useTranslation()
@@ -108,25 +108,13 @@ export function AccountPopover() {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          size="sm"
-          variant="outline"
-          className={cn(
-            'h-6 gap-1.5 px-3 rounded-none',
-            selectedIds.length > 0 &&
-            'bg-primary/10 border-primary text-primary'
-          )}
+          variant="ghost"
+          className={filterSegment(selectedIds.length > 0)}
+          title={t('search_accounts.label')}
         >
           <AtSign className="h-4 w-4" />
-          {t('search_accounts.label')}
-          {selectedIds.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="ml-1 h-5 px-1.5 text-xs"
-            >
-              {selectedIds.length}
-            </Badge>
-          )}
-          <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+          <FilterLabel>{t('search_accounts.label')}</FilterLabel>
+          <FilterCount count={selectedIds.length} />
         </Button>
       </PopoverTrigger>
 

@@ -9,6 +9,7 @@ import { FilterResetButton } from '@/features/mail-list/filter-reset'
 import { MailboxPopover } from '@/features/mail-list/mailbox-popover'
 import { AccountPopover } from '@/features/mail-list/account-popover'
 import { MetadataFilter } from '../attachment-metadata-filter'
+import { FilterBar } from '@/features/mail-list/filter-bar'
 import { FileType, Laptop, Tag } from 'lucide-react'
 
 const ATTACHMENT_TEXT_CONFIG: TextSearchConfig = {
@@ -30,38 +31,29 @@ export function DataTableToolbar<TData extends RowData>({
   table,
 }: DataTableToolbarProps<TData>) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center p-1 bg-background">
-      <div className="w-full sm:w-auto sm:flex-1 sm:max-w-[620px]">
+    <div className="p-1 bg-background">
+      <FilterBar dense>
         <TextSearchInput config={ATTACHMENT_TEXT_CONFIG} />
-      </div>
-      <div className="flex items-center gap-2 w-full sm:flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-thin">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <AccountPopover />
-            <MailboxPopover />
-            <SenderFilterPopover />
-            <MetadataFilter
-              type="extension"
-              icon={<FileType className="h-3.5 w-3.5" />}
-            />
-            <MetadataFilter
-              type="category"
-              icon={<Tag className="h-3.5 w-3.5" />}
-            />
-            <MetadataFilter
-              type="content_type"
-              icon={<Laptop className="h-3.5 w-3.5" />}
-            />
-
-            <MoreFiltersPopover />
-          </div>
-          <FilterResetButton />
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <TimePopover />
-          <DataTableViewOptions table={table} />
-        </div>
-      </div>
+        <AccountPopover />
+        <MailboxPopover />
+        <SenderFilterPopover />
+        <MetadataFilter
+          type="extension"
+          icon={<FileType className="h-4 w-4" />}
+        />
+        <MetadataFilter
+          type="category"
+          icon={<Tag className="h-4 w-4" />}
+        />
+        <MetadataFilter
+          type="content_type"
+          icon={<Laptop className="h-4 w-4" />}
+        />
+        <MoreFiltersPopover />
+        <FilterResetButton />
+        <TimePopover />
+        <DataTableViewOptions table={table} />
+      </FilterBar>
     </div>
   )
 }

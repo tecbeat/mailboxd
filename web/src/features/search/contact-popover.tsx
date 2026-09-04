@@ -22,10 +22,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useSearchContext } from "./context"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Check, ChevronDown, Mail, X } from "lucide-react"
+import { Check, Mail, X } from "lucide-react"
 import React from "react"
 import { useContacts } from "@/hooks/use-contacts"
 import { useTranslation } from 'react-i18next'
+import { filterSegment, FilterLabel, FilterCount } from "@/features/mail-list/filter-bar"
 import {
     Command,
     CommandEmpty,
@@ -61,20 +62,13 @@ export function MailFilterPopover() {
         <Popover>
             <PopoverTrigger asChild>
                 <Button
-                    size="sm"
-                    variant="outline"
-                    className={cn(
-                        'h-6 rounded-none px-3 gap-1.5 transition-colors border-l-0',
-                        activeCount > 0 && 'bg-primary/10 text-primary hover:bg-primary/20'
-                    )}
+                    variant="ghost"
+                    className={filterSegment(activeCount > 0)}
+                    title={t('search_contacts.label')}
                 >
-                    <Mail className="h-3.5 w-3.5 opacity-60" />
-                    <span>
-                        {activeCount > 0
-                            ? t('search_contacts.label_with_count', { count: activeCount })
-                            : t('search_contacts.label')}
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                    <Mail className="h-4 w-4" />
+                    <FilterLabel>{t('search_contacts.label')}</FilterLabel>
+                    <FilterCount count={activeCount} />
                 </Button>
             </PopoverTrigger>
 
