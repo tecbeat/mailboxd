@@ -23,7 +23,6 @@ import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { statusBadgeClass } from "@/lib/status-colors"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { PageHeader } from "@/components/layout/page-header"
 import { ShieldCheck, Server, Database, Activity, Mail, Zap } from "lucide-react"
@@ -113,107 +112,102 @@ export default function ServerConfigurationsPage() {
 
   return (
     <div className="w-full">
-      <ScrollArea className="h-full w-full">
-        <div className="py-8 space-y-6">
+      <PageHeader
+        className="mb-4"
+        title={t("systemConfig.pageTitle")}
+        description={t("systemConfig.pageDescription")}
+      />
 
-          <PageHeader
-            title={t("systemConfig.pageTitle")}
-            description={t("systemConfig.pageDescription")}
-          />
-
-          {isLoading ? (
-            <div className="flex justify-center items-center py-24">
-              <Spinner />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <SettingsCard
-                icon={Server}
-                title={t("systemConfig.sections.network.title")}
-                description={t("systemConfig.sections.network.desc")}
-              >
-                <SettingRow label="MAILBOXD_BIND_IP" value={data!.mailboxd_bind_ip ?? "0.0.0.0"} />
-                <SettingRow label="MAILBOXD_HTTP_PORT" value={data!.mailboxd_http_port} />
-                <SettingRow label="MAILBOXD_BASE_URL" value={data!.mailboxd_base_url} />
-                <SettingRow label="MAILBOXD_PUBLIC_URL" value={data!.mailboxd_public_url} />
-                <SettingRow
-                  label="MAILBOXD_ENABLE_REST_HTTPS"
-                  value={<BooleanBadge value={data!.mailboxd_enable_rest_https} />}
-                />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={Mail}
-                title={t("systemConfig.sections.smtp.title")}
-                description={t("systemConfig.sections.smtp.desc")}
-              >
-                <SettingRow label="MAILBOXD_ENABLE_SMTP" value={<BooleanBadge value={data!.mailboxd_enable_smtp} />} />
-                <SettingRow label="MAILBOXD_SMTP_PORT" value={data!.mailboxd_smtp_port} />
-                <SettingRow label="MAILBOXD_SMTP_ENCRYPTION" value={data!.mailboxd_smtp_encryption} />
-                <SettingRow label="MAILBOXD_SMTP_AUTH_REQUIRED" value={<BooleanBadge value={data!.mailboxd_smtp_auth_required} />} />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={Zap}
-                title={t("systemConfig.sections.performance.title")}
-                description={t("systemConfig.sections.performance.desc")}
-              >
-                <SettingRow label="MAILBOXD_SYNC_CONCURRENCY" value={data!.mailboxd_sync_concurrency ?? t("systemConfig.status.auto")} />
-                <SettingRow
-                  label="MAILBOXD_HTTP_COMPRESSION_ENABLED"
-                  value={<BooleanBadge value={data!.mailboxd_http_compression_enabled} />}
-                />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={Database}
-                title={t("systemConfig.sections.storage.title")}
-                description={t("systemConfig.sections.storage.desc")}
-              >
-                <SettingRow label="MAILBOXD_ROOT_DIR" value={<span className="font-mono">{data!.mailboxd_root_dir}</span>} />
-                <SettingRow label="MAILBOXD_DATA_DIR" value={data!.mailboxd_data_dir ? <span className="font-mono">{data!.mailboxd_data_dir}</span> : "—"} />
-                <SettingRow label="MAILBOXD_INDEX_DIR" value={data!.mailboxd_index_dir ? <span className="font-mono">{data!.mailboxd_index_dir}</span> : "—"} />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={ShieldCheck}
-                title={t("systemConfig.sections.security.title")}
-                description={t("systemConfig.sections.security.desc")}
-              >
-                <SettingRow
-                  label="MAILBOXD_ENCRYPT_PASSWORD_SET"
-                  value={
-                    data!.mailboxd_encrypt_password_set ? (
-                      <Badge variant="outline" className={statusBadgeClass.success}>
-                        {t("systemConfig.status.configured")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className={statusBadgeClass.error}>{t("systemConfig.status.missing")}</Badge>
-                    )
-                  }
-                />
-                <SettingRow
-                  label="MAILBOXD_WEBUI_TOKEN_EXPIRATION_HOURS"
-                  value={`${data!.mailboxd_webui_token_expiration_hours}h`}
-                />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={Activity}
-                title={t("systemConfig.sections.logging.title")}
-                description={t("systemConfig.sections.logging.desc")}
-              >
-                <SettingRow label="MAILBOXD_LOG_LEVEL" value={<Badge variant="outline" className="uppercase">{data!.mailboxd_log_level}</Badge>} />
-                <SettingRow label="MAILBOXD_ANSI_LOGS" value={<BooleanBadge value={data!.mailboxd_ansi_logs} />} />
-                <SettingRow label="MAILBOXD_JSON_LOGS" value={<BooleanBadge value={data!.mailboxd_json_logs} />} />
-                <SettingRow label="MAILBOXD_LOG_TO_FILE" value={<BooleanBadge value={data!.mailboxd_log_to_file} />} />
-                <SettingRow label="MAILBOXD_MAX_SERVER_LOG_FILES" value={data!.mailboxd_max_server_log_files} />
-              </SettingsCard>
-            </div>
-          )}
-
+      {isLoading ? (
+        <div className="flex justify-center items-center py-24">
+          <Spinner />
         </div>
-      </ScrollArea>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <SettingsCard
+            icon={Server}
+            title={t("systemConfig.sections.network.title")}
+            description={t("systemConfig.sections.network.desc")}
+          >
+            <SettingRow label="MAILBOXD_BIND_IP" value={data!.mailboxd_bind_ip ?? "0.0.0.0"} />
+            <SettingRow label="MAILBOXD_HTTP_PORT" value={data!.mailboxd_http_port} />
+            <SettingRow label="MAILBOXD_BASE_URL" value={data!.mailboxd_base_url} />
+            <SettingRow label="MAILBOXD_PUBLIC_URL" value={data!.mailboxd_public_url} />
+            <SettingRow
+              label="MAILBOXD_ENABLE_REST_HTTPS"
+              value={<BooleanBadge value={data!.mailboxd_enable_rest_https} />}
+            />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={Mail}
+            title={t("systemConfig.sections.smtp.title")}
+            description={t("systemConfig.sections.smtp.desc")}
+          >
+            <SettingRow label="MAILBOXD_ENABLE_SMTP" value={<BooleanBadge value={data!.mailboxd_enable_smtp} />} />
+            <SettingRow label="MAILBOXD_SMTP_PORT" value={data!.mailboxd_smtp_port} />
+            <SettingRow label="MAILBOXD_SMTP_ENCRYPTION" value={data!.mailboxd_smtp_encryption} />
+            <SettingRow label="MAILBOXD_SMTP_AUTH_REQUIRED" value={<BooleanBadge value={data!.mailboxd_smtp_auth_required} />} />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={Zap}
+            title={t("systemConfig.sections.performance.title")}
+            description={t("systemConfig.sections.performance.desc")}
+          >
+            <SettingRow label="MAILBOXD_SYNC_CONCURRENCY" value={data!.mailboxd_sync_concurrency ?? t("systemConfig.status.auto")} />
+            <SettingRow
+              label="MAILBOXD_HTTP_COMPRESSION_ENABLED"
+              value={<BooleanBadge value={data!.mailboxd_http_compression_enabled} />}
+            />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={Database}
+            title={t("systemConfig.sections.storage.title")}
+            description={t("systemConfig.sections.storage.desc")}
+          >
+            <SettingRow label="MAILBOXD_ROOT_DIR" value={<span className="font-mono">{data!.mailboxd_root_dir}</span>} />
+            <SettingRow label="MAILBOXD_DATA_DIR" value={data!.mailboxd_data_dir ? <span className="font-mono">{data!.mailboxd_data_dir}</span> : "—"} />
+            <SettingRow label="MAILBOXD_INDEX_DIR" value={data!.mailboxd_index_dir ? <span className="font-mono">{data!.mailboxd_index_dir}</span> : "—"} />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={ShieldCheck}
+            title={t("systemConfig.sections.security.title")}
+            description={t("systemConfig.sections.security.desc")}
+          >
+            <SettingRow
+              label="MAILBOXD_ENCRYPT_PASSWORD_SET"
+              value={
+                data!.mailboxd_encrypt_password_set ? (
+                  <Badge variant="outline" className={statusBadgeClass.success}>
+                    {t("systemConfig.status.configured")}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className={statusBadgeClass.error}>{t("systemConfig.status.missing")}</Badge>
+                )
+              }
+            />
+            <SettingRow
+              label="MAILBOXD_WEBUI_TOKEN_EXPIRATION_HOURS"
+              value={`${data!.mailboxd_webui_token_expiration_hours}h`}
+            />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={Activity}
+            title={t("systemConfig.sections.logging.title")}
+            description={t("systemConfig.sections.logging.desc")}
+          >
+            <SettingRow label="MAILBOXD_LOG_LEVEL" value={<Badge variant="outline" className="uppercase">{data!.mailboxd_log_level}</Badge>} />
+            <SettingRow label="MAILBOXD_ANSI_LOGS" value={<BooleanBadge value={data!.mailboxd_ansi_logs} />} />
+            <SettingRow label="MAILBOXD_JSON_LOGS" value={<BooleanBadge value={data!.mailboxd_json_logs} />} />
+            <SettingRow label="MAILBOXD_LOG_TO_FILE" value={<BooleanBadge value={data!.mailboxd_log_to_file} />} />
+            <SettingRow label="MAILBOXD_MAX_SERVER_LOG_FILES" value={data!.mailboxd_max_server_log_files} />
+          </SettingsCard>
+        </div>
+      )}
     </div>
   )
 }
