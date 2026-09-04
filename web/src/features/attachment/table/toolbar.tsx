@@ -33,6 +33,7 @@ export function DataTableToolbar<TData extends RowData>({
   return (
     <FilterBar dense className="my-1">
       <TextSearchInput config={ATTACHMENT_TEXT_CONFIG} />
+      <FilterResetButton />
       <AccountPopover />
       <MailboxPopover />
       <SenderFilterPopover />
@@ -49,7 +50,6 @@ export function DataTableToolbar<TData extends RowData>({
         icon={<Laptop className="h-4 w-4" />}
       />
       <MoreFiltersPopover />
-      <FilterResetButton />
       <TimePopover />
       <DataTableViewOptions table={table} />
     </FilterBar>
