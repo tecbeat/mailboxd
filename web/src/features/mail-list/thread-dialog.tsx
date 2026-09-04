@@ -90,7 +90,7 @@ export function MailThreadDialog({ open, onOpenChange, currentEnvelope }: MailTh
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-width-full p-0 max-h-full flex flex-col md:max-w-3xl lg:max-w-4xl">
+      <DialogContent size="xl" className="w-full p-0 max-h-full flex flex-col">
         <DialogHeader className="p-4 pb-3 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <MessageSquareText className="w-5 h-5" />

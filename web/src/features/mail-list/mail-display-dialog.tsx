@@ -31,7 +31,7 @@ interface Props {
   onOpenChange: (open: boolean) => void
 }
 
-export function MailDisplayDrawer({ open, onOpenChange }: Props) {
+export function MailDisplayDialog({ open, onOpenChange }: Props) {
   const { t } = useTranslation()
   const { useCurrentEnvelope } = useMailListConfig()
 
@@ -43,7 +43,7 @@ export function MailDisplayDrawer({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='w-full md:max-w-6xl mx-auto h-full'>
+      <DialogContent size="full" className='w-full mx-auto h-full'>
         <DialogHeader className="p-4 pb-3 border-b shrink-0">
           <DialogTitle>{t('mail.emailViewer')}</DialogTitle>
         </DialogHeader>

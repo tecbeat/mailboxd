@@ -144,7 +144,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md min-h-[50vh]">
+            <DialogContent size="sm" className="min-h-[50vh]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <TagIcon className="h-5 w-5" />

@@ -221,7 +221,7 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
         onOpenChange(state)
       }}
     >
-      <DialogContent className='w-full md:max-w-4xl'>
+      <DialogContent size="xl" className='w-full'>
         <DialogHeader className='text-left mb-4'>
           <DialogTitle>{isEdit ? t('oauth2.edit') : t('oauth2.addNew')}</DialogTitle>
           <DialogDescription>
@@ -547,6 +547,9 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
           </Form>
         </ScrollArea>
         <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {t('common.cancel')}
+          </Button>
           <Button
             type="submit"
             form="oauth2-form"
