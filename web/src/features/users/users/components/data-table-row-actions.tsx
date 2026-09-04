@@ -84,7 +84,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               setCurrentRow(row.original)
               setOpen('delete')
             }}
-            className='!text-red-500'
+            className='text-destructive focus:text-destructive'
           >
             {t('table.delete')}
             <DropdownMenuShortcut>

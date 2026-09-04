@@ -114,7 +114,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               e.stopPropagation()
               handleDelete(row.original)
             }}
-            className='!text-red-500 text-xs'
+            className='text-destructive focus:text-destructive text-xs'
           >
             {t('common.delete')}
             <DropdownMenuShortcut>
