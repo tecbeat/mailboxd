@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Moon, Sun, Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 
 import { Theme, useTheme } from '@/context/theme-context'
 import { Button } from '@/components/ui/button'
@@ -9,6 +11,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { update_user } from '@/api/users/api'
+import { toast } from '@/hooks/use-toast'
 
 import { cn } from '@/lib/utils'
 
@@ -224,6 +229,8 @@ function ThemeColumn({
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme()
   const { t } = useTranslation()
+  const { user } = useCurrentUser()
+  const queryClient = useQueryClient()
 
   const isDark = theme.includes('dark')
 
@@ -232,6 +239,30 @@ export function ThemeSwitch() {
       .querySelector("meta[name='theme-color']")
       ?.setAttribute('content', themeColors[theme])
   }, [theme])
+
+  // Persist the chosen theme to the user profile via the same path the
+  // Appearance form uses, so the header switch survives reloads and stays
+  // in sync with the Appearance setting.
+  const persistTheme = useMutation({
+    mutationFn: (next: Theme) => update_user(user!.id, { theme: next }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['current-user'] })
+    },
+    onError: (err: AxiosError) => {
+      toast({
+        variant: 'destructive',
+        title: t('settings.profile.toast.update_failed'),
+        description: (err.response?.data as { message?: string })?.message || err.message,
+      })
+    },
+  })
+
+  const handleSelect = (next: Theme) => {
+    setTheme(next)
+    if (user?.id != null) {
+      persistTheme.mutate(next)
+    }
+  }
 
   return (
     <Popover>
@@ -256,7 +287,7 @@ export function ThemeSwitch() {
             label={t('theme.light')}
             items={LIGHT_THEMES}
             currentTheme={theme}
-            onSelect={setTheme}
+            onSelect={handleSelect}
           />
 
           <div className='border-l border-border/40 pl-3'>
@@ -265,7 +296,7 @@ export function ThemeSwitch() {
               label={t('theme.dark')}
               items={DARK_THEMES}
               currentTheme={theme}
-              onSelect={setTheme}
+              onSelect={handleSelect}
             />
           </div>
         </div>
