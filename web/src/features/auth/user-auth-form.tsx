@@ -45,7 +45,7 @@ import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
 import { LoaderCircle as Loader2, LogIn, Shield } from 'lucide-react'
 import { login } from '@/api/users/api'
-import { useTheme } from '@/context/theme-context'
+import { useTheme, Theme } from '@/context/theme-context'
 import { useOidcConfig } from '@/hooks/use-oidc-config'
 
 type UserAuthFormProps = HTMLAttributes<HTMLDivElement>
@@ -113,7 +113,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           setToken(result);
 
           if (result.theme) {
-            setTheme(result.theme);
+            setTheme(result.theme as Theme);
           }
 
           if (result.language) {
