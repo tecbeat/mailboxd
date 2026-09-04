@@ -55,9 +55,9 @@ function SettingRow({
 }) {
   return (
     <div className="py-2.5 border-b border-border/40 last:border-0">
-      <div className="grid grid-cols-[1fr_auto] items-center gap-4">
-        <div className="text-xs font-medium text-muted-foreground font-mono">{label}</div>
-        <div className="text-sm text-right font-medium">{value}</div>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="min-w-0 break-all text-xs font-medium text-muted-foreground font-mono">{label}</div>
+        <div className="min-w-0 break-all text-sm font-medium sm:text-right">{value}</div>
       </div>
       {description && (
         <div className="mt-1 text-[11px] text-muted-foreground">{description}</div>
