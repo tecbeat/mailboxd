@@ -313,7 +313,7 @@ export default function MailArchiveDashboard() {
               <CardContent className="py-2.5 space-y-2">
                 <div className="h-2 w-full bg-muted rounded-full overflow-hidden flex">
                   <div className="h-full bg-primary transition-all" style={{ width: `${blobWidth}%` }} />
-                  <div className="h-full bg-orange-400 transition-all" style={{ width: `${indexWidth}%` }} />
+                  <div className="h-full bg-chart-3 transition-all" style={{ width: `${indexWidth}%` }} />
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -335,7 +335,7 @@ export default function MailArchiveDashboard() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 overflow-hidden ml-2">
-                      <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400" />
+                      <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-chart-3" />
                       <span className="text-muted-foreground truncate text-right">
                         {t('dashboard.indexSize')}: <span className="text-foreground font-medium">{formatBytes(indexSize)}</span>
                       </span>

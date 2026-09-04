@@ -58,7 +58,7 @@ export function TabServer({ isEdit }: TabServerProps) {
         name="imap.host"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t('accounts.imapHost')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+            <FormLabel>{t('accounts.imapHost')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
             <FormControl>
               <Input {...field} placeholder={t('accounts.imapHostPlaceholder')} />
             </FormControl>
@@ -73,7 +73,7 @@ export function TabServer({ isEdit }: TabServerProps) {
           name="imap.port"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('accounts.imapPort')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+              <FormLabel>{t('accounts.imapPort')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -92,7 +92,7 @@ export function TabServer({ isEdit }: TabServerProps) {
           name="imap.encryption"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('accounts.imapEncryption')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+              <FormLabel>{t('accounts.imapEncryption')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -131,7 +131,7 @@ export function TabServer({ isEdit }: TabServerProps) {
         name="imap.auth.auth_type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t('accounts.imapAuthMethod')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+            <FormLabel>{t('accounts.imapAuthMethod')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -154,7 +154,7 @@ export function TabServer({ isEdit }: TabServerProps) {
           name="imap.auth.password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('accounts.imapPassword')}{!isEdit && <span className="text-red-500 align-super text-xs">*</span>}</FormLabel>
+              <FormLabel>{t('accounts.imapPassword')}{!isEdit && <span className="text-destructive align-super text-xs">*</span>}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder={isEdit ? t('accounts.leaveEmptyToKeepPassword') : t('accounts.enterPassword')} {...field} />
               </FormControl>

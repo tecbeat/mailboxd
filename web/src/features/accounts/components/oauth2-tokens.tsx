@@ -164,7 +164,7 @@ export function OAuth2TokensDialog({ currentRow, open, onOpenChange }: Props) {
                   <h3 className="mt-4 text-lg font-semibold">{t('accounts.noOAuth2Tokens')}</h3>
                   <p className="mb-4 mt-2 text-sm text-muted-foreground">
                     {t('accounts.theAccountHasNotCompletedTheAuthorizationProcess')}
-                    <a onClick={() => navigate({ to: '/oauth2' })} className="ml-1 text-blue-500 underline cursor-pointer">{t('accounts.clickHere')}</a>
+                    <a onClick={() => navigate({ to: '/oauth2' })} className="ml-1 text-primary underline cursor-pointer">{t('accounts.clickHere')}</a>
                     {t('accounts.toAuthorizeTheAccount')}
                   </p>
                 </div>
