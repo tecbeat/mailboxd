@@ -7,6 +7,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight } from 'lucide-react';
@@ -580,10 +581,10 @@ export default function ImportPage() {
                         {formatBytes(qf.file.size)}
                       </span>
                       {!qf.typeOk && (
-                        <span className="text-xs font-medium text-destructive shrink-0">Invalid type</span>
+                        <span className="text-xs font-medium text-destructive shrink-0">{t('import.invalidType')}</span>
                       )}
                       {!qf.sizeOk && qf.typeOk && (
-                        <span className="text-xs font-medium text-destructive shrink-0">Too large</span>
+                        <span className="text-xs font-medium text-destructive shrink-0">{t('import.tooLarge')}</span>
                       )}
                       {qf.sizeOk && qf.typeOk ? (
                         <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
@@ -729,12 +730,12 @@ function statusColor(status: string) {
   return statusTextClass[kindMap[status] ?? 'neutral'];
 }
 
-function statusLabel(status: string) {
+function statusLabel(status: string, t: TFunction) {
   switch (status) {
-    case 'completed': return 'Completed';
-    case 'failed': return 'Failed';
-    case 'processing': return 'Processing';
-    case 'pending': return 'Pending';
+    case 'completed': return t('import.status.completed');
+    case 'failed': return t('import.status.failed');
+    case 'processing': return t('import.status.processing');
+    case 'pending': return t('import.status.pending');
     default: return status;
   }
 }
@@ -745,7 +746,7 @@ function CollapsibleHistory({
   accountLabel,
 }: {
   history: ImportHistory[];
-  t: (key: string) => string;
+  t: TFunction;
   accountLabel: (id: number) => string;
 }) {
   const [open, setOpen] = useState(false);
@@ -779,7 +780,7 @@ function CollapsibleHistory({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={cn('font-medium', statusColor(h.status))}>
-                      {statusLabel(h.status)}
+                      {statusLabel(h.status, t)}
                     </span>
                     <span className="text-muted-foreground">
                       {accountLabel(h.account_id)} / {h.folder}
@@ -789,10 +790,10 @@ function CollapsibleHistory({
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <span>{h.format.toUpperCase()}</span>
-                  <span className="text-green-600">{h.success} success</span>
-                  {h.duplicates > 0 && <span>{h.duplicates} dup</span>}
-                  {h.failed > 0 && <span className="text-destructive">{h.failed} failed</span>}
-                  <span>{h.total} total</span>
+                  <span className="text-green-600">{t('import.summarySuccess', { count: h.success })}</span>
+                  {h.duplicates > 0 && <span>{t('import.summaryDuplicates', { count: h.duplicates })}</span>}
+                  {h.failed > 0 && <span className="text-destructive">{t('import.summaryFailed', { count: h.failed })}</span>}
+                  <span>{t('import.summaryTotal', { count: h.total })}</span>
                 </div>
                 {h.failed_details.length > 0 && (
                   <details className="text-[11px]">

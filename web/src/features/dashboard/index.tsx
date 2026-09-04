@@ -170,11 +170,11 @@ export default function MailArchiveDashboard() {
 
   const attachmentData = totalAttachments > 0
     ? [
-      { name: 'With Attachments', value: attachmentRatio, fill: 'hsl(var(--primary))' },
-      { name: 'No Attachments', value: 1 - attachmentRatio, fill: 'hsl(var(--muted))' },
+      { name: t('dashboard.withAttachments'), value: attachmentRatio, fill: 'hsl(var(--primary))' },
+      { name: t('dashboard.noAttachments'), value: 1 - attachmentRatio, fill: 'hsl(var(--muted))' },
     ]
     : [
-      { name: 'No Data', value: 1, fill: 'hsl(var(--muted))' },
+      { name: t('dashboard.noData'), value: 1, fill: 'hsl(var(--muted))' },
     ];
 
   if (isLoading) {
@@ -562,8 +562,8 @@ export default function MailArchiveDashboard() {
                                         handleQuickAttachmentSearch({ id: a.id })
                                       }}
                                       className="hover:text-primary hover:underline transition-colors"
-                                    >
-                                      {a.name || 'Unnamed'}
+                                     >
+                                      {a.name || t('dashboard.unnamed')}
                                     </button>
                                   </LongText>
                                 </span>

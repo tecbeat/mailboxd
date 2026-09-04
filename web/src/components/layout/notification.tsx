@@ -129,7 +129,7 @@ export function NotificationPopover() {
             <div className="p-8 text-center space-y-2">
               <BellIcon className="mx-auto h-6 w-6 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No new notifications
+                {t('system.noNotifications')}
               </p>
             </div>
           ) : (
@@ -148,6 +148,7 @@ export function NotificationPopover() {
 }
 
 function ReleaseNotificationView({ data }: { data: Release }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -156,11 +157,11 @@ function ReleaseNotificationView({ data }: { data: Release }) {
             {data.tag_name}
           </h3>
           <span className={`text-xs px-2 py-1 rounded-full border ${statusBadgeClass.success}`}>
-            New Release
+            {t('system.newRelease')}
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Released {data.published_at}
+          {t('system.released', { date: data.published_at })}
         </p>
       </div>
 
@@ -178,7 +179,7 @@ function ReleaseNotificationView({ data }: { data: Release }) {
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline inline-flex items-center"
           >
-            View full release notes <ExternalLinkIcon className="ml-1 h-3 w-3" />
+            {t('system.viewReleaseNotes')} <ExternalLinkIcon className="ml-1 h-3 w-3" />
           </a>
         </div>
       )}
