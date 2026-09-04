@@ -206,7 +206,7 @@ export function TabDownload() {
               name="download_interval_min"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('accounts.downloadInterval')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+                  <FormLabel>{t('accounts.downloadInterval')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
                   <FormControl>
                     <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10))} />
                   </FormControl>
@@ -394,7 +394,7 @@ export function TabDownload() {
             name="download_batch_size"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('accounts.downloadBatchSize')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+                <FormLabel>{t('accounts.downloadBatchSize')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
                 <FormControl>
                   <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10))} />
                 </FormControl>
@@ -408,7 +408,7 @@ export function TabDownload() {
             name="max_email_size_bytes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('accounts.maxEmailSizeBytes')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+                <FormLabel>{t('accounts.maxEmailSizeBytes')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
                 <FormControl>
                   <div className="flex items-center gap-2">
                     <Input
@@ -472,7 +472,7 @@ export function TabDownload() {
                 const dateLocale = dateFnsLocaleMap[currentLang] || enUS;
                 return (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t('accounts.selectDate')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+                    <FormLabel>{t('accounts.selectDate')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -509,7 +509,7 @@ export function TabDownload() {
                 name={syncMode === 'since_relative' ? "date_since.relative.value" : "date_before.value"}
                 render={({ field }) => (
                   <FormItem className="flex-1 max-w-[150px]">
-                    <FormLabel>{t('accounts.duration')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+                    <FormLabel>{t('accounts.duration')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
                     <FormControl>
                       <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value, 10))} />
                     </FormControl>
@@ -522,7 +522,7 @@ export function TabDownload() {
                 name={syncMode === 'since_relative' ? "date_since.relative.unit" : "date_before.unit"}
                 render={({ field }) => (
                   <FormItem className="w-[180px]">
-                    <FormLabel>{t('accounts.unit', 'Unit')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+                    <FormLabel>{t('accounts.unit', 'Unit')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>

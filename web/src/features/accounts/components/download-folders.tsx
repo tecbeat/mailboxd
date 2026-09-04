@@ -526,7 +526,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                             />
                         )}
                         {error && (
-                            <div className="mt-auto p-2 text-red-600 text-sm font-medium">
+                            <div className="mt-auto p-2 text-destructive text-sm font-medium">
                                 {error}
                             </div>
                         )}

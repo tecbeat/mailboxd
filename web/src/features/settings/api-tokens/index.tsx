@@ -52,7 +52,7 @@ export function APITokens() {
 
   if (error || !user) {
     return (
-      <div className="p-6 text-red-600">
+      <div className="p-6 text-destructive">
         {t('apiTokens.page.loadError')}
       </div>
     )

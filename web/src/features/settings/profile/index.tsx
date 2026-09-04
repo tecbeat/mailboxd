@@ -40,7 +40,7 @@ export function Profile() {
 
   if (error || !user) {
     return (
-      <div className="p-6 text-red-600">
+      <div className="p-6 text-destructive">
         {t('settings.profile.loadError')}
       </div>
     )

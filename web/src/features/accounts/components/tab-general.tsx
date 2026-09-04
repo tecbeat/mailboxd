@@ -47,7 +47,7 @@ export function TabGeneral({ isEdit }: TabGeneralProps) {
         name="email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t('accounts.email')}<span className="text-red-500 align-super text-xs">*</span></FormLabel>
+            <FormLabel>{t('accounts.email')}<span className="text-destructive align-super text-xs">*</span></FormLabel>
             <FormControl>
               <Input {...field} disabled={isEdit} placeholder={t('accounts.emailPlaceholder')} />
             </FormControl>
