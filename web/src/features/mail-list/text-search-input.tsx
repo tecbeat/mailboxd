@@ -164,12 +164,12 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
         return () => clearTimeout(handle)
     }, [value, field, filter, searchFields, setFilter])
 
-    // The search unit grows to share one row while the bar is wide (`@xl/fbar`);
-    // once the bar is narrow enough to wrap, `basis-full` claims the whole first
-    // row so the search stays usable and the filters pack onto the next row
-    // instead of leaving a large empty gap.
+    // The search unit is the dominant, growing member of the bar (`flex-[5]`),
+    // so it soaks up the free space on its row on wide screens and stays the
+    // widest segment when the bar wraps — while still sharing its row with a
+    // few filters instead of claiming a whole row of its own.
     return (
-        <div ref={containerRef} className="relative flex flex-1 basis-full items-stretch @xl/fbar:basis-0">
+        <div ref={containerRef} className="relative flex flex-[5] items-stretch">
             <Select
                 value={field}
                 onValueChange={(val) => {
@@ -180,7 +180,10 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
                 <SelectTrigger
                     className={cn(
                         "h-9 w-auto gap-1.5 rounded-none border-0 border-r border-border px-2.5",
-                        "bg-transparent text-xs font-normal text-muted-foreground shadow-none focus:ring-0 focus:ring-offset-0"
+                        "bg-transparent text-xs font-normal text-muted-foreground shadow-none focus:ring-0 focus:ring-offset-0",
+                        // Drop the built-in dropdown chevron so this segment reads
+                        // like the other icon-only filter triggers in the bar.
+                        "[&>svg:last-of-type]:hidden"
                     )}
                 >
                     <LetterText className="h-4 w-4 shrink-0" />
@@ -219,7 +222,7 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
                     onFocus={() => setShowHistory(true)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     placeholder={t(placeholderKey)}
-                    className="h-9 w-full rounded-none border-0 bg-transparent pl-8 pr-8 text-xs md:text-xs shadow-none focus-visible:ring-0"
+                    className="h-9 w-full rounded-none border-0 bg-transparent pl-8 pr-8 text-xs shadow-none focus-visible:ring-0"
                 />
                 {value && (
                     <Button

@@ -105,8 +105,10 @@
     }
   }
 
-  /* Prevent focus zoom on mobile devices */
-  @media screen and (max-width: 767px) {
+  /* Prevent focus zoom on touch mobile devices. Scoped to coarse pointers so
+     the anti-zoom bump only applies where iOS actually zooms on focus; narrow
+     desktop windows (fine pointer) keep the design's intended font sizes. */
+  @media screen and (max-width: 767px) and (pointer: coarse) {
     input,
     select,
     textarea {
