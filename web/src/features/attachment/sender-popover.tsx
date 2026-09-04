@@ -21,9 +21,9 @@
 import * as React from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { ChevronDown, Mail } from "lucide-react"
+import { Mail } from "lucide-react"
 import { useTranslation } from 'react-i18next'
+import { filterSegment, FilterLabel, ActiveDot } from "@/features/mail-list/filter-bar"
 import { useAttachmentContext } from "./context"
 import { useAttachmentSenders } from "@/hooks/use-attachment-senders"
 import { Group } from "@/api/system/api"
@@ -53,20 +53,13 @@ export function SenderFilterPopover() {
         <Popover>
             <PopoverTrigger asChild>
                 <Button
-                    size="sm"
-                    variant="outline"
-                    className={cn(
-                        'h-6 rounded-none px-3 gap-1.5 transition-colors border-l-0',
-                        activeCount > 0 && 'bg-primary/10 text-primary hover:bg-primary/20'
-                    )}
+                    variant="ghost"
+                    className={filterSegment(activeCount > 0)}
+                    title={t('attachment.sender')}
                 >
-                    <Mail className="h-3.5 w-3.5 opacity-60" />
-                    <span>
-                        {activeCount > 0
-                            ? t('attachment.sender_with_count', { count: activeCount })
-                            : t('attachment.sender')}
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                    <Mail className="h-4 w-4" />
+                    <FilterLabel>{t('attachment.sender')}</FilterLabel>
+                    <ActiveDot active={activeCount > 0} />
                 </Button>
             </PopoverTrigger>
 
