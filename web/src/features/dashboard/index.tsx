@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { Mail, Users, Inbox, Zap, Paperclip } from 'lucide-react';
-import { formatBytes, formatNumber } from '@/lib/utils';
+import { cn, formatBytes, formatNumber } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { get_dashboard_stats, INITIAL_DASHBOARD_STATS, TimeBucket } from '@/api/system/api';
 import { Main } from '@/components/layout/main';
@@ -32,6 +32,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+
+// Dashboard typography scale (issue #37): a small, reusable set of card
+// styles applied across every card, instead of ad-hoc per-card sizes.
+const CARD_TITLE = 'text-xs font-bold uppercase tracking-wider';
+const CARD_DESCRIPTION = 'text-xs';
+const CARD_HEADER_COMPACT = 'px-4 pt-4 pb-1';
+const METRIC_VALUE = 'text-xl font-bold';
 
 interface DailyActivity {
   date: string;
@@ -192,7 +199,7 @@ export default function MailArchiveDashboard() {
               <MetricCardSkeleton className="md:col-span-2 lg:col-span-2" />
               <MetricCardSkeleton className="md:col-span-2 lg:col-span-2" />
               <Card className="md:col-span-6 lg:col-span-6">
-                <CardHeader className="flex flex-row items-center justify-between pt-2 pb-1 px-4">
+                <CardHeader className={cn('flex flex-row items-center justify-between', CARD_HEADER_COMPACT)}>
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-6 w-12" />
                 </CardHeader>
@@ -234,7 +241,7 @@ export default function MailArchiveDashboard() {
             <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {[...Array(4)].map((_, i) => (
                 <Card key={i} className="overflow-hidden">
-                  <CardHeader className="!px-4 !pt-4 !pb-1">
+                  <CardHeader className={CARD_HEADER_COMPACT}>
                     <Skeleton className="h-3 w-32" />
                   </CardHeader>
                   <CardContent className="p-0">
@@ -269,45 +276,45 @@ export default function MailArchiveDashboard() {
           <div className="grid gap-4 grid-cols-1 md:grid-cols-12">
             <Card className="md:col-span-2 lg:col-span-2">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider">{t('dashboard.mailAccounts')}</CardTitle>
+                <CardTitle className={CARD_TITLE}>{t('dashboard.mailAccounts')}</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-xl font-bold">{formatNumber(stats1.account_count)}</div>
+                <div className={METRIC_VALUE}>{formatNumber(stats1.account_count)}</div>
                 <p className="text-xs text-muted-foreground">{t('dashboard.connected')}</p>
               </CardContent>
             </Card>
 
             <Card className="md:col-span-2 lg:col-span-2">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider">{t('dashboard.totalEmails')}</CardTitle>
+                <CardTitle className={CARD_TITLE}>{t('dashboard.totalEmails')}</CardTitle>
                 <Mail className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-xl font-bold">{formatNumber(stats1.email_count)}</div>
+                <div className={METRIC_VALUE}>{formatNumber(stats1.email_count)}</div>
                 <p className="text-xs text-muted-foreground">{t('dashboard.syncedLocally')}</p>
               </CardContent>
             </Card>
 
             <Card className="md:col-span-2 lg:col-span-2">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider">{t('dashboard.totalAttachments')}</CardTitle>
+                <CardTitle className={CARD_TITLE}>{t('dashboard.totalAttachments')}</CardTitle>
                 <Paperclip className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-xl font-bold">{formatNumber(stats1.attachment_count)}</div>
+                <div className={METRIC_VALUE}>{formatNumber(stats1.attachment_count)}</div>
                 <p className="text-xs text-muted-foreground">{t('dashboard.regularAttachments')}</p>
               </CardContent>
             </Card>
             <Card className="md:col-span-6 lg:col-span-6">
-              <CardHeader className="flex flex-row items-center justify-between pt-2 pb-1 px-4">
-                <CardTitle className="text-xs font-bold flex items-center gap-1 uppercase">
+              <CardHeader className={cn('flex flex-row items-center justify-between', CARD_HEADER_COMPACT)}>
+                <CardTitle className={cn(CARD_TITLE, 'flex items-center gap-1')}>
                   <Zap className="h-3.5 w-3.5" />
                   {t('dashboard.efficiency')}
                 </CardTitle>
                 <div className="flex flex-col items-end leading-none">
-                  <span className="text-sm font-black text-primary">{savingsPercent}%</span>
-                  <span className="text-[9px] font-bold text-primary uppercase">{t('dashboard.saved', 'Saved')}</span>
+                  <span className={cn(METRIC_VALUE, 'text-primary')}>{savingsPercent}%</span>
+                  <span className="text-xs font-bold text-primary uppercase">{t('dashboard.saved', 'Saved')}</span>
                 </div>
               </CardHeader>
               <CardContent className="py-2.5 space-y-2">
@@ -317,26 +324,26 @@ export default function MailArchiveDashboard() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <div className="flex items-center gap-1.5 overflow-hidden">
-                      <span className="text-muted-foreground uppercase text-[9px] shrink-0">{t('dashboard.logicalVolume')}:</span>
-                      <span className="font-bold tracking-tight truncate">{formatBytes(logicalSize)}</span>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground uppercase shrink-0">{t('dashboard.logicalVolume')}:</span>
+                      <span className="font-bold tracking-tight whitespace-nowrap">{formatBytes(logicalSize)}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 overflow-hidden ml-2">
-                      <span className="text-muted-foreground uppercase text-[9px] shrink-0">{t('dashboard.actualDiskUsage')}:</span>
-                      <span className="font-bold tracking-tight truncate">{formatBytes(physicalTotal)}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground uppercase shrink-0">{t('dashboard.actualDiskUsage')}:</span>
+                      <span className="font-bold tracking-tight whitespace-nowrap">{formatBytes(physicalTotal)}</span>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center text-[10px]">
-                    <div className="flex items-center gap-1.5 overflow-hidden">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                    <div className="flex items-center gap-1.5">
                       <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                      <span className="text-muted-foreground truncate">
+                      <span className="text-muted-foreground whitespace-nowrap">
                         {t('dashboard.dataStorage')}: <span className="text-foreground font-medium">{formatBytes(blobSize)}</span>
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 overflow-hidden ml-2">
+                    <div className="flex items-center gap-1.5">
                       <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-chart-3" />
-                      <span className="text-muted-foreground truncate text-right">
+                      <span className="text-muted-foreground whitespace-nowrap">
                         {t('dashboard.indexSize')}: <span className="text-foreground font-medium">{formatBytes(indexSize)}</span>
                       </span>
                     </div>
@@ -348,8 +355,8 @@ export default function MailArchiveDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className='text-xs'>{t('dashboard.newEmails')}</CardTitle>
-                <CardDescription className='text-xs'>{t('dashboard.messageDistribution')}</CardDescription>
+                <CardTitle className={CARD_TITLE}>{t('dashboard.newEmails')}</CardTitle>
+                <CardDescription className={CARD_DESCRIPTION}>{t('dashboard.messageDistribution')}</CardDescription>
               </CardHeader>
               <CardContent className="h-36">
                 {hasRecentActivity ? (
@@ -386,8 +393,8 @@ export default function MailArchiveDashboard() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className='text-xs'>{t('dashboard.attachmentRatio')}</CardTitle>
-                <CardDescription className='text-xs'>
+                <CardTitle className={CARD_TITLE}>{t('dashboard.attachmentRatio')}</CardTitle>
+                <CardDescription className={CARD_DESCRIPTION}>
                   {totalAttachments > 0
                     ? t('dashboard.attachmentRatioDesc', { percent: (attachmentRatio * 100).toFixed(1) })
                     : t('dashboard.noEmailsSynced')}
@@ -435,8 +442,8 @@ export default function MailArchiveDashboard() {
           </div>
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <Card className="overflow-hidden">
-              <CardHeader className="!px-4 !pt-4 !pb-1">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider">{t('dashboard.top10Senders')}</CardTitle>
+              <CardHeader className={CARD_HEADER_COMPACT}>
+                <CardTitle className={CARD_TITLE}>{t('dashboard.top10Senders')}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 {hasTopSenders ? (
@@ -482,8 +489,8 @@ export default function MailArchiveDashboard() {
               </CardContent>
             </Card>
             <Card className="overflow-hidden">
-              <CardHeader className="!px-4 !pt-4 !pb-1">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider">{t('dashboard.top10LargestEmails')}</CardTitle>
+              <CardHeader className={CARD_HEADER_COMPACT}>
+                <CardTitle className={CARD_TITLE}>{t('dashboard.top10LargestEmails')}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 {hasTopEmails ? (
@@ -529,8 +536,8 @@ export default function MailArchiveDashboard() {
               </CardContent>
             </Card>
             <Card className="overflow-hidden">
-              <CardHeader className="!px-4 !pt-4 !pb-1">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider">
+              <CardHeader className={CARD_HEADER_COMPACT}>
+                <CardTitle className={CARD_TITLE}>
                   {t('dashboard.top10LargestAttachments')}
                 </CardTitle>
               </CardHeader>
@@ -583,8 +590,8 @@ export default function MailArchiveDashboard() {
               </CardContent>
             </Card>
             <Card className="overflow-hidden">
-              <CardHeader className="!px-4 !pt-4 !pb-1">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider">{t('dashboard.top10Accounts')}</CardTitle>
+              <CardHeader className={CARD_HEADER_COMPACT}>
+                <CardTitle className={CARD_TITLE}>{t('dashboard.top10Accounts')}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 {hasTopAccounts ? (
