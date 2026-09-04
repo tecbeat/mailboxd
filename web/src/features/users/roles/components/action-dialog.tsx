@@ -40,7 +40,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { AxiosError } from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2, Lock as LockIcon, ShieldCheck, UserCog } from 'lucide-react'
+import { LoaderCircle, Lock as LockIcon, ShieldCheck, UserCog } from 'lucide-react'
 import { create_role, getPermissions, update_role, UserRole } from '@/api/users/api'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -350,7 +350,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
             disabled={mutation.isPending}
             className="px-8 font-bold"
           >
-            {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {mutation.isPending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
             {isEdit ? t('roles.actions.submit_update') : t('roles.actions.submit_create')}
           </Button>
         </div>

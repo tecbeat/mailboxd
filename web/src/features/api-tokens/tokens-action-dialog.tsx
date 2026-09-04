@@ -22,7 +22,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { AxiosError } from 'axios'
-import { LoaderCircle as Loader2, Clock } from 'lucide-react'
+import { LoaderCircle, Clock } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
@@ -254,7 +254,7 @@ export function TokensActionDialog({ currentRow, open, onOpenChange, userId }: P
             disabled={isPending}
             className="min-w-[120px]"
           >
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
             {isEdit ? t('apiTokens.dialog.saveChanges') : t('apiTokens.dialog.save')}
           </Button>
         </DialogFooter>

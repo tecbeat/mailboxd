@@ -74,7 +74,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             variant='ghost'
             className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
           >
-            <MoreVertical size={10} />
+            <MoreVertical />
             <span className='sr-only'>Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -88,7 +88,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('attachment.showDuplicates')}
             <DropdownMenuShortcut>
-              <Copy size={16} />
+              <Copy />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -101,7 +101,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('attachment.preview')}
             <DropdownMenuShortcut>
-              <Eye size={16} />
+              <Eye />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -117,7 +117,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               ? t('attachment.downloading')
               : t('attachment.download')}
             <DropdownMenuShortcut>
-              <Download size={16} />
+              <Download />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>

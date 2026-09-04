@@ -44,7 +44,7 @@ import { Input } from '@/components/ui/input'
 import { AxiosError } from 'axios'
 import { ToastAction } from '@/components/ui/toast'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2 } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 import { add_proxy, update_proxy } from '@/api/system/api'
 import { useTranslation } from 'react-i18next'
 import { Proxy } from '@/api/system/api'
@@ -180,7 +180,7 @@ export function ProxyActionDialog({ currentRow, open, onOpenChange }: Props) {
           >
             <span className="inline-flex items-center justify-center">
               {(isEdit ? updateMutation.isPending : createMutation.isPending) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
               )}
               <span>
                 {isEdit

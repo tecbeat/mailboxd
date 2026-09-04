@@ -46,7 +46,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { OAuth2Entity } from '../data/schema'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { LoaderCircle as Loader2, CircleMinus as MinusCircle, Plus } from 'lucide-react'
+import { LoaderCircle, CircleMinus as MinusCircle, Plus } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { create_oauth2, update_oauth2 } from '@/api/oauth2/api'
 import { ToastAction } from '@/components/ui/toast'
@@ -556,7 +556,7 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
             {isEdit ? (
               updateMutation.isPending ? (
                 <span className="flex items-center justify-center">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                   {t('oauth2.saving')}
                 </span>
               ) : (
@@ -565,7 +565,7 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
             ) : (
               createMutation.isPending ? (
                 <span className="flex items-center justify-center">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                   {t('oauth2.creating')}
                 </span>
               ) : (

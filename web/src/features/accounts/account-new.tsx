@@ -24,7 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle as Loader2 } from "lucide-react";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
@@ -222,7 +222,7 @@ export function AccountNewPage() {
                         disabled={autoConfigLoading}
                         onClick={handleAutoConfig}
                       >
-                        {autoConfigLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                        {autoConfigLoading && <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                         {autoConfigLoading ? t('accounts.autoConfiguring') : t('accounts.autoDiscover')}
                       </Button>
                     </div>

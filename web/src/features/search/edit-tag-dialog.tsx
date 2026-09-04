@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Tag as TagIcon, X, LoaderCircle as Loader2, Check, Search } from 'lucide-react';
+import { Plus, Tag as TagIcon, X, LoaderCircle, Check, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useAvailableTags } from '@/hooks/use-available-tags';
 import { useUpdateTags } from '@/hooks/use-update-tags';
@@ -242,7 +242,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                         <Button onClick={handleSave} disabled={isPending}>
                             {isPending ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                                     {t('search.addTags.saving')}
                                 </>
                             ) : (

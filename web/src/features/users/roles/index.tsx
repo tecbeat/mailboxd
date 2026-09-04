@@ -58,8 +58,8 @@ export default function Roles() {
             title={t('roles.pageTitle', 'Roles')}
             description={t('roles.description', 'Define roles and the permissions granted to their members.')}
             actions={
-              <Button className="space-x-1" onClick={() => setOpen('add')}>
-                <span>{t('roles.actions.add')}</span> <Plus size={18} />
+              <Button onClick={() => setOpen('add')}>
+                <Plus className="mr-2 h-4 w-4" /><span>{t('roles.actions.add')}</span>
               </Button>
             }
           />

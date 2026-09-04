@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Plus, Tag as TagIcon, X, LoaderCircle as Loader2, Check, TriangleAlert as AlertTriangle } from 'lucide-react';
+import { Plus, Tag as TagIcon, X, LoaderCircle, Check, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import { useAvailableTags } from '@/hooks/use-available-tags';
 import { TagAction, useUpdateTags } from '@/hooks/use-update-tags';
@@ -240,7 +240,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
                         <Button onClick={handleSubmit} disabled={isPending} variant={action === 'Remove' ? 'destructive' : 'default'}>
                             {isPending ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                                     {t(`search.updateTags.saving${action}`)}
                                 </>
                             ) : (

@@ -53,7 +53,7 @@ export function DataTableViewOptions<TData extends RowData>({
           size='sm'
           className='ms-auto hidden h-6 lg:flex rounded-none'
         >
-          <MixerHorizontalIcon className='size-4' />
+          <MixerHorizontalIcon className='h-4 w-4' />
           {t('search_view.button_label')}
         </Button>
       </DropdownMenuTrigger>

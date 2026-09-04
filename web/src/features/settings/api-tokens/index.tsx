@@ -66,8 +66,8 @@ export function APITokens() {
         description={t('apiTokens.page.pageDescription', 'Personal API tokens for programmatic access on your behalf.')}
         actions={
           <Button onClick={() => setAddOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
             <span>{t('apiTokens.page.addBtn')}</span>
-            <Plus size={18} className="ml-2" />
           </Button>
         }
       />

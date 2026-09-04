@@ -186,7 +186,7 @@ function ThemeItem({
 
       <Check
         className={cn(
-          'size-4 shrink-0 transition-opacity',
+          'h-4 w-4 shrink-0 transition-opacity',
           active ? 'opacity-100' : 'opacity-0'
         )}
       />
@@ -269,9 +269,9 @@ export function ThemeSwitch() {
       <PopoverTrigger asChild>
         <Button variant='ghost' size='icon' className='rounded-full'>
           {isDark ? (
-            <Moon className='size-5' />
+            <Moon className='h-5 w-5' />
           ) : (
-            <Sun className='size-5' />
+            <Sun className='h-5 w-5' />
           )}
         </Button>
       </PopoverTrigger>
@@ -283,7 +283,7 @@ export function ThemeSwitch() {
 
         <div className='grid grid-cols-2 gap-3'>
           <ThemeColumn
-            icon={<Sun className='size-3.5' />}
+            icon={<Sun className='h-3.5 w-3.5' />}
             label={t('theme.light')}
             items={LIGHT_THEMES}
             currentTheme={theme}
@@ -292,7 +292,7 @@ export function ThemeSwitch() {
 
           <div className='border-l border-border/40 pl-3'>
             <ThemeColumn
-              icon={<Moon className='size-3.5' />}
+              icon={<Moon className='h-3.5 w-3.5' />}
               label={t('theme.dark')}
               items={DARK_THEMES}
               currentTheme={theme}
