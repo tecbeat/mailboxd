@@ -182,7 +182,7 @@ export default function MailArchiveDashboard() {
       <>
         <FixedHeader />
         <Main higher className="max-w-none">
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-4">
             <PageHeader
               title={t('dashboard.title')}
               description={t('dashboard.description', 'Overview of your archived mail, storage, and activity.')}
@@ -260,7 +260,7 @@ export default function MailArchiveDashboard() {
     <>
       <FixedHeader />
       <Main higher className="max-w-none">
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-4">
           <PageHeader
             title={t('dashboard.title')}
             description={t('dashboard.description', 'Overview of your archived mail, storage, and activity.')}
@@ -647,7 +647,7 @@ export default function MailArchiveDashboard() {
         </div>
       </Main>
 
-      <div className="mt-auto p-6 text-center text-xs text-muted-foreground border-t">
+      <div className="mt-auto px-6 py-4 text-center text-xs text-muted-foreground border-t">
         <p>
           © 2025-2026{" "}
           <a
