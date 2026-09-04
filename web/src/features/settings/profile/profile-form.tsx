@@ -223,7 +223,7 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
             </div>
           </div>
 
-          <div className="flex justify-start pt-4">
+          <div className="flex justify-end pt-4">
             <Button
               type="submit"
               disabled={form.formState.isSubmitting || mutation.isPending}

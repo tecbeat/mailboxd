@@ -250,7 +250,7 @@ export function AppearanceForm() {
                         )}
                     />
 
-                    <div className="flex justify-start pt-4">
+                    <div className="flex justify-end pt-4">
                         <Button type='submit'>
                             {t('settings.appearance.button.update')}
                         </Button>
