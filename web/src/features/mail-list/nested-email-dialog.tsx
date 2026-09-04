@@ -43,12 +43,12 @@ const MessageHeader = ({
     const displayAttachments = attachments || [];
 
     return (
-        <div className="space-y-4 mb-4 bg-white p-5 rounded-xl border shadow-xs">
+        <div className="space-y-4 mb-4 bg-card p-5 rounded-xl border shadow-xs">
             <div className="space-y-1">
-                <h1 className="text-lg font-bold text-slate-900 leading-snug">
+                <h1 className="text-lg font-bold text-foreground leading-snug">
                     {envelope.subject || `(${t('mail.noSubject')})`}
                 </h1>
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-muted-foreground">
                     {formatDateTime(envelope.date)}
                 </div>
             </div>
@@ -57,22 +57,22 @@ const MessageHeader = ({
             <div className="grid grid-cols-1 gap-y-3">
                 {/* From */}
                 <div className="flex items-baseline gap-2">
-                    <span className="w-12 text-[10px] font-bold uppercase text-slate-400 shrink-0">
+                    <span className="w-12 text-[10px] font-bold uppercase text-muted-foreground shrink-0">
                         {t('mail.from')}
                     </span>
-                    <span className="text-sm font-medium text-slate-700 truncate">
+                    <span className="text-sm font-medium text-foreground truncate">
                         {envelope.from}
                     </span>
                 </div>
 
                 {envelope.to && envelope.to.length > 0 && (
                     <div className="flex items-baseline gap-2">
-                        <span className="w-12 text-[10px] font-bold uppercase text-slate-400 shrink-0">
+                        <span className="w-12 text-[10px] font-bold uppercase text-muted-foreground shrink-0">
                             {t('mail.to')}
                         </span>
                         <div className="flex flex-wrap gap-x-2 gap-y-1">
                             {envelope.to.map((addr, i) => (
-                                <span key={i} className="text-sm text-slate-600">
+                                <span key={i} className="text-sm text-muted-foreground">
                                     {addr}{i < envelope.to.length - 1 ? ',' : ''}
                                 </span>
                             ))}
@@ -82,10 +82,10 @@ const MessageHeader = ({
 
                 {envelope.cc && envelope.cc.length > 0 && (
                     <div className="flex items-baseline gap-2">
-                        <span className="w-12 text-[10px] font-bold uppercase text-slate-400 shrink-0">
+                        <span className="w-12 text-[10px] font-bold uppercase text-muted-foreground shrink-0">
                             {t('mail.cc')}
                         </span>
-                        <div className="flex flex-wrap gap-x-2 gap-y-1 text-slate-500 italic">
+                        <div className="flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground italic">
                             {envelope.cc.map((addr, i) => (
                                 <span key={i} className="text-xs">
                                     {addr}{i < envelope.cc.length - 1 ? ',' : ''}
@@ -97,10 +97,10 @@ const MessageHeader = ({
 
                 {envelope.bcc && envelope.bcc.length > 0 && (
                     <div className="flex items-baseline gap-2">
-                        <span className="w-12 text-[10px] font-bold uppercase text-slate-400 shrink-0">
+                        <span className="w-12 text-[10px] font-bold uppercase text-muted-foreground shrink-0">
                             {t('mail.bcc')}
                         </span>
-                        <div className="flex flex-wrap gap-x-2 gap-y-1 text-slate-500 italic">
+                        <div className="flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground italic">
                             {envelope.bcc.map((addr, i) => (
                                 <span key={i} className="text-xs">
                                     {addr}{i < envelope.bcc.length - 1 ? ',' : ''}
@@ -121,13 +121,13 @@ const MessageHeader = ({
                                     <TooltipTrigger asChild>
                                         <button
                                             onClick={() => onDownload(att.content_hash, att.filename)}
-                                            className="group flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-all text-slate-600 hover:text-blue-700"
+                                            className="group flex items-center gap-2 px-3 py-1.5 bg-muted border border-border rounded-lg hover:bg-accent hover:border-primary/30 transition-all text-muted-foreground hover:text-primary"
                                         >
                                             <span className={`${color} p-0.5 rounded-sm`}>{icon}</span>
                                             <span className="text-xs font-medium truncate max-w-[180px]">
                                                 {att.filename}
                                             </span>
-                                            <span className="text-[9px] text-slate-400 group-hover:text-blue-400">
+                                            <span className="text-[9px] text-muted-foreground group-hover:text-primary">
                                                 ({formatBytes(att.size)})
                                             </span>
                                             <Download className="h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -168,12 +168,12 @@ export function NestedEmailDialog({ open, onOpenChange, accountId, envelopeId, f
             <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
                 <div className="text-white px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-blue-400" />
+                        <Mail className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium truncate max-w-[400px] opacity-90">{fileName}</span>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-auto bg-white p-8">
+                <div className="flex-1 overflow-auto bg-background p-8">
                     {isLoading ? (
                         <div className="h-full flex items-center justify-center"><Loader className="animate-spin" /></div>
                     ) : data && (
@@ -184,11 +184,11 @@ export function NestedEmailDialog({ open, onOpenChange, accountId, envelopeId, f
                                 onDownload={(nested_content_hash, fileName) => download_nested_attachment(accountId!, envelopeId!, content_hash!, nested_content_hash, fileName)}
                             />
 
-                            <div className="mt-8 pt-8 border-t border-slate-100">
+                            <div className="mt-8 pt-8 border-t border-border">
                                 {data.html ? (
                                     <EmailIframe emailHtml={data.html} />
                                 ) : (
-                                    <pre className="whitespace-pre-wrap font-sans text-sm text-slate-800 leading-relaxed">
+                                    <pre className="whitespace-pre-wrap font-sans text-sm text-foreground leading-relaxed">
                                         {data.text}
                                     </pre>
                                 )}
