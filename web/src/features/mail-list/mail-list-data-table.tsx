@@ -189,24 +189,29 @@ export function MailListDataTable<TEntity extends MailListRow>({
     onColumnFiltersChange: setColumnFilters,
   })
 
-  if (isLoading) {
-    return (
-      <div className='divide-y divide-border'>
-        {Array.from({ length: 30 }).map((_, i) => (
-          <div key={i} className='flex items-center gap-2 px-2 py-1.5'>
-            <Skeleton className='h-3 w-3' />
-            <Skeleton className='h-3 w-3 rounded-full' />
-            <Skeleton className='h-3 flex-1' />
-            <Skeleton className='h-2.5 w-16' />
-          </div>
-        ))}
-      </div>
-    )
-  }
+  const skeletonRows = (
+    <div className='divide-y divide-border'>
+      {Array.from({ length: 30 }).map((_, i) => (
+        <div key={i} className='flex items-center gap-2 px-2 py-1.5'>
+          <Skeleton className='h-3 w-3' />
+          <Skeleton className='h-3 w-3 rounded-full' />
+          <Skeleton className='h-3 flex-1' />
+          <Skeleton className='h-2.5 w-16' />
+        </div>
+      ))}
+    </div>
+  )
 
   return (
     <>
       <div className='flex min-h-0 flex-col gap-0.5'>
+        {/*
+          The toolbar (which owns the search input) stays mounted while a query
+          is in flight. Each new search term is a fresh query key with no cached
+          data, so `isLoading` flips true on every keystroke's fetch; if the
+          toolbar unmounted with it, the search input would lose focus mid-type.
+          Only the table region below swaps to the loading skeleton.
+        */}
         {toolbar(table)}
         {/*
           Hug-content layout: this root is a normal flex child (flex: 0 1 auto),
@@ -223,6 +228,9 @@ export function MailListDataTable<TEntity extends MailListRow>({
           shell's scroll region.
         */}
         <div className='relative min-h-0 flex-1 overflow-auto rounded-md border scrollbar-thin'>
+          {isLoading ? (
+            skeletonRows
+          ) : (
           <ShadcnTable>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -289,6 +297,7 @@ export function MailListDataTable<TEntity extends MailListRow>({
               )}
             </TableBody>
           </ShadcnTable>
+          )}
         </div>
       </div>
       {bulkActions && totalSelected > 0 && bulkActions}
