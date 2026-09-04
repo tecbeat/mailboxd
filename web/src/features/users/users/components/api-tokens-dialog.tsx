@@ -73,7 +73,7 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
             description={t('users.tokens_action.empty.description')}
             action={
               <Button onClick={() => setAddOpen(true)}>
-                <span>{t('users.tokens_action.buttons.add')}</span> <Plus size={18} />
+                <Plus className="mr-2 h-4 w-4" /><span>{t('users.tokens_action.buttons.add')}</span>
               </Button>
             }
           />
@@ -81,7 +81,7 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
           <>
             <div className="flex justify-end mb-4">
               <Button onClick={() => setAddOpen(true)}>
-                <span>{t('users.tokens_action.buttons.add')}</span> <Plus size={18} />
+                <Plus className="mr-2 h-4 w-4" /><span>{t('users.tokens_action.buttons.add')}</span>
               </Button>
             </div>
             <ScrollArea className='h-[32rem] w-full pr-4 -mr-4 py-1'>

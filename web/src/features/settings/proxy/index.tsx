@@ -56,8 +56,8 @@ export default function ProxyManagerPage() {
             title={t('settings.proxyTitle', 'Network Proxy')}
             description={t('settings.proxyDescription', 'Configure proxy servers used for account connections.')}
             actions={
-              <Button className="space-x-1" disabled={!require_any_permission(['system:root'])} onClick={() => setOpen('add')}>
-                <span>{t('settings.add')}</span> <Plus size={18} />
+              <Button disabled={!require_any_permission(['system:root'])} onClick={() => setOpen('add')}>
+                <Plus className="mr-2 h-4 w-4" /><span>{t('settings.add')}</span>
               </Button>
             }
           />

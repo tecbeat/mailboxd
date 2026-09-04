@@ -65,9 +65,9 @@ export default function OAuth2() {
             title={t('oauth2.title')}
             description={t('oauth2.description')}
             actions={
-              <Button className="space-x-1" disabled={!require_any_permission(['system:root'])} onClick={() => setOpen("add")}>
+              <Button disabled={!require_any_permission(['system:root'])} onClick={() => setOpen("add")}>
+                <Plus className="mr-2 h-4 w-4" />
                 <span>{t('common.add')}</span>
-                <Plus size={18} />
               </Button>
             }
           />

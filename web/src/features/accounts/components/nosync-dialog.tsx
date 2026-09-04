@@ -34,7 +34,7 @@ import { AccountModel, create_account, update_account } from '@/api/account/api'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { LoaderCircle as Loader2 } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 
@@ -244,7 +244,7 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
             {isEdit ? (
               updateMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                   {t('oauth2.saving')}
                 </>
               ) : (
@@ -253,7 +253,7 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
             ) : (
               createMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                   {t('oauth2.creating')}
                 </>
               ) : (

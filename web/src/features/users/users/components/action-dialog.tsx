@@ -22,7 +22,7 @@ import { useState, useMemo } from 'react'
 import { useFieldArray, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2, Shield, Settings2, User as UserIcon, Plus, Trash2, Mail, Check, ChevronsUpDown } from 'lucide-react'
+import { LoaderCircle, Shield, Settings2, User as UserIcon, Plus, Trash2, Mail, Check, ChevronsUpDown } from 'lucide-react'
 import { AxiosError } from 'axios'
 
 import { Button } from '@/components/ui/button'
@@ -464,7 +464,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
         <DialogFooter className="p-4 px-6 border-t shrink-0 bg-muted/5">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
           <Button type="submit" form="user-form" disabled={isSaving} className="min-w-[120px]">
-            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {isSaving ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isEdit ? t('users.actions.buttons.update') : t('users.actions.buttons.create')}
           </Button>
         </DialogFooter>

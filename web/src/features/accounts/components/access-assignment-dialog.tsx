@@ -23,7 +23,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2, ShieldCheck, Users, Search } from 'lucide-react'
+import { LoaderCircle, ShieldCheck, Users, Search } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { useTranslation } from 'react-i18next'
 import { AxiosError } from 'axios'
@@ -277,7 +277,7 @@ export function AccountAccessAssignmentDialog({
                                 {t('accounts.access_control.buttons.cancel')}
                             </Button>
                             <Button type="submit" disabled={isPending}>
-                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isPending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                 {t('accounts.access_control.buttons.save')}
                             </Button>
                         </DialogFooter>

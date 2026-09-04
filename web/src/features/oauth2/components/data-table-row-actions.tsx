@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useOAuth2Context } from '../context'
 import { OAuth2Entity } from '../data/schema'
-import { Workflow as WorkflowIcon, MoreHorizontal as DotsHorizontalIcon, Pencil as IconEdit, Trash2 as IconTrash } from 'lucide-react'
+import { Workflow as WorkflowIcon, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/hooks/use-current-user'
 
@@ -55,7 +55,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             variant='ghost'
             className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
           >
-            <DotsHorizontalIcon className='h-4 w-4' />
+            <MoreHorizontal className='h-4 w-4' />
             <span className='sr-only'>{t('oauth2.actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
@@ -69,7 +69,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('oauth2.actions.edit')}
             <DropdownMenuShortcut>
-              <IconEdit size={16} />
+              <Pencil />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -81,7 +81,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('oauth2.actions.authorize')}
             <DropdownMenuShortcut>
-              <WorkflowIcon size={16} />
+              <WorkflowIcon />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -95,7 +95,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('oauth2.actions.delete')}
             <DropdownMenuShortcut>
-              <IconTrash size={16} />
+              <Trash2 />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>

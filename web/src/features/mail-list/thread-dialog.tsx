@@ -20,7 +20,7 @@
 
 import { useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { LoaderCircle as Loader2, MessageSquareText } from 'lucide-react';
+import { LoaderCircle, MessageSquareText } from 'lucide-react';
 
 import {
   Dialog,
@@ -215,7 +215,7 @@ export function MailThreadDialog({ open, onOpenChange, currentEnvelope }: MailTh
                 >
                   {isFetchingNextPage ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
                       {t('search.thread.loadingMore')}
                     </>
                   ) : (

@@ -60,8 +60,8 @@ export default function Users() {
             title={t('users.title', 'Users')}
             description={t('users.description', 'Manage system users and their roles.')}
             actions={
-              <Button className="space-x-1" onClick={() => setOpen('add')}>
-                <span>{t('users.buttons.add')}</span> <Plus size={18} />
+              <Button onClick={() => setOpen('add')}>
+                <Plus className="mr-2 h-4 w-4" /><span>{t('users.buttons.add')}</span>
               </Button>
             }
           />

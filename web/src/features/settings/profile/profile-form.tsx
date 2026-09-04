@@ -21,7 +21,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2 } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 import { AxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -229,7 +229,7 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
               disabled={form.formState.isSubmitting || mutation.isPending}
             >
               {(form.formState.isSubmitting || mutation.isPending) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
               )}
               {t('settings.profile.button.update_profile')}
             </Button>

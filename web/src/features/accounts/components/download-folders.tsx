@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2, SquareCheck as CheckSquare, Square } from 'lucide-react'
+import { LoaderCircle, SquareCheck as CheckSquare, Square } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from '@/hooks/use-toast'
@@ -545,7 +545,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                         onClick={handleSubmit}
                         disabled={isSubmitting || isLoading || !!error}
                     >
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSubmitting && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                         {t('common.save')}
                     </Button>
                 </DialogFooter>
