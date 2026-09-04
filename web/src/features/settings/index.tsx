@@ -75,8 +75,14 @@ export default function Settings() {
           <aside className='shrink-0 lg:w-56'>
             <SidebarNav items={sidebarNavItems} />
           </aside>
-          {/* min-w-0 stops a wide table from widening the row (and the rail). */}
-          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin p-1 pr-4'>
+          {/*
+            min-w-0 stops a wide table from widening the row (and the rail).
+            scrollbar-gutter:stable always reserves the vertical scrollbar's
+            space, so the content width stays constant between sub-pages that
+            scroll (e.g. Configurations) and ones that don't (e.g. Appearance),
+            instead of jumping sideways by the scrollbar width when switching.
+          */}
+          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin p-1 pr-4 [scrollbar-gutter:stable]'>
             <Outlet />
           </div>
         </div>
