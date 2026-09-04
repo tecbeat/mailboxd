@@ -139,7 +139,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl w-[95vw] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent size="full" className="w-[95vw] max-h-[90vh] flex flex-col p-0 overflow-hidden">
         <div className="p-6 border-b bg-card">
           <DialogHeader>
             <DialogTitle>

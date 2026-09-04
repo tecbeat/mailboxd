@@ -28,7 +28,7 @@ import { useSearchMessages } from '@/hooks/use-search-messages';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import React from 'react';
 import { EmailEnvelope } from '@/api';
-import { MailDisplayDrawer } from '@/features/mail-list/mail-display-dialog';
+import { MailDisplayDialog } from '@/features/mail-list/mail-display-dialog';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
 import SearchProvider, { SearchDialogType, useSearchContext } from './context';
 import { MailListConfigProvider, type MailListConfig } from '@/features/mail-list/config';
@@ -169,7 +169,7 @@ export default function EmailSearch() {
             </div>
           </div>
 
-          <MailDisplayDrawer
+          <MailDisplayDialog
             key='search-mail-display'
             open={open === 'display'}
             onOpenChange={() => setOpen('display')}

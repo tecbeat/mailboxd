@@ -171,7 +171,7 @@ export function TokensActionDialog({ currentRow, open, onOpenChange, userId }: P
         onOpenChange(state)
       }}
     >
-      <DialogContent className="max-w-xl">
+      <DialogContent size="lg">
         <DialogHeader className="text-left mb-4">
           <DialogTitle>
             {isEdit ? t('apiTokens.dialog.editTitle') : t('apiTokens.dialog.createTitle')}
@@ -248,6 +248,9 @@ export function TokensActionDialog({ currentRow, open, onOpenChange, userId }: P
         </ScrollArea>
 
         <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {t('common.cancel')}
+          </Button>
           <Button
             type="submit"
             form="token-form"

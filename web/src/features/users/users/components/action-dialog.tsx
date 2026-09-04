@@ -233,7 +233,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl h-[80vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent size="full" className="h-[80vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-0 shrink-0">
           <div className="flex items-center gap-4 mb-4">
             {isEdit && currentRow?.avatar ? (
@@ -462,7 +462,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
           </form>
         </Form>
         <DialogFooter className="p-4 px-6 border-t shrink-0 bg-muted/5">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
           <Button type="submit" form="user-form" disabled={isSaving} className="min-w-[120px]">
             {isSaving ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isEdit ? t('users.actions.buttons.update') : t('users.actions.buttons.create')}

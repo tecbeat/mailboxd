@@ -136,7 +136,7 @@ export function ProxyActionDialog({ currentRow, open, onOpenChange }: Props) {
         onOpenChange(state)
       }}
     >
-      <DialogContent className='max-w-xl'>
+      <DialogContent size="lg">
         <DialogHeader className='text-left mb-4'>
           <DialogTitle>{isEdit ? t('settings.edit') + ' ' + t('settings.proxy') : t('common.add') + ' ' + t('settings.proxy')}</DialogTitle>
           <DialogDescription>
@@ -172,6 +172,9 @@ export function ProxyActionDialog({ currentRow, open, onOpenChange }: Props) {
           </form>
         </Form>
         <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {t('common.cancel')}
+          </Button>
           <Button
             type="submit"
             form="proxy-form"
