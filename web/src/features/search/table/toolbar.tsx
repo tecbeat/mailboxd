@@ -32,12 +32,12 @@ export function DataTableToolbar<TData extends RowData>({
   return (
     <FilterBar className="my-1">
       <TextSearchInput config={SEARCH_TEXT_CONFIG} />
+      <FilterResetButton />
       <AccountPopover />
       <MailboxPopover />
       <MailFilterPopover />
       <TagFilterPopover />
       <MoreFiltersPopover />
-      <FilterResetButton />
       <TimePopover />
       <DataTableViewOptions table={table} />
     </FilterBar>
