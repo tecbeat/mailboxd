@@ -154,9 +154,10 @@ export function MailMessageView({
     setLoading(true);
   }
 
+  const { mutate: loadMessage } = loadMessageMutation;
   useEffect(() => {
-    loadMessageMutation.mutate();
-  }, [envelope.id, blockRemote]);
+    loadMessage();
+  }, [envelope.id, blockRemote, loadMessage]);
 
 
   const handleViewNestedEml = (attachment: AttachmentInfo) => {

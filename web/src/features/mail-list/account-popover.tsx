@@ -50,7 +50,7 @@ export function AccountPopover() {
   const [search, setSearch] = React.useState('')
   const { minimalList = [] } = useMinimalAccountList()
 
-  const selectedIds: number[] = filter.account_ids ?? []
+  const selectedIds: number[] = React.useMemo(() => filter.account_ids ?? [], [filter.account_ids])
 
   const toggleAccount = (id: number) => {
     setFilter(prev => {

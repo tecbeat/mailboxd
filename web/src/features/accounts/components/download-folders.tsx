@@ -42,7 +42,6 @@ import axios, { AxiosError } from 'axios'
 import { useTranslation } from 'react-i18next'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
-import { useTheme } from '@/context/theme-context'
 import React from 'react'
 import Collapse from '@mui/material/Collapse';
 import { styled } from '@mui/material/styles';
@@ -170,7 +169,6 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
     const [fetchProgress, setFetchProgress] = useState<{ examined: number; total: number } | null>(null);
     const queryClient = useQueryClient();
     const { t } = useTranslation()
-    const { theme } = useTheme()
 
     // Show the loading state when the dialog opens or the account changes
     // (adjust state during render); the fetch itself runs in the effect below.
@@ -309,7 +307,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                 </TreeItemProvider>
             );
         });
-    }, [theme]);
+    }, []);
 
 
 
@@ -331,7 +329,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
 
 
         setSelectedItems(allIds);
-    }, [allIds]);
+    }, [allIds, mailboxes, t]);
 
     const handleDeselectAll = useCallback(() => {
         setSelectedItems([]);
