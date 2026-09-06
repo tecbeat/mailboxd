@@ -81,7 +81,7 @@ export default function OAuth2Result() {
                             <CardContent className="space-y-4">
                                 <div className="rounded-lg p-4">
                                     <div className="flex items-start">
-                                        <CheckCircle2 className="h-12 w-12 shrink-0 mt-0.5 text-green-600" />
+                                        <CheckCircle2 className="h-12 w-12 shrink-0 mt-0.5 text-success" />
                                         <div className="ml-3 flex-1">
                                             <h2 className="text-sm font-medium">{t('oauth2.success')}</h2>
                                             <div className="mt-2 text-sm">

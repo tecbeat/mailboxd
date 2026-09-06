@@ -587,7 +587,7 @@ export default function ImportPage() {
                         <span className="text-xs font-medium text-destructive shrink-0">{t('import.tooLarge')}</span>
                       )}
                       {qf.sizeOk && qf.typeOk ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                       ) : (
                         <AlertTriangle className="h-4 w-4 shrink-0" />
                       )}
@@ -650,7 +650,7 @@ export default function ImportPage() {
                 {progress && progress.total > 0 && (
                   <div className="flex gap-4 text-xs">
                     <span className="flex items-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                       {t('import.successCount', { count: progress.success })}
                     </span>
                     <span className="flex items-center gap-1">
@@ -790,7 +790,7 @@ function CollapsibleHistory({
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <span>{h.format.toUpperCase()}</span>
-                  <span className="text-green-600">{t('import.summarySuccess', { count: h.success })}</span>
+                  <span className="text-success">{t('import.summarySuccess', { count: h.success })}</span>
                   {h.duplicates > 0 && <span>{t('import.summaryDuplicates', { count: h.duplicates })}</span>}
                   {h.failed > 0 && <span className="text-destructive">{t('import.summaryFailed', { count: h.failed })}</span>}
                   <span>{t('import.summaryTotal', { count: h.total })}</span>
