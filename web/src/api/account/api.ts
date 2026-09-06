@@ -190,8 +190,8 @@ export const remove_account = async (account_id: number) => {
 };
 
 
-export const start_account_download = async (account_id: number) => {
-    const response = await axiosInstance.post(`api/v1/accounts/${account_id}/start-download`);
+export const start_account_download = async (account_id: number, run_gap_fill = false) => {
+    const response = await axiosInstance.post(`api/v1/accounts/${account_id}/start-download`, { run_gap_fill });
     return response.data;
 };
 
