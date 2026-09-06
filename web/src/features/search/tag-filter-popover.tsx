@@ -44,7 +44,7 @@ export function TagFilterPopover() {
     const [search, setSearch] = React.useState('')
     const { filter, setFilter } = useSearchContext()
 
-    const selectedTags = (filter?.tags as string[]) || []
+    const selectedTags = React.useMemo(() => (filter?.tags as string[]) || [], [filter?.tags])
     const {
         tagsCount = [],
         isLoading,

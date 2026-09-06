@@ -85,7 +85,7 @@ export function OAuth2TokensDialog({ currentRow, open, onOpenChange }: Props) {
         action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
       });
     }
-  }, []);
+  }, [t]);
 
   return (
     <Dialog
