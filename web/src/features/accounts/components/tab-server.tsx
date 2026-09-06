@@ -156,7 +156,7 @@ export function TabServer({ isEdit }: TabServerProps) {
             <FormItem>
               <FormLabel>{t('accounts.imapPassword')}{!isEdit && <span className="text-destructive align-super text-xs">*</span>}</FormLabel>
               <FormControl>
-                <PasswordInput placeholder={isEdit ? t('accounts.leaveEmptyToKeepPassword') : t('accounts.enterPassword')} {...field} />
+                <PasswordInput placeholder={isEdit ? t('accounts.leaveEmptyToKeepPassword') : t('accounts.enterPassword')} {...field} value={field.value ?? ''} />
               </FormControl>
               {isEdit && <FormDescription>{t('accounts.leaveEmptyToKeepPassword')}</FormDescription>}
               <FormMessage />
