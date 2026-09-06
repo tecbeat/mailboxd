@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -98,15 +98,13 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
   const accountSchema = getAccountSchema(true, t);
   const form = useForm<AccountFormValues>({
     mode: "onChange",
-    defaultValues: account ? mapAccountToFormValues(account) : undefined,
+    // Reactively sync the form when the account loads or changes, keeping any
+    // edits the user has already made so a background refetch does not clobber
+    // them. This replaces a manual reset effect.
+    values: account ? mapAccountToFormValues(account) : undefined,
+    resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(accountSchema),
   });
-
-  useEffect(() => {
-    if (account) {
-      form.reset(mapAccountToFormValues(account));
-    }
-  }, [account?.id]);
 
   const updateMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => update_account(accountId, data),
