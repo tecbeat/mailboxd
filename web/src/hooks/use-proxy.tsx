@@ -23,7 +23,7 @@ import { list_proxy } from "@/api/system/api";
 import { useQuery } from "@tanstack/react-query";
 
 const useProxyList = () => {
-    const { data: proxyList, ...rest } = useQuery({
+    const { data: proxyList, isLoading } = useQuery({
         queryKey: ['proxy-list'],
         queryFn: list_proxy,
         staleTime: 10 * 60 * 1000
@@ -47,7 +47,7 @@ const useProxyList = () => {
         proxyOptions,
         proxyList,
         getUrlById,
-        ...rest
+        isLoading,
     };
 };
 
