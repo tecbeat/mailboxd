@@ -23,7 +23,7 @@ import { minimal_account_list } from "@/api/account/api";
 import { useQuery } from "@tanstack/react-query";
 
 const useMinimalAccountList = () => {
-  const { data: minimalList, ...rest } = useQuery({
+  const { data: minimalList, isLoading } = useQuery({
     queryKey: ['minimal-account-list'],
     queryFn: minimal_account_list,
   });
@@ -46,7 +46,7 @@ const useMinimalAccountList = () => {
     accountsOptions,
     minimalList,
     getEmailById,
-    ...rest
+    isLoading,
   };
 };
 
