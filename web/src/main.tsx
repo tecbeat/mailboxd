@@ -30,7 +30,7 @@ import {
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { resetToken } from '@/stores/authStore'
 import { toast } from '@/hooks/use-toast'
-import { ThemeProvider } from './context/theme-context'
+import { ThemeProvider } from './context/theme-provider'
 import './index.css'
 import './i18n'
 // Generated Routes

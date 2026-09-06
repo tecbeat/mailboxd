@@ -18,29 +18,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import React from 'react'
+import { OAuth2Context, OAuth2ContextType } from '.'
 
-import { createContext, useContext } from 'react'
-
-export type Theme = 'light' | 'dark' | 'rose-light' | 'rose-dark' | 'orange-light'
-  | 'orange-dark' | 'green-light' | 'green-dark' | 'yellow-light' | 'yellow-dark' | 'blue-light' | 'blue-dark'
-
-export type ThemeProviderState = {
-  theme: Theme
-  setTheme: (theme: Theme) => void
+interface Props {
+  children: React.ReactNode
+  value: OAuth2ContextType
 }
 
-export const initialState: ThemeProviderState = {
-  theme: 'dark',
-  setTheme: () => null,
-}
-
-export const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
-
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext)
-
-  if (context === undefined)
-    throw new Error('useTheme must be used within a ThemeProvider')
-
-  return context
+export default function OAuth2Provider({ children, value }: Props) {
+  return <OAuth2Context.Provider value={value}>{children}</OAuth2Context.Provider>
 }

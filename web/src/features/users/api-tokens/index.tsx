@@ -24,9 +24,8 @@ import { PageHeader } from '@/components/layout/page-header'
 import { getColumns } from './components/columns'
 import { ApiTokenDeleteDialog } from './components/delete-dialog'
 import { ApiTokensTable } from './components/table'
-import ApiTokenProvider, {
-  type ApiTokenDialogType,
-} from './context'
+import ApiTokenProvider from './context/provider'
+import { type ApiTokenDialogType } from './context'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
 import { AccessToken, list_access_tokens } from '@/api/users/api'

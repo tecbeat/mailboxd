@@ -24,23 +24,14 @@ import React from 'react'
 
 export type RoleDialogType = 'add' | 'edit' | 'delete' | 'permissions'
 
-interface RoleContextType {
+export interface RoleContextType {
   open: RoleDialogType | null
   setOpen: (str: RoleDialogType | null) => void
   currentRow: UserRole | null
   setCurrentRow: React.Dispatch<React.SetStateAction<UserRole | null>>
 }
 
-const RoleContext = React.createContext<RoleContextType | null>(null)
-
-interface Props {
-  children: React.ReactNode
-  value: RoleContextType
-}
-
-export default function RoleProvider({ children, value }: Props) {
-  return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>
-}
+export const RoleContext = React.createContext<RoleContextType | null>(null)
 
 export const useRoleContext = () => {
   const roleContext = React.useContext(RoleContext)

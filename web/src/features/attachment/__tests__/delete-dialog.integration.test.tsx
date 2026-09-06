@@ -25,7 +25,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
 import { server } from '@/test/server';
 
-import AttachmentProvider, { useAttachmentContext } from '../context';
+import AttachmentProvider from '../context/provider';
+import { useAttachmentContext } from '../context';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
 import { MailListConfigProvider } from '@/features/mail-list/config';
 

@@ -27,9 +27,8 @@ import { ProxyActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { ProxyDeleteDialog } from './components/delete-dialog'
 import { ProxyTable } from './components/table'
-import ProxyProvider, {
-  type ProxyDialogType,
-} from './context'
+import ProxyProvider from './context/provider'
+import { type ProxyDialogType } from './context'
 import { Plus } from 'lucide-react'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { EmptyState } from '@/components/ui/empty-state'

@@ -27,9 +27,8 @@ import { UserActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { UserDeleteDialog } from './components/delete-dialog'
 import { UsersTable } from './components/table'
-import UserProvider, {
-  type UserDialogType,
-} from './context'
+import UserProvider from './context/provider'
+import { type UserDialogType } from './context'
 import { Plus } from 'lucide-react'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
