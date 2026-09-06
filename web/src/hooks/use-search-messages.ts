@@ -92,8 +92,8 @@ export function useSearchMessages() {
         updateParams({ pageSize: size, page: 1 });
     };
 
-    const setSortBy = (val: "DATE" | "SIZE") => updateParams({ sortBy: val });
-    const setSortOrder = (val: "desc" | "asc") => updateParams({ sortOrder: val });
+    const setSortBy = React.useCallback((val: "DATE" | "SIZE") => updateParams({ sortBy: val }), [updateParams]);
+    const setSortOrder = React.useCallback((val: "desc" | "asc") => updateParams({ sortOrder: val }), [updateParams]);
 
     const onSubmit = (cleaned: SearchSubmitValues) => {
         if ('has_attachment' in cleaned && cleaned.has_attachment === false) {

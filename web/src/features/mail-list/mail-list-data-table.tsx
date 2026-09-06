@@ -172,7 +172,7 @@ export function MailListDataTable<TEntity extends MailListRow>({
     const [value] = sorting
     setSortBy(value.id.toUpperCase() as 'DATE' | 'SIZE')
     setSortOrder(value.desc ? 'desc' : 'asc')
-  }, [sorting])
+  }, [sorting, setSortBy, setSortOrder])
 
   const table = useTable({
     features: mailTableFeatures,
