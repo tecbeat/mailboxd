@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
@@ -128,7 +128,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
     },
   })
 
-  const selectedType = form.watch('role_type')
+  const selectedType = useWatch({ control: form.control, name: 'role_type' })
 
   const handleOpenChange = (v: boolean) => {
     if (!v) {

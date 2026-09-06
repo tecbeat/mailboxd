@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useState, useMemo } from 'react'
-import { useFieldArray, useForm, type Resolver } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle, Shield, Settings2, User as UserIcon, Plus, Trash2, Mail, Check, ChevronsUpDown } from 'lucide-react'
@@ -182,12 +182,13 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
     name: "account_access_entries"
   });
 
-  const selectedRoleIds = form.watch("global_roles") || [];
+  const globalRoleIds = useWatch({ control: form.control, name: "global_roles" });
 
   const isSystemAdmin = useMemo(() => {
+    const selectedRoleIds = globalRoleIds ?? []
     if (!selectedRoleIds.length) return false
     return global.isAdmin(selectedRoleIds)
-  }, [global, selectedRoleIds])
+  }, [global, globalRoleIds])
 
   const createMutation = useMutation({ mutationFn: create_user, onSuccess: handleSuccess, onError: handleError })
   const updateMutation = useMutation({ mutationFn: (data: Record<string, unknown>) => update_user(currentRow!.id, data), onSuccess: handleSuccess, onError: handleError })
