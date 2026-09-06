@@ -22,6 +22,7 @@
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import { statusBadgeClass } from "@/lib/status-colors"
 import { Spinner } from "@/components/ui/spinner"
 import { PageHeader } from "@/components/layout/page-header"
@@ -48,16 +49,33 @@ function SettingRow({
   label,
   value,
   description,
+  mono,
 }: {
   label: string
   value: React.ReactNode
   description?: string
+  mono?: boolean
 }) {
   return (
     <div className="py-2.5 border-b border-border/40 last:border-0">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0 break-all text-xs font-medium text-muted-foreground font-mono">{label}</div>
-        <div className="min-w-0 break-all text-sm font-medium sm:text-right">{value}</div>
+        {/* Plain values get the same horizontal box (padding + transparent border) as a
+            badge so that badge text and plain text share the exact same right edge. */}
+        <div className="flex min-w-0 sm:justify-end">
+          {React.isValidElement(value) ? (
+            value
+          ) : (
+            <span
+              className={cn(
+                "min-w-0 break-all text-sm font-medium sm:border sm:border-transparent sm:px-2.5 sm:text-right",
+                mono && "font-mono"
+              )}
+            >
+              {value}
+            </span>
+          )}
+        </div>
       </div>
       {description && (
         <div className="mt-1 text-[11px] text-muted-foreground">{description}</div>
@@ -167,9 +185,9 @@ export default function ServerConfigurationsPage() {
             title={t("systemConfig.sections.storage.title")}
             description={t("systemConfig.sections.storage.desc")}
           >
-            <SettingRow label="MAILBOXD_ROOT_DIR" value={<span className="font-mono">{data!.mailboxd_root_dir}</span>} />
-            <SettingRow label="MAILBOXD_DATA_DIR" value={data!.mailboxd_data_dir ? <span className="font-mono">{data!.mailboxd_data_dir}</span> : "—"} />
-            <SettingRow label="MAILBOXD_INDEX_DIR" value={data!.mailboxd_index_dir ? <span className="font-mono">{data!.mailboxd_index_dir}</span> : "—"} />
+            <SettingRow label="MAILBOXD_ROOT_DIR" value={data!.mailboxd_root_dir} mono />
+            <SettingRow label="MAILBOXD_DATA_DIR" value={data!.mailboxd_data_dir || "—"} mono />
+            <SettingRow label="MAILBOXD_INDEX_DIR" value={data!.mailboxd_index_dir || "—"} mono />
           </SettingsCard>
 
           <SettingsCard
