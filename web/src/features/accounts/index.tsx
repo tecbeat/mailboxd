@@ -28,9 +28,8 @@ import { PageHeader } from '@/components/layout/page-header'
 import { useColumns } from './components/columns'
 import { AccountDeleteDialog } from './components/delete-dialog'
 import { AccountTable } from './components/table'
-import AccountProvider, {
-  type AccountDialogType,
-} from './context'
+import AccountProvider from './context/provider'
+import { type AccountDialogType } from './context'
 import { Mail, Database } from 'lucide-react'
 import { AccountDetailDrawer } from './components/account-detail'
 import { AccountModel, list_accounts } from '@/api/account/api'

@@ -32,23 +32,14 @@ export type AccountDialogType =
   | 'sync-folders'
   | 'access-assign';
 
-interface AccountContextType {
+export interface AccountContextType {
   open: AccountDialogType | null
   setOpen: (str: AccountDialogType | null) => void
   currentRow: AccountModel | null
   setCurrentRow: React.Dispatch<React.SetStateAction<AccountModel | null>>
 }
 
-const AccountContext = React.createContext<AccountContextType | null>(null)
-
-interface Props {
-  children: React.ReactNode
-  value: AccountContextType
-}
-
-export default function AccountProvider({ children, value }: Props) {
-  return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>
-}
+export const AccountContext = React.createContext<AccountContextType | null>(null)
 
 export const useAccountContext = () => {
   const accountContext = React.useContext(AccountContext)

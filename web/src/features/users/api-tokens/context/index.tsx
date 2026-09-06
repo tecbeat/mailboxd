@@ -24,23 +24,14 @@ import React from 'react'
 
 export type ApiTokenDialogType = 'add' | 'edit' | 'delete'
 
-interface ApiTokenContextType {
+export interface ApiTokenContextType {
   open: ApiTokenDialogType | null
   setOpen: (str: ApiTokenDialogType | null) => void
   currentRow: AccessToken | null
   setCurrentRow: React.Dispatch<React.SetStateAction<AccessToken | null>>
 }
 
-const ApiTokenContext = React.createContext<ApiTokenContextType | null>(null)
-
-interface Props {
-  children: React.ReactNode
-  value: ApiTokenContextType
-}
-
-export default function ApiTokenProvider({ children, value }: Props) {
-  return <ApiTokenContext.Provider value={value}>{children}</ApiTokenContext.Provider>
-}
+export const ApiTokenContext = React.createContext<ApiTokenContextType | null>(null)
 
 export const useApiTokenContext = () => {
   const apiTokenContext = React.useContext(ApiTokenContext)

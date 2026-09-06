@@ -28,9 +28,8 @@ import { ActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { TokenDeleteDialog } from './components/delete-dialog'
 import { Oauth2Table } from './components/oauth2-table'
-import OAuth2Provider, {
-  type OAuth2DialogType,
-} from './context'
+import OAuth2Provider from './context/provider'
+import { type OAuth2DialogType } from './context'
 import { Plus } from 'lucide-react'
 import { OAuth2Entity } from './data/schema'
 import { useQuery } from '@tanstack/react-query'
