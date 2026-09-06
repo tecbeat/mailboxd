@@ -20,7 +20,7 @@
 
 import React from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle, ShieldCheck, Users, Search } from 'lucide-react'
@@ -111,6 +111,8 @@ export function AccountAccessAssignmentDialog({
             role_id: undefined,
         },
     })
+
+    const selectedUserIds = useWatch({ control: form.control, name: 'user_ids' })
 
     const filteredUsers = React.useMemo(() => {
         if (!keyword.trim()) return users
@@ -264,9 +266,9 @@ export function AccountAccessAssignmentDialog({
 
                                 <FormMessage>{form.formState.errors.user_ids?.message}</FormMessage>
 
-                                {form.watch('user_ids')?.length > 0 && (
+                                {selectedUserIds?.length > 0 && (
                                     <div className="text-sm text-muted-foreground">
-                                        {t('accounts.access_control.user_selected_count', { count: form.watch('user_ids').length })}
+                                        {t('accounts.access_control.user_selected_count', { count: selectedUserIds.length })}
                                     </div>
                                 )}
                             </div>
