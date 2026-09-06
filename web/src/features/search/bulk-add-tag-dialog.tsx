@@ -119,7 +119,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
                         title: t('search.updateTags.updatedTitle'),
                         description: (
                             <div className="flex items-center gap-2">
-                                <Check className="h-4 w-4 text-green-500" />
+                                <Check className="h-4 w-4 text-success" />
                                 <span>{t('search.updateTags.updatedDesc')}</span>
                             </div>
                         ),
