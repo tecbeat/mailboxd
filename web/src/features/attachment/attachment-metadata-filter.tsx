@@ -5,7 +5,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button"
 import { MetadataSelectorField } from "@/features/mail-list/attachment-metadata-selector"
 import { useAttachmentMetadata } from "@/hooks/use-attachment-metadata"
-import { filterSegment, FilterLabel, ActiveDot } from "@/features/mail-list/filter-bar"
+import { FilterLabel, ActiveDot } from "@/features/mail-list/filter-bar"
+import { filterSegment } from "@/features/mail-list/filter-bar-styles"
 
 interface MetaFilterProps {
     type: 'extension' | 'category' | 'content_type'

@@ -26,7 +26,8 @@ import { useAttachmentContext } from "./context"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { MoreFiltersShell } from "@/features/mail-list/more-filters-shell"
-import { SIZES, SizePresetSelect, getPresetFromSize } from "@/features/mail-list/size-presets"
+import { SizePresetSelect } from "@/features/mail-list/size-presets"
+import { SIZES, getPresetFromSize } from "@/features/mail-list/sizes"
 
 export function MoreFiltersPopover() {
     const { t } = useTranslation();

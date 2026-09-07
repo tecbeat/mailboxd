@@ -20,8 +20,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { render, screen } from '@/test/test-utils'
+import { MailListConfigProvider } from '../config-provider'
 import {
-  MailListConfigProvider,
   useMailListConfig,
   type ListContextHook,
   type CurrentEnvelopeHook,

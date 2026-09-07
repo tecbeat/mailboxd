@@ -27,29 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useTranslation } from 'react-i18next'
-
-// Size presets shared by every mail-list-style "more filters" popover. Each
-// preset maps to a min/max byte range; `any` clears the range.
-export const SIZES = {
-  tiny: { min: undefined, max: 15 * 1024 },
-  small: { min: undefined, max: 2 * 1024 * 1024 },
-  medium: { min: 2 * 1024 * 1024, max: 10 * 1024 * 1024 },
-  large: { min: 10 * 1024 * 1024, max: 20 * 1024 * 1024 },
-  huge: { min: 20 * 1024 * 1024, max: undefined },
-}
-
-export type SizePreset = keyof typeof SIZES | 'any'
-
-// Maps a concrete min/max range back to the preset key it came from, so the
-// select can reflect the currently applied filter.
-export const getPresetFromSize = (min?: number, max?: number): SizePreset => {
-  if (min === SIZES.huge.min) return 'huge'
-  if (min === SIZES.large.min && max === SIZES.large.max) return 'large'
-  if (min === SIZES.medium.min && max === SIZES.medium.max) return 'medium'
-  if (!min && max === SIZES.small.max) return 'small'
-  if (!min && max === SIZES.tiny.max) return 'tiny'
-  return 'any'
-}
+import { SIZES, type SizePreset } from './sizes'
 
 interface SizePresetSelectProps {
   label: string

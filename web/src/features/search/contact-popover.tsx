@@ -26,7 +26,8 @@ import { Check, Mail, X } from "lucide-react"
 import React from "react"
 import { useContacts } from "@/hooks/use-contacts"
 import { useTranslation } from 'react-i18next'
-import { filterSegment, FilterLabel, FilterCount } from "@/features/mail-list/filter-bar"
+import { FilterLabel, FilterCount } from "@/features/mail-list/filter-bar"
+import { filterSegment } from "@/features/mail-list/filter-bar-styles"
 import {
     Command,
     CommandEmpty,

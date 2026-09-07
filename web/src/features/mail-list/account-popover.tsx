@@ -41,7 +41,8 @@ import {
 import useMinimalAccountList from '@/hooks/use-minimal-account-list'
 import { cn } from '@/lib/utils'
 import { useMailListConfig } from '@/features/mail-list/config'
-import { filterSegment, FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
+import { FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
+import { filterSegment } from '@/features/mail-list/filter-bar-styles'
 
 export function AccountPopover() {
   const { t } = useTranslation()

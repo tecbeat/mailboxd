@@ -32,7 +32,8 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useMailListConfig } from '@/features/mail-list/config'
 import { DatePicker } from '@/components/date-picker'
-import { filterSegment, FilterLabel, ActiveDot } from '@/features/mail-list/filter-bar'
+import { FilterLabel, ActiveDot } from '@/features/mail-list/filter-bar'
+import { filterSegment } from '@/features/mail-list/filter-bar-styles'
 
 const DAY = 86400000
 

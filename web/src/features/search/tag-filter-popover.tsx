@@ -37,7 +37,8 @@ import {
 import { useAvailableTags } from '@/hooks/use-available-tags'
 import { cn } from '@/lib/utils'
 import { useSearchContext } from './context'
-import { filterSegment, FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
+import { FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
+import { filterSegment } from '@/features/mail-list/filter-bar-styles'
 
 export function TagFilterPopover() {
     const { t } = useTranslation()

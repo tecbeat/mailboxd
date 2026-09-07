@@ -28,7 +28,8 @@ import { DataTablePagination } from '@/components/data-table/data-table-paginati
 import React from 'react';
 import AttachmentProvider from './context/provider';
 import { AttachmentDialogType, useAttachmentContext } from './context';
-import { MailListConfigProvider, type MailListConfig } from '@/features/mail-list/config';
+import { MailListConfigProvider } from '@/features/mail-list/config-provider';
+import { type MailListConfig } from '@/features/mail-list/config';
 import { useEnvelope } from '@/hooks/use-envelope';
 import useDialogState from '@/hooks/use-dialog-state';
 import { useTranslation } from 'react-i18next';
