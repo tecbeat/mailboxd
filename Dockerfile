@@ -8,7 +8,7 @@ FROM node:24-alpine3.24@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de68
 WORKDIR /build
 
 RUN corepack enable \
-    && corepack prepare pnpm@11.18.0 --activate
+    && corepack prepare pnpm@12.3.4 --activate
 
 COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
