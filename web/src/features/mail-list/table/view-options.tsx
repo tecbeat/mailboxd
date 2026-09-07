@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { filterSegment, FilterLabel } from '@/features/mail-list/filter-bar'
+import { FilterLabel } from '@/features/mail-list/filter-bar'
+import { filterSegment } from '@/features/mail-list/filter-bar-styles'
 
 type DataTableViewOptionsProps<TData extends RowData> = {
   table: Table<MailTableFeatures, TData>

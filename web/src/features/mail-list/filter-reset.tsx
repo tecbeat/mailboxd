@@ -24,7 +24,8 @@ import { Button } from "@/components/ui/button"
 import { useMailListConfig } from "@/features/mail-list/config"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next";
-import { filterSegment, FilterLabel, FilterCount } from "@/features/mail-list/filter-bar"
+import { FilterLabel, FilterCount } from "@/features/mail-list/filter-bar"
+import { filterSegment } from "@/features/mail-list/filter-bar-styles"
 
 export function FilterResetButton() {
     const { useListContext } = useMailListConfig();

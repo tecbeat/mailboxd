@@ -60,23 +60,6 @@ export function FilterBar({
   )
 }
 
-// Shared styling for every trigger that sits inside the bar (popover buttons,
-// dropdown triggers, the reset button). Segments are borderless and share the
-// bar's height; the bar's `divide-x` supplies the separators between them.
-export function filterSegment(active?: boolean) {
-  return cn(
-    'inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap',
-    'rounded-none border-0 bg-transparent px-2.5 text-xs font-normal text-foreground shadow-none',
-    'hover:bg-accent focus-visible:ring-0 focus-visible:ring-offset-0',
-    'disabled:pointer-events-none disabled:opacity-50',
-    // Once the bar is narrow enough to wrap, let the (now icon-only) segments
-    // grow evenly and centre their icons so each wrapped row fills the bar's
-    // full width instead of leaving empty space on one side.
-    '@max-xl/fbar:flex-1 @max-xl/fbar:justify-center',
-    active && 'bg-primary/10 text-primary hover:bg-primary/15'
-  )
-}
-
 // A segment label that is shown while the bar is wide and hidden (leaving the
 // icon only) once the bar becomes narrow. Dense bars (many segments) only
 // reveal labels at a wider container width so labelled segments do not wrap.

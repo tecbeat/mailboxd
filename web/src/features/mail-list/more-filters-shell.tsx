@@ -23,7 +23,8 @@ import { ListFilter } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { filterSegment, FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
+import { FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
+import { filterSegment } from '@/features/mail-list/filter-bar-styles'
 
 interface MoreFiltersShellProps {
   open: boolean

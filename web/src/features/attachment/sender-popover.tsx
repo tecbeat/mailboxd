@@ -23,7 +23,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button"
 import { Mail } from "lucide-react"
 import { useTranslation } from 'react-i18next'
-import { filterSegment, FilterLabel, ActiveDot } from "@/features/mail-list/filter-bar"
+import { FilterLabel, ActiveDot } from "@/features/mail-list/filter-bar"
+import { filterSegment } from "@/features/mail-list/filter-bar-styles"
 import { useAttachmentContext } from "./context"
 import { useAttachmentSenders } from "@/hooks/use-attachment-senders"
 import { Group } from "@/api/system/api"

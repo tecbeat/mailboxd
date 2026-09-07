@@ -43,16 +43,7 @@ export interface MailListConfig {
   useCurrentEnvelope: CurrentEnvelopeHook
 }
 
-const MailListConfigContext = React.createContext<MailListConfig | null>(null)
-
-interface ProviderProps {
-  config: MailListConfig
-  children: React.ReactNode
-}
-
-export function MailListConfigProvider({ config, children }: ProviderProps) {
-  return <MailListConfigContext.Provider value={config}>{children}</MailListConfigContext.Provider>
-}
+export const MailListConfigContext = React.createContext<MailListConfig | null>(null)
 
 export function useMailListConfig(): MailListConfig {
   const config = React.useContext(MailListConfigContext)

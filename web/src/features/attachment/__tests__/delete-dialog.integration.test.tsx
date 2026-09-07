@@ -28,7 +28,7 @@ import { server } from '@/test/server';
 import AttachmentProvider from '../context/provider';
 import { useAttachmentContext } from '../context';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
-import { MailListConfigProvider } from '@/features/mail-list/config';
+import { MailListConfigProvider } from '@/features/mail-list/config-provider';
 
 const BASE = 'http://localhost:15630';
 

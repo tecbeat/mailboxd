@@ -59,7 +59,8 @@ import useMinimalAccountList from '@/hooks/use-minimal-account-list';
 import { useMailListConfig } from '@/features/mail-list/config';
 import { buildTree, ExtendedTreeItemProps } from '@/lib/build-tree';
 import { countSelectedMailboxes } from './mailbox-selection';
-import { filterSegment, FilterLabel, FilterCount } from '@/features/mail-list/filter-bar';
+import { FilterLabel, FilterCount } from '@/features/mail-list/filter-bar';
+import { filterSegment } from '@/features/mail-list/filter-bar-styles';
 
 const CustomCollapse = styled(Collapse)({ padding: 0 });
 const AnimatedCollapse = animated(CustomCollapse);
