@@ -30,5 +30,28 @@ export default tseslint.config(
       ],
       'no-console': 'error',
     },
+  },
+  {
+    // TanStack Router route files export a `Route` (createFileRoute /
+    // createLazyFileRoute call) and wire their route component into it rather
+    // than exporting the component. The generic fast-refresh rule cannot
+    // verify that colocated, router-owned component and would always flag it;
+    // HMR for route components is handled by the router itself.
+    files: ['src/routes/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    // Test files and test helpers are never part of the dev HMR component
+    // graph, so the fast-refresh constraint does not apply to them.
+    files: [
+      '**/*.{test,spec}.{ts,tsx}',
+      '**/__tests__/**/*.{ts,tsx}',
+      'src/test/**/*.{ts,tsx}',
+    ],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
   }
 )
