@@ -11,8 +11,12 @@ RUN corepack enable \
     && corepack prepare pnpm@12.3.4 --activate
 
 COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
+# The pnpm store lives on a BuildKit cache mount, i.e. a different filesystem
+# than /build/node_modules, so packages cannot be hard-linked or cloned into
+# node_modules. pnpm 11 fell back to copying automatically; pnpm 12 errors out
+# ("Operation not permitted") instead, so force the copy import method.
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --config.strict-dep-builds=false
+    pnpm install --frozen-lockfile --config.strict-dep-builds=false --config.package-import-method=copy
 
 COPY web/ ./
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
