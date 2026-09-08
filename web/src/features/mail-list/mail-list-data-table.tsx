@@ -218,7 +218,18 @@ export function MailListDataTable<TEntity extends MailListRow>({
           previous rows and surfaces via `isFetching`, which just fades the table
           body — so only the table updates, not the whole page.
         */}
-        {toolbar(table)}
+        {/*
+          Reserve the vertical scrollbar's gutter beside the toolbar so the
+          toolbar's right edge lines up with the bordered table below, which is
+          inset by the OUTER's own stable gutter. overflow-hidden turns this
+          into a scroll container so scrollbar-gutter:stable takes effect, and
+          scrollbar-thin matches the OUTER's scrollbar metrics exactly — no bar
+          is ever shown here. Without this, the full-width toolbar would overhang
+          the table's right border by the scrollbar's width.
+        */}
+        <div className='overflow-hidden scrollbar-thin [scrollbar-gutter:stable]'>
+          {toolbar(table)}
+        </div>
         {/*
           Hug-content layout: this root is a normal flex child (flex: 0 1 auto),
           so it is only as tall as its rows and does NOT stretch — the external
@@ -238,8 +249,11 @@ export function MailListDataTable<TEntity extends MailListRow>({
           strip to the right, never over the rows. The INNER owns the border and
           hugs the content (w-max, min-w-full), so the border wraps the header +
           rows tightly with the scrollbar just beyond its right edge.
+          scrollbar-gutter:stable keeps that right edge constant whether or not
+          the list scrolls, so it always aligns with the toolbar above (which
+          reserves the same gutter) and never jumps sideways between pages.
         */}
-        <div className='relative min-h-0 flex-1 overflow-auto scrollbar-thin'>
+        <div className='relative min-h-0 flex-1 overflow-auto scrollbar-thin [scrollbar-gutter:stable]'>
           <div className='w-max min-w-full rounded-md border'>
           {isLoading ? (
             skeletonRows
