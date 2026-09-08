@@ -60,7 +60,7 @@ export default function OAuth2() {
       <Main fixed>
         <div className="flex h-full min-h-0 flex-col">
           <PageHeader
-            className="mb-2 shrink-0"
+            className="mb-4 shrink-0"
             title={t('oauth2.title')}
             description={t('oauth2.description')}
             actions={
