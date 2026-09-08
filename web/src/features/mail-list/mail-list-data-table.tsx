@@ -56,6 +56,10 @@ export interface MailListRow {
 interface MailListDataTableProps<TEntity extends MailListRow> {
   items: TEntity[]
   isLoading: boolean
+  // True while a background refetch is in flight but previous results are still
+  // shown (e.g. a new search term). Drives the subtle fade-while-updating on the
+  // table body — distinct from `isLoading`, which is the empty first load.
+  isFetching?: boolean
   // Feature-specific columns. The selection checkbox column is prepended here,
   // so features supply only their own middle/actions columns.
   columns: ColumnDef<MailTableFeatures, TEntity>[]
@@ -77,6 +81,7 @@ interface MailListDataTableProps<TEntity extends MailListRow> {
 export function MailListDataTable<TEntity extends MailListRow>({
   items,
   isLoading,
+  isFetching = false,
   columns,
   setSortBy,
   setSortOrder,
@@ -207,10 +212,11 @@ export function MailListDataTable<TEntity extends MailListRow>({
       <div className='flex min-h-0 flex-col gap-0.5'>
         {/*
           The toolbar (which owns the search input) stays mounted while a query
-          is in flight. Each new search term is a fresh query key with no cached
-          data, so `isLoading` flips true on every keystroke's fetch; if the
-          toolbar unmounted with it, the search input would lose focus mid-type.
-          Only the table region below swaps to the loading skeleton.
+          is in flight, so the search input never loses focus mid-type. With
+          keepPreviousData on the search query, `isLoading` is true only on the
+          empty first load (skeleton below); each subsequent keystroke keeps the
+          previous rows and surfaces via `isFetching`, which just fades the table
+          body — so only the table updates, not the whole page.
         */}
         {toolbar(table)}
         {/*
@@ -238,6 +244,16 @@ export function MailListDataTable<TEntity extends MailListRow>({
           {isLoading ? (
             skeletonRows
           ) : (
+          <div
+            aria-busy={isFetching}
+            className={cn(
+              // Animate only the table when a new search resolves: the old rows
+              // stay in place (keepPreviousData) and gently fade while the fetch
+              // is in flight, instead of the whole page blanking to skeletons.
+              'transition-opacity duration-300 ease-out',
+              isFetching && 'pointer-events-none opacity-50'
+            )}
+          >
           <ShadcnTable>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -304,6 +320,7 @@ export function MailListDataTable<TEntity extends MailListRow>({
               )}
             </TableBody>
           </ShadcnTable>
+          </div>
           )}
           </div>
         </div>

@@ -71,6 +71,7 @@ export default function EmailSearch() {
     total,
     totalPages,
     isLoading,
+    isFetching,
     page,
     pageSize,
     setPage,
@@ -144,6 +145,7 @@ export default function EmailSearch() {
 
                 <MailListTable
                   isLoading={isLoading}
+                  isFetching={isFetching}
                   items={emails}
                   onEnvelopeChanged={(envelope) => {
                     setOpen('display');
