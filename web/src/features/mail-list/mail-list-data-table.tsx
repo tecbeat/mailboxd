@@ -218,7 +218,7 @@ export function MailListDataTable<TEntity extends MailListRow>({
           so it is only as tall as its rows and does NOT stretch — the external
           pagination sits directly under a short list instead of below an empty
           box. When the rows would exceed the available height, the root shrinks
-          (min-h-0) and the table region below (flex-1 min-h-0 overflow-auto)
+          (min-h-0) and the OUTER region below (flex-1 min-h-0 overflow-auto)
           becomes the scroll container, so the pinned header and the external
           footer/pagination stay put. The sticky <th> row (see ui/table.tsx)
           then sticks to the top of THIS box rather than behind the app header.
@@ -226,8 +226,15 @@ export function MailListDataTable<TEntity extends MailListRow>({
           absolutely-positioned descendants (e.g. screen-reader-only labels), so
           their overflow stays contained here instead of inflating the app
           shell's scroll region.
+
+          Two layers split scroll from border: the OUTER owns the scroll so BOTH
+          scrollbars sit OUTSIDE the bordered box — the vertical bar in its own
+          strip to the right, never over the rows. The INNER owns the border and
+          hugs the content (w-max, min-w-full), so the border wraps the header +
+          rows tightly with the scrollbar just beyond its right edge.
         */}
-        <div className='relative min-h-0 flex-1 overflow-auto rounded-md border scrollbar-thin'>
+        <div className='relative min-h-0 flex-1 overflow-auto scrollbar-thin'>
+          <div className='w-max min-w-full rounded-md border'>
           {isLoading ? (
             skeletonRows
           ) : (
@@ -298,6 +305,7 @@ export function MailListDataTable<TEntity extends MailListRow>({
             </TableBody>
           </ShadcnTable>
           )}
+          </div>
         </div>
       </div>
       {bulkActions && totalSelected > 0 && bulkActions}
