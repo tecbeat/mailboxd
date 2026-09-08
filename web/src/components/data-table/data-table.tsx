@@ -138,33 +138,35 @@ export function DataTable<TData extends RowData>({
         so it is only as tall as toolbar + rows + pagination and does NOT
         stretch to fill the parent — no empty bordered box under a short list.
 
-        Two nested layers split the two scroll axes so the rounded border stays
-        wrapped tightly around the header + rows:
+        Both scroll axes live on the OUTER layer so BOTH scrollbars sit OUTSIDE
+        the bordered box — the horizontal bar in its own strip below it, the
+        vertical bar in its own strip to its right — never on top of the rows:
 
-        OUTER (this div) scrolls HORIZONTALLY only. It fills the remaining height
-        (flex-1 min-h-0); when the table is wider than the column the horizontal
-        scrollbar sits in its own strip directly BELOW the bordered box — never
-        on top of the rows. overflow-y is hidden because the MIDDLE layer owns
-        the vertical scroll; nothing overflows the outer vertically.
+        OUTER (this div) owns BOTH scroll axes (overflow-auto) and fills the
+        remaining height (flex-1 min-h-0). When the table is wider than the
+        column its horizontal scrollbar sits below the bordered box; when the
+        rows overflow its height the vertical scrollbar runs down the right,
+        just outside the border. scrollbar-thin styles both.
 
-        MIDDLE owns the border (containerClassName) and is only as wide as the
-        table (w-max, min-w-full), so the border hugs the table content. It caps
-        its height at the outer (max-h-full) and scrolls its own content
-        VERTICALLY (overflow-y-auto), so on a long list the border box stays put
-        (top border never scrolls away), the sticky header sticks just inside it,
-        and the vertical scrollbar runs down its right edge. On a short list it
-        shrinks to the rows (hug). `relative` makes it the containing block for
-        any absolutely-positioned descendants (e.g. screen-reader-only labels).
+        MIDDLE owns the border (containerClassName) and hugs the table content
+        in BOTH dimensions — only as wide as the table (w-max, min-w-full) and
+        only as tall as its rows (no height cap, no scroll of its own). So the
+        border wraps the header + rows tightly and the OUTER's scrollbars stay
+        outside it. The sticky header (th: sticky top-0) sticks to the OUTER
+        viewport, so it stays visible while the border scrolls with the content
+        — the vertical counterpart of the left/right border sliding under a
+        horizontal scroll. `relative` makes it the containing block for any
+        absolutely-positioned descendants (e.g. screen-reader-only labels).
 
         FOOTGUN: `w-max` is max-content. A `table-fixed` + `w-full` table inside
         a max-content wrapper degenerates to a ~1,000,000px width. Such callers
         must override the width by passing `w-full` in containerClassName (see
         the proxy table), which twMerge resolves ahead of the default `w-max`.
       */}
-      <div className='min-h-0 flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin'>
+      <div className='min-h-0 flex-1 overflow-auto scrollbar-thin'>
         <div
           className={cn(
-            'relative max-h-full w-max min-w-full overflow-y-auto scrollbar-thin',
+            'relative w-max min-w-full',
             containerClassName
           )}
         >
