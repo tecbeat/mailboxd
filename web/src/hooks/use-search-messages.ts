@@ -21,7 +21,7 @@
 
 import { EmailEnvelope, PaginatedResponse } from '@/api';
 import { search_messages } from '@/api/search/api';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import React from 'react';
 
@@ -131,6 +131,14 @@ export function useSearchMessages() {
                 sort_by: sortBy,
                 desc: sortOrder === "desc"
             }),
+        // Keep the previous page's results mounted while a new query key (new
+        // filter/page/sort) resolves. Without this, every keystroke swaps `data`
+        // to undefined, flipping `isLoading` true — which blanks the table to
+        // skeletons, drops the pagination and pops in the spinner card, so the
+        // whole page appears to reload. With it, `isLoading` is true only on the
+        // very first load; subsequent fetches surface via `isFetching`, letting
+        // us animate just the table while the old rows stay in place.
+        placeholderData: keepPreviousData,
         staleTime: 1000,
         retry: false,
     });

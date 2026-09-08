@@ -38,6 +38,7 @@ import { useSearchMessages } from "@/hooks/use-search-messages"
 interface MailListProps {
   items: EmailEnvelope[]
   isLoading: boolean
+  isFetching?: boolean
   onEnvelopeChanged: (envelope: EmailEnvelope) => void
   setSortBy: (sortBy: "DATE" | "SIZE") => void
   setSortOrder: (value: "desc" | "asc") => void
@@ -46,6 +47,7 @@ interface MailListProps {
 export function MailListTable({
   items,
   isLoading,
+  isFetching,
   onEnvelopeChanged,
   setSortBy,
   setSortOrder
@@ -288,6 +290,7 @@ export function MailListTable({
     <MailListDataTable
       items={items}
       isLoading={isLoading}
+      isFetching={isFetching}
       columns={columns}
       setSortBy={setSortBy}
       setSortOrder={setSortOrder}
