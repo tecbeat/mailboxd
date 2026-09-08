@@ -72,7 +72,7 @@ export default function Accounts() {
       <Main fixed>
         <div className="flex h-full min-h-0 flex-col">
           <PageHeader
-            className='mb-2 shrink-0'
+            className='mb-4 shrink-0'
             title={t('accounts.title')}
             description={t('accounts.description')}
             actions={require_any_permission(['system:root', 'account:create']) && (
