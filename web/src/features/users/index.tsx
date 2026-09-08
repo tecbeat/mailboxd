@@ -59,13 +59,14 @@ export default function UsersAndTokens() {
           </aside>
           {/*
             min-w-0 stops a wide table from widening the row (and the rail).
-            scrollbar-gutter:stable always reserves the vertical scrollbar's
-            space, so the content width stays constant between sub-pages that
-            scroll (e.g. Users) and ones that don't, instead of jumping
-            sideways by the scrollbar width when switching. Mirrors the
-            Settings section shell so both headers align identically.
+            No right padding or reserved scrollbar gutter here so the content's
+            right edge lines up with the primary-nav pages (Accounts, OAuth2,
+            ...), which render flush against Main's padding. The sub-pages
+            (Users, Roles, API Tokens) scroll internally, so this container
+            never shows a scrollbar. Mirrors the Settings section shell so both
+            sections' headers align identically.
           */}
-          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin p-1 pr-4 [scrollbar-gutter:stable]'>
+          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin'>
             <Outlet />
           </div>
         </div>
