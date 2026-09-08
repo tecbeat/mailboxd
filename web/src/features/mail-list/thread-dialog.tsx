@@ -20,7 +20,7 @@
 
 import { useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { LoaderCircle as Loader2, MessageSquareText } from 'lucide-react';
+import { LoaderCircle, MessageSquareText } from 'lucide-react';
 
 import {
   Dialog,
@@ -38,6 +38,7 @@ import { EmailEnvelope } from '@/api';
 import { MailMessageView } from './mail-message-view';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import { formatDateTime } from '@/lib/utils';
 
 interface MailThreadDialogProps {
   open: boolean;
@@ -89,7 +90,7 @@ export function MailThreadDialog({ open, onOpenChange, currentEnvelope }: MailTh
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-width-full p-0 max-h-full flex flex-col md:max-w-3xl lg:max-w-4xl">
+      <DialogContent size="xl" className="w-full p-0 max-h-full flex flex-col">
         <DialogHeader className="p-4 pb-3 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <MessageSquareText className="w-5 h-5" />
@@ -128,7 +129,7 @@ export function MailThreadDialog({ open, onOpenChange, currentEnvelope }: MailTh
                     const date = new Date(msg.date);
                     const formattedDate = isNaN(date.getTime())
                       ? t('search.thread.invalidDate')
-                      : format(date, 'yyyy-MM-dd HH:mm:ss');
+                      : formatDateTime(date);
 
                     return (
                       <div key={msg.id} className={`relative pl-10 min-w-0 ${isLatest ? 'mt-6' : ''}`}>
@@ -214,7 +215,7 @@ export function MailThreadDialog({ open, onOpenChange, currentEnvelope }: MailTh
                 >
                   {isFetchingNextPage ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
                       {t('search.thread.loadingMore')}
                     </>
                   ) : (

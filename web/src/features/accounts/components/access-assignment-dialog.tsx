@@ -20,10 +20,11 @@
 
 import React from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2, ShieldCheck, Users, Search } from 'lucide-react'
+import { LoaderCircle, ShieldCheck, Users, Search } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useTranslation } from 'react-i18next'
 import { AxiosError } from 'axios'
 
@@ -54,7 +55,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from '@/hooks/use-toast'
 import { access_assign, AccountModel } from '@/api/account/api'
 import { list_account_roles, list_minimal_users, MinimalUser, UserRole } from '@/api/users/api'
 import { invalidateAccountAccessViews } from '@/lib/access-cache'
@@ -71,7 +72,6 @@ export function AccountAccessAssignmentDialog({
     onOpenChange,
 }: Props) {
     const { t } = useTranslation()
-    const { toast } = useToast()
     const queryClient = useQueryClient()
 
     const { data: roles, isLoading: isLoadingRoles } = useQuery<UserRole[]>({
@@ -111,6 +111,8 @@ export function AccountAccessAssignmentDialog({
             role_id: undefined,
         },
     })
+
+    const selectedUserIds = useWatch({ control: form.control, name: 'user_ids' })
 
     const filteredUsers = React.useMemo(() => {
         if (!keyword.trim()) return users
@@ -216,7 +218,7 @@ export function AccountAccessAssignmentDialog({
                                     <ScrollArea className="h-64">
                                         {isLoadingUsers ? (
                                             <div className="flex justify-center py-8">
-                                                <Loader2 className="h-6 w-6 animate-spin" />
+                                                <Spinner />
                                             </div>
                                         ) : (
                                             <div className="p-3 space-y-1">
@@ -264,9 +266,9 @@ export function AccountAccessAssignmentDialog({
 
                                 <FormMessage>{form.formState.errors.user_ids?.message}</FormMessage>
 
-                                {form.watch('user_ids')?.length > 0 && (
+                                {selectedUserIds?.length > 0 && (
                                     <div className="text-sm text-muted-foreground">
-                                        {t('accounts.access_control.user_selected_count', { count: form.watch('user_ids').length })}
+                                        {t('accounts.access_control.user_selected_count', { count: selectedUserIds.length })}
                                     </div>
                                 )}
                             </div>
@@ -277,7 +279,7 @@ export function AccountAccessAssignmentDialog({
                                 {t('accounts.access_control.buttons.cancel')}
                             </Button>
                             <Button type="submit" disabled={isPending}>
-                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isPending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                 {t('accounts.access_control.buttons.save')}
                             </Button>
                         </DialogFooter>

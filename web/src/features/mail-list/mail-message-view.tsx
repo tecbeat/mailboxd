@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
-import { formatBytes, formatTimestamp } from '@/lib/utils';
+import { formatBytes, formatDateTime } from '@/lib/utils';
 import EmailIframe from '@/components/mail-iframe';
 import {
   AttachmentInfo,
@@ -61,7 +61,7 @@ const Multilines: React.FC<{ title: string; lines: string[] }> = ({ title, lines
   return (
     <div className="text-xs">
       <div className="flex items-start space-x-2">
-        <span className="font-medium text-gray-400 whitespace-nowrap">{title}:</span>
+        <span className="font-medium text-muted-foreground whitespace-nowrap">{title}:</span>
         <div className="flex-1">
           <ul className="list-disc list-inside">
             {lines.slice(0, expanded ? lines.length : 3).map((ref, i) => (
@@ -70,7 +70,7 @@ const Multilines: React.FC<{ title: string; lines: string[] }> = ({ title, lines
           </ul>
           {lines.length > 3 && (
             <button
-              className="text-blue-500 hover:underline text-xs"
+              className="text-primary hover:underline text-xs"
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? t('common.showLess') : t('common.showMore')}
@@ -154,9 +154,10 @@ export function MailMessageView({
     setLoading(true);
   }
 
+  const { mutate: loadMessage } = loadMessageMutation;
   useEffect(() => {
-    loadMessageMutation.mutate();
-  }, [envelope.id, blockRemote]);
+    loadMessage();
+  }, [envelope.id, blockRemote, loadMessage]);
 
 
   const handleViewNestedEml = (attachment: AttachmentInfo) => {
@@ -210,16 +211,16 @@ export function MailMessageView({
     <div className="flex flex-col h-full">
       {showHeader && <div className="grid gap-1 text-xs">
         <div className="flex space-x-2">
-          <span className="font-medium text-gray-400">{t('mail.account')}:</span>
+          <span className="font-medium text-muted-foreground">{t('mail.account')}:</span>
           <span>{getEmailById(envelope.account_id)}</span>
         </div>
         <div className="flex space-x-2">
-          <span className="font-medium text-gray-400">{t('mail.id')}:</span>
+          <span className="font-medium text-muted-foreground">{t('mail.id')}:</span>
           <span>{envelope.id}</span>
         </div>
         {envelope.from && (
           <div className="flex space-x-2">
-            <span className="font-medium text-gray-400">{t('mail.from')}:</span>
+            <span className="font-medium text-muted-foreground">{t('mail.from')}:</span>
             <span>{envelope.from}</span>
           </div>
         )}
@@ -228,19 +229,19 @@ export function MailMessageView({
         {envelope.bcc && envelope.bcc.length > 0 && <Multilines title={t('mail.bcc')} lines={envelope.bcc} />}
         {envelope.subject && (
           <div className="flex space-x-2">
-            <span className="font-medium text-gray-400">{t('mail.subject')}:</span>
+            <span className="font-medium text-muted-foreground">{t('mail.subject')}:</span>
             <span>{envelope.subject}</span>
           </div>
         )}
         {envelope.internal_date && (
           <div className="flex space-x-2">
-            <span className="font-medium text-gray-400">{t('mail.date')}:</span>
-            <span>{formatTimestamp(envelope.internal_date)}</span>
+            <span className="font-medium text-muted-foreground">{t('mail.date')}:</span>
+            <span>{formatDateTime(envelope.internal_date)}</span>
           </div>
         )}
         {setEditTagsOpen && (
           <div className="flex items-center space-x-2">
-            <span className="font-medium text-gray-400">{t('mail.tags')}:</span>
+            <span className="font-medium text-muted-foreground">{t('mail.tags')}:</span>
             <div className="flex flex-wrap gap-1 items-center">
               {envelope.tags && envelope.tags.length > 0 ? (
                 envelope.tags.map((tag) => (
@@ -249,7 +250,7 @@ export function MailMessageView({
                   </Badge>
                 ))
               ) : (
-                <span className="text-gray-400 italic">{t('mail.noTagsYet')}</span>
+                <span className="text-muted-foreground italic">{t('mail.noTagsYet')}</span>
               )}
               <Button
                 variant="ghost"
@@ -269,7 +270,7 @@ export function MailMessageView({
           <div className="flex items-center mt-2 space-x-2">
             <Separator orientation="horizontal" className="flex-1 bg-border" />
           </div>
-          <div className="flex items-center justify-start gap-3 text-xs text-gray-500">
+          <div className="flex items-center justify-start gap-3 text-xs text-muted-foreground">
             <Tooltip delayDuration={800}>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" onClick={handleDelete} className="hover:text-destructive">
@@ -323,7 +324,7 @@ export function MailMessageView({
       {showAttachments && (
         <div className="mb-2">
           {loading ? (
-            <span className="text-gray-500 text-xs" />
+            <span className="text-muted-foreground text-xs" />
           ) : attachments && attachments.length > 0 ? (
             (() => {
               const nonInline = attachments.filter((a) => !a.inline);
@@ -369,7 +370,7 @@ export function MailMessageView({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                className="h-7 w-7 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
                                 onClick={() => {
                                   handleViewNestedEml(attachment);
                                 }}
@@ -380,7 +381,7 @@ export function MailMessageView({
                             <TooltipContent>{t('mail.viewNestedEmail', 'View Embedded Email')}</TooltipContent>
                           </Tooltip>
                         )}
-                        <span className="text-gray-500 text-xs shrink-0">
+                        <span className="text-muted-foreground text-xs shrink-0">
                           {formatBytes(attachment.size)}
                         </span>
                         {downloadingAttachmentFileName === attachment.filename ? (
@@ -399,13 +400,13 @@ export function MailMessageView({
                   })}
                 </div>
               ) : (
-                <span className="text-gray-500 text-xs italic">
+                <span className="text-muted-foreground text-xs italic">
                   {t('mail.onlyNonInlineAttachments')}
                 </span>
               );
             })()
           ) : (
-            <span className="text-gray-500 text-xs">{t('mail.noAttachments')}</span>
+            <span className="text-muted-foreground text-xs">{t('mail.noAttachments')}</span>
           )}
         </div>
       )}
@@ -441,11 +442,11 @@ export function MailMessageView({
             <span className="ml-2 text-sm text-muted-foreground">loading...</span>
           </div>
         ) : content ? (
-          <div className="bg-gray-100 rounded-lg border border-gray-300 p-4">
+          <div className="bg-muted rounded-lg border border-border p-4">
             {contentType === 'Html' ? (
               <EmailIframe emailHtml={content} />
             ) : (
-              <pre className="whitespace-pre-wrap text-gray-800 text-sm font-sans">{content}</pre>
+              <pre className="whitespace-pre-wrap text-foreground text-sm font-sans">{content}</pre>
             )}
           </div>
         ) : (

@@ -7,6 +7,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight } from 'lucide-react';
@@ -18,10 +19,12 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn, formatBytes } from '@/lib/utils';
+import { cn, formatBytes, formatRelativeTime } from '@/lib/utils';
+import { statusTextClass, type StatusKind } from '@/lib/status-colors';
 import { Main } from '@/components/layout/main';
+import { PageHeader } from '@/components/layout/page-header';
 import { FixedHeader } from '@/components/layout/fixed-header';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -63,7 +66,6 @@ function folderHintLabel(hint: FolderHint): string {
 
 export default function ImportPage() {
   const { t } = useTranslation();
-  const { toast } = useToast();
 
   const [accountId, setAccountId] = useState<string>('');
   const [folderMode, setFolderMode] = useState<FolderMode>('');
@@ -266,15 +268,11 @@ export default function ImportPage() {
     <>
       <FixedHeader />
       <Main>
-        <div className="flex-1 space-y-6 p-6 md:p-8 max-w-3xl mx-auto">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">
-              {t('import.title', 'Import EML / MBOX / PST')}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t('import.description', 'Import email files into a NoSync account. For larger files, use the CLI.')}
-            </p>
-          </div>
+        <div className="flex-1 space-y-6">
+          <PageHeader
+            title={t('import.title', 'Import EML / MBOX / PST')}
+            description={t('import.description', 'Import email files into a NoSync account. For larger files, use the CLI.')}
+          />
 
           {/* Step 1: Target account */}
           <Card>
@@ -583,13 +581,13 @@ export default function ImportPage() {
                         {formatBytes(qf.file.size)}
                       </span>
                       {!qf.typeOk && (
-                        <span className="text-xs font-medium text-destructive shrink-0">Invalid type</span>
+                        <span className="text-xs font-medium text-destructive shrink-0">{t('import.invalidType')}</span>
                       )}
                       {!qf.sizeOk && qf.typeOk && (
-                        <span className="text-xs font-medium text-destructive shrink-0">Too large</span>
+                        <span className="text-xs font-medium text-destructive shrink-0">{t('import.tooLarge')}</span>
                       )}
                       {qf.sizeOk && qf.typeOk ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                       ) : (
                         <AlertTriangle className="h-4 w-4 shrink-0" />
                       )}
@@ -652,7 +650,7 @@ export default function ImportPage() {
                 {progress && progress.total > 0 && (
                   <div className="flex gap-4 text-xs">
                     <span className="flex items-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                       {t('import.successCount', { count: progress.success })}
                     </span>
                     <span className="flex items-center gap-1">
@@ -724,30 +722,22 @@ export default function ImportPage() {
 // ─── Import history collapsible ──────────────────────────────────────────
 
 function statusColor(status: string) {
-  switch (status) {
-    case 'completed': return 'text-green-600';
-    case 'failed': return 'text-destructive';
-    case 'processing': return 'text-amber-600';
-    default: return 'text-muted-foreground';
-  }
+  const kindMap: Record<string, StatusKind> = {
+    completed: 'success',
+    failed: 'error',
+    processing: 'warning',
+  };
+  return statusTextClass[kindMap[status] ?? 'neutral'];
 }
 
-function statusLabel(status: string) {
+function statusLabel(status: string, t: TFunction) {
   switch (status) {
-    case 'completed': return 'Completed';
-    case 'failed': return 'Failed';
-    case 'processing': return 'Processing';
-    case 'pending': return 'Pending';
+    case 'completed': return t('import.status.completed');
+    case 'failed': return t('import.status.failed');
+    case 'processing': return t('import.status.processing');
+    case 'pending': return t('import.status.pending');
     default: return status;
   }
-}
-
-function timeAgo(ts: number) {
-  const seconds = Math.floor((Date.now() - ts) / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return new Date(ts).toLocaleDateString();
 }
 
 function CollapsibleHistory({
@@ -756,7 +746,7 @@ function CollapsibleHistory({
   accountLabel,
 }: {
   history: ImportHistory[];
-  t: (key: string) => string;
+  t: TFunction;
   accountLabel: (id: number) => string;
 }) {
   const [open, setOpen] = useState(false);
@@ -790,20 +780,20 @@ function CollapsibleHistory({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={cn('font-medium', statusColor(h.status))}>
-                      {statusLabel(h.status)}
+                      {statusLabel(h.status, t)}
                     </span>
                     <span className="text-muted-foreground">
                       {accountLabel(h.account_id)} / {h.folder}
                     </span>
                   </div>
-                  <span className="text-muted-foreground">{timeAgo(h.created_at)}</span>
+                  <span className="text-muted-foreground">{formatRelativeTime(h.created_at)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <span>{h.format.toUpperCase()}</span>
-                  <span className="text-green-600">{h.success} success</span>
-                  {h.duplicates > 0 && <span>{h.duplicates} dup</span>}
-                  {h.failed > 0 && <span className="text-destructive">{h.failed} failed</span>}
-                  <span>{h.total} total</span>
+                  <span className="text-success">{t('import.summarySuccess', { count: h.success })}</span>
+                  {h.duplicates > 0 && <span>{t('import.summaryDuplicates', { count: h.duplicates })}</span>}
+                  {h.failed > 0 && <span className="text-destructive">{t('import.summaryFailed', { count: h.failed })}</span>}
+                  <span>{t('import.summaryTotal', { count: h.total })}</span>
                 </div>
                 {h.failed_details.length > 0 && (
                   <details className="text-[11px]">

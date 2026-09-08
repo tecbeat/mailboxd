@@ -20,7 +20,8 @@
 
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { UserProfileForm } from './profile-form'
-import { LoaderCircle as Loader2 } from 'lucide-react'
+import { PageHeader } from '@/components/layout/page-header'
+import { Spinner } from '@/components/ui/spinner'
 import { useTranslation } from 'react-i18next'
 
 export function Profile() {
@@ -31,7 +32,7 @@ export function Profile() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-6 w-6 animate-spin" />
+        <Spinner />
       </div>
     )
   }
@@ -39,14 +40,19 @@ export function Profile() {
 
   if (error || !user) {
     return (
-      <div className="p-6 text-red-600">
+      <div className="p-6 text-destructive">
         {t('settings.profile.loadError')}
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-7xl ml-0 px-4">
+    <div className="w-full">
+      <PageHeader
+        className="mb-4"
+        title={t('settings.profile.title', 'Profile')}
+        description={t('settings.profile.pageDescription', 'Manage your account profile and credentials.')}
+      />
       <UserProfileForm user={user!} />
     </div>
   )

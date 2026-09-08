@@ -22,16 +22,16 @@
 import { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import { UserActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { UserDeleteDialog } from './components/delete-dialog'
 import { UsersTable } from './components/table'
-import UserProvider, {
-  type UserDialogType,
-} from './context'
+import UserProvider from './context/provider'
+import { type UserDialogType } from './context'
 import { Plus } from 'lucide-react'
 import { TableSkeleton } from '@/components/table-skeleton'
-import Logo from '@/assets/logo.svg'
+import { EmptyState } from '@/components/ui/empty-state'
 import { list_users, User } from '@/api/users/api'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -51,40 +51,30 @@ export default function Users() {
   const columns = getColumns(t, global.roles!)
 
   return (
-    <div className="w-full max-w-6xl ml-0 px-4">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <UserProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
-        <div className="w-full">
-          <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <Button
-              className="mt-2 sm:mt-0 space-x-1"
-              onClick={() => setOpen('add')}
-            >
-              <span>{t('users.buttons.add')}</span> <Plus size={18} />
-            </Button>
-          </div>
+        <div className="flex min-h-0 w-full flex-1 flex-col">
+          <PageHeader
+            className="mb-4 shrink-0"
+            title={t('users.title', 'Users')}
+            description={t('users.description', 'Manage system users and their roles.')}
+            actions={
+              <Button onClick={() => setOpen('add')}>
+                <Plus className="mr-2 h-4 w-4" /><span>{t('users.buttons.add')}</span>
+              </Button>
+            }
+          />
 
-          <div className="w-full">
+          <div className="flex min-h-0 w-full flex-1 flex-col">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : users?.length ? (
-              <div className="overflow-x-auto">
-                <UsersTable data={users} columns={columns} />
-              </div>
+              <UsersTable data={users} columns={columns} />
             ) : (
-              <div className="flex min-h-[300px] items-center justify-center rounded-md border border-dashed p-4">
-                <div className="mx-auto flex w-full max-w-lg flex-col items-center justify-center text-center">
-                  <img
-                    src={Logo}
-                    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                    alt="mailboxd icon"
-                  />
-                  <h3 className="mt-4 text-lg font-semibold">{t('users.empty.title')}</h3>
-                  <p className="mt-2 mb-4 text-sm text-muted-foreground">
-                    {t('users.empty.description')}
-                  </p>
-                  <Button onClick={() => setOpen('add')}>{t('users.buttons.add_new')}</Button>
-                </div>
-              </div>
+              <EmptyState
+                title={t('users.empty.title')}
+                description={t('users.empty.description')}
+              />
             )}
           </div>
 

@@ -24,23 +24,14 @@ import { Proxy } from '@/api/system/api'
 
 export type ProxyDialogType = 'add' | 'edit' | 'delete'
 
-interface ProxyContextType {
+export interface ProxyContextType {
   open: ProxyDialogType | null
   setOpen: (str: ProxyDialogType | null) => void
   currentRow: Proxy | null
   setCurrentRow: React.Dispatch<React.SetStateAction<Proxy | null>>
 }
 
-const ProxyContext = React.createContext<ProxyContextType | null>(null)
-
-interface Props {
-  children: React.ReactNode
-  value: ProxyContextType
-}
-
-export default function ProxyProvider({ children, value }: Props) {
-  return <ProxyContext.Provider value={value}>{children}</ProxyContext.Provider>
-}
+export const ProxyContext = React.createContext<ProxyContextType | null>(null)
 
 export const useProxyContext = () => {
   const proxyContext = React.useContext(ProxyContext)

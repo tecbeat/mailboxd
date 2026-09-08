@@ -9,6 +9,7 @@ import { MoreFiltersPopover } from '../more-filters-popover'
 import { FilterResetButton } from '@/features/mail-list/filter-reset'
 import { MailboxPopover } from '@/features/mail-list/mailbox-popover'
 import { AccountPopover } from '@/features/mail-list/account-popover'
+import { FilterBar } from '@/features/mail-list/filter-bar'
 
 const SEARCH_TEXT_CONFIG: TextSearchConfig = {
   storageKey: 'mailboxd_mail_search_history',
@@ -29,28 +30,16 @@ export function DataTableToolbar<TData extends RowData>({
   table,
 }: DataTableToolbarProps<TData>) {
   return (
-    <div className="flex flex-col gap-1 p-1 bg-background">
-      <div className="mb-4 flex items-center justify-center w-full">
-        <div className="w-full max-w-3xl">
-          <TextSearchInput config={SEARCH_TEXT_CONFIG} />
-        </div>
-      </div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-1">
-        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <AccountPopover />
-            <MailboxPopover />
-            <MailFilterPopover />
-            <TagFilterPopover />
-            <MoreFiltersPopover />
-          </div>
-          <FilterResetButton />
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <TimePopover />
-          <DataTableViewOptions table={table} />
-        </div>
-      </div>
-    </div>
+    <FilterBar className="my-1">
+      <TextSearchInput config={SEARCH_TEXT_CONFIG} />
+      <FilterResetButton />
+      <AccountPopover />
+      <MailboxPopover />
+      <MailFilterPopover />
+      <TagFilterPopover />
+      <MoreFiltersPopover />
+      <TimePopover />
+      <DataTableViewOptions table={table} />
+    </FilterBar>
   )
 }

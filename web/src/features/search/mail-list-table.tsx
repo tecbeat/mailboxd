@@ -19,13 +19,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { dateFnsLocaleMap, formatBytes } from "@/lib/utils"
-import { format, formatDistanceToNow } from "date-fns"
+import { formatBytes, formatDateTime, formatRelativeTime } from "@/lib/utils"
 import { MessageSquareText, Paperclip } from "lucide-react"
 import { EmailEnvelope } from "@/api"
 import { MailBulkActions } from "./bulk-actions"
 import { useTranslation } from 'react-i18next'
-import { enUS } from "date-fns/locale"
 import { ColumnDef } from "@tanstack/react-table"
 import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
@@ -40,6 +38,7 @@ import { useSearchMessages } from "@/hooks/use-search-messages"
 interface MailListProps {
   items: EmailEnvelope[]
   isLoading: boolean
+  isFetching?: boolean
   onEnvelopeChanged: (envelope: EmailEnvelope) => void
   setSortBy: (sortBy: "DATE" | "SIZE") => void
   setSortOrder: (value: "desc" | "asc") => void
@@ -48,13 +47,13 @@ interface MailListProps {
 export function MailListTable({
   items,
   isLoading,
+  isFetching,
   onEnvelopeChanged,
   setSortBy,
   setSortOrder
 }: MailListProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
-  const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS
   const { setFilter } = useSearchMessages();
 
   const columns: ColumnDef<MailTableFeatures, EmailEnvelope>[] = [
@@ -261,12 +260,12 @@ export function MailListTable({
       ),
       cell: ({ row }) => {
         const date = new Date(row.original.date)
-        const title = format(date, 'yyyy-MM-dd HH:mm:ss')
+        const title = formatDateTime(date)
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <span className='text-xs whitespace-nowrap'>
-                {formatDistanceToNow(date, { addSuffix: true, locale })}
+                {formatRelativeTime(date)}
               </span>
             </TooltipTrigger>
             <TooltipContent>{title}</TooltipContent>
@@ -291,6 +290,7 @@ export function MailListTable({
     <MailListDataTable
       items={items}
       isLoading={isLoading}
+      isFetching={isFetching}
       columns={columns}
       setSortBy={setSortBy}
       setSortOrder={setSortOrder}

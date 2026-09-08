@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Plus, Tag as TagIcon, X, LoaderCircle as Loader2, Check, TriangleAlert as AlertTriangle } from 'lucide-react';
+import { Plus, Tag as TagIcon, X, LoaderCircle, Check, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import { useAvailableTags } from '@/hooks/use-available-tags';
 import { TagAction, useUpdateTags } from '@/hooks/use-update-tags';
@@ -119,7 +119,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
                         title: t('search.updateTags.updatedTitle'),
                         description: (
                             <div className="flex items-center gap-2">
-                                <Check className="h-4 w-4 text-green-500" />
+                                <Check className="h-4 w-4 text-success" />
                                 <span>{t('search.updateTags.updatedDesc')}</span>
                             </div>
                         ),
@@ -144,7 +144,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md min-h-[50vh]">
+            <DialogContent size="sm" className="min-h-[50vh]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <TagIcon className="h-5 w-5" />
@@ -240,7 +240,7 @@ export function UpdateTagsDialog({ open, onOpenChange }: Props) {
                         <Button onClick={handleSubmit} disabled={isPending} variant={action === 'Remove' ? 'destructive' : 'default'}>
                             {isPending ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                                     {t(`search.updateTags.saving${action}`)}
                                 </>
                             ) : (

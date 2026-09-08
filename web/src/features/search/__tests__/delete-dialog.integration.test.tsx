@@ -25,9 +25,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
 import { server } from '@/test/server';
 
-import SearchProvider, { useSearchContext } from '../context';
+import SearchProvider from '../context/provider';
+import { useSearchContext } from '../context';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
-import { MailListConfigProvider } from '@/features/mail-list/config';
+import { MailListConfigProvider } from '@/features/mail-list/config-provider';
 
 const BASE = 'http://localhost:15630';
 

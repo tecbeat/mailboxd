@@ -1506,8 +1506,6 @@
     "hide": "Piilota",
     "loading": "Ladataan...",
     "noResults": "Ei tuloksia löydy",
-    "of": "kohteesta",
-    "page": "Sivu",
     "pagination": {
       "first": "Ensimmäinen sivu",
       "fixed_page_size": "{{size}} riviä sivulla.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "Rivejä per sivu",
       "selected": "{{selected}} / {{total}} riviä valittu."
     },
-    "results": "tuloksia",
-    "rowsPerPage": "Rivejä sivulla",
     "showing": "Näytetään",
     "to": "asti"
   },

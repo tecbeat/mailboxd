@@ -1506,8 +1506,6 @@
     "hide": "Nascondi",
     "loading": "Caricamento...",
     "noResults": "Nessun risultato trovato",
-    "of": "di",
-    "page": "Pagina",
     "pagination": {
       "first": "Prima pagina",
       "fixed_page_size": "{{size}} righe per pagina.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "Righe per pagina",
       "selected": "{{selected}} di {{total}} righe selezionate."
     },
-    "results": "risultati",
-    "rowsPerPage": "Righe per pagina",
     "showing": "Visualizzazione",
     "to": "a"
   },

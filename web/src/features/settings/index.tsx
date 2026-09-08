@@ -21,12 +21,11 @@
 
 import { Outlet } from '@tanstack/react-router'
 import { Main } from '@/components/layout/main'
-import SidebarNav from './components/sidebar-nav'
+import { SidebarNav } from '@/components/layout/sidebar-nav'
 import { KeyRound, Palette, Settings as SettingsIcon, ShieldCheck, UserCog, Waypoints } from 'lucide-react'
 import { FixedHeader } from '@/components/layout/fixed-header'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useTranslation } from 'react-i18next'
-import { Separator } from '@/components/ui/separator'
 
 export default function Settings() {
   const { t } = useTranslation()
@@ -70,21 +69,23 @@ export default function Settings() {
   return (
     <>
       <FixedHeader />
-      <Main>
-        <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
-            {t('settings.header.title')}
-          </h1>
-          <p className='text-muted-foreground'>
-            {t('settings.header.description')}
-          </p>
-        </div>
-        <Separator className='my-4 lg:my-6' />
-        <div className='flex flex-1 flex-col space-y-2 md:space-y-2 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
-          <aside className='top-0 lg:sticky lg:w-1/5'>
+      <Main fixed>
+        <div className='flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
+          {/* Fixed-width rail so the nav never changes width between sub-pages. */}
+          <aside className='shrink-0 lg:w-56'>
             <SidebarNav items={sidebarNavItems} />
           </aside>
-          <div className='flex w-full p-1 pr-4 overflow-y-hidden'>
+          {/*
+            min-w-0 stops a wide table from widening the row (and the rail).
+            No right padding or reserved scrollbar gutter here: the content's
+            right edge must line up with the primary-nav pages (Accounts,
+            OAuth2, ...), which render flush against Main's padding. Sub-pages
+            with add buttons (API Tokens, Proxy) scroll internally, so this
+            container never shows a scrollbar on them. The only sub-page that
+            overflows this container (Configurations) has no header actions, so
+            its scrollbar appearing at the flush edge is not noticeable.
+          */}
+          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin'>
             <Outlet />
           </div>
         </div>

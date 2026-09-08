@@ -17,13 +17,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import { ColumnDef } from '@tanstack/react-table'
+import { Proxy } from '@/api/system/api'
 import { type DataTableFeatures } from '@/lib/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from './data-table-toolbar'
-import { Proxy } from '@/api/system/api'
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, Proxy>[]
@@ -36,8 +34,12 @@ export function ProxyTable({ columns, data }: DataTableProps) {
       columns={columns}
       data={data}
       storageKey='proxy'
-      pageSizeOptions={[10, 20, 30, 40, 50]}
-      containerClassName='overflow-x-auto rounded-md border'
+      // `w-full` overrides the DataTable's default `w-max` border wrapper:
+      // this table is `table-fixed w-full`, and a fixed-layout 100%-wide table
+      // inside a max-content (`w-max`) wrapper degenerates to a ~1,000,000px
+      // width. `w-full` keeps the bordered wrapper at the column width so the
+      // fixed table fills it and clips overflow via `cellClassName` instead.
+      containerClassName='w-full rounded-md border'
       tableClassName='w-full table-fixed'
       cellClassName='overflow-hidden'
       showPagination={data.length > 10}

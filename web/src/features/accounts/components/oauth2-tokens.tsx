@@ -36,14 +36,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { TableSkeleton } from '@/components/table-skeleton'
 import { useTranslation } from 'react-i18next'
 import { File as FileIcon, Copy as IconCopy } from 'lucide-react'
-import { format, formatDistanceToNow } from 'date-fns'
 import LongText from '@/components/long-text'
 import { useCallback } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { ToastAction } from '@/components/ui/toast'
 import { useNavigate } from '@tanstack/react-router'
-import { dateFnsLocaleMap } from '@/lib/utils'
-import { enUS } from 'date-fns/locale'
+import { formatDateTime, formatRelativeTime } from '@/lib/utils'
 import { AccountModel } from '@/api/account/api'
 
 interface Props {
@@ -53,8 +51,7 @@ interface Props {
 }
 
 export function OAuth2TokensDialog({ currentRow, open, onOpenChange }: Props) {
-  const { t, i18n } = useTranslation()
-  const locale = dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS;
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: oauth2Tokens, isLoading } = useQuery({
     queryKey: ['oauth2-tokens', currentRow.id],
@@ -88,7 +85,7 @@ export function OAuth2TokensDialog({ currentRow, open, onOpenChange }: Props) {
         action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
       });
     }
-  }, []);
+  }, [t]);
 
   return (
     <Dialog
@@ -149,13 +146,13 @@ export function OAuth2TokensDialog({ currentRow, open, onOpenChange }: Props) {
                   <TableRow>
                     <TableCell className='max-w-80'>{t('settings.createdAt')}</TableCell>
                     <TableCell>
-                      {format(new Date(oauth2Tokens.created_at), 'yyyy-MM-dd HH:mm:ss')}
+                      {formatDateTime(oauth2Tokens.created_at)}
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className='max-w-80'>{t('settings.updatedAt')}</TableCell>
                     <TableCell>
-                      {formatDistanceToNow(new Date(oauth2Tokens.updated_at), { addSuffix: true, locale })}
+                      {formatRelativeTime(oauth2Tokens.updated_at)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -167,7 +164,7 @@ export function OAuth2TokensDialog({ currentRow, open, onOpenChange }: Props) {
                   <h3 className="mt-4 text-lg font-semibold">{t('accounts.noOAuth2Tokens')}</h3>
                   <p className="mb-4 mt-2 text-sm text-muted-foreground">
                     {t('accounts.theAccountHasNotCompletedTheAuthorizationProcess')}
-                    <a onClick={() => navigate({ to: '/oauth2' })} className="ml-1 text-blue-500 underline cursor-pointer">{t('accounts.clickHere')}</a>
+                    <a onClick={() => navigate({ to: '/oauth2' })} className="ml-1 text-primary underline cursor-pointer">{t('accounts.clickHere')}</a>
                     {t('accounts.toAuthorizeTheAccount')}
                   </p>
                 </div>

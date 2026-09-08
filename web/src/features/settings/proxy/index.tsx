@@ -22,16 +22,16 @@
 import { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import { ProxyActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { ProxyDeleteDialog } from './components/delete-dialog'
 import { ProxyTable } from './components/table'
-import ProxyProvider, {
-  type ProxyDialogType,
-} from './context'
+import ProxyProvider from './context/provider'
+import { type ProxyDialogType } from './context'
 import { Plus } from 'lucide-react'
 import { TableSkeleton } from '@/components/table-skeleton'
-import Logo from '@/assets/logo.svg'
+import { EmptyState } from '@/components/ui/empty-state'
 import useProxyList from '@/hooks/use-proxy'
 import { useTranslation } from 'react-i18next'
 import { Proxy } from '@/api/system/api'
@@ -47,40 +47,29 @@ export default function ProxyManagerPage() {
   const columns = getColumns(t)
 
   return (
-    <div className="w-full max-w-5xl ml-0 px-4">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <ProxyProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
-        <div>
-          <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <div className="flex gap-2">
-              <Button className="space-x-1" disabled={!require_any_permission(['system:root'])} onClick={() => setOpen('add')}>
-                <span>{t('settings.add')}</span> <Plus size={18} />
+        <div className="flex min-h-0 w-full flex-1 flex-col">
+          <PageHeader
+            className="mb-4 shrink-0"
+            title={t('settings.proxyTitle', 'Network Proxy')}
+            description={t('settings.proxyDescription', 'Configure proxy servers used for account connections.')}
+            actions={
+              <Button disabled={!require_any_permission(['system:root'])} onClick={() => setOpen('add')}>
+                <Plus className="mr-2 h-4 w-4" /><span>{t('settings.add')}</span>
               </Button>
-            </div>
-          </div>
-          <div className="flex-1 w-full overflow-auto -mx-4 px-4 py-1">
+            }
+          />
+          <div className="flex min-h-0 w-full flex-1 flex-col py-1">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : proxyList?.length ? (
-              <div className="overflow-x-auto">
-                <ProxyTable data={proxyList} columns={columns} />
-              </div>
+              <ProxyTable data={proxyList} columns={columns} />
             ) : (
-              <div className="flex min-h-[300px] items-center justify-center rounded-md border border-dashed p-4">
-                <div className="mx-auto flex w-full max-w-md flex-col items-center justify-center text-center">
-                  <img
-                    src={Logo}
-                    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                    alt="mailboxd icon"
-                  />
-                  <h3 className="mt-4 text-lg font-semibold">{t('settings.noProxies')}</h3>
-                  <p className="mt-2 mb-4 text-sm text-muted-foreground">
-                    {t('settings.noProxiesDesc')}
-                  </p>
-                  <Button onClick={() => setOpen('add')}>
-                    {t('settings.add')} {t('settings.proxy')}
-                  </Button>
-                </div>
-              </div>
+              <EmptyState
+                title={t('settings.noProxies')}
+                description={t('settings.noProxiesDesc')}
+              />
             )}
           </div>
         </div>

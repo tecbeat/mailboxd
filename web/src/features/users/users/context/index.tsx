@@ -26,23 +26,14 @@ import React from 'react'
 
 export type UserDialogType = 'add' | 'edit' | 'delete' | 'api-tokens'
 
-interface UserContextType {
+export interface UserContextType {
   open: UserDialogType | null
   setOpen: (str: UserDialogType | null) => void
   currentRow: User | null
   setCurrentRow: React.Dispatch<React.SetStateAction<User | null>>
 }
 
-const UserContext = React.createContext<UserContextType | null>(null)
-
-interface Props {
-  children: React.ReactNode
-  value: UserContextType
-}
-
-export default function UserProvider({ children, value }: Props) {
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>
-}
+export const UserContext = React.createContext<UserContextType | null>(null)
 
 export const useUserContext = () => {
   const userContext = React.useContext(UserContext)

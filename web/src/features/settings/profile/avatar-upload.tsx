@@ -89,7 +89,7 @@ export default function AvatarUpload({
                         <img src={previewUrl} alt={t('settings.profile.avatarAlt')} className="h-full w-full object-cover" />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center">
-                            <User className="size-6 text-muted-foreground" />
+                            <User className="h-6 w-6 text-muted-foreground" />
                         </div>
                     )}
                 </div>
@@ -102,7 +102,7 @@ export default function AvatarUpload({
                         aria-label={t('settings.profile.removeAvatar')}
                         disabled={disabled}
                     >
-                        <X className="size-3.5" />
+                        <X className="h-3.5 w-3.5" />
                     </Button>
                 )}
             </div>

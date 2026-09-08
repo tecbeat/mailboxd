@@ -21,7 +21,7 @@
 
 import { EmailEnvelope, PaginatedResponse } from '@/api';
 import { search_messages } from '@/api/search/api';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import React from 'react';
 
@@ -89,12 +89,11 @@ export function useSearchMessages() {
     const setPage = (p: number) => updateParams({ page: p });
 
     const setSearchPageSize = (size: number) => {
-        localStorage.setItem('mailboxd_search_page_size', size.toString());
         updateParams({ pageSize: size, page: 1 });
     };
 
-    const setSortBy = (val: "DATE" | "SIZE") => updateParams({ sortBy: val });
-    const setSortOrder = (val: "desc" | "asc") => updateParams({ sortOrder: val });
+    const setSortBy = React.useCallback((val: "DATE" | "SIZE") => updateParams({ sortBy: val }), [updateParams]);
+    const setSortOrder = React.useCallback((val: "desc" | "asc") => updateParams({ sortOrder: val }), [updateParams]);
 
     const onSubmit = (cleaned: SearchSubmitValues) => {
         if ('has_attachment' in cleaned && cleaned.has_attachment === false) {
@@ -132,6 +131,14 @@ export function useSearchMessages() {
                 sort_by: sortBy,
                 desc: sortOrder === "desc"
             }),
+        // Keep the previous page's results mounted while a new query key (new
+        // filter/page/sort) resolves. Without this, every keystroke swaps `data`
+        // to undefined, flipping `isLoading` true — which blanks the table to
+        // skeletons, drops the pagination and pops in the spinner card, so the
+        // whole page appears to reload. With it, `isLoading` is true only on the
+        // very first load; subsequent fetches surface via `isFetching`, letting
+        // us animate just the table while the old rows stay in place.
+        placeholderData: keepPreviousData,
         staleTime: 1000,
         retry: false,
     });

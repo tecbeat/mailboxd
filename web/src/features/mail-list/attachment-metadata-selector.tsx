@@ -55,39 +55,42 @@ export function MetadataSelectorField({
 
     return (
         <Popover>
-            <PopoverTrigger asChild>
-                <button
-                    className={cn(
-                        "group flex items-center justify-between w-full px-4 py-2 hover:bg-accent/50 transition-all text-left relative border rounded-md",
-                        "min-h-[48px]",
-                        value && "bg-accent/30 border-primary/50"
-                    )}
-                >
-                    <div className="flex flex-col items-start pr-6 overflow-hidden">
-                        <span className="text-[10px] font-bold uppercase opacity-50 tracking-tight leading-none">
-                            {label}
-                        </span>
-                        <span className={cn(
-                            "mt-1 truncate w-full text-xs",
-                            value ? "font-semibold text-primary" : "text-muted-foreground/70"
-                        )}>
-                            {value || t('search_more.any')}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                        {value && (
-                            <div
-                                onClick={(e) => { e.stopPropagation(); onReset(); }}
-                                className="p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                            >
-                                <X className="h-3 w-3" />
-                            </div>
+            <div className="group relative">
+                <PopoverTrigger asChild>
+                    <button
+                        className={cn(
+                            "flex items-center justify-between w-full px-4 py-2 hover:bg-accent/50 transition-all text-left relative border rounded-md",
+                            "min-h-[48px]",
+                            value && "bg-accent/30 border-primary/50"
                         )}
-                    </div>
-                    {value && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-                </button>
-            </PopoverTrigger>
+                    >
+                        <div className="flex flex-col items-start pr-8 overflow-hidden">
+                            <span className="text-[10px] font-bold uppercase opacity-50 tracking-tight leading-none">
+                                {label}
+                            </span>
+                            <span className={cn(
+                                "mt-1 truncate w-full text-xs",
+                                value ? "font-semibold text-primary" : "text-muted-foreground/70"
+                            )}>
+                                {value || t('search_more.any')}
+                            </span>
+                        </div>
+
+                        {value && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+                    </button>
+                </PopoverTrigger>
+
+                {value && (
+                    <button
+                        type="button"
+                        aria-label={t('common.clear')}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onReset(); }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                        <X className="h-3 w-3" />
+                    </button>
+                )}
+            </div>
 
             <PopoverContent align="start" className="p-0 w-64 shadow-xl">
                 <Command shouldFilter={false}>

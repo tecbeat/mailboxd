@@ -18,18 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import { searchContext } from './core'
 
-import { EmailEnvelope } from '@/api'
-import { createMailListContext, MailListContextBase } from '@/features/mail-list/context'
+export type { SearchDialogType, SearchContextType } from './core'
 
-export type SearchDialogType = 'mailbox' | 'display' | 'delete' | 'filters' | 'tags' | 'edit-tags' | 'update-tags' | 'restore' | 'delete-mailbox'
-
-export interface SearchContextType extends MailListContextBase<EmailEnvelope, SearchDialogType> {
-  editTagsOpen: boolean
-  setEditTagsOpen: (open: boolean) => void
-}
-
-const { Provider, useMailListContext } = createMailListContext<SearchContextType>('useSearchContext')
-
-export default Provider
-export const useSearchContext = useMailListContext
+export const useSearchContext = searchContext.useMailListContext

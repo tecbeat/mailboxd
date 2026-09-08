@@ -51,7 +51,7 @@ export function OAuth2Action({ row }: DataTableRowActionsProps) {
       <Button
         variant="ghost"
         size="sm"
-        className="text-xs text-blue-500 hover:text-blue-700 underline"
+        className="text-xs text-primary hover:text-primary/80 underline"
         onClick={() => {
           if (hasPermission) {
             setCurrentRow(mailer)

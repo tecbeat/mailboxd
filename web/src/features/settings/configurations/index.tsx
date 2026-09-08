@@ -22,9 +22,11 @@
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ShieldCheck, Server, Database, Activity, Info as InfoIcon, Mail, Zap } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { statusBadgeClass } from "@/lib/status-colors"
+import { Spinner } from "@/components/ui/spinner"
+import { PageHeader } from "@/components/layout/page-header"
+import { ShieldCheck, Server, Database, Activity, Mail, Zap } from "lucide-react"
 import { get_system_configurations } from "@/api/system/api"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
@@ -47,16 +49,33 @@ function SettingRow({
   label,
   value,
   description,
+  mono,
 }: {
   label: string
   value: React.ReactNode
   description?: string
+  mono?: boolean
 }) {
   return (
     <div className="py-2.5 border-b border-border/40 last:border-0">
-      <div className="grid grid-cols-[1fr_auto] items-center gap-4">
-        <div className="text-xs font-medium text-muted-foreground font-mono">{label}</div>
-        <div className="text-sm text-right font-medium">{value}</div>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="min-w-0 break-all text-xs font-medium text-muted-foreground font-mono">{label}</div>
+        {/* Plain values get the same horizontal box (padding + transparent border) as a
+            badge so that badge text and plain text share the exact same right edge. */}
+        <div className="flex min-w-0 sm:justify-end">
+          {React.isValidElement(value) ? (
+            value
+          ) : (
+            <span
+              className={cn(
+                "min-w-0 break-all text-sm font-medium sm:border sm:border-transparent sm:px-2.5 sm:text-right",
+                mono && "font-mono"
+              )}
+            >
+              {value}
+            </span>
+          )}
+        </div>
       </div>
       {description && (
         <div className="mt-1 text-[11px] text-muted-foreground">{description}</div>
@@ -94,26 +113,6 @@ function SettingsCard({
   )
 }
 
-function PageSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i}>
-          <CardHeader className="py-4 px-5 border-b">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-3 w-56" />
-          </CardHeader>
-          <CardContent className="px-5 py-3 space-y-3">
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-5/6" />
-            <Skeleton className="h-3 w-4/6" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
-}
-
 export default function ServerConfigurationsPage() {
   const { t } = useTranslation()
   const { data, isLoading, isError } = useQuery({
@@ -131,110 +130,102 @@ export default function ServerConfigurationsPage() {
 
   return (
     <div className="w-full">
-      <ScrollArea className="h-full w-full">
-        <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      <PageHeader
+        className="mb-4"
+        title={t("systemConfig.pageTitle")}
+        description={t("systemConfig.pageDescription")}
+      />
 
-          <div className="flex items-start gap-3 p-4 rounded-xl border bg-muted/30">
-            <InfoIcon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-            <div>
-              <h4 className="text-sm font-semibold">{t("systemConfig.pageTitle")}</h4>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                {t("systemConfig.pageDescription")}
-              </p>
-            </div>
-          </div>
-
-          {isLoading ? (
-            <PageSkeleton />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <SettingsCard
-                icon={Server}
-                title={t("systemConfig.sections.network.title")}
-                description={t("systemConfig.sections.network.desc")}
-              >
-                <SettingRow label="MAILBOXD_BIND_IP" value={data!.mailboxd_bind_ip ?? "0.0.0.0"} />
-                <SettingRow label="MAILBOXD_HTTP_PORT" value={data!.mailboxd_http_port} />
-                <SettingRow label="MAILBOXD_BASE_URL" value={data!.mailboxd_base_url} />
-                <SettingRow label="MAILBOXD_PUBLIC_URL" value={data!.mailboxd_public_url} />
-                <SettingRow
-                  label="MAILBOXD_ENABLE_REST_HTTPS"
-                  value={<BooleanBadge value={data!.mailboxd_enable_rest_https} />}
-                />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={Mail}
-                title={t("systemConfig.sections.smtp.title")}
-                description={t("systemConfig.sections.smtp.desc")}
-              >
-                <SettingRow label="MAILBOXD_ENABLE_SMTP" value={<BooleanBadge value={data!.mailboxd_enable_smtp} />} />
-                <SettingRow label="MAILBOXD_SMTP_PORT" value={data!.mailboxd_smtp_port} />
-                <SettingRow label="MAILBOXD_SMTP_ENCRYPTION" value={data!.mailboxd_smtp_encryption} />
-                <SettingRow label="MAILBOXD_SMTP_AUTH_REQUIRED" value={<BooleanBadge value={data!.mailboxd_smtp_auth_required} />} />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={Zap}
-                title={t("systemConfig.sections.performance.title")}
-                description={t("systemConfig.sections.performance.desc")}
-              >
-                <SettingRow label="MAILBOXD_SYNC_CONCURRENCY" value={data!.mailboxd_sync_concurrency ?? t("systemConfig.status.auto")} />
-                <SettingRow
-                  label="MAILBOXD_HTTP_COMPRESSION_ENABLED"
-                  value={<BooleanBadge value={data!.mailboxd_http_compression_enabled} />}
-                />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={Database}
-                title={t("systemConfig.sections.storage.title")}
-                description={t("systemConfig.sections.storage.desc")}
-              >
-                <SettingRow label="MAILBOXD_ROOT_DIR" value={<span className="font-mono">{data!.mailboxd_root_dir}</span>} />
-                <SettingRow label="MAILBOXD_DATA_DIR" value={data!.mailboxd_data_dir ? <span className="font-mono">{data!.mailboxd_data_dir}</span> : "—"} />
-                <SettingRow label="MAILBOXD_INDEX_DIR" value={data!.mailboxd_index_dir ? <span className="font-mono">{data!.mailboxd_index_dir}</span> : "—"} />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={ShieldCheck}
-                title={t("systemConfig.sections.security.title")}
-                description={t("systemConfig.sections.security.desc")}
-              >
-                <SettingRow
-                  label="MAILBOXD_ENCRYPT_PASSWORD_SET"
-                  value={
-                    data!.mailboxd_encrypt_password_set ? (
-                      <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                        {t("systemConfig.status.configured")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive">{t("systemConfig.status.missing")}</Badge>
-                    )
-                  }
-                />
-                <SettingRow
-                  label="MAILBOXD_WEBUI_TOKEN_EXPIRATION_HOURS"
-                  value={`${data!.mailboxd_webui_token_expiration_hours}h`}
-                />
-              </SettingsCard>
-
-              <SettingsCard
-                icon={Activity}
-                title={t("systemConfig.sections.logging.title")}
-                description={t("systemConfig.sections.logging.desc")}
-              >
-                <SettingRow label="MAILBOXD_LOG_LEVEL" value={<Badge variant="outline" className="uppercase">{data!.mailboxd_log_level}</Badge>} />
-                <SettingRow label="MAILBOXD_ANSI_LOGS" value={<BooleanBadge value={data!.mailboxd_ansi_logs} />} />
-                <SettingRow label="MAILBOXD_JSON_LOGS" value={<BooleanBadge value={data!.mailboxd_json_logs} />} />
-                <SettingRow label="MAILBOXD_LOG_TO_FILE" value={<BooleanBadge value={data!.mailboxd_log_to_file} />} />
-                <SettingRow label="MAILBOXD_MAX_SERVER_LOG_FILES" value={data!.mailboxd_max_server_log_files} />
-              </SettingsCard>
-            </div>
-          )}
-
+      {isLoading ? (
+        <div className="flex justify-center items-center py-24">
+          <Spinner />
         </div>
-      </ScrollArea>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <SettingsCard
+            icon={Server}
+            title={t("systemConfig.sections.network.title")}
+            description={t("systemConfig.sections.network.desc")}
+          >
+            <SettingRow label="MAILBOXD_BIND_IP" value={data!.mailboxd_bind_ip ?? "0.0.0.0"} />
+            <SettingRow label="MAILBOXD_HTTP_PORT" value={data!.mailboxd_http_port} />
+            <SettingRow label="MAILBOXD_BASE_URL" value={data!.mailboxd_base_url} />
+            <SettingRow label="MAILBOXD_PUBLIC_URL" value={data!.mailboxd_public_url} />
+            <SettingRow
+              label="MAILBOXD_ENABLE_REST_HTTPS"
+              value={<BooleanBadge value={data!.mailboxd_enable_rest_https} />}
+            />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={Mail}
+            title={t("systemConfig.sections.smtp.title")}
+            description={t("systemConfig.sections.smtp.desc")}
+          >
+            <SettingRow label="MAILBOXD_ENABLE_SMTP" value={<BooleanBadge value={data!.mailboxd_enable_smtp} />} />
+            <SettingRow label="MAILBOXD_SMTP_PORT" value={data!.mailboxd_smtp_port} />
+            <SettingRow label="MAILBOXD_SMTP_ENCRYPTION" value={data!.mailboxd_smtp_encryption} />
+            <SettingRow label="MAILBOXD_SMTP_AUTH_REQUIRED" value={<BooleanBadge value={data!.mailboxd_smtp_auth_required} />} />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={Zap}
+            title={t("systemConfig.sections.performance.title")}
+            description={t("systemConfig.sections.performance.desc")}
+          >
+            <SettingRow label="MAILBOXD_SYNC_CONCURRENCY" value={data!.mailboxd_sync_concurrency ?? t("systemConfig.status.auto")} />
+            <SettingRow
+              label="MAILBOXD_HTTP_COMPRESSION_ENABLED"
+              value={<BooleanBadge value={data!.mailboxd_http_compression_enabled} />}
+            />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={Database}
+            title={t("systemConfig.sections.storage.title")}
+            description={t("systemConfig.sections.storage.desc")}
+          >
+            <SettingRow label="MAILBOXD_ROOT_DIR" value={data!.mailboxd_root_dir} mono />
+            <SettingRow label="MAILBOXD_DATA_DIR" value={data!.mailboxd_data_dir || "—"} mono />
+            <SettingRow label="MAILBOXD_INDEX_DIR" value={data!.mailboxd_index_dir || "—"} mono />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={ShieldCheck}
+            title={t("systemConfig.sections.security.title")}
+            description={t("systemConfig.sections.security.desc")}
+          >
+            <SettingRow
+              label="MAILBOXD_ENCRYPT_PASSWORD_SET"
+              value={
+                data!.mailboxd_encrypt_password_set ? (
+                  <Badge variant="outline" className={statusBadgeClass.success}>
+                    {t("systemConfig.status.configured")}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className={statusBadgeClass.error}>{t("systemConfig.status.missing")}</Badge>
+                )
+              }
+            />
+            <SettingRow
+              label="MAILBOXD_WEBUI_TOKEN_EXPIRATION_HOURS"
+              value={`${data!.mailboxd_webui_token_expiration_hours}h`}
+            />
+          </SettingsCard>
+
+          <SettingsCard
+            icon={Activity}
+            title={t("systemConfig.sections.logging.title")}
+            description={t("systemConfig.sections.logging.desc")}
+          >
+            <SettingRow label="MAILBOXD_LOG_LEVEL" value={<Badge variant="outline" className="uppercase">{data!.mailboxd_log_level}</Badge>} />
+            <SettingRow label="MAILBOXD_ANSI_LOGS" value={<BooleanBadge value={data!.mailboxd_ansi_logs} />} />
+            <SettingRow label="MAILBOXD_JSON_LOGS" value={<BooleanBadge value={data!.mailboxd_json_logs} />} />
+            <SettingRow label="MAILBOXD_LOG_TO_FILE" value={<BooleanBadge value={data!.mailboxd_log_to_file} />} />
+            <SettingRow label="MAILBOXD_MAX_SERVER_LOG_FILES" value={data!.mailboxd_max_server_log_files} />
+          </SettingsCard>
+        </div>
+      )}
     </div>
   )
 }

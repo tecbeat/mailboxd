@@ -25,7 +25,13 @@
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    
+
+    /* Success (green). Semantic; depends only on light/dark polarity, so light
+       themes inherit this :root value and every dark theme shares one override
+       rule at the end of this layer. */
+    --success: 142 72% 36%;
+    --success-foreground: 0 0% 100%;
+
     --ring: 221 83% 53%;
     --radius: 0.35rem;
 
@@ -418,19 +424,19 @@
     --radius: 0.5rem;
     --background: 222 47% 11%;
     --foreground: 213 31% 91%;
-    --muted: 223 47% 11%;
+    --muted: 217 33% 20%;
     --muted-foreground: 215 20% 65%;
-    --popover: 222 47% 11%;
+    --popover: 222 40% 15%;
     --popover-foreground: 213 31% 91%;
-    --card: 222 47% 11%;
+    --card: 222 40% 15%;
     --card-foreground: 213 31% 91%;
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
+    --border: 216 33% 24%;
+    --input: 216 33% 24%;
     --primary: 217 91% 60%;
     --primary-foreground: 222 47% 11%;
-    --secondary: 222 47% 11%;
+    --secondary: 217 33% 20%;
     --secondary-foreground: 213 31% 91%;
-    --accent: 216 34% 17%;
+    --accent: 217 33% 24%;
     --accent-foreground: 213 31% 91%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
@@ -448,5 +454,16 @@
     --sidebar-accent-foreground: var(--accent-foreground);
     --sidebar-border: var(--border);
     --sidebar-ring: var(--ring);
+  }
+
+  /* Dark-polarity success override, shared by every dark theme variant. */
+  .dark,
+  .yellow-dark,
+  .rose-dark,
+  .orange-dark,
+  .green-dark,
+  .blue-dark {
+    --success: 142 69% 58%;
+    --success-foreground: 142 45% 12%;
   }
 }

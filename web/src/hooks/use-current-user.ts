@@ -76,7 +76,9 @@ export function useCurrentUser() {
   }, [query.data])
 
   return {
-    ...query,
+    data: query.data,
+    isLoading: query.isLoading,
+    error: query.error,
     user: query.data,
     ...permission,
   }

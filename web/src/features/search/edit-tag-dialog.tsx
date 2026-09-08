@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Tag as TagIcon, X, LoaderCircle as Loader2, Check, Search } from 'lucide-react';
+import { Plus, Tag as TagIcon, X, LoaderCircle, Check, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useAvailableTags } from '@/hooks/use-available-tags';
 import { useUpdateTags } from '@/hooks/use-update-tags';
@@ -125,7 +125,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                         title: t('search.addTags.updatedTitle'),
                         description: (
                             <div className="flex items-center gap-2">
-                                <Check className="h-4 w-4 text-green-500" />
+                                <Check className="h-4 w-4 text-success" />
                                 <span>{t('search.addTags.updatedDesc')}</span>
                             </div>
                         ),
@@ -150,7 +150,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent size="sm">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <TagIcon className="h-5 w-5" />
@@ -242,7 +242,7 @@ export function EditTagsDialog({ open, onOpenChange }: Props) {
                         <Button onClick={handleSave} disabled={isPending}>
                             {isPending ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                                     {t('search.addTags.saving')}
                                 </>
                             ) : (

@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import * as React from 'react'
-import { Tag, ChevronDown, X } from 'lucide-react'
+import { Tag, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Badge } from '@/components/ui/badge'
@@ -37,13 +37,15 @@ import {
 import { useAvailableTags } from '@/hooks/use-available-tags'
 import { cn } from '@/lib/utils'
 import { useSearchContext } from './context'
+import { FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
+import { filterSegment } from '@/features/mail-list/filter-bar-styles'
 
 export function TagFilterPopover() {
     const { t } = useTranslation()
     const [search, setSearch] = React.useState('')
     const { filter, setFilter } = useSearchContext()
 
-    const selectedTags = (filter?.tags as string[]) || []
+    const selectedTags = React.useMemo(() => (filter?.tags as string[]) || [], [filter?.tags])
     const {
         tagsCount = [],
         isLoading,
@@ -97,25 +99,13 @@ export function TagFilterPopover() {
         <Popover>
             <PopoverTrigger asChild>
                 <Button
-                    size="sm"
-                    variant="outline"
-                    className={cn(
-                        'h-6 gap-1.5 px-3 rounded-none border-l-0',
-                        selectedTags.length > 0 &&
-                        'bg-primary/10 border-primary text-primary'
-                    )}
+                    variant="ghost"
+                    className={filterSegment(selectedTags.length > 0)}
+                    title={t('tag.label')}
                 >
                     <Tag className="h-4 w-4" />
-                    {t('tag.label')}
-                    {selectedTags.length > 0 && (
-                        <Badge
-                            variant="secondary"
-                            className="ml-1 h-5 px-1.5 text-xs"
-                        >
-                            {selectedTags.length}
-                        </Badge>
-                    )}
-                    <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                    <FilterLabel>{t('tag.label')}</FilterLabel>
+                    <FilterCount count={selectedTags.length} />
                 </Button>
             </PopoverTrigger>
 

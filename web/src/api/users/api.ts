@@ -105,16 +105,18 @@ export interface User {
     account_permissions: Record<number, string[]>
     created_at: number;
     updated_at: number;
+    sso_id?: string | null;
+    sso_provider?: string | null;
+    theme?: string | null;
+    language?: string | null;
 }
-
-type Theme = 'dark' | 'light'
 
 
 export interface LoginResult {
     success: boolean;
     error_message?: string | null;
     access_token?: string | null;
-    theme?: Theme,
+    theme?: string,
     language?: string,
 }
 

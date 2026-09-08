@@ -24,17 +24,17 @@ import useDialogState from '@/hooks/use-dialog-state'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
+import { PageHeader } from '@/components/layout/page-header'
 import { useColumns } from './components/columns'
 import { AccountDeleteDialog } from './components/delete-dialog'
 import { AccountTable } from './components/table'
-import AccountProvider, {
-  type AccountDialogType,
-} from './context'
+import AccountProvider from './context/provider'
+import { type AccountDialogType } from './context'
 import { Mail, Database } from 'lucide-react'
-import Logo from '@/assets/logo.svg'
 import { AccountDetailDrawer } from './components/account-detail'
 import { AccountModel, list_accounts } from '@/api/account/api'
 import { TableSkeleton } from '@/components/table-skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 import { useQuery } from '@tanstack/react-query'
 import { OAuth2TokensDialog } from './components/oauth2-tokens'
 import { RunningStateDialog } from './components/running-state-dialog'
@@ -69,56 +69,36 @@ export default function Accounts() {
     <AccountProvider value={{ open, setOpen, currentRow, setCurrentRow }}>
       <FixedHeader />
 
-      <Main>
-        <div className="mx-auto w-full max-w-[108rem] px-4">
-          <div className='mb-2 flex items-center justify-between flex-wrap gap-x-4 gap-y-2'>
-            <div>
-              <h2 className='text-2xl font-bold tracking-tight'>{t('accounts.title')}</h2>
-              <p className='text-muted-foreground'>
-                {t('accounts.description')}
-              </p>
-            </div>
-            {require_any_permission(['system:root', 'account:create']) && <div className="flex gap-2">
-              <Button onClick={() => navigate({ to: '/accounts/new' })}>
-                <Mail className="mr-1.5 h-4 w-4" />
-                {t('accounts.imapAccount')}
-              </Button>
-              <Button variant="outline" onClick={() => setOpen("add-nosync")}>
-                <Database className="mr-1.5 h-4 w-4" />
-                {t('accounts.noSyncAccount')}
-              </Button>
-            </div>}
-          </div>
+      <Main fixed>
+        <div className="flex h-full min-h-0 flex-col">
+          <PageHeader
+            className='mb-4 shrink-0'
+            title={t('accounts.title')}
+            description={t('accounts.description')}
+            actions={require_any_permission(['system:root', 'account:create']) && (
+              <div className="flex gap-2">
+                <Button onClick={() => navigate({ to: '/accounts/new' })}>
+                  <Mail className="mr-1.5 h-4 w-4" />
+                  {t('accounts.imapAccount')}
+                </Button>
+                <Button variant="outline" onClick={() => setOpen("add-nosync")}>
+                  <Database className="mr-1.5 h-4 w-4" />
+                  {t('accounts.noSyncAccount')}
+                </Button>
+              </div>
+            )}
+          />
 
-          <div className='flex-1 overflow-auto py-1 flex-row lg:space-x-12 space-y-0'>
+          <div className='flex min-h-0 w-full flex-1 flex-col py-1'>
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : hasAccounts ? (
               <AccountTable data={accountList.items} columns={columns} />
             ) : (
-              <div className="flex h-[450px] shrink-0 items-center justify-center rounded-md border border-dashed">
-                <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-                  <img
-                    src={Logo}
-                    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                    alt="mailboxd icon"
-                  />
-                  <h3 className="mt-4 text-lg font-semibold">{t('accounts.noAccountConfigurations')}</h3>
-                  <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                    {t('accounts.noAccountConfigurationsDesc')}
-                  </p>
-                  <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
-                    <Button variant="default" className="w-64" onClick={() => navigate({ to: '/accounts/new' })}>
-                      <Mail className="mr-1.5 h-4 w-4" />
-                      {t('accounts.imapAccount')}
-                    </Button>
-                    <Button variant="outline" className="w-64" onClick={() => setOpen('add-nosync')}>
-                      <Database className="mr-1.5 h-4 w-4" />
-                      {t('accounts.noSyncAccount')}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <EmptyState
+                title={t('accounts.noAccountConfigurations')}
+                description={t('accounts.noAccountConfigurationsDesc')}
+              />
             )}
           </div>
         </div>

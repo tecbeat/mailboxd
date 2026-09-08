@@ -173,6 +173,7 @@ export function MailBulkActions({ children }: MailBulkActionsProps) {
                                 size="sm"
                                 onClick={handleRestore}
                                 className="gap-1"
+                                aria-label={t('restore_message.restore_to_imap', 'Restore Mail')}
                             >
                                 <Upload className="h-3.5 w-3.5" />
                             </Button>
@@ -189,6 +190,7 @@ export function MailBulkActions({ children }: MailBulkActionsProps) {
                                 size="sm"
                                 onClick={handleUpdateTags}
                                 className="gap-1"
+                                aria-label={t('search.bulkActions.manageTags')}
                             >
                                 <TagIcon className="h-3.5 w-3.5" />
                             </Button>
@@ -205,6 +207,7 @@ export function MailBulkActions({ children }: MailBulkActionsProps) {
                                 size="sm"
                                 onClick={handleDelete}
                                 className="gap-1"
+                                aria-label={t('search.bulkActions.deleteDesc')}
                             >
                                 <Trash2 className="h-3.5 w-3.5" />
                             </Button>

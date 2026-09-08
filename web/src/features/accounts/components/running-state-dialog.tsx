@@ -29,7 +29,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { useQuery } from '@tanstack/react-query'
 import { download_state, AccountModel, FolderProgress } from '@/api/account/api'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/utils'
+import { statusBadgeClass, triggerBadgeClass, type StatusKind, type TriggerKind } from '@/lib/status-colors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -39,7 +40,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Clock, LoaderCircle as Loader2, Activity, TriangleAlert as AlertTriangle, Info } from 'lucide-react'
+import { Clock, Activity, TriangleAlert as AlertTriangle, Info } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import LongText from '@/components/long-text'
 import { useTranslation } from 'react-i18next'
 
@@ -50,25 +52,26 @@ interface Props {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    Running: 'bg-blue-500/10 text-blue-600',
-    Downloading: 'bg-blue-500/10 text-blue-600',
-    Success: 'bg-green-500/10 text-green-600',
-    Failed: 'bg-red-500/10 text-red-600',
-    Cancelled: 'bg-muted text-muted-foreground',
-    Pending: 'bg-amber-500/10 text-amber-600',
+  const kindMap: Record<string, StatusKind> = {
+    Running: 'info',
+    Downloading: 'info',
+    Success: 'success',
+    Failed: 'error',
+    Cancelled: 'neutral',
+    Pending: 'warning',
   }
+  const kind = kindMap[status]
   return (
-    <Badge variant="outline" className={`${map[status] || ''} border-none font-medium text-[11px] px-1.5 h-5 shrink-0`}>
+    <Badge variant="outline" className={`${kind ? statusBadgeClass[kind] : ''} font-medium text-[11px] px-1.5 h-5 shrink-0`}>
       {status}
     </Badge>
   )
 }
 
 function TriggerBadge({ trigger }: { trigger: string }) {
-  const isScheduled = trigger === 'Scheduled'
+  const kind: TriggerKind = trigger === 'Scheduled' ? 'scheduled' : 'manual'
   return (
-    <Badge variant="secondary" className={`${isScheduled ? 'bg-purple-500/10 text-purple-600' : 'bg-orange-500/10 text-orange-600'} font-normal text-xs shrink-0 border-none`}>
+    <Badge variant="secondary" className={`${triggerBadgeClass[kind]} font-normal text-xs shrink-0 border-none`}>
       {trigger}
     </Badge>
   )
@@ -78,7 +81,7 @@ function FolderDetailItem({ f, t }: { f: FolderProgress, t: (key: string) => str
   const percentage = Math.min(Math.round((f.current / f.planned) * 100), 100) || 0;
 
   return (
-    <div className="border rounded-xl bg-card overflow-hidden mb-3 shadow-xs">
+    <div className="border rounded-xl bg-card text-card-foreground overflow-hidden mb-3 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center p-4 gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <LongText className="text-xs font-bold text-foreground tracking-tight">
@@ -167,7 +170,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
           <div className="flex-1 bg-background min-h-0 overflow-hidden relative">
             {isLoading ? (
               <div className="h-full flex flex-col items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
+                <Spinner className="text-primary mb-2" />
                 <p className="text-sm text-muted-foreground font-medium italic">{t('accounts.runningState.loading.fetching_account_state')}</p>
               </div>
             ) : (
@@ -183,18 +186,18 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                       ) : (
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
-                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-xs flex items-center justify-between sm:block">
+                            <div className="p-3 sm:p-4 rounded-xl border bg-card text-card-foreground shadow-sm flex items-center justify-between sm:block">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('accounts.runningState.session.status')}</p>
                               <StatusBadge status={session.status} />
                             </div>
-                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-xs flex items-center justify-between sm:block">
+                            <div className="p-3 sm:p-4 rounded-xl border bg-card text-card-foreground shadow-sm flex items-center justify-between sm:block">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('accounts.runningState.session.trigger')}</p>
                               <TriggerBadge trigger={session.trigger} />
                             </div>
-                            <div className="p-3 sm:p-4 rounded-xl border bg-card shadow-xs flex items-center justify-between sm:block">
+                            <div className="p-3 sm:p-4 rounded-xl border bg-card text-card-foreground shadow-sm flex items-center justify-between sm:block">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('accounts.runningState.session.started_at')}</p>
                               <div className="text-sm font-bold font-mono text-foreground">
-                                {format(new Date(session.start_time), 'yyyy-MM-dd HH:mm:ss')}
+                                {formatDateTime(session.start_time)}
                               </div>
                             </div>
                           </div>
@@ -254,7 +257,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                                                   </Badge>
                                                 )}
                                                 <span className="text-[10px] font-mono text-destructive font-bold break-all">
-                                                  {format(new Date(err.at), 'yyyy-MM-dd HH:mm:ss')}
+                                                  {formatDateTime(err.at)}
                                                 </span>
                                               </div>
                                               <AlertTriangle
@@ -286,12 +289,12 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                       ) : (
                         <Accordion type="single" collapsible className="space-y-3">
                           {[...history].reverse().map((h, i) => (
-                            <AccordionItem key={i} value={`history-${i}`} className="border rounded-xl bg-card shadow-xs px-4 border-border overflow-hidden">
+                            <AccordionItem key={i} value={`history-${i}`} className="border rounded-xl bg-card text-card-foreground shadow-sm px-4 border-border overflow-hidden">
                               <AccordionTrigger className="hover:no-underline py-4">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full pr-4 gap-2">
                                   <div className="flex items-center gap-3">
                                     <div className="text-xs sm:text-xs font-bold font-mono text-foreground">
-                                      {format(new Date(h.start_time), 'yyyy-MM-dd HH:mm:ss')}
+                                      {formatDateTime(h.start_time)}
                                     </div>
                                     <StatusBadge status={h.status} />
                                     <div className="xs:block"><TriggerBadge trigger={h.trigger} /></div>
@@ -357,7 +360,7 @@ export function RunningStateDialog({ currentRow, open, onOpenChange }: Props) {
                                                         </Badge>
                                                       )}
                                                       <span className="text-[10px] font-mono text-destructive font-bold break-all">
-                                                        {format(new Date(err.at), 'yyyy-MM-dd HH:mm:ss')}
+                                                        {formatDateTime(err.at)}
                                                       </span>
                                                     </div>
                                                     <AlertTriangle

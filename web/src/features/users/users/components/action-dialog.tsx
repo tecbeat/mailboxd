@@ -19,10 +19,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useState, useMemo } from 'react'
-import { useFieldArray, useForm, type Resolver } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2, Shield, Settings2, User as UserIcon, Plus, Trash2, Mail, Check, ChevronsUpDown } from 'lucide-react'
+import { LoaderCircle, Shield, Settings2, User as UserIcon, Plus, Trash2, Mail, Check, ChevronsUpDown } from 'lucide-react'
 import { AxiosError } from 'axios'
 
 import { Button } from '@/components/ui/button'
@@ -182,12 +182,13 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
     name: "account_access_entries"
   });
 
-  const selectedRoleIds = form.watch("global_roles") || [];
+  const globalRoleIds = useWatch({ control: form.control, name: "global_roles" });
 
   const isSystemAdmin = useMemo(() => {
+    const selectedRoleIds = globalRoleIds ?? []
     if (!selectedRoleIds.length) return false
     return global.isAdmin(selectedRoleIds)
-  }, [global, selectedRoleIds])
+  }, [global, globalRoleIds])
 
   const createMutation = useMutation({ mutationFn: create_user, onSuccess: handleSuccess, onError: handleError })
   const updateMutation = useMutation({ mutationFn: (data: Record<string, unknown>) => update_user(currentRow!.id, data), onSuccess: handleSuccess, onError: handleError })
@@ -233,7 +234,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl h-[80vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent size="full" className="h-[80vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-0 shrink-0">
           <div className="flex items-center gap-4 mb-4">
             {isEdit && currentRow?.avatar ? (
@@ -377,7 +378,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
                     <ScrollArea className="flex-1 -mx-2 px-2">
                       <div className="space-y-3 pb-4">
                         {fields.map((item, index) => (
-                          <div key={item.id} className="flex items-start gap-3 p-3 border rounded-xl bg-card shadow-xs hover:border-primary/30 transition-colors">
+                          <div key={item.id} className="flex items-start gap-3 p-3 border rounded-xl bg-card text-card-foreground shadow-sm hover:border-primary/30 transition-colors">
                             <FormField control={form.control} name={`account_access_entries.${index}.accountId`} render={({ field }) => (
                               <FormItem className="flex-1">
                                 <AccountSearchSelect
@@ -462,9 +463,9 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
           </form>
         </Form>
         <DialogFooter className="p-4 px-6 border-t shrink-0 bg-muted/5">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
           <Button type="submit" form="user-form" disabled={isSaving} className="min-w-[120px]">
-            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {isSaving ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isEdit ? t('users.actions.buttons.update') : t('users.actions.buttons.create')}
           </Button>
         </DialogFooter>

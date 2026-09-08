@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -27,11 +27,11 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { FixedHeader } from "@/components/layout/fixed-header";
 import { Main } from "@/components/layout/main";
+import { PageHeader } from "@/components/layout/page-header";
 import { TabGeneral } from "./components/tab-general";
 import { TabServer } from "./components/tab-server";
 import { TabDownload } from "./components/tab-download";
@@ -86,8 +86,6 @@ interface AccountSettingsPageProps {
 
 export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
   const { t } = useTranslation();
-  //const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: accountList } = useQuery({
@@ -100,15 +98,13 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
   const accountSchema = getAccountSchema(true, t);
   const form = useForm<AccountFormValues>({
     mode: "onChange",
-    defaultValues: account ? mapAccountToFormValues(account) : undefined,
+    // Reactively sync the form when the account loads or changes, keeping any
+    // edits the user has already made so a background refetch does not clobber
+    // them. This replaces a manual reset effect.
+    values: account ? mapAccountToFormValues(account) : undefined,
+    resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(accountSchema),
   });
-
-  useEffect(() => {
-    if (account) {
-      form.reset(mapAccountToFormValues(account));
-    }
-  }, [account?.id]);
 
   const updateMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => update_account(accountId, data),
@@ -182,7 +178,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
       <>
         <FixedHeader />
         <Main>
-          <div className="mx-auto w-full max-w-[46rem] px-4 py-12 text-center text-muted-foreground">
+          <div className="text-center text-muted-foreground">
             {t('accounts.settings.loading')}
           </div>
         </Main>
@@ -194,8 +190,8 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
     <>
       <FixedHeader />
       <Main>
-        <div className="mx-auto w-full max-w-[46rem] px-4 py-6">
-          <div className="mb-6 space-y-3">
+        <div>
+          <div className="mb-6">
             <Link
               to="/accounts"
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -203,19 +199,15 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
               <ArrowLeft className="h-4 w-4" />
               {t('accounts.settings.backToAccounts')}
             </Link>
-            <Breadcrumb items={[
-              { label: t('accounts.title'), to: '/accounts' },
-              { label: account.email },
-              { label: t('accounts.settings.settings') },
-            ]} />
           </div>
 
-          <div className="rounded-lg border shadow-xs bg-card p-6 md:p-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold">{account.email}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{t('accounts.updateTheEmailAccountHere')}</p>
-            </div>
+          <PageHeader
+            className="mb-6"
+            title={account.email}
+            description={t('accounts.updateTheEmailAccountHere')}
+          />
 
+          <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 md:p-8">
             <FormProvider {...form}>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
