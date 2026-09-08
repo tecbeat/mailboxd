@@ -91,7 +91,7 @@ migration_tests:
       - web/.pnpm-store
   before_script:
     - corepack enable
-    - corepack prepare pnpm@11.24.0 --activate
+    - corepack prepare pnpm@12.3.4 --activate
     - cd web
     - pnpm install --frozen-lockfile --config.strict-dep-builds=false --store-dir=.pnpm-store
   tags:

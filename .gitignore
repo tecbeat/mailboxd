@@ -2,10 +2,6 @@
 /target
 crates/*/target
 
-# Node / frontend
-node_modules
-web/dist
-
 # IDE
 .vscode
 .idea

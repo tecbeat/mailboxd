@@ -23,19 +23,19 @@ import { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
+import { PageHeader } from '@/components/layout/page-header'
 import { ActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { TokenDeleteDialog } from './components/delete-dialog'
 import { Oauth2Table } from './components/oauth2-table'
-import OAuth2Provider, {
-  type OAuth2DialogType,
-} from './context'
+import OAuth2Provider from './context/provider'
+import { type OAuth2DialogType } from './context'
 import { Plus } from 'lucide-react'
-import Logo from '@/assets/logo.svg'
 import { OAuth2Entity } from './data/schema'
 import { useQuery } from '@tanstack/react-query'
 import { get_oauth2_list } from '@/api/oauth2/api'
 import { TableSkeleton } from '@/components/table-skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 import { AuthorizeDialog } from './components/authorize-dialog'
 import { FixedHeader } from '@/components/layout/fixed-header'
 import { useTranslation } from 'react-i18next'
@@ -57,42 +57,29 @@ export default function OAuth2() {
   return (
     <OAuth2Provider value={{ open, setOpen, currentRow, setCurrentRow }}>
       <FixedHeader />
-      <Main>
-        <div className="mx-auto max-w-[88rem] px-4">
-          <div className="mb-2 flex items-start flex-wrap gap-x-4 gap-y-2">
-            <div className="flex-1 min-w-[300px]">
-              <h2 className="text-2xl font-bold tracking-tight">{t('oauth2.title')}</h2>
-              <p className="text-muted-foreground">
-                {t('oauth2.description')}
-              </p>
-            </div>
-            <div className="flex gap-2 ml-auto">
-              <Button className="space-x-1" disabled={!require_any_permission(['system:root'])} onClick={() => setOpen("add")}>
+      <Main fixed>
+        <div className="flex h-full min-h-0 flex-col">
+          <PageHeader
+            className="mb-4 shrink-0"
+            title={t('oauth2.title')}
+            description={t('oauth2.description')}
+            actions={
+              <Button disabled={!require_any_permission(['system:root'])} onClick={() => setOpen("add")}>
+                <Plus className="mr-2 h-4 w-4" />
                 <span>{t('common.add')}</span>
-                <Plus size={18} />
               </Button>
-            </div>
-          </div>
-          <div className="flex-1 overflow-auto py-1 flex-row lg:space-x-12 space-y-0">
+            }
+          />
+          <div className="flex min-h-0 w-full flex-1 flex-col py-1">
             {isLoading ? (
               <TableSkeleton columns={columns.length} rows={10} />
             ) : oauth2List?.items.length ? (
               <Oauth2Table data={oauth2List.items} columns={columns} />
             ) : (
-              <div className="flex h-[450px] shrink-0 items-center justify-center rounded-md border border-dashed">
-                <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-                  <img
-                    src={Logo}
-                    className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                    alt="mailboxd icon"
-                  />
-                  <h3 className="mt-4 text-lg font-semibold">{t('oauth2.noConfigurations')}</h3>
-                  <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                    {t('oauth2.noConfigurationsDesc')}
-                  </p>
-                  <Button disabled={!require_any_permission(['system:root'])} onClick={() => setOpen("add")}>{t('oauth2.addConfiguration')}</Button>
-                </div>
-              </div>
+              <EmptyState
+                title={t('oauth2.noConfigurations')}
+                description={t('oauth2.noConfigurationsDesc')}
+              />
             )}
           </div>
         </div>

@@ -24,7 +24,7 @@ import { type DataTableFeatures } from '@/lib/data-table'
 import LongText from '@/components/long-text'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/utils'
 import { OAuth2Action } from './oauth2-action'
 import { RunningStateCellAction } from './running-state-action'
 import { EnableAction } from './enable-action'
@@ -154,7 +154,7 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
       ),
       cell: ({ row }) => {
         const created_at = row.original.created_at;
-        const date = format(new Date(created_at), 'yyyy-MM-dd HH:mm:ss');
+        const date = formatDateTime(created_at);
         return <LongText className='max-w-36'>{date}</LongText>;
       },
       meta: { className: 'w-36' },
@@ -167,7 +167,7 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
       ),
       cell: ({ row }) => {
         const updated_at = row.original.updated_at;
-        const date = format(new Date(updated_at), 'yyyy-MM-dd HH:mm:ss');
+        const date = formatDateTime(updated_at);
         return <LongText className='max-w-36'>{date}</LongText>;
       },
       meta: { className: 'w-36' },

@@ -21,6 +21,7 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import EmailSearch from '@/features/search'
+import { getPersistedPageSize } from '@/lib/data-table'
 import { z } from 'zod'
 
 const searchSchema = z.object({
@@ -38,7 +39,7 @@ export const Route = createFileRoute('/_authenticated/search/')({
     return {
       ...result,
       page: result.page ?? 1,
-      pageSize: result.pageSize ?? (Number(localStorage.getItem('mailboxd_search_page_size')) || 30),
+      pageSize: result.pageSize ?? getPersistedPageSize('search', 30),
     }
   }
 })

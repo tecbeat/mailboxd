@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { MoreHorizontal as DotsHorizontalIcon, Trash2 as IconTrash } from 'lucide-react'
+import { MoreHorizontal, Trash2 } from 'lucide-react'
 import { Row } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'
@@ -49,7 +49,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             variant='ghost'
             className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
           >
-            <DotsHorizontalIcon className='h-4 w-4' />
+            <MoreHorizontal className='h-4 w-4' />
             <span className='sr-only'>Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -59,11 +59,11 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               setCurrentRow(row.original)
               setOpen('delete')
             }}
-            className='!text-red-500'
+            className='text-destructive focus:text-destructive'
           >
             {t('table.delete')}
             <DropdownMenuShortcut>
-              <IconTrash size={16} />
+              <Trash2 />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>

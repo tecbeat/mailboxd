@@ -23,7 +23,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ToastAction } from '@/components/ui/toast';
 import { AxiosError } from 'axios';
@@ -34,7 +34,7 @@ import { AccountModel, create_account, update_account } from '@/api/account/api'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { LoaderCircle as Loader2 } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 
@@ -86,7 +86,6 @@ const mapCurrentRowToFormValues = (currentRow: AccountModel): NoSyncAccount => {
 export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
   const { t } = useTranslation()
   const isEdit = !!currentRow;
-  const { toast } = useToast();
 
   const form = useForm<NoSyncAccount>({
     mode: "onChange",
@@ -245,7 +244,7 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
             {isEdit ? (
               updateMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                   {t('oauth2.saving')}
                 </>
               ) : (
@@ -254,7 +253,7 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
             ) : (
               createMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                   {t('oauth2.creating')}
                 </>
               ) : (

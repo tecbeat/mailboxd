@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { FilterLabel } from '@/features/mail-list/filter-bar'
+import { filterSegment } from '@/features/mail-list/filter-bar-styles'
 
 type DataTableViewOptionsProps<TData extends RowData> = {
   table: Table<MailTableFeatures, TData>
@@ -49,12 +51,12 @@ export function DataTableViewOptions<TData extends RowData>({
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant='outline'
-          size='sm'
-          className='ms-auto hidden h-6 lg:flex rounded-none'
+          variant='ghost'
+          className={filterSegment(false)}
+          title={t('search_view.button_label')}
         >
-          <MixerHorizontalIcon className='size-4' />
-          {t('search_view.button_label')}
+          <MixerHorizontalIcon className='h-4 w-4' />
+          <FilterLabel>{t('search_view.button_label')}</FilterLabel>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-[150px]'>

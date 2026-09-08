@@ -18,10 +18,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import { useTranslation } from 'react-i18next'
+import { PageHeader } from '@/components/layout/page-header'
 import { AppearanceForm } from './appearance-form'
 
 export function SettingsAppearance() {
+    const { t } = useTranslation()
     return (
-        <AppearanceForm />
+        <div className="w-full">
+            <PageHeader
+                className="mb-4"
+                title={t('settings.appearance.title')}
+                description={t('settings.appearance.pageDescription', 'Customize the language and theme of the Web UI.')}
+            />
+            <AppearanceForm />
+        </div>
     )
 }

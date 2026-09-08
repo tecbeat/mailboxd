@@ -1506,8 +1506,6 @@
     "hide": "隱藏",
     "loading": "載入中...",
     "noResults": "查無結果",
-    "of": "頁，共",
-    "page": "第",
     "pagination": {
       "first": "跳轉到第一頁",
       "fixed_page_size": "每頁 {{size}} 行。",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "每頁行數",
       "selected": "已選擇 {{selected}} / {{total}} 行。"
     },
-    "results": "筆結果",
-    "rowsPerPage": "每頁行數",
     "showing": "顯示",
     "to": "至"
   },

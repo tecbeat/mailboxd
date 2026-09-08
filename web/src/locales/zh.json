@@ -1516,8 +1516,6 @@
     "hide": "隐藏",
     "loading": "加载中...",
     "noResults": "未找到结果",
-    "of": "页，共",
-    "page": "第",
     "pagination": {
       "first": "跳转到第一页",
       "fixed_page_size": "每页 {{size}} 行。",
@@ -1528,8 +1526,6 @@
       "rows_per_page": "每页行数",
       "selected": "已选择 {{selected}} / {{total}} 行。"
     },
-    "results": "条结果",
-    "rowsPerPage": "每页行数",
     "showing": "显示",
     "to": "到"
   },

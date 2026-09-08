@@ -19,14 +19,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { LoaderCircle as Loader2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { get_user_tokens } from '@/api/users/api'
-import { Skeleton } from '@/components/ui/skeleton'
-import Logo from '@/assets/logo.svg'
+import { Spinner } from '@/components/ui/spinner'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { EmptyState } from '@/components/ui/empty-state'
 import { TokenCardList, TokensActionDialog } from '@/features/api-tokens'
 import { useTranslation } from 'react-i18next'
 
@@ -44,58 +45,46 @@ export function APITokens() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-6 w-6 animate-spin" />
+        <Spinner />
       </div>
     )
   }
 
   if (error || !user) {
     return (
-      <div className="p-6 text-red-600">
+      <div className="p-6 text-destructive">
         {t('apiTokens.page.loadError')}
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-3xl px-4 sm:px-6 lg:px-8">
+    <div className="w-full">
+      <PageHeader
+        className="mb-4"
+        title={t('apiTokens.page.title', 'API Tokens')}
+        description={t('apiTokens.page.pageDescription', 'Personal API tokens for programmatic access on your behalf.')}
+        actions={
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            <span>{t('apiTokens.page.addBtn')}</span>
+          </Button>
+        }
+      />
       {tokensLoading ? (
-        <div className="flex flex-col gap-4 mt-4">
-          <Skeleton className="h-16 w-full rounded-lg" />
-          <Skeleton className="h-16 w-full rounded-lg" />
-          <Skeleton className="h-16 w-full rounded-lg" />
+        <div className="flex justify-center items-center h-64">
+          <Spinner />
         </div>
       ) : tokens.length === 0 ? (
-        <div className="flex h-[450px] items-center justify-center rounded-md border border-dashed mt-4">
-          <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center px-4">
-            <img
-              src={Logo}
-              className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-              alt="mailboxd icon"
-            />
-            <h3 className="mt-4 text-lg font-semibold">{t('apiTokens.page.emptyTitle')}</h3>
-            <p className="mb-4 mt-2 text-sm text-muted-foreground">
-              {t('apiTokens.page.emptyDescription')}
-            </p>
-            <Button onClick={() => setAddOpen(true)}>
-              <span>{t('apiTokens.page.addBtn')}</span>
-              <Plus size={18} className="ml-2" />
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          className="mt-4"
+          title={t('apiTokens.page.emptyTitle')}
+          description={t('apiTokens.page.emptyDescription')}
+        />
       ) : (
-        <>
-          <div className="flex justify-end mb-4">
-            <Button onClick={() => setAddOpen(true)}>
-              <span>{t('apiTokens.page.addBtn')}</span>
-              <Plus size={18} className="ml-2" />
-            </Button>
-          </div>
-
-          <ScrollArea className="h-[calc(100vh-16rem)] w-full pr-4 -mr-4 py-1">
-            <TokenCardList tokens={tokens} userId={user.id} />
-          </ScrollArea>
-        </>
+        <ScrollArea className="h-[calc(100vh-16rem)] w-full pr-4 -mr-4 py-1">
+          <TokenCardList tokens={tokens} userId={user.id} />
+        </ScrollArea>
       )}
 
       <TokensActionDialog

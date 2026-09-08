@@ -1506,8 +1506,6 @@
     "hide": "Ocultar",
     "loading": "Cargando...",
     "noResults": "No se encontraron resultados",
-    "of": "de",
-    "page": "Página",
     "pagination": {
       "first": "Primera página",
       "fixed_page_size": "{{size}} filas por página.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "Filas por página",
       "selected": "{{selected}} / {{total}} fila(s) seleccionada(s)."
     },
-    "results": "resultados",
-    "rowsPerPage": "Filas por página",
     "showing": "Mostrando",
     "to": "a"
   },

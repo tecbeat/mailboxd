@@ -25,7 +25,7 @@ import { useQuery } from '@tanstack/react-query'
 import { TokenCardList, TokensActionDialog } from '@/features/api-tokens'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import Logo from '@/assets/logo.svg'
+import { EmptyState } from '@/components/ui/empty-state'
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -67,27 +67,21 @@ export function UserApiTokensDialog({ currentRow, open, onOpenChange }: Props) {
             <Skeleton className="h-16 w-full rounded-lg" />
           </div>
         ) : tokens.length === 0 ? (
-          <div className="flex h-[450px] shrink-0 items-center justify-center rounded-md border border-dashed mt-4">
-            <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-              <img
-                src={Logo}
-                className="max-h-[100px] w-auto opacity-20 saturate-0 transition-all duration-300 hover:opacity-100 hover:saturate-100 object-contain"
-                alt="mailboxd icon"
-              />
-              <h3 className="mt-4 text-lg font-semibold">{t('users.tokens_action.empty.title')}</h3>
-              <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                {t('users.tokens_action.empty.description')}
-              </p>
+          <EmptyState
+            className="mt-4"
+            title={t('users.tokens_action.empty.title')}
+            description={t('users.tokens_action.empty.description')}
+            action={
               <Button onClick={() => setAddOpen(true)}>
-                <span>{t('users.tokens_action.buttons.add')}</span> <Plus size={18} />
+                <Plus className="mr-2 h-4 w-4" /><span>{t('users.tokens_action.buttons.add')}</span>
               </Button>
-            </div>
-          </div>
+            }
+          />
         ) : (
           <>
             <div className="flex justify-end mb-4">
               <Button onClick={() => setAddOpen(true)}>
-                <span>{t('users.tokens_action.buttons.add')}</span> <Plus size={18} />
+                <Plus className="mr-2 h-4 w-4" /><span>{t('users.tokens_action.buttons.add')}</span>
               </Button>
             </div>
             <ScrollArea className='h-[32rem] w-full pr-4 -mr-4 py-1'>

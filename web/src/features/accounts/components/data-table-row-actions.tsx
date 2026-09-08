@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAccountContext } from '../context'
-import { Mailbox, MessageSquareMore, Settings, MoreHorizontal as DotsHorizontalIcon, Pencil as IconEdit, Play as IconPlayerPlay, Square as IconPlayerStop, ShieldCheck as IconShieldLock, Trash2 as IconTrash } from 'lucide-react'
+import { Mailbox, MessageSquareMore, Settings, MoreHorizontal, Pencil, Play, Square, ShieldCheck, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { AccountModel, cancel_account_download, start_account_download } from '@/api/account/api'
@@ -102,7 +102,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             variant='ghost'
             className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
           >
-            <DotsHorizontalIcon className='h-4 w-4' />
+            <MoreHorizontal className='h-4 w-4' />
             <span className='sr-only'>{t('accounts.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
@@ -119,7 +119,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('accounts.edit')}
             <DropdownMenuShortcut>
-              <IconEdit size={16} />
+              <Pencil />
             </DropdownMenuShortcut>
           </DropdownMenuItem>}
           {account_type === "IMAP" && hasPermission && <DropdownMenuItem
@@ -129,7 +129,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('accounts.settings.settings')}
             <DropdownMenuShortcut>
-              <Settings size={16} />
+              <Settings />
             </DropdownMenuShortcut>
           </DropdownMenuItem>}
           {account_type === "IMAP" && hasPermission && <DropdownMenuItem
@@ -140,7 +140,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('accounts.selectMailboxes')}
             <DropdownMenuShortcut>
-              <Mailbox size={16} />
+              <Mailbox />
             </DropdownMenuShortcut>
           </DropdownMenuItem>}
           {account_type === "IMAP" && hasReadPermission && <DropdownMenuItem
@@ -151,7 +151,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('accounts.detail')}
             <DropdownMenuShortcut>
-              <MessageSquareMore size={16} />
+              <MessageSquareMore />
             </DropdownMenuShortcut>
           </DropdownMenuItem>}
           {hasPermission && <DropdownMenuSeparator />}
@@ -163,7 +163,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             <span>{t('accounts.accessControl')}</span>
             <DropdownMenuShortcut>
-              <IconShieldLock size={16} />
+              <ShieldCheck />
             </DropdownMenuShortcut>
           </DropdownMenuItem>}
           {hasPermission && <DropdownMenuSeparator />}
@@ -172,7 +172,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             <DropdownMenuItem onClick={handleStartDownload}>
               {t('accounts.startDownload')}
               <DropdownMenuShortcut>
-                <IconPlayerPlay size={16} />
+                <Play />
               </DropdownMenuShortcut>
             </DropdownMenuItem>
           )}
@@ -182,7 +182,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             <DropdownMenuItem onClick={handleCancelDownload}>
               {t('accounts.cancelDownload')}
               <DropdownMenuShortcut>
-                <IconPlayerStop size={16} />
+                <Square />
               </DropdownMenuShortcut>
             </DropdownMenuItem>
           )}
@@ -193,11 +193,11 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               setCurrentRow(row.original)
               setOpen('delete')
             }}
-            className='!text-red-500'
+            className='text-destructive focus:text-destructive'
           >
             {t('accounts.delete')}
             <DropdownMenuShortcut>
-              <IconTrash size={16} />
+              <Trash2 />
             </DropdownMenuShortcut>
           </DropdownMenuItem>}
         </DropdownMenuContent>

@@ -20,12 +20,16 @@
 
 
 import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
 import { FixedHeader } from '@/components/layout/fixed-header';
 import { Main } from '@/components/layout/main';
-import { AttachmentListPagination } from '@/components/pagination';
+import { PageHeader } from '@/components/layout/page-header';
+import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import React from 'react';
-import AttachmentProvider, { AttachmentDialogType, useAttachmentContext } from './context';
-import { MailListConfigProvider, type MailListConfig } from '@/features/mail-list/config';
+import AttachmentProvider from './context/provider';
+import { AttachmentDialogType, useAttachmentContext } from './context';
+import { MailListConfigProvider } from '@/features/mail-list/config-provider';
+import { type MailListConfig } from '@/features/mail-list/config';
 import { useEnvelope } from '@/hooks/use-envelope';
 import useDialogState from '@/hooks/use-dialog-state';
 import { useTranslation } from 'react-i18next';
@@ -88,7 +92,7 @@ export default function AttachmentSearch() {
   return (
     <>
       <FixedHeader />
-      <Main>
+      <Main fixed>
         <AttachmentProvider
           value={{
             open,
@@ -112,14 +116,19 @@ export default function AttachmentSearch() {
           }}
         >
           <MailListConfigProvider config={ATTACHMENT_LIST_CONFIG}>
-          <div className="mx-auto w-full px-4">
-            <div className="flex gap-6">
-              <div className="flex-1 min-w-0 space-y-4">
+          <div className="flex h-full min-h-0 flex-col">
+            <PageHeader
+              className="mb-4 shrink-0"
+              title={t('attachment.title', 'Attachments')}
+              description={t('attachment.description', 'Search and browse archived email attachments.')}
+            />
+            <div className="flex min-h-0 flex-1 gap-6">
+              <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4">
                 {isLoading && (
-                  <Card>
+                  <Card className="shrink-0">
                     <CardContent className="py-12">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
+                        <Spinner />
                         <p className="text-sm">{t('search.searching')}</p>
                       </div>
                     </CardContent>
@@ -132,14 +141,21 @@ export default function AttachmentSearch() {
                   setSortBy={setSortBy}
                   setSortOrder={setSortOrder}
                 />
-                {total > 0 && <AttachmentListPagination
-                  totalItems={total}
-                  hasNextPage={() => page < totalPages}
+                {total > 0 && <div className="shrink-0">
+                  <DataTablePagination
+                  storageKey='attachment'
                   pageIndex={page - 1}
+                  pageCount={Math.max(1, Math.ceil(total / pageSize))}
                   pageSize={pageSize}
-                  setPageIndex={(index) => setPage(index + 1)}
-                  setPageSize={handleSetPageSize}
-                />}
+                  canPreviousPage={page > 1}
+                  canNextPage={page < totalPages}
+                  onFirst={() => setPage(1)}
+                  onPrevious={() => setPage(page - 1)}
+                  onNext={() => setPage(page + 1)}
+                  onLast={() => setPage(totalPages)}
+                  onPageSizeChange={handleSetPageSize}
+                />
+                </div>}
               </div>
             </div>
           </div>

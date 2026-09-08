@@ -18,7 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useAttachmentContext } from './context';
-import { MailDisplayDrawer } from '@/features/mail-list/mail-display-dialog';
+import { MailDisplayDialog } from '@/features/mail-list/mail-display-dialog';
 import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
 import { RestoreMessageDialog } from '@/features/mail-list/restore-message-dialog';
 import { NestedEmailDialog } from '@/features/mail-list/nested-email-dialog';
@@ -34,7 +34,7 @@ export function AttachmentDialogs() {
 
   return (
     <>
-      <MailDisplayDrawer
+      <MailDisplayDialog
         key="attachment-mail-display"
         open={open === 'display'}
         onOpenChange={() => setOpen('display')}

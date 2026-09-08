@@ -27,7 +27,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useAttachmentMetadata } from "@/hooks/use-attachment-metadata"
 import { MetadataSelectorField } from "@/features/mail-list/attachment-metadata-selector"
 import { MoreFiltersShell } from "@/features/mail-list/more-filters-shell"
-import { SIZES, SizePresetSelect, getPresetFromSize } from "@/features/mail-list/size-presets"
+import { SizePresetSelect } from "@/features/mail-list/size-presets"
+import { SIZES, getPresetFromSize } from "@/features/mail-list/sizes"
 
 export function MoreFiltersPopover() {
     const { t } = useTranslation();

@@ -211,11 +211,12 @@ export default function AttachmentPreview({
     }
   }
 
+  const { mutate: runPreview } = previewMutation;
   useEffect(() => {
     if (open) {
-      previewMutation.mutate();
+      runPreview();
     }
-  }, [open, resolved.contentHash]);
+  }, [open, resolved.contentHash, runPreview]);
 
   useEffect(() => {
     return () => {

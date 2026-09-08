@@ -17,30 +17,35 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import React from 'react'
 import { cn } from '@/lib/utils'
 
 interface MainProps extends React.HTMLAttributes<HTMLElement> {
-  fixed?: boolean;
-  higher?: boolean;
-  ref?: React.Ref<HTMLElement>;
+  fixed?: boolean
+  higher?: boolean
+  ref?: React.Ref<HTMLElement>
 }
 
-export const Main = ({ fixed, higher, ...props }: MainProps) => {
+export const Main = ({ fixed, higher, className, ...props }: MainProps) => {
   return (
     <main
       className={cn(
         'peer-[.header-fixed]/header',
-        higher ? 'mt-12' : 'mt-16', // Conditional class for 'higher'
+        higher ? 'mt-12' : 'mt-16',
         'px-4 py-6',
-        fixed && 'fixed-main flex flex-col flex-grow overflow-hidden'
+        // Both modes centre the content in a wide max-width column (the
+        // dashboard opts out with max-w-none). The cap is generous so wide
+        // tables breathe on large screens instead of scrolling horizontally
+        // inside a narrow column, while smaller screens still fill the width.
+        // `fixed` additionally becomes a bounded flex column so a page can host
+        // an internally-scrolling region.
+        'w-full max-w-[1600px] mx-auto',
+        fixed && 'fixed-main flex flex-col flex-grow overflow-hidden',
+        className
       )}
       {...props}
     />
-  );
-};
+  )
+}
 
-Main.displayName = 'Main';
-
+Main.displayName = 'Main'

@@ -69,7 +69,6 @@ export function useRoles() {
     }
 
     return {
-        ...query,
         roles,
         globalRoles,
         accountRoles,

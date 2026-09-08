@@ -1506,8 +1506,6 @@
     "hide": "非表示",
     "loading": "読み込み中...",
     "noResults": "結果が見つかりませんでした",
-    "of": "/",
-    "page": "ページ",
     "pagination": {
       "first": "最初のページへ",
       "fixed_page_size": "1ページあたり {{size}} 行。",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "ページあたりの行数",
       "selected": "{{selected}} / {{total}} 行を選択済み。"
     },
-    "results": "件",
-    "rowsPerPage": "1ページあたりの行数",
     "showing": "表示中",
     "to": "〜"
   },

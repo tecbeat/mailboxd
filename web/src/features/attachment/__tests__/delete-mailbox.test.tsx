@@ -24,9 +24,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
 import { server } from '@/test/server';
 
-import AttachmentProvider, { useAttachmentContext } from '../context';
+import AttachmentProvider from '../context/provider';
+import { useAttachmentContext } from '../context';
 import { AttachmentDialogs } from '../dialogs';
-import { MailListConfigProvider } from '@/features/mail-list/config';
+import { MailListConfigProvider } from '@/features/mail-list/config-provider';
 
 const BASE = 'http://localhost:15630';
 

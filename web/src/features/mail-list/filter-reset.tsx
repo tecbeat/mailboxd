@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button"
 import { useMailListConfig } from "@/features/mail-list/config"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next";
+import { FilterLabel, FilterCount } from "@/features/mail-list/filter-bar"
+import { filterSegment } from "@/features/mail-list/filter-bar-styles"
 
 export function FilterResetButton() {
     const { useListContext } = useMailListConfig();
@@ -42,19 +44,16 @@ export function FilterResetButton() {
     return (
         <Button
             variant="ghost"
-            size="sm"
             onClick={() => setFilter(q ? { q } : {})}
             className={cn(
-                "h-7 px-2 text-xs gap-1.5 font-medium rounded-md",
-                "text-foreground/70 hover:text-foreground hover:bg-accent transition-all duration-200"
+                filterSegment(false),
+                "text-muted-foreground hover:text-destructive"
             )}
             title={t('search_reset.tooltip')}
         >
-            <span>{t('search_reset.label')}</span>
-            <div className="flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                {activeFiltersCount}
-            </div>
             <X className="h-4 w-4" />
+            <FilterLabel>{t('search_reset.label')}</FilterLabel>
+            <FilterCount count={activeFiltersCount} />
         </Button>
     );
 }

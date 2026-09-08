@@ -24,14 +24,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle as Loader2 } from "lucide-react";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { FixedHeader } from "@/components/layout/fixed-header";
 import { Main } from "@/components/layout/main";
+import { PageHeader } from "@/components/layout/page-header";
 import { TabGeneral } from "./components/tab-general";
 import { TabServer } from "./components/tab-server";
 import { TabDownload } from "./components/tab-download";
@@ -75,7 +75,6 @@ function SectionHeader({ title, description }: { title: string; description?: st
 export function AccountNewPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [autoConfigLoading, setAutoConfigLoading] = useState(false);
 
@@ -179,8 +178,8 @@ export function AccountNewPage() {
     <>
       <FixedHeader />
       <Main>
-        <div className="mx-auto w-full max-w-[46rem] px-4 py-6">
-          <div className="mb-6 space-y-3">
+        <div>
+          <div className="mb-6">
             <Link
               to="/accounts"
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -188,18 +187,15 @@ export function AccountNewPage() {
               <ArrowLeft className="h-4 w-4" />
               {t('accounts.settings.backToAccounts')}
             </Link>
-            <Breadcrumb items={[
-              { label: t('accounts.title'), to: '/accounts' },
-              { label: t('accounts.settings.newAccount') },
-            ]} />
           </div>
 
-          <div className="rounded-lg border shadow-xs bg-card p-6 md:p-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold">{t('accounts.addAccount')}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{t('accounts.addNewEmailAccountHere')}</p>
-            </div>
+          <PageHeader
+            className="mb-6"
+            title={t('accounts.addAccount')}
+            description={t('accounts.addNewEmailAccountHere')}
+          />
 
+          <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 md:p-8">
             <FormProvider {...form}>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
@@ -226,7 +222,7 @@ export function AccountNewPage() {
                         disabled={autoConfigLoading}
                         onClick={handleAutoConfig}
                       >
-                        {autoConfigLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                        {autoConfigLoading && <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                         {autoConfigLoading ? t('accounts.autoConfiguring') : t('accounts.autoDiscover')}
                       </Button>
                     </div>

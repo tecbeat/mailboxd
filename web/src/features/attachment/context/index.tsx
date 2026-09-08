@@ -18,15 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import { attachmentContext } from './core'
 
-import { AttachmentModel } from '@/api/attachment/api'
-import { createMailListContext, MailListContextBase } from '@/features/mail-list/context'
+export type { AttachmentDialogType, AttachmentContextType } from './core'
 
-export type AttachmentDialogType = 'mailbox' | 'display' | 'delete' | 'filters' | 'tags' | 'edit-tags' | 'update-tags' | 'restore' | 'delete-mailbox' | 'nested-eml'
-
-export type AttachmentContextType = MailListContextBase<AttachmentModel, AttachmentDialogType>
-
-const { Provider, useMailListContext } = createMailListContext<AttachmentContextType>('useAttachmentContext')
-
-export default Provider
-export const useAttachmentContext = useMailListContext
+export const useAttachmentContext = attachmentContext.useMailListContext

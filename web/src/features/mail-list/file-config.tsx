@@ -18,41 +18,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import {
-  FileText,
-  FileImage,
-  Video as FileVideo,
-  FileArchive,
-  FileSpreadsheet,
-  FileCode,
-  File as FileIcon,
-  FileMusic as FileAudio,
-} from 'lucide-react';
+import { getFileTypeConfig } from '@/lib/file-type';
 
 export const getFileConfig = (mimeType: string) => {
-  const type = mimeType.toLowerCase();
-  if (type.includes('pdf')) {
-    return { icon: <FileText className="h-4 w-4" />, color: 'text-red-600 bg-red-50 border-red-100' };
-  }
-  if (type.includes('image/')) {
-    return { icon: <FileImage className="h-4 w-4" />, color: 'text-blue-600 bg-blue-50 border-blue-100' };
-  }
-  if (type.includes('audio/')) {
-    return { icon: <FileAudio className="h-4 w-4" />, color: 'text-purple-600 bg-purple-50 border-purple-100' };
-  }
-
-  if (type.includes('video/')) {
-    return { icon: <FileVideo className="h-4 w-4" />, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
-  }
-  if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
-    return { icon: <FileSpreadsheet className="h-4 w-4" />, color: 'text-green-600 bg-green-50 border-green-100' };
-  }
-  if (type.includes('zip') || type.includes('compressed') || type.includes('archive')) {
-    return { icon: <FileArchive className="h-4 w-4" />, color: 'text-orange-600 bg-orange-50 border-orange-100' };
-  }
-  if (type.includes('text/') || type.includes('json') || type.includes('javascript')) {
-    return { icon: <FileCode className="h-4 w-4" />, color: 'text-slate-600 bg-slate-50 border-slate-100' };
-  }
-
-  return { icon: <FileIcon className="h-4 w-4" />, color: 'text-gray-600 bg-gray-50 border-gray-100' };
+  const { Icon, badge } = getFileTypeConfig(mimeType);
+  return { icon: <Icon className="h-4 w-4" />, color: badge };
 };

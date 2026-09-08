@@ -19,58 +19,22 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext } from 'react'
 
 export type Theme = 'light' | 'dark' | 'rose-light' | 'rose-dark' | 'orange-light'
   | 'orange-dark' | 'green-light' | 'green-dark' | 'yellow-light' | 'yellow-dark' | 'blue-light' | 'blue-dark'
 
-type ThemeProviderProps = {
-  children: React.ReactNode
-  defaultTheme?: Theme
-  storageKey?: string
-}
-
-type ThemeProviderState = {
+export type ThemeProviderState = {
   theme: Theme
   setTheme: (theme: Theme) => void
 }
 
-const initialState: ThemeProviderState = {
+export const initialState: ThemeProviderState = {
   theme: 'dark',
   setTheme: () => null,
 }
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
-
-export function ThemeProvider({
-  children,
-  defaultTheme = 'light',
-  storageKey = 'vite-ui-theme',
-  ...props
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  )
-
-  useEffect(() => {
-    const root = window.document.documentElement
-    root.classList.remove('light', 'dark', 'rose-light', 'rose-dark', 'orange-light',
-      'orange-dark', 'green-light', 'green-dark', 'yellow-light', 'yellow-dark', 'blue-light', 'blue-dark')
-    root.classList.add(theme)
-    localStorage.setItem(storageKey, theme)
-  }, [theme, storageKey])
-
-  const value = {
-    theme,
-    setTheme,
-  }
-
-  return (
-    <ThemeProviderContext.Provider {...props} value={value}>
-      {children}
-    </ThemeProviderContext.Provider>
-  )
-}
+export const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext)

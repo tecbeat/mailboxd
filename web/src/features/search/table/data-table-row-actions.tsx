@@ -74,7 +74,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             variant='ghost'
             className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
           >
-            <MoreVertical size={10} />
+            <MoreVertical />
             <span className='sr-only'>Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -89,7 +89,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('search.editTag')}
             <DropdownMenuShortcut>
-              <TagIcon size={16} />
+              <TagIcon />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -104,7 +104,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('restore_message.restore_to_imap', 'Restore Mail')}
             <DropdownMenuShortcut>
-              <Upload size={16} />
+              <Upload />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -114,11 +114,11 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               e.stopPropagation()
               handleDelete(row.original)
             }}
-            className='!text-red-500 text-xs'
+            className='text-destructive focus:text-destructive text-xs'
           >
             {t('common.delete')}
             <DropdownMenuShortcut>
-              <Trash2 size={16} />
+              <Trash2 />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>

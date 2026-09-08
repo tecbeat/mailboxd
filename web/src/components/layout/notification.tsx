@@ -19,9 +19,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { Bell as BellIcon, LoaderCircle as Loader2, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { Bell as BellIcon, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { statusBadgeClass } from "@/lib/status-colors";
 import {
   Popover,
   PopoverContent,
@@ -95,7 +97,7 @@ export function NotificationPopover() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Spinner className="h-5 w-5" />
           ) : (
             <>
               <BellIcon className="h-5 w-5" />
@@ -121,13 +123,13 @@ export function NotificationPopover() {
         <ScrollArea className="h-72">
           {isLoading ? (
             <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <Spinner />
             </div>
           ) : activeNotifications.length === 0 ? (
             <div className="p-8 text-center space-y-2">
               <BellIcon className="mx-auto h-6 w-6 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No new notifications
+                {t('system.noNotifications')}
               </p>
             </div>
           ) : (
@@ -146,6 +148,7 @@ export function NotificationPopover() {
 }
 
 function ReleaseNotificationView({ data }: { data: Release }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -153,12 +156,12 @@ function ReleaseNotificationView({ data }: { data: Release }) {
           <h3 className="text-sm font-semibold">
             {data.tag_name}
           </h3>
-          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-            New Release
+          <span className={`text-xs px-2 py-1 rounded-full border ${statusBadgeClass.success}`}>
+            {t('system.newRelease')}
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Released {data.published_at}
+          {t('system.released', { date: data.published_at })}
         </p>
       </div>
 
@@ -176,7 +179,7 @@ function ReleaseNotificationView({ data }: { data: Release }) {
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline inline-flex items-center"
           >
-            View full release notes <ExternalLinkIcon className="ml-1 h-3 w-3" />
+            {t('system.viewReleaseNotes')} <ExternalLinkIcon className="ml-1 h-3 w-3" />
           </a>
         </div>
       )}

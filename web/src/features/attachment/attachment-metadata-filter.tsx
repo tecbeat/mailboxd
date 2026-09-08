@@ -1,12 +1,12 @@
 import * as React from "react"
-import { ChevronDown } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useAttachmentContext } from "./context"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import { MetadataSelectorField } from "@/features/mail-list/attachment-metadata-selector"
 import { useAttachmentMetadata } from "@/hooks/use-attachment-metadata"
+import { FilterLabel, ActiveDot } from "@/features/mail-list/filter-bar"
+import { filterSegment } from "@/features/mail-list/filter-bar-styles"
 
 interface MetaFilterProps {
     type: 'extension' | 'category' | 'content_type'
@@ -56,18 +56,15 @@ export function MetadataFilter({ type, icon }: MetaFilterProps) {
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                        "h-6 rounded-none border-l-0 px-3 gap-1.5 transition-colors",
-                        currentValue && "bg-primary/10 text-primary hover:bg-primary/20 border-primary/50"
-                    )}
+                    variant="ghost"
+                    className={filterSegment(!!currentValue)}
+                    title={currentValue || t(`search_more.${type}`)}
                 >
                     {icon}
-                    <span className="max-w-[80px] truncate">
+                    <FilterLabel>
                         {currentValue || t(`search_more.${type}`)}
-                    </span>
-                    <ChevronDown className="h-3 w-3 opacity-50 shrink-0" />
+                    </FilterLabel>
+                    <ActiveDot active={!!currentValue} />
                 </Button>
             </PopoverTrigger>
             <PopoverContent align="start" className="w-64 p-2 shadow-xl">

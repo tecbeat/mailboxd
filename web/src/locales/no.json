@@ -1506,8 +1506,6 @@
     "hide": "Skjul",
     "loading": "Laster inn...",
     "noResults": "Ingen resultater funnet",
-    "of": "av",
-    "page": "Side",
     "pagination": {
       "first": "Gå til første side",
       "fixed_page_size": "{{size}} rader per side.",
@@ -1518,8 +1516,6 @@
       "rows_per_page": "Rader per side",
       "selected": "{{selected}} av {{total}} rader valgt."
     },
-    "results": "resultater",
-    "rowsPerPage": "Rader per side",
     "showing": "Viser",
     "to": "til"
   },

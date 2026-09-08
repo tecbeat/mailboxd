@@ -24,7 +24,7 @@ import LongText from '@/components/long-text'
 
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/utils'
 import { UserRole } from '@/api/users/api'
 import { Badge } from '@/components/ui/badge'
 import { PermissionsCellAction } from './permissions-action'
@@ -89,7 +89,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
     ),
     cell: ({ row }) => {
       const created_at = row.original.created_at;
-      const date = format(new Date(created_at), 'yyyy-MM-dd HH:mm:ss');
+      const date = formatDateTime(created_at);
       return <LongText>{date}</LongText>;
     },
     meta: { className: 'text-center' },
@@ -102,7 +102,7 @@ export const getColumns = (t: (key: string) => string): ColumnDef<DataTableFeatu
     ),
     cell: ({ row }) => {
       const updated_at = row.original.updated_at;
-      const date = format(new Date(updated_at), 'yyyy-MM-dd HH:mm:ss');
+      const date = formatDateTime(updated_at);
       return <LongText>{date}</LongText>;
     },
     meta: { className: 'text-center' },

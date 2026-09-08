@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next'
 import { Copy, Download, Eye, EllipsisVertical as MoreVertical } from 'lucide-react'
 import { AttachmentModel } from '@/api/attachment/api'
 import { useSearchAttachments } from '@/hooks/use-search-attachments'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from '@/hooks/use-toast'
 import { useMutation } from '@tanstack/react-query'
 import { download_attachment } from '@/api/mailbox/envelope/api'
 import AttachmentPreview from '@/features/mail-list/attachment-preview'
@@ -47,7 +47,6 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setFilter } = useSearchAttachments();
   const { t } = useTranslation()
-  const { toast } = useToast();
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const downloadMutation = useMutation({
@@ -75,7 +74,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             variant='ghost'
             className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
           >
-            <MoreVertical size={10} />
+            <MoreVertical />
             <span className='sr-only'>Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -89,7 +88,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('attachment.showDuplicates')}
             <DropdownMenuShortcut>
-              <Copy size={16} />
+              <Copy />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -102,7 +101,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           >
             {t('attachment.preview')}
             <DropdownMenuShortcut>
-              <Eye size={16} />
+              <Eye />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -118,7 +117,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               ? t('attachment.downloading')
               : t('attachment.download')}
             <DropdownMenuShortcut>
-              <Download size={16} />
+              <Download />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>

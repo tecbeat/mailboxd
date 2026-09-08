@@ -22,9 +22,9 @@ import * as React from 'react'
 import { ListFilter } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
+import { FilterLabel, FilterCount } from '@/features/mail-list/filter-bar'
+import { filterSegment } from '@/features/mail-list/filter-bar-styles'
 
 interface MoreFiltersShellProps {
   open: boolean
@@ -59,20 +59,13 @@ export function MoreFiltersShell({
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            'h-6 gap-2 px-3 rounded-none border-l-0',
-            activeCount > 0 && 'bg-primary/10 border-primary text-primary'
-          )}
+          variant="ghost"
+          className={filterSegment(activeCount > 0)}
+          title={triggerLabel}
         >
-          <ListFilter className="h-3.5 w-3.5" />
-          <span className="text-xs">{triggerLabel}</span>
-          {activeCount > 0 && (
-            <Badge className="ml-1 h-4 px-1 text-[10px] bg-primary text-primary-foreground border-none rounded-xs">
-              {activeCount}
-            </Badge>
-          )}
+          <ListFilter className="h-4 w-4" />
+          <FilterLabel>{triggerLabel}</FilterLabel>
+          <FilterCount count={activeCount} />
         </Button>
       </PopoverTrigger>
 

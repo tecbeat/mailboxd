@@ -21,11 +21,12 @@
 import React, { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, X, Clock, Trash2 } from "lucide-react"
+import { Search, X, Clock, Trash2, LetterText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMailListConfig } from "@/features/mail-list/config"
 import { useTranslation } from "react-i18next"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FilterLabel } from "@/features/mail-list/filter-bar"
 
 const MAX_HISTORY = 20
 
@@ -137,71 +138,102 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
 
+    // Live search: debounce the current term into the filter so results update
+    // as the user types — no button and no extra click. Pressing Enter still
+    // applies immediately and additionally records the term in the history.
+    useEffect(() => {
+        const trimmed = value.trim()
+        const activeField = searchFields.find((key) => !!filter[key])
+        const currentTerm = activeField ? (filter[activeField] as string) : ""
+        // Already reflected in the filter (e.g. right after a sync): do nothing.
+        if (trimmed === currentTerm && (!trimmed || activeField === field)) {
+            return
+        }
+        const handle = setTimeout(() => {
+            setFilter((prev) => {
+                const next = { ...prev }
+                searchFields.forEach((f) => {
+                    delete next[f]
+                })
+                if (trimmed) {
+                    next[field] = trimmed
+                }
+                return next
+            })
+        }, 300)
+        return () => clearTimeout(handle)
+    }, [value, field, filter, searchFields, setFilter])
+
+    // The search unit is the dominant, growing member of the bar (`flex-[5]`),
+    // so it soaks up the free space on its row on wide screens and stays the
+    // widest segment when the bar wraps — while still sharing its row with a
+    // few filters instead of claiming a whole row of its own.
     return (
-        <div ref={containerRef} className="relative w-full max-w-[620px] min-w-[320px]">
-            <div className="flex items-center rounded-md border bg-background focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                <Select
-                    value={field}
-                    onValueChange={(val) => {
-                        setField(val)
-                        if (value.trim()) applyFilter(val, value)
-                    }}
-                >
-                    <SelectTrigger
-                        className={cn(
-                            "h-9 w-[110px] md:w-[130px] border-r border-border rounded-r-none",
-                            "text-xs md:text-xs bg-transparent focus:ring-0 focus:ring-offset-0 shadow-none border-y-0 border-l-0"
-                        )}
-                    >
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="min-w-[240px]">
-                        {options.map((opt) => (
-                            <SelectItem
-                                key={opt.value}
-                                value={opt.value}
-                                className={cn("cursor-pointer text-xs", opt.descKey && "font-medium")}
-                            >
-                                {t(opt.labelKey)}
-                                {opt.descKey && (
-                                    <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
-                                        {t(opt.descKey)}
-                                    </p>
-                                )}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        ref={inputRef}
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                        onFocus={() => setShowHistory(true)}
-                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        placeholder={t(placeholderKey)}
-                        className="h-9 border-none shadow-none focus-visible:ring-0 pl-9 pr-10 text-sm bg-transparent w-full"
-                    />
-                    {value && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            onClick={handleClear}
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
+        <div ref={containerRef} className="relative flex flex-[5] items-stretch">
+            <Select
+                value={field}
+                onValueChange={(val) => {
+                    setField(val)
+                    if (value.trim()) applyFilter(val, value)
+                }}
+            >
+                <SelectTrigger
+                    className={cn(
+                        "h-9 w-auto gap-1.5 rounded-none border-0 border-r border-border px-2.5",
+                        "bg-transparent text-xs font-normal text-muted-foreground shadow-none focus:ring-0 focus:ring-offset-0",
+                        // Drop the built-in dropdown chevron so this segment reads
+                        // like the other icon-only filter triggers in the bar.
+                        "[&>svg:last-of-type]:hidden"
                     )}
-                </div>
-                <Button
-                    size="sm"
-                    className="h-7 mr-1.5 px-3 text-xs md:px-5 md:text-sm"
-                    onClick={handleSearch}
-                    disabled={!value.trim()}
                 >
-                    {t("search_input.button")}
-                </Button>
+                    <LetterText className="h-4 w-4 shrink-0" />
+                    {/* `contents` wrapper keeps FilterLabel out of the trigger's
+                        direct `[&>span]` line-clamp rule so its container-query
+                        collapse (icon-only when the bar is narrow) still works. */}
+                    <div className="contents">
+                        <FilterLabel><SelectValue /></FilterLabel>
+                    </div>
+                </SelectTrigger>
+                <SelectContent className="min-w-[220px]">
+                    {options.map((opt) => (
+                        <SelectItem
+                            key={opt.value}
+                            value={opt.value}
+                            className="cursor-pointer text-xs"
+                        >
+                            {t(opt.labelKey)}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <div className="relative flex flex-1 min-w-[160px] items-center">
+                <button
+                    type="button"
+                    onClick={handleSearch}
+                    aria-label={t("search_input.button")}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                    <Search className="h-4 w-4" />
+                </button>
+                <Input
+                    ref={inputRef}
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    onFocus={() => setShowHistory(true)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    placeholder={t(placeholderKey)}
+                    className="h-9 w-full rounded-none border-0 bg-transparent pl-8 pr-8 text-xs shadow-none focus-visible:ring-0"
+                />
+                {value && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        onClick={handleClear}
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
             {showHistory && (
                 <div className="absolute top-full left-0 w-full mt-1 bg-popover border rounded-md shadow-lg z-50 max-h-[300px] overflow-hidden flex flex-col">

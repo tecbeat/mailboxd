@@ -21,7 +21,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2 } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 import { AxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -69,6 +69,8 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
   const [permissionsOpen, setPermissionsOpen] = useState(false)
   const [permissionsAccountId, setPermissionsAccountId] = useState<number | undefined>(undefined)
 
+  const isSsoUser = Boolean(user.sso_provider)
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema(t)),
     mode: 'onChange',
@@ -91,8 +93,10 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
         avatar_base64 = await fileToBase64(avatarFile.file)
       }
 
+      const { password, ...profile } = values
       return update_user(user.id, {
-        ...values,
+        ...profile,
+        ...(isSsoUser ? {} : { password }),
         avatar_base64,
       })
     },
@@ -116,7 +120,7 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
-          className="space-y-6 w-full max-w-screen-xl mx-auto px-4 md:px-6"
+          className="space-y-6 w-full"
         >
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6">
             <div className="space-y-6">
@@ -190,36 +194,42 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t('settings.profile.field.password')}
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        placeholder={t(
-                          'settings.profile.placeholder.password_keep',
-                        )}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {isSsoUser ? (
+                <p className="text-sm text-muted-foreground">
+                  {t('settings.profile.sso_managed_credentials')}
+                </p>
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('settings.profile.field.password')}
+                      </FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          placeholder={t(
+                            'settings.profile.placeholder.password_keep',
+                          )}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
           </div>
 
-          <div className="flex justify-start pt-4">
+          <div className="flex justify-end pt-4">
             <Button
               type="submit"
               disabled={form.formState.isSubmitting || mutation.isPending}
             >
               {(form.formState.isSubmitting || mutation.isPending) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
               )}
               {t('settings.profile.button.update_profile')}
             </Button>

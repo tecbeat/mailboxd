@@ -159,6 +159,64 @@ impl MemDbModel for MailboxdUserV2 {
     }
 }
 
+/// A local password must never be set for an SSO-managed user; their
+/// credentials are owned by the external identity provider.
+fn ensure_password_change_allowed(
+    sso_provider: Option<&str>,
+    password_requested: bool,
+) -> MailboxdResult<()> {
+    if password_requested && sso_provider.is_some() {
+        return Err(raise_error!(
+            "Cannot set a local password for an SSO-managed user; credentials are managed by the identity provider.".to_string(),
+            ErrorCode::Forbidden
+        ));
+    }
+    Ok(())
+}
+
+/// Apply an update request onto an existing user, enforcing the SSO
+/// password-change guard. Pure transform (no persistence) so it can be
+/// exercised directly in tests without a live database.
+fn apply_user_update(current: &UserModel, request: UserUpdateRequest) -> MailboxdResult<UserModel> {
+    ensure_password_change_allowed(current.sso_provider.as_deref(), request.password.is_some())?;
+
+    let mut updated = current.clone();
+    if let Some(username) = request.username {
+        updated.username = username;
+    }
+    if let Some(email) = request.email {
+        updated.email = email;
+    }
+    if let Some(desc) = request.description {
+        updated.description = Some(desc);
+    }
+    if let Some(password) = request.password {
+        updated.password = Some(encrypt!(&password)?);
+    }
+    if let Some(global_roles) = request.global_roles {
+        updated.global_roles = global_roles;
+    }
+    if let Some(acl) = request.acl {
+        updated.acl = Some(acl);
+    }
+    if let Some(account_access_map) = request.account_access_map {
+        updated.account_access_map = account_access_map;
+    }
+    if let Some(avatar_base64) = request.avatar_base64 {
+        updated.avatar = Some(avatar_base64);
+    }
+    if let Some(theme) = request.theme {
+        updated.theme = Some(theme);
+    }
+    if let Some(language) = request.language {
+        updated.language = Some(language);
+    }
+
+    updated.updated_at = utc_now!();
+
+    Ok(updated)
+}
+
 impl MailboxdUserV2 {
     pub fn is_using_role(&self, role_id: u64) -> bool {
         if self.global_roles.contains(&role_id) {
@@ -642,47 +700,7 @@ impl MailboxdUserV2 {
         }
 
         update_impl::<UserModel>(DB_MANAGER.db(), &id.to_string(), move |current| {
-            let mut updated = current.clone();
-            if let Some(username) = request.username {
-                updated.username = username;
-            }
-            if let Some(email) = request.email {
-                updated.email = email;
-            }
-            if let Some(desc) = request.description {
-                updated.description = Some(desc);
-            }
-            if let Some(password) = request.password {
-                updated.password = Some(encrypt!(&password)?);
-            }
-
-            if let Some(global_roles) = request.global_roles {
-                updated.global_roles = global_roles;
-            }
-
-            if let Some(acl) = request.acl {
-                updated.acl = Some(acl);
-            }
-
-            if let Some(account_access_map) = request.account_access_map {
-                updated.account_access_map = account_access_map;
-            }
-
-            if let Some(avatar_base64) = request.avatar_base64 {
-                updated.avatar = Some(avatar_base64);
-            }
-
-            if let Some(theme) = request.theme {
-                updated.theme = Some(theme);
-            }
-
-            if let Some(language) = request.language {
-                updated.language = Some(language);
-            }
-
-            updated.updated_at = utc_now!();
-
-            Ok(updated)
+            apply_user_update(&current, request)
         })?;
 
         if password_changed {
@@ -720,5 +738,55 @@ impl MailboxdUserV2 {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_password_change_for_sso_user() {
+        assert!(ensure_password_change_allowed(Some("oidc"), true).is_err());
+    }
+
+    #[test]
+    fn allows_password_change_for_local_user() {
+        assert!(ensure_password_change_allowed(None, true).is_ok());
+    }
+
+    #[test]
+    fn ignores_absent_password_for_sso_user() {
+        assert!(ensure_password_change_allowed(Some("oidc"), false).is_ok());
+    }
+
+    #[test]
+    fn apply_user_update_rejects_password_for_sso_user() {
+        let current = UserModel {
+            sso_provider: Some("oidc".to_string()),
+            ..Default::default()
+        };
+        let request = UserUpdateRequest {
+            password: Some("new-password".to_string()),
+            ..Default::default()
+        };
+        assert!(apply_user_update(&current, request).is_err());
+    }
+
+    #[test]
+    fn apply_user_update_applies_non_password_changes_for_sso_user() {
+        let current = UserModel {
+            username: "old".to_string(),
+            sso_provider: Some("oidc".to_string()),
+            ..Default::default()
+        };
+        let request = UserUpdateRequest {
+            username: Some("new".to_string()),
+            ..Default::default()
+        };
+        let updated = apply_user_update(&current, request)
+            .expect("non-password update should be allowed for an SSO user");
+        assert_eq!(updated.username, "new");
+        assert!(updated.password.is_none());
     }
 }

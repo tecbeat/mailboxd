@@ -21,7 +21,7 @@
 
 import { Outlet } from '@tanstack/react-router'
 import { Main } from '@/components/layout/main'
-import SidebarNav from './components/sidebar-nav'
+import { SidebarNav } from '@/components/layout/sidebar-nav'
 import { Users, ShieldCheck, Key } from "lucide-react";
 
 import { FixedHeader } from '@/components/layout/fixed-header'
@@ -51,12 +51,22 @@ export default function UsersAndTokens() {
   return (
     <>
       <FixedHeader />
-      <Main>
-        <div className='flex flex-1 flex-col space-y-2 md:space-y-2 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
-          <aside className='top-0 lg:sticky lg:w-1/5'>
+      <Main fixed>
+        <div className='flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
+          {/* Fixed-width rail so the nav never changes width between sub-pages. */}
+          <aside className='shrink-0 lg:w-56'>
             <SidebarNav items={sidebarNavItems} />
           </aside>
-          <div className='flex w-full p-1 pr-4 overflow-y-hidden'>
+          {/*
+            min-w-0 stops a wide table from widening the row (and the rail).
+            No right padding or reserved scrollbar gutter here so the content's
+            right edge lines up with the primary-nav pages (Accounts, OAuth2,
+            ...), which render flush against Main's padding. The sub-pages
+            (Users, Roles, API Tokens) scroll internally, so this container
+            never shows a scrollbar. Mirrors the Settings section shell so both
+            sections' headers align identically.
+          */}
+          <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin'>
             <Outlet />
           </div>
         </div>

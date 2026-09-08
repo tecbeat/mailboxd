@@ -29,7 +29,8 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2, SquareCheck as CheckSquare, Square } from 'lucide-react'
+import { LoaderCircle, SquareCheck as CheckSquare, Square } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { list_mailboxes, MailboxData } from '@/api/mailbox/api'
@@ -41,7 +42,6 @@ import axios, { AxiosError } from 'axios'
 import { useTranslation } from 'react-i18next'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
-import { useTheme } from '@/context/theme-context'
 import React from 'react'
 import Collapse from '@mui/material/Collapse';
 import { styled } from '@mui/material/styles';
@@ -169,7 +169,6 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
     const [fetchProgress, setFetchProgress] = useState<{ examined: number; total: number } | null>(null);
     const queryClient = useQueryClient();
     const { t } = useTranslation()
-    const { theme } = useTheme()
 
     // Show the loading state when the dialog opens or the account changes
     // (adjust state during render); the fetch itself runs in the effect below.
@@ -308,7 +307,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                 </TreeItemProvider>
             );
         });
-    }, [theme]);
+    }, []);
 
 
 
@@ -330,7 +329,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
 
 
         setSelectedItems(allIds);
-    }, [allIds]);
+    }, [allIds, mailboxes, t]);
 
     const handleDeselectAll = useCallback(() => {
         setSelectedItems([]);
@@ -496,7 +495,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                         {isLoading && (
                             <div className="p-8 space-y-8">
                                 <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                    <Spinner />
                                     <span className="text-sm font-medium">
                                         {fetchProgress && fetchProgress.total > 0
                                             ? `${t('accounts.folderSync.loadingMailboxFolders')} (${fetchProgress.examined}/${fetchProgress.total})`
@@ -525,7 +524,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                             />
                         )}
                         {error && (
-                            <div className="mt-auto p-2 text-red-600 text-sm font-medium">
+                            <div className="mt-auto p-2 text-destructive text-sm font-medium">
                                 {error}
                             </div>
                         )}
@@ -544,7 +543,7 @@ export function DownloadFoldersDialog({ currentRow, open, onOpenChange }: Props)
                         onClick={handleSubmit}
                         disabled={isSubmitting || isLoading || !!error}
                     >
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSubmitting && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                         {t('common.save')}
                     </Button>
                 </DialogFooter>

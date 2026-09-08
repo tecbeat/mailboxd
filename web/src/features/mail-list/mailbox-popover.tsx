@@ -20,7 +20,7 @@
 
 
 import * as React from 'react';
-import { ChevronDown, Folders, X, TreeDeciduous, Folder as FolderIcon, EllipsisVertical as MoreVertical, Trash2, Search, Check } from 'lucide-react';
+import { Folders, X, TreeDeciduous, Folder as FolderIcon, EllipsisVertical as MoreVertical, Trash2, Search, Check } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { animated, useSpring } from '@react-spring/web';
@@ -59,6 +59,8 @@ import useMinimalAccountList from '@/hooks/use-minimal-account-list';
 import { useMailListConfig } from '@/features/mail-list/config';
 import { buildTree, ExtendedTreeItemProps } from '@/lib/build-tree';
 import { countSelectedMailboxes } from './mailbox-selection';
+import { FilterLabel, FilterCount } from '@/features/mail-list/filter-bar';
+import { filterSegment } from '@/features/mail-list/filter-bar-styles';
 
 const CustomCollapse = styled(Collapse)({ padding: 0 });
 const AnimatedCollapse = animated(CustomCollapse);
@@ -294,22 +296,14 @@ export function MailboxPopover() {
         <Popover open={localOpen} onOpenChange={setLocalOpen} >
             <PopoverTrigger asChild>
                 <Button
-                    size="sm"
-                    variant="outline"
+                    variant="ghost"
                     disabled={disabled}
-                    className={cn(
-                        'h-6 rounded-none px-3 gap-1.5 transition-colors border-l-0',
-                        selectedMailboxIds.length > 0 && 'bg-primary/10 text-primary border-primary/20'
-                    )}
+                    className={filterSegment(selectedMailboxIds.length > 0)}
+                    title={t('search_mailbox.label')}
                 >
                     <Folders className="h-4 w-4" />
-                    <span className="max-w-[100px] truncate">{t('search_mailbox.label')}</span>
-                    {selectedMailboxIds.length > 0 && (
-                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                            {selectedMailboxIds.length}
-                        </span>
-                    )}
-                    <ChevronDown className="h-3 w-3 opacity-50" />
+                    <FilterLabel>{t('search_mailbox.label')}</FilterLabel>
+                    <FilterCount count={selectedMailboxIds.length} />
                 </Button>
             </PopoverTrigger>
 

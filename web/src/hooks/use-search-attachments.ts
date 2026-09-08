@@ -89,12 +89,11 @@ export function useSearchAttachments() {
     const setPage = (p: number) => updateParams({ page: p });
 
     const setSearchPageSize = (size: number) => {
-        localStorage.setItem('mailboxd_search_attachment_page_size', size.toString());
         updateParams({ pageSize: size, page: 1 });
     };
 
-    const setSortBy = (val: "DATE" | "SIZE") => updateParams({ sortBy: val });
-    const setSortOrder = (val: "desc" | "asc") => updateParams({ sortOrder: val });
+    const setSortBy = React.useCallback((val: "DATE" | "SIZE") => updateParams({ sortBy: val }), [updateParams]);
+    const setSortOrder = React.useCallback((val: "desc" | "asc") => updateParams({ sortOrder: val }), [updateParams]);
 
     const onSubmit = (cleaned: SearchSubmitValues) => {
         if ('has_attachment' in cleaned && cleaned.has_attachment === false) {

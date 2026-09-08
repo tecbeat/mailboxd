@@ -93,3 +93,37 @@ export const mailTableFeatures = tableFeatures({
 })
 
 export type MailTableFeatures = typeof mailTableFeatures
+
+/**
+ * localStorage key under which a table/list view persists its chosen page size.
+ */
+const pageSizeStorageKey = (storageKey: string): string =>
+  `mailboxd_${storageKey}_page_size`
+
+/**
+ * Read the persisted page size for a view. Returns `fallback` when nothing is
+ * stored, the stored value is not a positive finite number, or `localStorage`
+ * is unavailable (SSR, private mode).
+ */
+export function getPersistedPageSize(storageKey: string, fallback: number): number {
+  try {
+    const raw = localStorage.getItem(pageSizeStorageKey(storageKey))
+    if (raw === null) return fallback
+    const parsed = Number.parseInt(raw, 10)
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+  } catch {
+    return fallback
+  }
+}
+
+/**
+ * Persist the chosen page size for a view. No-op when `localStorage` is
+ * unavailable (SSR, private mode).
+ */
+export function setPersistedPageSize(storageKey: string, size: number): void {
+  try {
+    localStorage.setItem(pageSizeStorageKey(storageKey), String(size))
+  } catch {
+    // localStorage unavailable; persistence is best-effort.
+  }
+}

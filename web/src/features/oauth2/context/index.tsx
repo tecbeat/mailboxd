@@ -24,23 +24,14 @@ import { OAuth2Entity } from '../data/schema'
 
 export type OAuth2DialogType = 'add' | 'edit' | 'delete' | 'authorize'
 
-interface OAuth2ContextType {
+export interface OAuth2ContextType {
   open: OAuth2DialogType | null
   setOpen: (str: OAuth2DialogType | null) => void
   currentRow: OAuth2Entity | null
   setCurrentRow: React.Dispatch<React.SetStateAction<OAuth2Entity | null>>
 }
 
-const OAuth2Context = React.createContext<OAuth2ContextType | null>(null)
-
-interface Props {
-  children: React.ReactNode
-  value: OAuth2ContextType
-}
-
-export default function OAuth2Provider({ children, value }: Props) {
-  return <OAuth2Context.Provider value={value}>{children}</OAuth2Context.Provider>
-}
+export const OAuth2Context = React.createContext<OAuth2ContextType | null>(null)
 
 export const useOAuth2Context = () => {
   const oauth2Context = React.useContext(OAuth2Context)

@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
@@ -40,7 +40,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { AxiosError } from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle as Loader2, Lock as LockIcon, ShieldCheck, UserCog } from 'lucide-react'
+import { LoaderCircle, Lock as LockIcon, ShieldCheck, UserCog } from 'lucide-react'
 import { create_role, getPermissions, update_role, UserRole } from '@/api/users/api'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -128,7 +128,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
     },
   })
 
-  const selectedType = form.watch('role_type')
+  const selectedType = useWatch({ control: form.control, name: 'role_type' })
 
   const handleOpenChange = (v: boolean) => {
     if (!v) {
@@ -139,7 +139,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl w-[95vw] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent size="full" className="w-[95vw] max-h-[90vh] flex flex-col p-0 overflow-hidden">
         <div className="p-6 border-b bg-card">
           <DialogHeader>
             <DialogTitle>
@@ -350,7 +350,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
             disabled={mutation.isPending}
             className="px-8 font-bold"
           >
-            {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {mutation.isPending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
             {isEdit ? t('roles.actions.submit_update') : t('roles.actions.submit_create')}
           </Button>
         </div>

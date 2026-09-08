@@ -459,12 +459,15 @@
       "addBtn": "Add Token",
       "emptyDescription": "You haven’t created any API tokens yet. Click below to create one.",
       "emptyTitle": "No API tokens",
-      "loadError": "Failed to load API tokens."
+      "loadError": "Failed to load API tokens.",
+      "pageDescription": "Personal API tokens for programmatic access on your behalf.",
+      "title": "API Tokens"
     }
   },
   "attachment": {
     "all_fields_desc": "Matches attachment name, subject, and sender",
     "date": "Date",
+    "description": "Search and browse archived email attachments.",
     "download": "Download",
     "downloading": "Downloading...",
     "emailMessageNotFound": "Unable to find the original email. It may have been deleted.",
@@ -477,6 +480,7 @@
     "size": "File size",
     "source": "Source",
     "subject": "Subject",
+    "title": "Attachments",
     "viewEmbeddedEmail": "View embedded email"
   },
   "attachment_preview": {
@@ -548,6 +552,7 @@
     "search": "Search",
     "select": "Select",
     "selectAll": "Select All",
+    "selectSection": "Select a section",
     "showLess": "Show Less",
     "showMore": "Show More...",
     "submit": "Submit",
@@ -571,6 +576,7 @@
     "count": "Count",
     "dataStorage": "Storage",
     "dayTrend": "30-Day Trend",
+    "description": "Overview of your archived mail, storage, and activity.",
     "efficiency": "Efficiency",
     "emails": "Emails",
     "indexSize": "Index",
@@ -582,6 +588,7 @@
     "newEmails": "New Emails",
     "noAccountData": "No account data",
     "noAttachments": "No Attachments",
+    "noData": "No Data",
     "noEmailsSynced": "No emails synced yet",
     "noLargeEmails": "No large emails",
     "noRecentActivity": "No recent activity",
@@ -604,6 +611,7 @@
     "totalAttachments": "Total attachments",
     "totalEmailSize": "Total Email Size",
     "totalEmails": "Total Emails",
+    "unnamed": "Unnamed",
     "withAttachments": "With Attachments",
     "noAttachmentData": "No attachment data"
   },
@@ -673,6 +681,7 @@
     "folderMethodDesc": "How should the target mail folder be determined?",
     "folderStructure": "2. Folder structure",
     "importHistory": "Import History",
+    "invalidType": "Invalid type",
     "limits": "Max: EML 100 MB · MBOX {{maxMbox}} MB · PST {{maxPst}} MB. Larger files → CLI.",
     "modeCustom": "Enter a custom folder name",
     "modeCustomDesc": "Manually type the target mail folder name.",
@@ -697,9 +706,20 @@
     "selectMailbox": "Select a mailbox...",
     "source": "source",
     "startImport": "Import",
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "pending": "Pending",
+      "processing": "Processing"
+    },
     "successCount": "{{count}} imported",
+    "summaryDuplicates": "{{count}} dup",
+    "summaryFailed": "{{count}} failed",
+    "summarySuccess": "{{count}} success",
+    "summaryTotal": "{{count}} total",
     "target": "1. Select target account",
     "title": "Import",
+    "tooLarge": "Too large",
     "uploading": "Uploading…",
     "uploadingFile": "Uploading file",
     "willImportTo": "Will import to"
@@ -1064,6 +1084,7 @@
       "success_title": "Role Deleted",
       "warning_text": "You are about to permanently delete role {{name}} (ID: {{id}})."
     },
+    "description": "Define roles and the permissions granted to their members.",
     "description_hint": "Define access scope and functional permissions.",
     "details": {
       "close_btn": "Close Details",
@@ -1086,6 +1107,7 @@
       "name_label": "Role Name",
       "type_label": "Role Type"
     },
+    "pageTitle": "Roles",
     "placeholder": {
       "filter": "Search roles..."
     },
@@ -1154,6 +1176,7 @@
       "warningDesc": "Deleted messages will be permanently removed and cannot be recovered.",
       "warningTitle": "Warning"
     },
+    "description": "Search your archived emails across all accounts.",
     "editTag": "Edit Tag",
     "endDate": "End Date",
     "from": "From",
@@ -1267,7 +1290,9 @@
     "label": "Mailboxes",
     "no_mailbox_found": "No mailbox found",
     "search_placeholder": "Search mailboxes",
-    "select_account_first": "Please select an account first"
+    "select_account_first": "Please select an account first",
+    "select_account_tip": "Select an account to view its mailboxes",
+    "selected_total": "Selected"
   },
   "search_more": {
     "any": "Any",
@@ -1327,6 +1352,7 @@
         "language": "Language",
         "theme": "Interface Theme"
       },
+      "pageDescription": "Customize the language and theme of the Web UI.",
       "placeholder": {
         "select_language": "Select language"
       },
@@ -1393,14 +1419,17 @@
       },
       "loadError": "Failed to load user information.",
       "maxSize": "Up to {{size}}",
+      "pageDescription": "Manage your account profile and credentials.",
       "placeholder": {
         "password_keep": "Leave blank to keep current password"
       },
       "removeAvatar": "Remove avatar",
+      "sso_managed_credentials": "Your password is managed by your single sign-on provider and cannot be changed here.",
       "section": {
         "accounts": "{{count}} linked accounts",
         "roles": "Roles"
       },
+      "title": "Profile",
       "toast": {
         "update_failed": "Failed to update profile",
         "updated": "Profile updated successfully"
@@ -1424,10 +1453,12 @@
       }
     },
     "proxy": "Proxy",
+    "proxyDescription": "Configure proxy servers used for account connections.",
     "proxyTest": "Check Proxy",
     "proxyTesting": "Checking...",
     "proxyTestFailed": "Proxy check failed",
     "proxyTestSuccess": "Proxy works",
+    "proxyTitle": "Network Proxy",
     "proxyUpdateOrAddFailed": "{{action}} failed, please try again later",
     "reset": "Reset",
     "resetRootPassword": "Reset Root Password",
@@ -1466,7 +1497,9 @@
       "empty": {
         "title": "No account access",
         "description": "You do not have direct access to any email accounts yet. Contact your administrator to request access."
-      }
+      },
+      "pageDescription": "Accounts you can access and your role on each.",
+      "title": "Access Permissions"
     }
   },
   "sign_out": {
@@ -1475,9 +1508,16 @@
     "title": "Sign out"
   },
   "system": {
-    "notifications": "System Notifications"
+    "newRelease": "New Release",
+    "noNotifications": "No new notifications",
+    "notifications": "System Notifications",
+    "released": "Released {{date}}",
+    "viewReleaseNotes": "View full release notes"
   },
   "systemConfig": {
+    "fields": {
+      "loadError": "Failed to load system configuration."
+    },
     "pageDescription": "These parameters are initialized via CLI flags or Environment Variables. They are currently read-only to ensure environment consistency.",
     "pageTitle": "System-level Configurations",
     "sections": {
@@ -1527,8 +1567,6 @@
     "hide": "Hide",
     "loading": "Loading...",
     "noResults": "No results found",
-    "of": "of",
-    "page": "Page",
     "pagination": {
       "first": "Go to first page",
       "fixed_page_size": "{{size}} rows per page.",
@@ -1539,8 +1577,6 @@
       "rows_per_page": "Rows per page",
       "selected": "Selected {{selected}} / {{total}} row(s)."
     },
-    "results": "results",
-    "rowsPerPage": "Rows per page",
     "showing": "Showing",
     "to": "to"
   },
@@ -1690,6 +1726,7 @@
         "warning_desc": "Any scripts, services, or integrations using this token will fail. Please ensure you have updated your systems before proceeding.",
         "warning_title": "Warning"
       },
+      "description": "System-wide API tokens for programmatic access.",
       "empty": {
         "description": "No API tokens have been generated in the system yet",
         "title": "No API tokens found"
@@ -1708,6 +1745,7 @@
         "unnamed": "Unnamed Token",
         "web_ui": "Web UI"
       },
+      "title": "API Tokens",
       "toast": {
         "delete_failed": "Failed to delete the token, please try again.",
         "delete_failed_title": "Delete Failed",
@@ -1733,6 +1771,7 @@
       "updated_at": "Updated At",
       "username": "Username"
     },
+    "description": "Manage system users and their roles.",
     "empty": {
       "description": "Click the button below to start adding your first user.",
       "title": "No users found"
@@ -1742,6 +1781,7 @@
       "roles": "Roles",
       "users": "Users"
     },
+    "title": "Users",
     "tokens_action": {
       "buttons": {
         "add": "Add Token"
