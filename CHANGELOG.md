@@ -2,6 +2,95 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.6.0) - 2026-09-08
+
+### ⛰️  Features
+
+- *(layout)* Shared PageHeader with action slot + consistent nav chrome (#22, #23, #40) - ([7232aab](https://git.teccave.de/tecbeat/mailboxd/commit/7232aab35f39d2c179fede5c78c2aded96b3dfde))
+- *(profile)* Inline SSO-managed-credentials note and testable user update (#17) - ([12996e5](https://git.teccave.de/tecbeat/mailboxd/commit/12996e514d64c8a7f45f1b9b0281ac4db5c9edc1))
+- *(profile)* Hide password field for SSO users - ([d2e08ae](https://git.teccave.de/tecbeat/mailboxd/commit/d2e08ae30746b4b210c9126c2d6a12b7c6e7365c))
+- *(ui)* Shared EmptyState component + unified card surfaces and empty-state heights (#26, #39) - ([a3f2c61](https://git.teccave.de/tecbeat/mailboxd/commit/a3f2c61d034e67cdae1164914680c43650db033e))
+- *(web)* Add semantic success color token - ([1faa298](https://git.teccave.de/tecbeat/mailboxd/commit/1faa2980f326b2fe0ba6c70991e5415351d3b895))
+- *(web)* Integrate search into the filter toolbar (#24) - ([ec8050a](https://git.teccave.de/tecbeat/mailboxd/commit/ec8050a74981bf4f4a8593a457992f3907a42f06))
+
+### 🐛 Bug Fixes
+
+- *(build)* Force pnpm copy import method in Docker web build - ([c73ce79](https://git.teccave.de/tecbeat/mailboxd/commit/c73ce7986e6e59956afcbdac4c7fe801534c4ba6))
+- *(dashboard)* Render loading state inside page chrome, mirror grid (#28) - ([c53d4e0](https://git.teccave.de/tecbeat/mailboxd/commit/c53d4e09ba5edf92731cfed348ce4ebeedd832aa))
+- *(data-table)* Move vertical scrollbar outside the bordered box - ([499afd9](https://git.teccave.de/tecbeat/mailboxd/commit/499afd94fe299a69a94a850817732fc9d7a90418))
+- *(deps)* Update @tanstack/router-plugin to 1.168.36 - ([039df50](https://git.teccave.de/tecbeat/mailboxd/commit/039df50e85dc2f347021b1ea20bf3f4fbcf24ba3))
+- *(deps)* Sync Cargo.lock with zstd 0.14 bump - ([fe49a64](https://git.teccave.de/tecbeat/mailboxd/commit/fe49a645694a3e26202303614800a48b47060392))
+- *(deps)* Align corepack pnpm pins to v12.3.4 - ([0690c6b](https://git.teccave.de/tecbeat/mailboxd/commit/0690c6b6cb89498a2a28553647541b6f45f0ddc6))
+- *(deps)* Update pnpm to v12 - ([4dd5e33](https://git.teccave.de/tecbeat/mailboxd/commit/4dd5e339538ef54cb7dfbad20fb5635f4c6c2d33))
+- *(deps)* Update all non-major dependencies - ([925abdc](https://git.teccave.de/tecbeat/mailboxd/commit/925abdc876a13df679dcafd8ed201573a04e8e1e))
+- *(deps)* Update vitest monorepo to v5 - ([cef2a79](https://git.teccave.de/tecbeat/mailboxd/commit/cef2a79a70f807ec8ab10e7ef6f639082e827e18))
+- *(format)* Route remaining timestamps through shared date formatters (#31) - ([c33e8a0](https://git.teccave.de/tecbeat/mailboxd/commit/c33e8a001bd58d723fe2a13c3f9f55be7cdd81c1))
+- *(layout)* Unify page header bottom margin to mb-4 - ([e7e06eb](https://git.teccave.de/tecbeat/mailboxd/commit/e7e06eb78108f852042646e90659fccbe4dc892c))
+- *(layout)* Flush secondary-nav content with primary-nav right edge - ([7fdd33c](https://git.teccave.de/tecbeat/mailboxd/commit/7fdd33ca225f3c9aad7a461bbc193e7584263418))
+- *(layout)* Center shared container, keep dashboard full-width, align settings nav (#21) - ([05178b0](https://git.teccave.de/tecbeat/mailboxd/commit/05178b065e6b2d403e8b748399e99020f259ca5f))
+- *(mail-list)* Align filter toolbar right edge with table scrollbar gutter - ([e6ad7cb](https://git.teccave.de/tecbeat/mailboxd/commit/e6ad7cbdea2815a3338d826a5ced2c5685b96747))
+- *(nav)* Shared SidebarNav shows current section on mobile + correct placeholder key (#18, #41) - ([0e72c1f](https://git.teccave.de/tecbeat/mailboxd/commit/0e72c1f92c7d395c8e7bcede22cb832ada9fa7b3))
+- *(search)* Animate table updates instead of reloading the whole page - ([b18c8e0](https://git.teccave.de/tecbeat/mailboxd/commit/b18c8e08afe2383855a72605202235ed51ec9c56))
+- *(ui)* Route remaining status badges through shared color helpers (#30) - ([eebbfe2](https://git.teccave.de/tecbeat/mailboxd/commit/eebbfe26489c7d0293b1ac85c204f7ef35b7bd36))
+- *(ui)* Unify page-size options across all tables (#32) - ([19fc4ec](https://git.teccave.de/tecbeat/mailboxd/commit/19fc4ecae89844f6178c44a0259d0044641123c5))
+- *(web)* Correct hook dependency arrays - ([243feab](https://git.teccave.de/tecbeat/mailboxd/commit/243feab6a32a1a042b5837ef27a004b127f7da9d))
+- *(web)* Stabilize sort setters and complete effect deps - ([28938db](https://git.teccave.de/tecbeat/mailboxd/commit/28938dbd8362e8194791b80d87805036462af0ce))
+- *(web)* Keep IMAP password input controlled - ([a9a7e6b](https://git.teccave.de/tecbeat/mailboxd/commit/a9a7e6bb876e6672eac70d79663463fab29622bd))
+- *(web)* Send JSON body for start-download to avoid 415 - ([4912162](https://git.teccave.de/tecbeat/mailboxd/commit/49121624f6c092691a1382c2a3a431445242ddb8))
+- *(web)* Align badge and plain values on one right edge in system config - ([fc31fb7](https://git.teccave.de/tecbeat/mailboxd/commit/fc31fb71d2d97e4c356322e9619e045d08932fe9))
+- *(web)* Label bulk-action toolbar icon buttons - ([21b4963](https://git.teccave.de/tecbeat/mailboxd/commit/21b4963dd68847279547c49a9fa1b5e78b4077cc))
+- *(web)* Avoid nested interactive element in filter selector fields - ([8b0ba57](https://git.teccave.de/tecbeat/mailboxd/commit/8b0ba573c5c82cb0290086217b1c054789023067))
+- *(web)* Add missing search_mailbox i18n keys - ([44fe92e](https://git.teccave.de/tecbeat/mailboxd/commit/44fe92e22095642f2b3bb12e5b0638cf7f3cbf67))
+- *(web)* Keep search input focused while live results load - ([3ffcc04](https://git.teccave.de/tecbeat/mailboxd/commit/3ffcc04543467dfd32bba05305a371c750e95b0c))
+- *(web)* Use text-destructive for row-action delete items (#29) - ([3cefcaa](https://git.teccave.de/tecbeat/mailboxd/commit/3cefcaa2a098cc5049d11278034e308541312ead))
+- *(web)* Replace hardcoded UI strings with i18n keys (#36) - ([32bae0b](https://git.teccave.de/tecbeat/mailboxd/commit/32bae0b87b53aa685a1f85ccbfac778de0518e34))
+- *(web)* Persist header theme switch to user profile (#20) - ([3af01ed](https://git.teccave.de/tecbeat/mailboxd/commit/3af01edfaea4bce121b0416123e1687e7764e47d))
+- *(web)* Make blue-dark surfaces distinct from background (#19) - ([bb58ce7](https://git.teccave.de/tecbeat/mailboxd/commit/bb58ce770d9a8175b0d2cd72d04df9566d6dbade))
+- *(web)* Prevent system configurations rows from overflowing - ([ef50fa0](https://git.teccave.de/tecbeat/mailboxd/commit/ef50fa0b983ba80b0c4e6585655e014d08e9c09d))
+- *(web)* Align users section shell with settings for consistent headers - ([867ce5b](https://git.teccave.de/tecbeat/mailboxd/commit/867ce5b2bf293e604776ce05f2ab01a635377d1d))
+- *(web)* Tighten dashboard spacing so it fits without page scroll - ([376e28b](https://git.teccave.de/tecbeat/mailboxd/commit/376e28b9b43d61264670a57eb7638526d4f31397))
+- *(web)* Use theme tokens in mail views for dark theme support (#27) - ([ddbd887](https://git.teccave.de/tecbeat/mailboxd/commit/ddbd8879c16107130402a781b17f8c4789a54981))
+- *(web)* Replace hardcoded palette colors with theme tokens (#29) - ([487e424](https://git.teccave.de/tecbeat/mailboxd/commit/487e424426edffc608e619b4d898b2e00aa962a7))
+- *(web)* Right-align form action buttons in profile and appearance (#25) - ([21155e9](https://git.teccave.de/tecbeat/mailboxd/commit/21155e976f48bab26605836a6d12f7218e7fc88d))
+- *(web)* Reserve the settings scrollbar gutter to prevent tab shift - ([166336a](https://git.teccave.de/tecbeat/mailboxd/commit/166336a9e6258998e3cc2b7c2275d5551d338e77))
+- *(web)* Standardize the system configurations settings page - ([c8d685e](https://git.teccave.de/tecbeat/mailboxd/commit/c8d685e5d08707c940b152749e7d7a88d243c737))
+- *(web)* Left-align API docs cards in a 3-column grid - ([7c2feb1](https://git.teccave.de/tecbeat/mailboxd/commit/7c2feb18e047e2c887d16383fa8562d1ec7aba5e))
+- *(web)* Use the standard PageHeader on the API documentation page - ([852eef5](https://git.teccave.de/tecbeat/mailboxd/commit/852eef553388409774ea3ae35785f01a95628128))
+- *(web)* Hug table content and move the horizontal scrollbar below the border - ([6fb3d3a](https://git.teccave.de/tecbeat/mailboxd/commit/6fb3d3ac25d8a28346c7897a010d2ba189f28d7b))
+- *(web)* Highlight the active settings nav item by resolved active href - ([5101409](https://git.teccave.de/tecbeat/mailboxd/commit/5101409877f496d218f7c41b6fc46ca2e3f13c39))
+- *(web)* Center page content and widen the max-width cap to 1600px - ([9fe36ac](https://git.teccave.de/tecbeat/mailboxd/commit/9fe36ac391aa4631454f2440749c03b67e164340))
+- *(web)* Unify list-page scrolling with pinned toolbar and pagination - ([39d662f](https://git.teccave.de/tecbeat/mailboxd/commit/39d662fab39295551bba0b12ff6e62dc67e3fc00))
+- *(web)* Let mail table flow into the shell scroll region (#29) - ([28989cd](https://git.teccave.de/tecbeat/mailboxd/commit/28989cd202956e543ae2a2f3a291824c9b758b36))
+- *(web)* Establish single content scroll region in app shell (#21) - ([76dc036](https://git.teccave.de/tecbeat/mailboxd/commit/76dc036d74d345c047c189cce5747a29852a3742))
+
+### 🚜 Refactor
+
+- *(format)* Locale-aware formatDateTime and formatRelativeTime helpers, migrate all call sites (#31) - ([cbc3e37](https://git.teccave.de/tecbeat/mailboxd/commit/cbc3e374a5d441c505a01b8fe08e2032da30afff))
+- *(layout)* Unified page container and single padding contract (#21, #38) - ([275bfc8](https://git.teccave.de/tecbeat/mailboxd/commit/275bfc86b0998a772a4f1877d484847e3dd021c5))
+- *(ui)* Default EmptyState logo icon and migrate remaining empty state (#26, #39) - ([3559f39](https://git.teccave.de/tecbeat/mailboxd/commit/3559f39122386718d263d5ce92630cc63e874cdc))
+- *(ui)* Consolidate table pagination into one component (#32) - ([c1c7842](https://git.teccave.de/tecbeat/mailboxd/commit/c1c784281612b27afe7829ea04a2e24aff9b23c9))
+- *(ui)* Shared Spinner and unified loading states (#33) - ([abd6cf5](https://git.teccave.de/tecbeat/mailboxd/commit/abd6cf54d1288b8fe4e08628a6dde01da0f73ad7))
+- *(ui)* Single source of truth for status and file-type colors (#30) - ([d2aa47b](https://git.teccave.de/tecbeat/mailboxd/commit/d2aa47b1561c4d05dbc0c18dca5c90a366276a56))
+- *(web)* Extract non-component exports from mail-list modules - ([39113cb](https://git.teccave.de/tecbeat/mailboxd/commit/39113cb3a791a8242539e531ffe72cfd9cd8550b))
+- *(web)* Split context providers into component-only files - ([f9ad8bb](https://git.teccave.de/tecbeat/mailboxd/commit/f9ad8bb604c14edb5a6fb1e4cbe5475d4792cdc3))
+- *(web)* Sync account settings form via RHF values prop - ([df2da84](https://git.teccave.de/tecbeat/mailboxd/commit/df2da841aa59c712cd279c6dad3b1f3b12794a14))
+- *(web)* Read form fields via useWatch in dialogs - ([5267989](https://git.teccave.de/tecbeat/mailboxd/commit/5267989eeaddb9947a80669efd514036cd79653b))
+- *(web)* Stop rest-spreading query results in hooks - ([94ed0e8](https://git.teccave.de/tecbeat/mailboxd/commit/94ed0e87c03e963142e19d9303df762047fd4a02))
+- *(web)* Place the filter reset right after the search field - ([9e14738](https://git.teccave.de/tecbeat/mailboxd/commit/9e14738ae9a789b36a6c6c664259c93e0a226715))
+- *(web)* Refine filter bar wrap, font and fields trigger (#24) - ([9164aa7](https://git.teccave.de/tecbeat/mailboxd/commit/9164aa7b849b38903feb11bda53013dfd74d1b8f))
+- *(web)* Polish unified filter bar layout and responsiveness (#24) - ([8a48d01](https://git.teccave.de/tecbeat/mailboxd/commit/8a48d016271e1a87023e097c8f32d54de71ba32f))
+- *(web)* Unify search and filters into a single toolbar (#24) - ([97c2a4f](https://git.teccave.de/tecbeat/mailboxd/commit/97c2a4f4f1629b76df51a08c51abbf3862672c65))
+- *(web)* Standardize dialog sizes, footers and naming (#34) - ([36fec5c](https://git.teccave.de/tecbeat/mailboxd/commit/36fec5c8d5031de145d416892617c2d75d24730b))
+- *(web)* Standardize icon usage (#35) - ([9724527](https://git.teccave.de/tecbeat/mailboxd/commit/97245279ccff72005973d731cf94118b08785717))
+- *(web)* Unify dashboard card typography (#37) - ([b8dad6c](https://git.teccave.de/tecbeat/mailboxd/commit/b8dad6c1208a733b9bd542d90e8c55f105cc0a52))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cleanup)* Remove dead code and normalize new-file license headers (#41) - ([65d51ab](https://git.teccave.de/tecbeat/mailboxd/commit/65d51abf3f6d98c7c1d678e681e01590230c8313))
+- *(cleanup)* Standardize toast access, fix oauth2 toolbar width, remove dead code (#41) - ([a80ed29](https://git.teccave.de/tecbeat/mailboxd/commit/a80ed29d1af5388a0335fd5a7b37822a4a0dd77f))
+- *(git)* Ignore pnpm store and centralize frontend ignores - ([b51c867](https://git.teccave.de/tecbeat/mailboxd/commit/b51c86743581c10ab113eda25d409499c3be5f4d))
+- *(web)* Scope react-refresh rule to skip routes and test files - ([3832de9](https://git.teccave.de/tecbeat/mailboxd/commit/3832de96801128af516896546445418439d27dfb))
+
 ## [1.5.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.5.1) - 2026-09-02
 
 ### 🐛 Bug Fixes
