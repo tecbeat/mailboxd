@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.0) - 2026-09-09
+
+### ⛰️  Features
+
+- *(audit)* Add admin-only audit log page to the web UI - ([34280a9](https://git.teccave.de/tecbeat/mailboxd/commit/34280a9645c35ceb06210a465c5f109906ce2864))
+- *(audit)* Add persistent audit log for security-relevant events - ([7482109](https://git.teccave.de/tecbeat/mailboxd/commit/748210968c6b90a07452f1d8e7515e2326e382be))
+- *(backup)* Add admin backup settings page (Refs #42) - ([cfcf7d2](https://git.teccave.de/tecbeat/mailboxd/commit/cfcf7d2fa5ac298cd1db42a6212dd7f9a466e90d))
+- *(backup)* Add admin backup REST API and audit events (Refs #42) - ([0c12619](https://git.teccave.de/tecbeat/mailboxd/commit/0c126196e3f06726cf56fab5b155d0932229524f))
+- *(backup)* Add instance backup and staged restore core (Refs #42) - ([8dc7510](https://git.teccave.de/tecbeat/mailboxd/commit/8dc751080c665c85856a33928d506dd130ac3b96))
+- *(search)* Ship default attachment text extractor (Refs #4) - ([256fcf9](https://git.teccave.de/tecbeat/mailboxd/commit/256fcf957c5c6e1be369a416f019d18042726e90))
+
+### 🐛 Bug Fixes
+
+- *(build)* Regenerate route tree for router-plugin 1.168.36 - ([46a85f4](https://git.teccave.de/tecbeat/mailboxd/commit/46a85f40746bd716d48b66cb03d3113893341dc0))
+- *(ci)* Skip unittest gate jobs on the default branch - ([d073529](https://git.teccave.de/tecbeat/mailboxd/commit/d073529f21d461a629e9deb30fdbdf4190f03f71))
+- *(deps)* Pin knip to 6.34.0 to satisfy supply-chain release-age policy - ([b650373](https://git.teccave.de/tecbeat/mailboxd/commit/b650373da73b9d85cd495eefad64c8749452fccc))
+- *(deps)* Update all non-major dependencies - ([765f71d](https://git.teccave.de/tecbeat/mailboxd/commit/765f71d949fb33e6b5920a5d579e1b2e2806db1b))
+- *(oidc)* Localize SSO strings, document HS256 requirement (Refs #5) - ([b48aaa8](https://git.teccave.de/tecbeat/mailboxd/commit/b48aaa8f2389764c74a40e8fbe86b3382a3e525d))
+
+### 📚 Documentation
+
+- *(backup)* Document backup env vars and add compose bind-mount (Refs #42) - ([fefdf7e](https://git.teccave.de/tecbeat/mailboxd/commit/fefdf7e133885a93c77ccc77059518b5f28ebcb1))
+
 ## [1.6.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.6.0) - 2026-09-08
 
 ### ⛰️  Features
