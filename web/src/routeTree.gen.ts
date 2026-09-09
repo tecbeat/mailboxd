@@ -16,6 +16,7 @@ import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authSsoCallbackRouteImport } from './routes/(auth)/sso-callback'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedAttachmentIndexRouteImport } from './routes/_authenticated/attachment/index'
+import { Route as AuthenticatedAuditLogIndexRouteImport } from './routes/_authenticated/audit-log/index'
 import { Route as AuthenticatedImportIndexRouteImport } from './routes/_authenticated/import/index'
 import { Route as AuthenticatedSearchIndexRouteImport } from './routes/_authenticated/search/index'
 
@@ -179,6 +180,12 @@ const AuthenticatedAttachmentIndexRoute =
     path: '/attachment/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAuditLogIndexRoute =
+  AuthenticatedAuditLogIndexRouteImport.update({
+    id: '/audit-log/',
+    path: '/audit-log/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedImportIndexRoute =
   AuthenticatedImportIndexRouteImport.update({
     id: '/import/',
@@ -331,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
   '/users/roles': typeof AuthenticatedUsersRolesLazyRoute
   '/attachment/': typeof AuthenticatedAttachmentIndexRoute
+  '/audit-log/': typeof AuthenticatedAuditLogIndexRoute
   '/import/': typeof AuthenticatedImportIndexRoute
   '/search/': typeof AuthenticatedSearchIndexRoute
   '/accounts/': typeof AuthenticatedAccountsIndexLazyRoute
@@ -360,6 +368,7 @@ export interface FileRoutesByTo {
   '/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
   '/users/roles': typeof AuthenticatedUsersRolesLazyRoute
   '/attachment': typeof AuthenticatedAttachmentIndexRoute
+  '/audit-log': typeof AuthenticatedAuditLogIndexRoute
   '/import': typeof AuthenticatedImportIndexRoute
   '/search': typeof AuthenticatedSearchIndexRoute
   '/accounts': typeof AuthenticatedAccountsIndexLazyRoute
@@ -393,6 +402,7 @@ export interface FileRoutesById {
   '/_authenticated/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
   '/_authenticated/users/roles': typeof AuthenticatedUsersRolesLazyRoute
   '/_authenticated/attachment/': typeof AuthenticatedAttachmentIndexRoute
+  '/_authenticated/audit-log/': typeof AuthenticatedAuditLogIndexRoute
   '/_authenticated/import/': typeof AuthenticatedImportIndexRoute
   '/_authenticated/search/': typeof AuthenticatedSearchIndexRoute
   '/_authenticated/accounts/': typeof AuthenticatedAccountsIndexLazyRoute
@@ -426,6 +436,7 @@ export interface FileRouteTypes {
     | '/users/api-tokens'
     | '/users/roles'
     | '/attachment/'
+    | '/audit-log/'
     | '/import/'
     | '/search/'
     | '/accounts/'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/users/api-tokens'
     | '/users/roles'
     | '/attachment'
+    | '/audit-log'
     | '/import'
     | '/search'
     | '/accounts'
@@ -487,6 +499,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users/api-tokens'
     | '/_authenticated/users/roles'
     | '/_authenticated/attachment/'
+    | '/_authenticated/audit-log/'
     | '/_authenticated/import/'
     | '/_authenticated/search/'
     | '/_authenticated/accounts/'
@@ -614,6 +627,13 @@ declare module '@tanstack/react-router' {
       path: '/attachment'
       fullPath: '/attachment/'
       preLoaderRoute: typeof AuthenticatedAttachmentIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/audit-log/': {
+      id: '/_authenticated/audit-log/'
+      path: '/audit-log'
+      fullPath: '/audit-log/'
+      preLoaderRoute: typeof AuthenticatedAuditLogIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/import/': {
@@ -778,6 +798,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAccountsNewLazyRoute: typeof AuthenticatedAccountsNewLazyRoute
   AuthenticatedAttachmentIndexRoute: typeof AuthenticatedAttachmentIndexRoute
+  AuthenticatedAuditLogIndexRoute: typeof AuthenticatedAuditLogIndexRoute
   AuthenticatedImportIndexRoute: typeof AuthenticatedImportIndexRoute
   AuthenticatedSearchIndexRoute: typeof AuthenticatedSearchIndexRoute
   AuthenticatedAccountsIndexLazyRoute: typeof AuthenticatedAccountsIndexLazyRoute
@@ -795,6 +816,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAccountsNewLazyRoute: AuthenticatedAccountsNewLazyRoute,
   AuthenticatedAttachmentIndexRoute: AuthenticatedAttachmentIndexRoute,
+  AuthenticatedAuditLogIndexRoute: AuthenticatedAuditLogIndexRoute,
   AuthenticatedImportIndexRoute: AuthenticatedImportIndexRoute,
   AuthenticatedSearchIndexRoute: AuthenticatedSearchIndexRoute,
   AuthenticatedAccountsIndexLazyRoute: AuthenticatedAccountsIndexLazyRoute,

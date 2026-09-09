@@ -476,6 +476,27 @@
     "zoomIn": "Mais zoom",
     "zoomOut": "Menos zoom"
   },
+  "auditLog": {
+    "title": "Registro de auditoria",
+    "description": "Eventos relevantes para a segurança registrados em todo o servidor.",
+    "empty": {
+      "title": "Nenhuma entrada de auditoria",
+      "description": "Os eventos relevantes para a segurança aparecerão aqui à medida que ocorrerem."
+    },
+    "columns": {
+      "timestamp": "Hora",
+      "event": "Evento",
+      "actor": "Ator",
+      "target": "Alvo",
+      "detail": "Detalhe",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Sucesso",
+      "failed": "Falha"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Tem certeza que deseja sair?",
     "invalidPassword": "Senha inválida, por favor, tente novamente.",
@@ -782,6 +803,7 @@
     "accounts": "Contas",
     "apiDocs": "Documentação da API",
     "attachment": "Anexos",
+    "auditLog": "Registro de auditoria",
     "auth": "Autenticação",
     "dashboard": "Painel",
     "general": "Geral",

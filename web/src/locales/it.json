@@ -476,6 +476,27 @@
     "zoomIn": "Ingrandisci",
     "zoomOut": "Rimpicciolisci"
   },
+  "auditLog": {
+    "title": "Registro di controllo",
+    "description": "Eventi rilevanti per la sicurezza registrati su tutto il server.",
+    "empty": {
+      "title": "Nessuna voce di controllo",
+      "description": "Gli eventi rilevanti per la sicurezza appariranno qui non appena si verificano."
+    },
+    "columns": {
+      "timestamp": "Ora",
+      "event": "Evento",
+      "actor": "Attore",
+      "target": "Destinazione",
+      "detail": "Dettaglio",
+      "ip": "IP",
+      "status": "Stato"
+    },
+    "status": {
+      "success": "Riuscito",
+      "failed": "Non riuscito"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Sei sicuro di voler uscire?",
     "invalidPassword": "Password non valida. Riprova.",
@@ -782,6 +803,7 @@
     "accounts": "Account",
     "apiDocs": "Documentazione API",
     "attachment": "Allegati",
+    "auditLog": "Registro di controllo",
     "auth": "Autenticazione",
     "dashboard": "Dashboard",
     "general": "Generale",

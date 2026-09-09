@@ -476,6 +476,27 @@
     "zoomIn": "Zooma in",
     "zoomOut": "Zooma ut"
   },
+  "auditLog": {
+    "title": "Granskningslogg",
+    "description": "Säkerhetsrelevanta händelser som registreras i hela servern.",
+    "empty": {
+      "title": "Inga granskningsposter",
+      "description": "Säkerhetsrelevanta händelser visas här när de inträffar."
+    },
+    "columns": {
+      "timestamp": "Tid",
+      "event": "Händelse",
+      "actor": "Aktör",
+      "target": "Mål",
+      "detail": "Detalj",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Lyckades",
+      "failed": "Misslyckades"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Är du säker på att du vill logga ut?",
     "invalidPassword": "Ogiltigt lösenord. Var god försök igen.",
@@ -782,6 +803,7 @@
     "accounts": "Konton",
     "apiDocs": "API-dokumentation",
     "attachment": "Bilagor",
+    "auditLog": "Granskningslogg",
     "auth": "Autentisering",
     "dashboard": "Översikt",
     "general": "Allmänt",

@@ -476,6 +476,27 @@
     "zoomIn": "Vergrößern",
     "zoomOut": "Verkleinern"
   },
+  "auditLog": {
+    "title": "Audit-Log",
+    "description": "Sicherheitsrelevante Ereignisse, die serverweit aufgezeichnet werden.",
+    "empty": {
+      "title": "Keine Audit-Einträge",
+      "description": "Sicherheitsrelevante Ereignisse erscheinen hier, sobald sie auftreten."
+    },
+    "columns": {
+      "timestamp": "Zeit",
+      "event": "Ereignis",
+      "actor": "Akteur",
+      "target": "Ziel",
+      "detail": "Detail",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Erfolgreich",
+      "failed": "Fehlgeschlagen"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Sind Sie sicher, dass Sie sich abmelden möchten?",
     "invalidPassword": "Ungültiges Passwort. Bitte versuchen Sie es erneut.",
@@ -782,6 +803,7 @@
     "accounts": "Konten",
     "apiDocs": "API-Dokumentation",
     "attachment": "Anhänge",
+    "auditLog": "Audit-Log",
     "auth": "Authentifizierung",
     "dashboard": "Dashboard",
     "general": "Allgemein",

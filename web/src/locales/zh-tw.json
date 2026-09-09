@@ -476,6 +476,27 @@
     "zoomIn": "放大",
     "zoomOut": "縮小"
   },
+  "auditLog": {
+    "title": "稽核日誌",
+    "description": "記錄整個伺服器中與安全相關的事件。",
+    "empty": {
+      "title": "尚無稽核記錄",
+      "description": "與安全相關的事件發生時將顯示在此處。"
+    },
+    "columns": {
+      "timestamp": "時間",
+      "event": "事件",
+      "actor": "操作者",
+      "target": "目標",
+      "detail": "詳細資料",
+      "ip": "IP",
+      "status": "狀態"
+    },
+    "status": {
+      "success": "成功",
+      "failed": "失敗"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "確定要登出嗎？",
     "invalidPassword": "密碼無效，請再試一次。",
@@ -782,6 +803,7 @@
     "accounts": "帳號",
     "apiDocs": "API文件",
     "attachment": "附件",
+    "auditLog": "稽核日誌",
     "auth": "驗證",
     "dashboard": "儀表板",
     "general": "一般",

@@ -476,6 +476,27 @@
     "zoomIn": "Zoom avant",
     "zoomOut": "Zoom arrière"
   },
+  "auditLog": {
+    "title": "Journal d'audit",
+    "description": "Événements relatifs à la sécurité enregistrés sur l'ensemble du serveur.",
+    "empty": {
+      "title": "Aucune entrée d'audit",
+      "description": "Les événements relatifs à la sécurité apparaîtront ici au fur et à mesure."
+    },
+    "columns": {
+      "timestamp": "Heure",
+      "event": "Événement",
+      "actor": "Acteur",
+      "target": "Cible",
+      "detail": "Détail",
+      "ip": "IP",
+      "status": "Statut"
+    },
+    "status": {
+      "success": "Réussi",
+      "failed": "Échec"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Êtes-vous sûr de vouloir vous déconnecter ?",
     "invalidPassword": "Mot de passe non valide. Veuillez réessayer.",
@@ -782,6 +803,7 @@
     "accounts": "Comptes",
     "apiDocs": "Documentation API",
     "attachment": "Pièces jointes",
+    "auditLog": "Journal d'audit",
     "auth": "Authentification",
     "dashboard": "Tableau de bord",
     "general": "Général",

@@ -476,6 +476,27 @@
     "zoomIn": "Lähennä",
     "zoomOut": "Loitonna"
   },
+  "auditLog": {
+    "title": "Valvontaloki",
+    "description": "Palvelimen laajuisesti tallennetut tietoturvan kannalta merkitykselliset tapahtumat.",
+    "empty": {
+      "title": "Ei valvontamerkintöjä",
+      "description": "Tietoturvan kannalta merkitykselliset tapahtumat näkyvät tässä, kun niitä tapahtuu."
+    },
+    "columns": {
+      "timestamp": "Aika",
+      "event": "Tapahtuma",
+      "actor": "Toimija",
+      "target": "Kohde",
+      "detail": "Tiedot",
+      "ip": "IP",
+      "status": "Tila"
+    },
+    "status": {
+      "success": "Onnistui",
+      "failed": "Epäonnistui"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Oletko varma, että haluat kirjautua ulos?",
     "invalidPassword": "Virheellinen salasana. Yritä uudelleen.",
@@ -782,6 +803,7 @@
     "accounts": "Tilit",
     "apiDocs": "API-dokumentaatio",
     "attachment": "Liitteet",
+    "auditLog": "Valvontaloki",
     "auth": "Todennus",
     "dashboard": "Kojelauta",
     "general": "Yleinen",
