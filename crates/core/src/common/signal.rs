@@ -38,6 +38,14 @@ impl SignalManager {
     pub fn subscribe(&self) -> broadcast::Receiver<()> {
         self.sender.subscribe()
     }
+
+    /// Broadcast a shutdown signal, triggering the same graceful shutdown as a
+    /// SIGTERM/Ctrl-C. Used to restart the process after staging a restore so
+    /// the staged archive is applied on the next boot (the container's
+    /// `restart: unless-stopped` policy relaunches it).
+    pub fn trigger_shutdown(&self) {
+        let _ = self.sender.send(());
+    }
 }
 
 impl Initialize for SignalManager {

@@ -476,6 +476,65 @@
     "zoomIn": "Inzoomen",
     "zoomOut": "Uitzoomen"
   },
+  "auditLog": {
+    "title": "Auditlogboek",
+    "description": "Beveiligingsrelevante gebeurtenissen die op de hele server worden vastgelegd.",
+    "empty": {
+      "title": "Geen auditvermeldingen",
+      "description": "Beveiligingsrelevante gebeurtenissen verschijnen hier zodra ze plaatsvinden."
+    },
+    "columns": {
+      "timestamp": "Tijd",
+      "event": "Gebeurtenis",
+      "actor": "Actor",
+      "target": "Doel",
+      "detail": "Detail",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Geslaagd",
+      "failed": "Mislukt"
+    }
+  },
+  "backup": {
+    "title": "Back-up",
+    "description": "Maak en herstel volledige serverback-ups.",
+    "loadError": "Kan back-upinstellingen niet laden.",
+    "schedule": {
+      "title": "Geplande back-ups",
+      "desc": "Automatische back-ups worden geconfigureerd via omgevingsvariabelen.",
+      "enabled": "Geplande back-ups",
+      "on": "Ingeschakeld",
+      "off": "Uitgeschakeld",
+      "keepAll": "Alles behouden",
+      "count": "Geplande archieven op schijf",
+      "last": "Laatste geplande back-up",
+      "never": "Nooit"
+    },
+    "create": {
+      "title": "Een back-up maken",
+      "desc": "Download een volledig archief van alle gearchiveerde e-mail, bijlagen, de zoekindex en instellingen.",
+      "button": "Back-up maken en downloaden",
+      "working": "Back-up maken…",
+      "startedTitle": "Back-up gemaakt",
+      "startedDesc": "De back-up is gemaakt en het downloaden begint zo."
+    },
+    "restore": {
+      "title": "Herstellen vanuit een back-up",
+      "desc": "Upload een back-uparchief. Alle huidige gegevens worden vervangen en de server start opnieuw op om het toe te passen.",
+      "warning": "Herstellen vervangt ALLE huidige gegevens en start de server opnieuw op. Versleutelde archieven kunnen alleen worden hersteld met het bijbehorende versleutelingswachtwoord.",
+      "choose": "Archief kiezen…",
+      "uploading": "Uploaden…",
+      "restarting": "De server start opnieuw op om het herstel toe te passen. Herlaad deze pagina zo dadelijk.",
+      "button": "Deze back-up herstellen",
+      "confirmTitle": "Back-up herstellen?",
+      "confirmDesc": "Hiermee worden alle huidige gegevens permanent vervangen door de inhoud van het geüploade archief en start de server opnieuw op. Dit kan niet ongedaan worden gemaakt.",
+      "confirmAction": "Herstellen en opnieuw opstarten",
+      "stagedTitle": "Herstel voorbereid",
+      "stagedDesc": "Het archief is geaccepteerd. De server start opnieuw op om het toe te passen."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Weet u zeker dat u wilt uitloggen?",
     "invalidPassword": "Ongeldig wachtwoord. Probeer het opnieuw.",
@@ -489,7 +548,8 @@
     "username": "Gebruikersnaam",
     "welcome": "Welkom bij mailboxd",
     "youWillNeedToLogInAgain": "U moet opnieuw inloggen om toegang te krijgen tot uw account.",
-    "ssoLogin": "Inloggen met SSO"
+    "ssoLogin": "Inloggen met SSO",
+    "signingIn": "U wordt aangemeld…"
   },
   "command": {
     "dark": "Donker",
@@ -782,6 +842,7 @@
     "accounts": "Accounts",
     "apiDocs": "API Documentatie",
     "attachment": "Bijlagen",
+    "auditLog": "Auditlogboek",
     "auth": "Authenticatie",
     "dashboard": "Dashboard",
     "general": "Algemeen",
@@ -1386,6 +1447,7 @@
         "password_keep": "Laat leeg om het huidige wachtwoord te behouden"
       },
       "removeAvatar": "Avatar verwijderen",
+      "sso_managed_credentials": "Uw wachtwoord wordt beheerd door uw SSO-provider en kan hier niet worden gewijzigd.",
       "section": {
         "accounts": "{{count}} gekoppelde accounts",
         "roles": "Rollen"
@@ -1426,6 +1488,7 @@
     "sidebar": {
       "access": "Toegangsrechten",
       "apiTokens": "API-tokens",
+      "backup": "Back-up",
       "configurations": "Systeemconfiguraties",
       "profile": "Profiel",
       "proxy": "Netwerkproxy"

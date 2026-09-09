@@ -476,6 +476,65 @@
     "zoomIn": "Zoom ind",
     "zoomOut": "Zoom ud"
   },
+  "auditLog": {
+    "title": "Revisionslog",
+    "description": "Sikkerhedsrelevante hændelser registreret på tværs af serveren.",
+    "empty": {
+      "title": "Ingen revisionsposter",
+      "description": "Sikkerhedsrelevante hændelser vises her, når de sker."
+    },
+    "columns": {
+      "timestamp": "Tid",
+      "event": "Hændelse",
+      "actor": "Aktør",
+      "target": "Mål",
+      "detail": "Detalje",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Lykkedes",
+      "failed": "Mislykkedes"
+    }
+  },
+  "backup": {
+    "title": "Sikkerhedskopi",
+    "description": "Opret og gendan fulde serversikkerhedskopier.",
+    "loadError": "Kunne ikke indlæse indstillinger for sikkerhedskopiering.",
+    "schedule": {
+      "title": "Planlagte sikkerhedskopier",
+      "desc": "Automatiske sikkerhedskopier konfigureres via miljøvariabler.",
+      "enabled": "Planlagte sikkerhedskopier",
+      "on": "Aktiveret",
+      "off": "Deaktiveret",
+      "keepAll": "Behold alle",
+      "count": "Planlagte arkiver på disken",
+      "last": "Seneste planlagte sikkerhedskopi",
+      "never": "Aldrig"
+    },
+    "create": {
+      "title": "Opret en sikkerhedskopi",
+      "desc": "Download et fuldt arkiv med al arkiveret post, vedhæftede filer, søgeindeks og indstillinger.",
+      "button": "Opret og download sikkerhedskopi",
+      "working": "Opretter sikkerhedskopi…",
+      "startedTitle": "Sikkerhedskopi oprettet",
+      "startedDesc": "Sikkerhedskopien er oprettet, og din download bør begynde om et øjeblik."
+    },
+    "restore": {
+      "title": "Gendan fra en sikkerhedskopi",
+      "desc": "Upload et sikkerhedskopiarkiv. Alle aktuelle data erstattes, og serveren genstarter for at anvende det.",
+      "warning": "Gendannelse erstatter ALLE aktuelle data og genstarter serveren. Krypterede arkiver kan kun gendannes med den matchende krypteringsadgangskode.",
+      "choose": "Vælg arkiv…",
+      "uploading": "Uploader…",
+      "restarting": "Serveren genstarter for at anvende gendannelsen. Genindlæs venligst denne side om et øjeblik.",
+      "button": "Gendan denne sikkerhedskopi",
+      "confirmTitle": "Gendan sikkerhedskopi?",
+      "confirmDesc": "Dette erstatter permanent alle aktuelle data med indholdet af det uploadede arkiv og genstarter serveren. Dette kan ikke fortrydes.",
+      "confirmAction": "Gendan og genstart",
+      "stagedTitle": "Gendannelse klargjort",
+      "stagedDesc": "Arkivet blev accepteret. Serveren genstarter for at anvende det."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Er du sikker på, du vil logge ud?",
     "invalidPassword": "Ugyldig adgangskode. Prøv venligst igen.",
@@ -489,7 +548,8 @@
     "username": "Brugernavn",
     "welcome": "Velkommen til mailboxd",
     "youWillNeedToLogInAgain": "Du skal logge ind igen for at få adgang til din konto.",
-    "ssoLogin": "Log ind med SSO"
+    "ssoLogin": "Log ind med SSO",
+    "signingIn": "Logger dig ind…"
   },
   "command": {
     "dark": "Mørk",
@@ -782,6 +842,7 @@
     "accounts": "Konti",
     "apiDocs": "API-dokumentation",
     "attachment": "Vedhæftede filer",
+    "auditLog": "Revisionslog",
     "auth": "Godkendelse",
     "dashboard": "Oversigt",
     "general": "Generelt",
@@ -1386,6 +1447,7 @@
         "password_keep": "Lad feltet være tomt for at beholde nuværende adgangskode"
       },
       "removeAvatar": "Fjern avatar",
+      "sso_managed_credentials": "Din adgangskode administreres af din SSO-udbyder og kan ikke ændres her.",
       "section": {
         "accounts": "{{count}} tilknyttede konti",
         "roles": "Roller"
@@ -1426,6 +1488,7 @@
     "sidebar": {
       "access": "Adgang",
       "apiTokens": "API-tokens",
+      "backup": "Sikkerhedskopi",
       "configurations": "Systemkonfigurationer",
       "profile": "Profil",
       "proxy": "Netværksproxy"

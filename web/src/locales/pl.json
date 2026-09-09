@@ -476,6 +476,65 @@
     "zoomIn": "Powiększ",
     "zoomOut": "Pomniejsz"
   },
+  "auditLog": {
+    "title": "Dziennik audytu",
+    "description": "Zdarzenia istotne dla bezpieczeństwa rejestrowane w całym serwerze.",
+    "empty": {
+      "title": "Brak wpisów audytu",
+      "description": "Zdarzenia istotne dla bezpieczeństwa pojawią się tutaj, gdy wystąpią."
+    },
+    "columns": {
+      "timestamp": "Czas",
+      "event": "Zdarzenie",
+      "actor": "Podmiot",
+      "target": "Cel",
+      "detail": "Szczegóły",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Powodzenie",
+      "failed": "Niepowodzenie"
+    }
+  },
+  "backup": {
+    "title": "Kopia zapasowa",
+    "description": "Twórz i przywracaj pełne kopie zapasowe serwera.",
+    "loadError": "Nie udało się wczytać ustawień kopii zapasowej.",
+    "schedule": {
+      "title": "Zaplanowane kopie zapasowe",
+      "desc": "Automatyczne kopie zapasowe konfiguruje się za pomocą zmiennych środowiskowych.",
+      "enabled": "Zaplanowane kopie zapasowe",
+      "on": "Włączone",
+      "off": "Wyłączone",
+      "keepAll": "Zachowaj wszystkie",
+      "count": "Zaplanowane archiwa na dysku",
+      "last": "Ostatnia zaplanowana kopia zapasowa",
+      "never": "Nigdy"
+    },
+    "create": {
+      "title": "Utwórz kopię zapasową",
+      "desc": "Pobierz pełne archiwum całej zarchiwizowanej poczty, załączników, indeksu wyszukiwania i ustawień.",
+      "button": "Utwórz i pobierz kopię zapasową",
+      "working": "Tworzenie kopii zapasowej…",
+      "startedTitle": "Utworzono kopię zapasową",
+      "startedDesc": "Kopia zapasowa została utworzona, a pobieranie rozpocznie się za chwilę."
+    },
+    "restore": {
+      "title": "Przywróć z kopii zapasowej",
+      "desc": "Prześlij archiwum kopii zapasowej. Wszystkie bieżące dane zostaną zastąpione, a serwer uruchomi się ponownie, aby je zastosować.",
+      "warning": "Przywracanie zastępuje WSZYSTKIE bieżące dane i ponownie uruchamia serwer. Zaszyfrowane archiwa można przywrócić tylko przy użyciu pasującego hasła szyfrowania.",
+      "choose": "Wybierz archiwum…",
+      "uploading": "Przesyłanie…",
+      "restarting": "Serwer uruchamia się ponownie, aby zastosować przywracanie. Odśwież tę stronę za chwilę.",
+      "button": "Przywróć tę kopię zapasową",
+      "confirmTitle": "Przywrócić kopię zapasową?",
+      "confirmDesc": "Spowoduje to trwałe zastąpienie wszystkich bieżących danych zawartością przesłanego archiwum i ponowne uruchomienie serwera. Tej operacji nie można cofnąć.",
+      "confirmAction": "Przywróć i uruchom ponownie",
+      "stagedTitle": "Przywracanie przygotowane",
+      "stagedDesc": "Archiwum zostało zaakceptowane. Serwer uruchamia się ponownie, aby je zastosować."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Czy na pewno chcesz się wylogować?",
     "invalidPassword": "Nieprawidłowe hasło, spróbuj ponownie",
@@ -489,7 +548,8 @@
     "username": "Nazwa",
     "welcome": "Witaj w mailboxd",
     "youWillNeedToLogInAgain": "Musisz zalogować się ponownie, aby ponownie móc korzystać.",
-    "ssoLogin": "Zaloguj się przez SSO"
+    "ssoLogin": "Zaloguj się przez SSO",
+    "signingIn": "Logowanie…"
   },
   "command": {
     "dark": "Ciemny",
@@ -782,6 +842,7 @@
     "accounts": "Konta",
     "apiDocs": "Dokumentacja API",
     "attachment": "Załączniki",
+    "auditLog": "Dziennik audytu",
     "auth": "Auth",
     "dashboard": "Panel",
     "general": "Ogólne",
@@ -1386,6 +1447,7 @@
         "password_keep": "Pozostaw puste, aby zachować obecne hasło"
       },
       "removeAvatar": "Usuń awatar",
+      "sso_managed_credentials": "Twoje hasło jest zarządzane przez dostawcę SSO i nie można go tutaj zmienić.",
       "section": {
         "accounts": "Połączone konta: {{count}}",
         "roles": "Role"
@@ -1426,6 +1488,7 @@
     "sidebar": {
       "access": "Uprawnienia dostępu",
       "apiTokens": "Tokeny API",
+      "backup": "Kopia zapasowa",
       "configurations": "Konfiguracja systemu",
       "profile": "Profil",
       "proxy": "Proxy sieciowe"
