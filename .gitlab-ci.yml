@@ -4,7 +4,19 @@ include:
     ref: main
     file: '/.pipeline_defs/.build_image.yml'
 
+# Skip the branch-level gates on the default branch. The identical jobs already
+# ran (and passed) on the source branch's pipeline before the merge, so
+# re-running them on `main` only wastes runner time. Feature/renovate branch
+# pipelines still run them as hard gates. (The image/e2e jobs are already
+# restricted to non-default branches by the teccave `.test_image` template.)
+.skip_on_default_branch:
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+      when: never
+    - when: on_success
+
 cargo_test:
+  extends: .skip_on_default_branch
   stage: unittest
   image: rust:1.98.0-slim-bookworm@sha256:1469a27c125cb5a3aebfa4f4e4665d935b02fb72cc093b2c974b3d740e43f157
   needs: []
@@ -44,6 +56,7 @@ cargo_test:
 # reproducible. Reuses the build cache produced by `cargo_test` to avoid a
 # second full workspace compile.
 migration_tests:
+  extends: .skip_on_default_branch
   stage: unittest
   image: rust:1.98.0-slim-bookworm@sha256:1469a27c125cb5a3aebfa4f4e4665d935b02fb72cc093b2c974b3d740e43f157
   needs:
@@ -78,6 +91,7 @@ migration_tests:
 # gate. Mirrors the web-builder stage of the Dockerfile (same image, same pnpm,
 # same install invocation) so CI and the release build stay in lockstep.
 .web_check:
+  extends: .skip_on_default_branch
   stage: unittest
   image: node:24-alpine3.24@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
   needs: []
