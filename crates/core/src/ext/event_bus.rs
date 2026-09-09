@@ -87,6 +87,14 @@ pub enum Event {
         key: String,
         user: String,
     },
+    /// An administrator created and downloaded a full instance backup.
+    BackupCreated {
+        user: String,
+    },
+    /// An administrator staged a backup archive for restore-on-restart.
+    BackupRestoreStaged {
+        user: String,
+    },
 }
 
 /// A sink that receives every emitted [`Event`].
