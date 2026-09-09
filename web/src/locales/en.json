@@ -491,6 +491,27 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out"
   },
+  "auditLog": {
+    "title": "Audit Log",
+    "description": "Security-relevant events recorded across the server.",
+    "empty": {
+      "title": "No audit entries",
+      "description": "Security-relevant events will appear here as they happen."
+    },
+    "columns": {
+      "timestamp": "Time",
+      "event": "Event",
+      "actor": "Actor",
+      "target": "Target",
+      "detail": "Detail",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Success",
+      "failed": "Failed"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Are you sure you want to log out?",
     "invalidPassword": "Invalid password. Please try again.",
@@ -813,6 +834,7 @@
     "accounts": "Accounts",
     "apiDocs": "API Documentation",
     "attachment": "Attachments",
+    "auditLog": "Audit Log",
     "auth": "Auth",
     "dashboard": "Dashboard",
     "general": "General",

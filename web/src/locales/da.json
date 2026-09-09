@@ -476,6 +476,27 @@
     "zoomIn": "Zoom ind",
     "zoomOut": "Zoom ud"
   },
+  "auditLog": {
+    "title": "Revisionslog",
+    "description": "Sikkerhedsrelevante hændelser registreret på tværs af serveren.",
+    "empty": {
+      "title": "Ingen revisionsposter",
+      "description": "Sikkerhedsrelevante hændelser vises her, når de sker."
+    },
+    "columns": {
+      "timestamp": "Tid",
+      "event": "Hændelse",
+      "actor": "Aktør",
+      "target": "Mål",
+      "detail": "Detalje",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Lykkedes",
+      "failed": "Mislykkedes"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Er du sikker på, du vil logge ud?",
     "invalidPassword": "Ugyldig adgangskode. Prøv venligst igen.",
@@ -782,6 +803,7 @@
     "accounts": "Konti",
     "apiDocs": "API-dokumentation",
     "attachment": "Vedhæftede filer",
+    "auditLog": "Revisionslog",
     "auth": "Godkendelse",
     "dashboard": "Oversigt",
     "general": "Generelt",

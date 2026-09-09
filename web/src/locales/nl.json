@@ -476,6 +476,27 @@
     "zoomIn": "Inzoomen",
     "zoomOut": "Uitzoomen"
   },
+  "auditLog": {
+    "title": "Auditlogboek",
+    "description": "Beveiligingsrelevante gebeurtenissen die op de hele server worden vastgelegd.",
+    "empty": {
+      "title": "Geen auditvermeldingen",
+      "description": "Beveiligingsrelevante gebeurtenissen verschijnen hier zodra ze plaatsvinden."
+    },
+    "columns": {
+      "timestamp": "Tijd",
+      "event": "Gebeurtenis",
+      "actor": "Actor",
+      "target": "Doel",
+      "detail": "Detail",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Geslaagd",
+      "failed": "Mislukt"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Weet u zeker dat u wilt uitloggen?",
     "invalidPassword": "Ongeldig wachtwoord. Probeer het opnieuw.",
@@ -782,6 +803,7 @@
     "accounts": "Accounts",
     "apiDocs": "API Documentatie",
     "attachment": "Bijlagen",
+    "auditLog": "Auditlogboek",
     "auth": "Authenticatie",
     "dashboard": "Dashboard",
     "general": "Algemeen",

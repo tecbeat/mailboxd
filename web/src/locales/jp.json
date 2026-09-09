@@ -476,6 +476,27 @@
     "zoomIn": "拡大",
     "zoomOut": "縮小"
   },
+  "auditLog": {
+    "title": "監査ログ",
+    "description": "サーバー全体で記録されるセキュリティ関連イベント。",
+    "empty": {
+      "title": "監査エントリはありません",
+      "description": "セキュリティ関連イベントは発生時にここに表示されます。"
+    },
+    "columns": {
+      "timestamp": "日時",
+      "event": "イベント",
+      "actor": "実行者",
+      "target": "対象",
+      "detail": "詳細",
+      "ip": "IP",
+      "status": "ステータス"
+    },
+    "status": {
+      "success": "成功",
+      "failed": "失敗"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "ログアウトしてもよろしいですか？",
     "invalidPassword": "パスワードが無効です。もう一度お試しください。",
@@ -782,6 +803,7 @@
     "accounts": "アカウント",
     "apiDocs": "APIドキュメント",
     "attachment": "添付ファイル",
+    "auditLog": "監査ログ",
     "auth": "認証",
     "dashboard": "ダッシュボード",
     "general": "一般",

@@ -476,6 +476,27 @@
     "zoomIn": "Powiększ",
     "zoomOut": "Pomniejsz"
   },
+  "auditLog": {
+    "title": "Dziennik audytu",
+    "description": "Zdarzenia istotne dla bezpieczeństwa rejestrowane w całym serwerze.",
+    "empty": {
+      "title": "Brak wpisów audytu",
+      "description": "Zdarzenia istotne dla bezpieczeństwa pojawią się tutaj, gdy wystąpią."
+    },
+    "columns": {
+      "timestamp": "Czas",
+      "event": "Zdarzenie",
+      "actor": "Podmiot",
+      "target": "Cel",
+      "detail": "Szczegóły",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Powodzenie",
+      "failed": "Niepowodzenie"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Czy na pewno chcesz się wylogować?",
     "invalidPassword": "Nieprawidłowe hasło, spróbuj ponownie",
@@ -782,6 +803,7 @@
     "accounts": "Konta",
     "apiDocs": "Dokumentacja API",
     "attachment": "Załączniki",
+    "auditLog": "Dziennik audytu",
     "auth": "Auth",
     "dashboard": "Panel",
     "general": "Ogólne",

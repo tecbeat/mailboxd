@@ -476,6 +476,27 @@
     "zoomIn": "Zoom inn",
     "zoomOut": "Zoom ut"
   },
+  "auditLog": {
+    "title": "Revisjonslogg",
+    "description": "Sikkerhetsrelevante hendelser registrert på tvers av serveren.",
+    "empty": {
+      "title": "Ingen revisjonsoppføringer",
+      "description": "Sikkerhetsrelevante hendelser vises her når de skjer."
+    },
+    "columns": {
+      "timestamp": "Tid",
+      "event": "Hendelse",
+      "actor": "Aktør",
+      "target": "Mål",
+      "detail": "Detalj",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Vellykket",
+      "failed": "Mislyktes"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Er du sikker på at du vil logge ut?",
     "invalidPassword": "Ugyldig passord. Vennligst prøv igjen.",
@@ -782,6 +803,7 @@
     "accounts": "Kontoer",
     "apiDocs": "API-dokumentasjon",
     "attachment": "Vedlegg",
+    "auditLog": "Revisjonslogg",
     "auth": "Autentisering",
     "dashboard": "Oversikt",
     "general": "Generelt",

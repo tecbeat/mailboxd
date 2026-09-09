@@ -476,6 +476,27 @@
     "zoomIn": "Acercar",
     "zoomOut": "Alejar"
   },
+  "auditLog": {
+    "title": "Registro de auditoría",
+    "description": "Eventos relevantes para la seguridad registrados en todo el servidor.",
+    "empty": {
+      "title": "Sin entradas de auditoría",
+      "description": "Los eventos relevantes para la seguridad aparecerán aquí cuando ocurran."
+    },
+    "columns": {
+      "timestamp": "Hora",
+      "event": "Evento",
+      "actor": "Actor",
+      "target": "Objetivo",
+      "detail": "Detalle",
+      "ip": "IP",
+      "status": "Estado"
+    },
+    "status": {
+      "success": "Correcto",
+      "failed": "Fallido"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "¿Estás seguro de que quieres cerrar sesión?",
     "invalidPassword": "Contraseña inválida. Inténtalo de nuevo.",
@@ -782,6 +803,7 @@
     "accounts": "Cuentas",
     "apiDocs": "Documentación API",
     "attachment": "Archivos adjuntos",
+    "auditLog": "Registro de auditoría",
     "auth": "Autenticación",
     "dashboard": "Panel de control",
     "general": "General",

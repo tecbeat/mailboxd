@@ -476,6 +476,27 @@
     "zoomIn": "확대",
     "zoomOut": "축소"
   },
+  "auditLog": {
+    "title": "감사 로그",
+    "description": "서버 전체에서 기록되는 보안 관련 이벤트입니다.",
+    "empty": {
+      "title": "감사 항목 없음",
+      "description": "보안 관련 이벤트가 발생하면 여기에 표시됩니다."
+    },
+    "columns": {
+      "timestamp": "시간",
+      "event": "이벤트",
+      "actor": "행위자",
+      "target": "대상",
+      "detail": "세부 정보",
+      "ip": "IP",
+      "status": "상태"
+    },
+    "status": {
+      "success": "성공",
+      "failed": "실패"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "정말로 로그아웃하시겠습니까?",
     "invalidPassword": "비밀번호가 유효하지 않습니다. 다시 시도해 주세요.",
@@ -782,6 +803,7 @@
     "accounts": "계정",
     "apiDocs": "API 문서",
     "attachment": "첨부파일",
+    "auditLog": "감사 로그",
     "auth": "인증",
     "dashboard": "대시보드",
     "general": "일반",
