@@ -426,6 +426,16 @@ pub struct Settings {
         help = "Maximum per-file size in MB for PST uploads via the web UI"
     )]
     pub mailboxd_web_pst_upload_limit_mb: u64,
+
+    /// Number of days to keep audit-log entries before they are pruned.
+    /// A value of 0 disables cleanup and keeps entries indefinitely.
+    #[clap(
+        long,
+        default_value = "90",
+        env,
+        help = "Audit-log retention period in days (0 keeps entries indefinitely)"
+    )]
+    pub mailboxd_audit_retention_days: u64,
 }
 
 impl Settings {

@@ -20,6 +20,7 @@
 
 use access_token::AccessTokenApi;
 use account::AccountApi;
+use audit::AuditApi;
 use auto_config::AutoConfigApi;
 use mailboxd_core::mailboxd_version;
 use mailbox::MailBoxApi;
@@ -31,6 +32,7 @@ use system::SystemApi;
 
 pub mod access_token;
 pub mod account;
+pub mod audit;
 pub mod attachment;
 pub mod auto_config;
 pub mod import;
@@ -44,6 +46,7 @@ pub mod users;
 pub enum ApiTags {
     AccessToken,
     Attachment,
+    Audit,
     AutoConfig,
     Account,
     Mailbox,
@@ -57,6 +60,7 @@ pub enum ApiTags {
 type RustMailOpenApi = (
     AccessTokenApi,
     AttachmentApi,
+    AuditApi,
     AutoConfigApi,
     AccountApi,
     SystemApi,
@@ -72,6 +76,7 @@ pub fn create_openapi_service() -> OpenApiService<RustMailOpenApi, ()> {
         (
             AccessTokenApi,
             AttachmentApi,
+            AuditApi,
             AutoConfigApi,
             AccountApi,
             SystemApi,
