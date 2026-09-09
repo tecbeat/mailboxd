@@ -24,6 +24,7 @@ use crate::rest::ApiResult;
 use mailboxd_core::account::migration::AccountModel;
 use mailboxd_core::common::paginated::DataPage;
 use mailboxd_core::error::code::ErrorCode;
+use mailboxd_core::ext::event_bus::{emit, Event};
 use mailboxd_core::message::append::restore_emails;
 use mailboxd_core::message::append::RestoreMessagesRequest;
 use mailboxd_core::message::attachment::retrieve_attachment_content;
@@ -69,8 +70,17 @@ impl MessageApi {
         for account_id in request.keys() {
             context.require_permission(Some(*account_id), Permission::DATA_DELETE)?;
         }
-        let result = delete_messages_impl(request).await;
+        let user = context.user.username.clone();
+        let result = delete_messages_impl(request.clone()).await;
         result?;
+        for (account_id, envelope_ids) in &request {
+            for envelope_id in envelope_ids {
+                emit(Event::EmailDeleted {
+                    email_id: format!("{account_id}/{envelope_id}"),
+                    user: user.clone(),
+                });
+            }
+        }
         Ok(())
     }
 
@@ -92,7 +102,12 @@ impl MessageApi {
             } else {
                 Some(context.user.account_access_map.keys().cloned().collect())
             };
+        let query = serde_json::to_string(&payload.0).unwrap_or_default();
         let result = search_messages_impl(authorized_ids, payload.0)?;
+        emit(Event::SearchPerformed {
+            query,
+            user: context.user.username.clone(),
+        });
         Ok(Json(result))
     }
 
@@ -147,7 +162,12 @@ impl MessageApi {
         let block_remote = block_remote_content.0.unwrap_or(false);
         context.require_permission(Some(account_id), Permission::DATA_READ)?;
         let envelope_id = envelope_id.0.trim().to_string();
-        let content = retrieve_email_content(account_id, envelope_id, block_remote)?;
+        let content = retrieve_email_content(account_id, envelope_id.clone(), block_remote)?;
+        emit(Event::EmailViewed {
+            email_id: format!("{account_id}/{envelope_id}"),
+            user: context.user.username.clone(),
+            ip: None,
+        });
         Ok(Json(content))
     }
 
@@ -276,6 +296,11 @@ impl MessageApi {
         context.require_permission(Some(account_id), Permission::DATA_READ)?;
         let content_hash = content_hash.0.trim();
         let reader = retrieve_attachment_content(account_id, envelope_id.clone(), content_hash)?;
+        emit(Event::AttachmentDownloaded {
+            email_id: format!("{account_id}/{envelope_id}"),
+            content_hash: content_hash.to_string(),
+            user: context.user.username.clone(),
+        });
         let body = Body::from_async_read(reader);
         let attachment = Attachment::new(body)
             .attachment_type(AttachmentType::Attachment)

@@ -23,6 +23,7 @@ use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
 use mailboxd_core::dashboard::DashboardStats;
 use mailboxd_core::error::code::ErrorCode;
+use mailboxd_core::ext::event_bus::{emit, Event};
 use mailboxd_core::raise_error;
 use mailboxd_core::settings::cli::SETTINGS;
 use mailboxd_core::settings::proxy::{Proxy, ProxyTestResult};
@@ -92,6 +93,10 @@ impl SystemApi {
         context.require_permission(None, Permission::ROOT)?;
         let id = id.0;
         Proxy::delete(id)?;
+        emit(Event::SettingsChanged {
+            key: format!("proxy.remove:{id}"),
+            user: context.user.username.clone(),
+        });
         Ok(())
     }
 
@@ -125,6 +130,10 @@ impl SystemApi {
         let url = url.0;
         let entity = Proxy::new(url.clone());
         entity.save()?;
+        emit(Event::SettingsChanged {
+            key: "proxy.create".to_string(),
+            user: context.user.username.clone(),
+        });
         Ok(())
     }
 
@@ -140,6 +149,10 @@ impl SystemApi {
         let id = id.0;
         let url = url.0;
         Proxy::update(id, url.clone())?;
+        emit(Event::SettingsChanged {
+            key: format!("proxy.update:{id}"),
+            user: context.user.username.clone(),
+        });
         Ok(())
     }
 

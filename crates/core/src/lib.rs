@@ -1,4 +1,5 @@
 pub mod account;
+pub mod audit;
 pub mod ext;
 pub mod admin;
 pub mod autoconfig;

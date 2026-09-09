@@ -18,6 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::audit::task::AuditCleanTask;
 use crate::common::periodic::TaskHandle;
 use crate::context::MailboxdTask;
 use crate::oauth2::{refresh::OAuth2RefreshTask, task::OAuth2CleanTask};
@@ -34,6 +35,7 @@ impl PeriodicTasks {
         tasks.push(OAuth2CleanTask::start());
         tasks.push(OAuth2RefreshTask::start());
         tasks.push(OidcCleanTask::start());
+        tasks.push(AuditCleanTask::start());
         tasks.push(DedupTask::start());
         Self { tasks }
     }

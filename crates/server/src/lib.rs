@@ -150,6 +150,7 @@ async fn initialize() -> MailboxdResult<()> {
     UserManager::initialize().await?;
     MailboxdTls::initialize().await?;
     MailboxdContext::initialize().await?;
+    mailboxd_core::audit::install();
     LazyLock::force(&BLOB_MANAGER);
     LazyLock::force(&ENVELOPE_MANAGER);
     LazyLock::force(&ATTACHMENT_MANAGER);
