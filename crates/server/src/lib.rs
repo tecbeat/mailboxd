@@ -151,6 +151,7 @@ async fn initialize() -> MailboxdResult<()> {
     MailboxdTls::initialize().await?;
     MailboxdContext::initialize().await?;
     mailboxd_core::audit::install();
+    mailboxd_core::ext::default_extractor::install();
     LazyLock::force(&BLOB_MANAGER);
     LazyLock::force(&ENVELOPE_MANAGER);
     LazyLock::force(&ATTACHMENT_MANAGER);

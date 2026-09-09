@@ -31,6 +31,7 @@ repo:
     Fetch scoping: "Filter downloads by date range, mailbox folder limit or specific folder names. Optional per-account SOCKS5 proxy routing."
     Auto-configuration: "Discover IMAP server settings automatically from an email domain."
     Full-text search: "Tantivy indices for envelopes and attachments with Zstd compression. Optimised for European languages."
+    Attachment text extraction: "Attachment contents are extracted and full-text indexed out of the box: PDF, Word (docx), PowerPoint (pptx), spreadsheets (xls/xlsx/ods), OpenDocument (odt/odp), RTF and plain text. Pure-Rust parsers, no external tools required. Attachments above 10 MiB and legacy binary Office formats (doc/ppt) are skipped; OCR of image-only PDFs is out of scope."
     Advanced filters: "Date range, size range, attachment presence, file type, content category and facet-based tag combinations."
     Thread grouping: "Reconstruct and view complete conversation threads across folders."
     Attachment search: "Browse and filter attachments by sender, file type, size and other attachment properties."
