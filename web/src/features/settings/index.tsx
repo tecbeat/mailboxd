@@ -22,7 +22,7 @@
 import { Outlet } from '@tanstack/react-router'
 import { Main } from '@/components/layout/main'
 import { SidebarNav } from '@/components/layout/sidebar-nav'
-import { KeyRound, Palette, Settings as SettingsIcon, ShieldCheck, UserCog, Waypoints } from 'lucide-react'
+import { DatabaseBackup, KeyRound, Palette, Settings as SettingsIcon, ShieldCheck, UserCog, Waypoints } from 'lucide-react'
 import { FixedHeader } from '@/components/layout/fixed-header'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useTranslation } from 'react-i18next'
@@ -62,6 +62,12 @@ export default function Settings() {
       title: t('settings.sidebar.configurations'),
       icon: <SettingsIcon size={18} />,
       href: '/settings/configurations',
+      visible: canGlobal('system:root'),
+    },
+    {
+      title: t('settings.sidebar.backup'),
+      icon: <DatabaseBackup size={18} />,
+      href: '/settings/backup',
       visible: canGlobal('system:root'),
     },
   ].filter(item => item.visible !== false)

@@ -18,9 +18,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use mailboxd_core::ext::event_bus::{emit, Event};
 use mailboxd_core::users::UserModel;
-use poem::web::Json;
-use poem::{handler, IntoResponse, Request, Response};
+use poem::web::{Json, RealIp};
+use poem::{handler, FromRequest, IntoResponse, Request, Response};
 use serde::Deserialize;
 use tracing::error;
 
@@ -35,9 +36,19 @@ pub struct LoginPayload {
 /// Accepts a plain text password and returns the `root_token`
 /// on successful authentication.
 #[handler]
-pub async fn login(payload: Json<LoginPayload>, _req: &Request) -> Response {
+pub async fn login(payload: Json<LoginPayload>, req: &Request) -> Response {
+    let ip = RealIp::from_request_without_body(req)
+        .await
+        .ok()
+        .and_then(|real_ip| real_ip.0);
+    let username = payload.0.username.clone();
     match UserModel::authenticate_user(payload.0.username, payload.0.password) {
         Ok(result) => {
+            emit(Event::UserLoggedIn {
+                user: username,
+                ip,
+                success: result.success,
+            });
             match serde_json::to_string(&result) {
                 Ok(json_string) => Response::builder()
                     .status(http::StatusCode::OK)
@@ -51,6 +62,11 @@ pub async fn login(payload: Json<LoginPayload>, _req: &Request) -> Response {
             }
         }
         Err(e) => {
+            emit(Event::UserLoggedIn {
+                user: username,
+                ip,
+                success: false,
+            });
             error!("Authentication failed with system error: {:?}", e);
             Response::builder()
                 .status(http::StatusCode::INTERNAL_SERVER_ERROR)

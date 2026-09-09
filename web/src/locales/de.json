@@ -476,6 +476,65 @@
     "zoomIn": "Vergrößern",
     "zoomOut": "Verkleinern"
   },
+  "auditLog": {
+    "title": "Audit-Log",
+    "description": "Sicherheitsrelevante Ereignisse, die serverweit aufgezeichnet werden.",
+    "empty": {
+      "title": "Keine Audit-Einträge",
+      "description": "Sicherheitsrelevante Ereignisse erscheinen hier, sobald sie auftreten."
+    },
+    "columns": {
+      "timestamp": "Zeit",
+      "event": "Ereignis",
+      "actor": "Akteur",
+      "target": "Ziel",
+      "detail": "Detail",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Erfolgreich",
+      "failed": "Fehlgeschlagen"
+    }
+  },
+  "backup": {
+    "title": "Sicherung",
+    "description": "Vollständige Server-Sicherungen erstellen und wiederherstellen.",
+    "loadError": "Sicherungseinstellungen konnten nicht geladen werden.",
+    "schedule": {
+      "title": "Geplante Sicherungen",
+      "desc": "Automatische Sicherungen werden über Umgebungsvariablen konfiguriert.",
+      "enabled": "Geplante Sicherungen",
+      "on": "Aktiviert",
+      "off": "Deaktiviert",
+      "keepAll": "Alle behalten",
+      "count": "Geplante Archive auf dem Datenträger",
+      "last": "Letzte geplante Sicherung",
+      "never": "Nie"
+    },
+    "create": {
+      "title": "Sicherung erstellen",
+      "desc": "Laden Sie ein vollständiges Archiv aller archivierten E-Mails, Anhänge, des Suchindex und der Einstellungen herunter.",
+      "button": "Sicherung erstellen & herunterladen",
+      "working": "Sicherung wird erstellt…",
+      "startedTitle": "Sicherung erstellt",
+      "startedDesc": "Die Sicherung wurde erstellt und der Download sollte in Kürze beginnen."
+    },
+    "restore": {
+      "title": "Aus einer Sicherung wiederherstellen",
+      "desc": "Laden Sie ein Sicherungsarchiv hoch. Alle aktuellen Daten werden ersetzt und der Server startet neu, um sie anzuwenden.",
+      "warning": "Beim Wiederherstellen werden ALLE aktuellen Daten ersetzt und der Server startet neu. Verschlüsselte Archive können nur mit dem passenden Verschlüsselungspasswort wiederhergestellt werden.",
+      "choose": "Archiv auswählen…",
+      "uploading": "Wird hochgeladen…",
+      "restarting": "Der Server startet neu, um die Wiederherstellung anzuwenden. Bitte laden Sie diese Seite in Kürze neu.",
+      "button": "Diese Sicherung wiederherstellen",
+      "confirmTitle": "Sicherung wiederherstellen?",
+      "confirmDesc": "Dadurch werden alle aktuellen Daten dauerhaft durch den Inhalt des hochgeladenen Archivs ersetzt und der Server startet neu. Dies kann nicht rückgängig gemacht werden.",
+      "confirmAction": "Wiederherstellen und neu starten",
+      "stagedTitle": "Wiederherstellung vorgemerkt",
+      "stagedDesc": "Das Archiv wurde akzeptiert. Der Server startet neu, um es anzuwenden."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Sind Sie sicher, dass Sie sich abmelden möchten?",
     "invalidPassword": "Ungültiges Passwort. Bitte versuchen Sie es erneut.",
@@ -489,7 +548,8 @@
     "username": "Benutzername",
     "welcome": "Willkommen bei mailboxd",
     "youWillNeedToLogInAgain": "Sie müssen sich erneut anmelden, um auf Ihr Konto zuzugreifen.",
-    "ssoLogin": "Mit SSO anmelden"
+    "ssoLogin": "Mit SSO anmelden",
+    "signingIn": "Sie werden angemeldet…"
   },
   "command": {
     "dark": "Dunkel",
@@ -782,6 +842,7 @@
     "accounts": "Konten",
     "apiDocs": "API-Dokumentation",
     "attachment": "Anhänge",
+    "auditLog": "Audit-Log",
     "auth": "Authentifizierung",
     "dashboard": "Dashboard",
     "general": "Allgemein",
@@ -1386,6 +1447,7 @@
         "password_keep": "Leer lassen, um das aktuelle Passwort beizubehalten"
       },
       "removeAvatar": "Avatar entfernen",
+      "sso_managed_credentials": "Ihr Passwort wird von Ihrem SSO-Anbieter verwaltet und kann hier nicht geändert werden.",
       "section": {
         "accounts": "{{count}} verknüpfte Konten",
         "roles": "Rollen"
@@ -1426,6 +1488,7 @@
     "sidebar": {
       "access": "Zugriffsrechte",
       "apiTokens": "API-Token",
+      "backup": "Sicherung",
       "configurations": "Systemkonfigurationen",
       "profile": "Profil",
       "proxy": "Netzwerk-Proxy"

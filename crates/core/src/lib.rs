@@ -1,4 +1,6 @@
 pub mod account;
+pub mod audit;
+pub mod backup;
 pub mod ext;
 pub mod admin;
 pub mod autoconfig;

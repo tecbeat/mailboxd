@@ -476,6 +476,65 @@
     "zoomIn": "Zooma in",
     "zoomOut": "Zooma ut"
   },
+  "auditLog": {
+    "title": "Granskningslogg",
+    "description": "Säkerhetsrelevanta händelser som registreras i hela servern.",
+    "empty": {
+      "title": "Inga granskningsposter",
+      "description": "Säkerhetsrelevanta händelser visas här när de inträffar."
+    },
+    "columns": {
+      "timestamp": "Tid",
+      "event": "Händelse",
+      "actor": "Aktör",
+      "target": "Mål",
+      "detail": "Detalj",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Lyckades",
+      "failed": "Misslyckades"
+    }
+  },
+  "backup": {
+    "title": "Säkerhetskopiering",
+    "description": "Skapa och återställ fullständiga serversäkerhetskopior.",
+    "loadError": "Det gick inte att läsa in inställningarna för säkerhetskopiering.",
+    "schedule": {
+      "title": "Schemalagda säkerhetskopior",
+      "desc": "Automatiska säkerhetskopior konfigureras via miljövariabler.",
+      "enabled": "Schemalagda säkerhetskopior",
+      "on": "Aktiverad",
+      "off": "Inaktiverad",
+      "keepAll": "Behåll alla",
+      "count": "Schemalagda arkiv på disken",
+      "last": "Senaste schemalagda säkerhetskopia",
+      "never": "Aldrig"
+    },
+    "create": {
+      "title": "Skapa en säkerhetskopia",
+      "desc": "Ladda ner ett fullständigt arkiv med all arkiverad e-post, bilagor, sökindex och inställningar.",
+      "button": "Skapa och ladda ner säkerhetskopia",
+      "working": "Skapar säkerhetskopia…",
+      "startedTitle": "Säkerhetskopia skapad",
+      "startedDesc": "Säkerhetskopian har skapats och nedladdningen bör börja snart."
+    },
+    "restore": {
+      "title": "Återställ från en säkerhetskopia",
+      "desc": "Ladda upp ett säkerhetskopiearkiv. All nuvarande data ersätts och servern startar om för att tillämpa det.",
+      "warning": "Återställning ersätter ALL nuvarande data och startar om servern. Krypterade arkiv kan endast återställas med matchande krypteringslösenord.",
+      "choose": "Välj arkiv…",
+      "uploading": "Laddar upp…",
+      "restarting": "Servern startar om för att tillämpa återställningen. Ladda om den här sidan om en stund.",
+      "button": "Återställ denna säkerhetskopia",
+      "confirmTitle": "Återställa säkerhetskopia?",
+      "confirmDesc": "Detta ersätter permanent all nuvarande data med innehållet i det uppladdade arkivet och startar om servern. Detta kan inte ångras.",
+      "confirmAction": "Återställ och starta om",
+      "stagedTitle": "Återställning förberedd",
+      "stagedDesc": "Arkivet accepterades. Servern startar om för att tillämpa det."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Är du säker på att du vill logga ut?",
     "invalidPassword": "Ogiltigt lösenord. Var god försök igen.",
@@ -489,7 +548,8 @@
     "username": "Användarnamn",
     "welcome": "Välkommen till mailboxd",
     "youWillNeedToLogInAgain": "Du måste logga in igen för att komma åt ditt konto.",
-    "ssoLogin": "Logga in med SSO"
+    "ssoLogin": "Logga in med SSO",
+    "signingIn": "Loggar in dig…"
   },
   "command": {
     "dark": "Mörkt",
@@ -782,6 +842,7 @@
     "accounts": "Konton",
     "apiDocs": "API-dokumentation",
     "attachment": "Bilagor",
+    "auditLog": "Granskningslogg",
     "auth": "Autentisering",
     "dashboard": "Översikt",
     "general": "Allmänt",
@@ -1386,6 +1447,7 @@
         "password_keep": "Lämna tomt för att behålla nuvarande lösenord"
       },
       "removeAvatar": "Ta bort avatar",
+      "sso_managed_credentials": "Ditt lösenord hanteras av din SSO-leverantör och kan inte ändras här.",
       "section": {
         "accounts": "{{count}} länkade konton",
         "roles": "Roller"
@@ -1426,6 +1488,7 @@
     "sidebar": {
       "access": "Behörigheter",
       "apiTokens": "API-tokens",
+      "backup": "Säkerhetskopiering",
       "configurations": "Systemkonfigurationer",
       "profile": "Profil",
       "proxy": "Nätverksproxy"

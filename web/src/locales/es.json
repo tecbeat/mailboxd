@@ -476,6 +476,65 @@
     "zoomIn": "Acercar",
     "zoomOut": "Alejar"
   },
+  "auditLog": {
+    "title": "Registro de auditoría",
+    "description": "Eventos relevantes para la seguridad registrados en todo el servidor.",
+    "empty": {
+      "title": "Sin entradas de auditoría",
+      "description": "Los eventos relevantes para la seguridad aparecerán aquí cuando ocurran."
+    },
+    "columns": {
+      "timestamp": "Hora",
+      "event": "Evento",
+      "actor": "Actor",
+      "target": "Objetivo",
+      "detail": "Detalle",
+      "ip": "IP",
+      "status": "Estado"
+    },
+    "status": {
+      "success": "Correcto",
+      "failed": "Fallido"
+    }
+  },
+  "backup": {
+    "title": "Copia de seguridad",
+    "description": "Crea y restaura copias de seguridad completas del servidor.",
+    "loadError": "No se pudieron cargar los ajustes de copia de seguridad.",
+    "schedule": {
+      "title": "Copias de seguridad programadas",
+      "desc": "Las copias de seguridad automáticas se configuran mediante variables de entorno.",
+      "enabled": "Copias de seguridad programadas",
+      "on": "Activadas",
+      "off": "Desactivadas",
+      "keepAll": "Conservar todas",
+      "count": "Archivos programados en disco",
+      "last": "Última copia de seguridad programada",
+      "never": "Nunca"
+    },
+    "create": {
+      "title": "Crear una copia de seguridad",
+      "desc": "Descarga un archivo completo de todo el correo archivado, los adjuntos, el índice de búsqueda y la configuración.",
+      "button": "Crear y descargar copia de seguridad",
+      "working": "Creando copia de seguridad…",
+      "startedTitle": "Copia de seguridad creada",
+      "startedDesc": "La copia de seguridad se ha creado y la descarga debería comenzar en breve."
+    },
+    "restore": {
+      "title": "Restaurar desde una copia de seguridad",
+      "desc": "Sube un archivo de copia de seguridad. Todos los datos actuales se reemplazan y el servidor se reinicia para aplicarlo.",
+      "warning": "Restaurar reemplaza TODOS los datos actuales y reinicia el servidor. Los archivos cifrados solo se pueden restaurar con la contraseña de cifrado correspondiente.",
+      "choose": "Elegir archivo…",
+      "uploading": "Subiendo…",
+      "restarting": "El servidor se está reiniciando para aplicar la restauración. Vuelve a cargar esta página en un momento.",
+      "button": "Restaurar esta copia de seguridad",
+      "confirmTitle": "¿Restaurar copia de seguridad?",
+      "confirmDesc": "Esto reemplaza permanentemente todos los datos actuales por el contenido del archivo subido y reinicia el servidor. No se puede deshacer.",
+      "confirmAction": "Restaurar y reiniciar",
+      "stagedTitle": "Restauración preparada",
+      "stagedDesc": "Se aceptó el archivo. El servidor se está reiniciando para aplicarlo."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "¿Estás seguro de que quieres cerrar sesión?",
     "invalidPassword": "Contraseña inválida. Inténtalo de nuevo.",
@@ -489,7 +548,8 @@
     "username": "Nombre de usuario",
     "welcome": "Bienvenido a mailboxd",
     "youWillNeedToLogInAgain": "Necesitarás iniciar sesión de nuevo para acceder a tu cuenta.",
-    "ssoLogin": "Iniciar sesión con SSO"
+    "ssoLogin": "Iniciar sesión con SSO",
+    "signingIn": "Iniciando sesión…"
   },
   "command": {
     "dark": "Oscuro",
@@ -782,6 +842,7 @@
     "accounts": "Cuentas",
     "apiDocs": "Documentación API",
     "attachment": "Archivos adjuntos",
+    "auditLog": "Registro de auditoría",
     "auth": "Autenticación",
     "dashboard": "Panel de control",
     "general": "General",
@@ -1386,6 +1447,7 @@
         "password_keep": "Déjelo en blanco para mantener la contraseña actual"
       },
       "removeAvatar": "Eliminar avatar",
+      "sso_managed_credentials": "Tu contraseña es gestionada por tu proveedor de SSO y no se puede cambiar aquí.",
       "section": {
         "accounts": "{{count}} cuentas vinculadas",
         "roles": "Roles"
@@ -1426,6 +1488,7 @@
     "sidebar": {
       "access": "Permisos de acceso",
       "apiTokens": "Tokens API",
+      "backup": "Copia de seguridad",
       "configurations": "Configuraciones del sistema",
       "profile": "Perfil",
       "proxy": "Proxy de red"

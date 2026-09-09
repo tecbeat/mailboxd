@@ -476,6 +476,65 @@
     "zoomIn": "Zoom inn",
     "zoomOut": "Zoom ut"
   },
+  "auditLog": {
+    "title": "Revisjonslogg",
+    "description": "Sikkerhetsrelevante hendelser registrert på tvers av serveren.",
+    "empty": {
+      "title": "Ingen revisjonsoppføringer",
+      "description": "Sikkerhetsrelevante hendelser vises her når de skjer."
+    },
+    "columns": {
+      "timestamp": "Tid",
+      "event": "Hendelse",
+      "actor": "Aktør",
+      "target": "Mål",
+      "detail": "Detalj",
+      "ip": "IP",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Vellykket",
+      "failed": "Mislyktes"
+    }
+  },
+  "backup": {
+    "title": "Sikkerhetskopi",
+    "description": "Opprett og gjenopprett fullstendige serversikkerhetskopier.",
+    "loadError": "Kunne ikke laste innstillinger for sikkerhetskopiering.",
+    "schedule": {
+      "title": "Planlagte sikkerhetskopier",
+      "desc": "Automatiske sikkerhetskopier konfigureres via miljøvariabler.",
+      "enabled": "Planlagte sikkerhetskopier",
+      "on": "Aktivert",
+      "off": "Deaktivert",
+      "keepAll": "Behold alle",
+      "count": "Planlagte arkiver på disken",
+      "last": "Siste planlagte sikkerhetskopi",
+      "never": "Aldri"
+    },
+    "create": {
+      "title": "Opprett en sikkerhetskopi",
+      "desc": "Last ned et fullstendig arkiv med all arkivert e-post, vedlegg, søkeindeks og innstillinger.",
+      "button": "Opprett og last ned sikkerhetskopi",
+      "working": "Oppretter sikkerhetskopi…",
+      "startedTitle": "Sikkerhetskopi opprettet",
+      "startedDesc": "Sikkerhetskopien er opprettet, og nedlastingen bør starte snart."
+    },
+    "restore": {
+      "title": "Gjenopprett fra en sikkerhetskopi",
+      "desc": "Last opp et sikkerhetskopiarkiv. Alle gjeldende data erstattes, og serveren starter på nytt for å ta det i bruk.",
+      "warning": "Gjenoppretting erstatter ALLE gjeldende data og starter serveren på nytt. Krypterte arkiver kan bare gjenopprettes med tilhørende krypteringspassord.",
+      "choose": "Velg arkiv…",
+      "uploading": "Laster opp…",
+      "restarting": "Serveren starter på nytt for å ta i bruk gjenopprettingen. Last inn denne siden på nytt om et øyeblikk.",
+      "button": "Gjenopprett denne sikkerhetskopien",
+      "confirmTitle": "Gjenopprette sikkerhetskopi?",
+      "confirmDesc": "Dette erstatter permanent alle gjeldende data med innholdet i det opplastede arkivet og starter serveren på nytt. Dette kan ikke angres.",
+      "confirmAction": "Gjenopprett og start på nytt",
+      "stagedTitle": "Gjenoppretting klargjort",
+      "stagedDesc": "Arkivet ble godtatt. Serveren starter på nytt for å ta det i bruk."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Er du sikker på at du vil logge ut?",
     "invalidPassword": "Ugyldig passord. Vennligst prøv igjen.",
@@ -489,7 +548,8 @@
     "username": "Brukernavn",
     "welcome": "Velkommen til mailboxd",
     "youWillNeedToLogInAgain": "Du må logge inn på nytt for å få tilgang til kontoen din.",
-    "ssoLogin": "Logg inn med SSO"
+    "ssoLogin": "Logg inn med SSO",
+    "signingIn": "Logger deg inn…"
   },
   "command": {
     "dark": "Mørk",
@@ -782,6 +842,7 @@
     "accounts": "Kontoer",
     "apiDocs": "API-dokumentasjon",
     "attachment": "Vedlegg",
+    "auditLog": "Revisjonslogg",
     "auth": "Autentisering",
     "dashboard": "Oversikt",
     "general": "Generelt",
@@ -1386,6 +1447,7 @@
         "password_keep": "La stå tomt for å beholde nåværende passord"
       },
       "removeAvatar": "Fjern avatar",
+      "sso_managed_credentials": "Passordet ditt administreres av SSO-leverandøren din og kan ikke endres her.",
       "section": {
         "accounts": "{{count}} tilknyttede kontoer",
         "roles": "Roller"
@@ -1426,6 +1488,7 @@
     "sidebar": {
       "access": "Tilgang",
       "apiTokens": "API-tokener",
+      "backup": "Sikkerhetskopi",
       "configurations": "Systemkonfigurasjoner",
       "profile": "Profil",
       "proxy": "Nettverksproxy"

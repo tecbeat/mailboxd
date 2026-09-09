@@ -23,6 +23,7 @@ use std::collections::BTreeMap;
 use crate::common::auth::WrappedContext;
 use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
+use mailboxd_core::ext::event_bus::{emit, Event};
 use mailboxd_core::token::AccessTokenModel;
 use mailboxd_core::users::minimal::MinimalUser;
 use mailboxd_core::users::payload::{
@@ -56,6 +57,10 @@ impl UsersApi {
         let id = id.0;
         context.require_permission(None, Permission::USER_MANAGE)?;
         UserRole::delete(id)?;
+        emit(Event::RoleRemoved {
+            removed_by: context.user.username.clone(),
+            role_name: format!("id:{id}"),
+        });
         Ok(())
     }
 
@@ -69,6 +74,10 @@ impl UsersApi {
     ) -> ApiResult<Json<UserRole>> {
         context.require_permission(None, Permission::USER_MANAGE)?;
         let role = UserRole::create(payload.0)?;
+        emit(Event::RoleCreated {
+            created_by: context.user.username.clone(),
+            role_name: role.name.clone(),
+        });
         Ok(Json(role))
     }
 
@@ -85,6 +94,10 @@ impl UsersApi {
         let id = id.0;
         context.require_permission(None, Permission::USER_MANAGE)?;
         UserRole::update(id, payload.0)?;
+        emit(Event::RoleUpdated {
+            updated_by: context.user.username.clone(),
+            role_name: format!("id:{id}"),
+        });
         Ok(())
     }
 
@@ -127,6 +140,10 @@ impl UsersApi {
         let id = id.0;
         context.require_permission(None, Permission::USER_MANAGE)?;
         UserModel::remove(id)?;
+        emit(Event::UserRemoved {
+            removed_by: context.user.username.clone(),
+            target_user: format!("id:{id}"),
+        });
         Ok(())
     }
 
@@ -138,6 +155,10 @@ impl UsersApi {
     ) -> ApiResult<Json<UserView>> {
         context.require_permission(None, Permission::USER_MANAGE)?;
         let user = UserModel::create(payload.0)?;
+        emit(Event::UserCreated {
+            created_by: context.user.username.clone(),
+            new_user: user.username.clone(),
+        });
         let roles = UserRole::list_all()?;
         let role_lookup: BTreeMap<u64, UserRole> = roles.into_iter().map(|r| (r.id, r)).collect();
         Ok(Json(user.to_view(&role_lookup)))
@@ -162,6 +183,10 @@ impl UsersApi {
             update_data.acl = None;
         }
         UserModel::update(target_id, update_data)?;
+        emit(Event::UserUpdated {
+            updated_by: context.user.username.clone(),
+            target_user: format!("id:{target_id}"),
+        });
         Ok(())
     }
 

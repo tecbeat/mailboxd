@@ -476,6 +476,65 @@
     "zoomIn": "放大",
     "zoomOut": "縮小"
   },
+  "auditLog": {
+    "title": "稽核日誌",
+    "description": "記錄整個伺服器中與安全相關的事件。",
+    "empty": {
+      "title": "尚無稽核記錄",
+      "description": "與安全相關的事件發生時將顯示在此處。"
+    },
+    "columns": {
+      "timestamp": "時間",
+      "event": "事件",
+      "actor": "操作者",
+      "target": "目標",
+      "detail": "詳細資料",
+      "ip": "IP",
+      "status": "狀態"
+    },
+    "status": {
+      "success": "成功",
+      "failed": "失敗"
+    }
+  },
+  "backup": {
+    "title": "備份",
+    "description": "建立與還原完整的伺服器備份。",
+    "loadError": "無法載入備份設定。",
+    "schedule": {
+      "title": "排程備份",
+      "desc": "自動備份透過環境變數進行設定。",
+      "enabled": "排程備份",
+      "on": "已啟用",
+      "off": "已停用",
+      "keepAll": "全部保留",
+      "count": "磁碟上的排程封存",
+      "last": "上次排程備份",
+      "never": "從未"
+    },
+    "create": {
+      "title": "建立備份",
+      "desc": "下載包含所有已封存郵件、附件、搜尋索引與設定的完整封存檔。",
+      "button": "建立並下載備份",
+      "working": "正在建立備份…",
+      "startedTitle": "已建立備份",
+      "startedDesc": "備份已建立，下載即將開始。"
+    },
+    "restore": {
+      "title": "從備份還原",
+      "desc": "上傳備份封存檔。所有目前資料將被取代，伺服器會重新啟動以套用。",
+      "warning": "還原會取代所有目前資料並重新啟動伺服器。加密的封存檔只能使用相符的加密密碼還原。",
+      "choose": "選擇封存檔…",
+      "uploading": "正在上傳…",
+      "restarting": "伺服器正在重新啟動以套用還原。請稍後重新載入此頁面。",
+      "button": "還原此備份",
+      "confirmTitle": "要還原備份嗎？",
+      "confirmDesc": "這會以上傳封存檔的內容永久取代所有目前資料，並重新啟動伺服器。此操作無法復原。",
+      "confirmAction": "還原並重新啟動",
+      "stagedTitle": "還原已排定",
+      "stagedDesc": "封存檔已被接受。伺服器正在重新啟動以套用。"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "確定要登出嗎？",
     "invalidPassword": "密碼無效，請再試一次。",
@@ -489,7 +548,8 @@
     "username": "使用者名稱",
     "welcome": "歡迎使用 mailboxd",
     "youWillNeedToLogInAgain": "您將需要再次登入才能存取您的帳號。",
-    "ssoLogin": "使用 SSO 登入"
+    "ssoLogin": "使用 SSO 登入",
+    "signingIn": "正在為您登入…"
   },
   "command": {
     "dark": "深色",
@@ -782,6 +842,7 @@
     "accounts": "帳號",
     "apiDocs": "API文件",
     "attachment": "附件",
+    "auditLog": "稽核日誌",
     "auth": "驗證",
     "dashboard": "儀表板",
     "general": "一般",
@@ -1386,6 +1447,7 @@
         "password_keep": "留空以保留目前的密碼"
       },
       "removeAvatar": "移除頭像",
+      "sso_managed_credentials": "您的密碼由 SSO 提供者管理，無法在此處變更。",
       "section": {
         "accounts": "已連結 {{count}} 個帳戶",
         "roles": "角色"
@@ -1426,6 +1488,7 @@
     "sidebar": {
       "access": "訪問權限",
       "apiTokens": "API 權杖",
+      "backup": "備份",
       "configurations": "系統配置",
       "profile": "個人資料",
       "proxy": "網路代理"

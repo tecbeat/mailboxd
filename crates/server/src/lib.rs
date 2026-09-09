@@ -64,6 +64,15 @@ pub async fn run() -> MailboxdResult<()> {
     info!("Version:  {}", mailboxd_version!());
     info!("Git:      [{}]", env!("GIT_HASH"));
 
+    // Apply a staged restore before anything touches the data volume. This
+    // replaces the on-disk state wholesale, so it must run before migration and
+    // before any database, blob, or index handle is opened. No-op when nothing
+    // is staged.
+    if let Err(e) = mailboxd_core::backup::restore::apply_pending_restore() {
+        error!("Failed to apply staged restore: {:#?}", e);
+        return Err(e);
+    }
+
     // Migrate an existing data volume up to v2 on startup (no-op if current).
     let migrate_paths = AutoMigratePaths {
         root_dir: PathBuf::from(&SETTINGS.mailboxd_root_dir),
@@ -150,6 +159,8 @@ async fn initialize() -> MailboxdResult<()> {
     UserManager::initialize().await?;
     MailboxdTls::initialize().await?;
     MailboxdContext::initialize().await?;
+    mailboxd_core::audit::install();
+    mailboxd_core::ext::default_extractor::install();
     LazyLock::force(&BLOB_MANAGER);
     LazyLock::force(&ENVELOPE_MANAGER);
     LazyLock::force(&ATTACHMENT_MANAGER);
