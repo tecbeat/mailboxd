@@ -510,7 +510,8 @@
     "username": "Nom d'utilisateur",
     "welcome": "Bienvenue sur mailboxd",
     "youWillNeedToLogInAgain": "Vous devrez vous reconnecter pour accéder à votre compte.",
-    "ssoLogin": "Se connecter avec SSO"
+    "ssoLogin": "Se connecter avec SSO",
+    "signingIn": "Connexion en cours…"
   },
   "command": {
     "dark": "Sombre",
@@ -1408,6 +1409,7 @@
         "password_keep": "Laissez vide pour conserver le mot de passe actuel"
       },
       "removeAvatar": "Supprimer l’avatar",
+      "sso_managed_credentials": "Votre mot de passe est géré par votre fournisseur SSO et ne peut pas être modifié ici.",
       "section": {
         "accounts": "{{count}} comptes liés",
         "roles": "Rôles"

@@ -510,7 +510,8 @@
     "username": "사용자 이름",
     "welcome": "mailboxd에 오신 것을 환영합니다",
     "youWillNeedToLogInAgain": "계정에 접근하려면 다시 로그인해야 합니다.",
-    "ssoLogin": "SSO로 로그인"
+    "ssoLogin": "SSO로 로그인",
+    "signingIn": "로그인 중…"
   },
   "command": {
     "dark": "어둡게",
@@ -1408,6 +1409,7 @@
         "password_keep": "비워두면 현재 비밀번호가 유지됩니다"
       },
       "removeAvatar": "아바타 삭제",
+      "sso_managed_credentials": "비밀번호는 SSO 공급자가 관리하므로 여기서 변경할 수 없습니다.",
       "section": {
         "accounts": "연결된 계정 {{count}}개",
         "roles": "역할"
