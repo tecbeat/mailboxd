@@ -54,6 +54,7 @@ docker compose up -d
 - **Fetch scoping** — Filter downloads by date range, mailbox folder limit or specific folder names. Optional per-account SOCKS5 proxy routing.
 - **Auto-configuration** — Discover IMAP server settings automatically from an email domain.
 - **Full-text search** — Tantivy indices for envelopes and attachments with Zstd compression. Optimised for European languages.
+- **Attachment text extraction** — Attachment contents are extracted and full-text indexed out of the box: PDF, Word (docx), PowerPoint (pptx), spreadsheets (xls/xlsx/ods), OpenDocument (odt/odp), RTF and plain text. Pure-Rust parsers, no external tools required. Attachments above 10 MiB and legacy binary Office formats (doc/ppt) are skipped; OCR of image-only PDFs is out of scope.
 - **Advanced filters** — Date range, size range, attachment presence, file type, content category and facet-based tag combinations.
 - **Thread grouping** — Reconstruct and view complete conversation threads across folders.
 - **Attachment search** — Browse and filter attachments by sender, file type, size and other attachment properties.
@@ -68,6 +69,7 @@ docker compose up -d
 - **Embedded SMTP receiver** — Optional built-in SMTP server for direct email ingestion. STARTTLS or implicit TLS, AUTH PLAIN/LOGIN with API-token authentication.
 - **Embedded IMAP server** — Optional read-only IMAP server exposes archived mail to standard email clients (Thunderbird, Outlook, Apple Mail).
 - **Import and export** — CLI tools import from EML directories, MBOX files (incl. Gmail's variant), Thunderbird profiles and Outlook PST files. Export as MBOX. All parsing happens server-side.
+- **Instance backup and restore** — Administrators create and download a full server backup (all archived mail, attachments, search index and settings) from the WebUI, or schedule automatic backups to a directory via a cron expression with configurable retention. Restore by uploading an archive: the server validates and stages it, then restarts to apply it. Archives are tar + Zstd; encrypted credentials are included and restorable only with the matching encryption password.
 - **Scheduled downloads** — Per-account cron expressions run syncs at specific times — nightly-only or business-hours-only archiving.
 - **Remote-content blocking** — External images and tracking pixels in emails are blocked by default; users can selectively allow remote content per message.
 - **Async index dedup** — Duplicate detection in the search index runs asynchronously to reduce write latency during high-throughput ingestion.
@@ -88,6 +90,18 @@ Every setting is available as a CLI flag and as the environment variable shown b
 | `MAILBOXD_ENCRYPT_PASSWORD_FILE` | — | — | Read the encryption password from a file. If both are set, `MAILBOXD_ENCRYPT_PASSWORD` takes precedence. |
 | `MAILBOXD_INDEX_DIR` | — | `{root}/mailboxd-indices` | Tantivy full-text index directory. Place on fast SSD. |
 | `MAILBOXD_DATA_DIR` | — | `{root}/mailboxd-storage` | Blob storage directory. Can live on high-capacity HDD. |
+
+</details>
+
+<details>
+<summary><strong>Scheduled Backups</strong></summary>
+<br/>
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `MAILBOXD_BACKUP_DIR` | — | `unset (scheduled backups disabled)` | Directory for scheduled backup archives; bind-mount it to the host to retrieve them. Unset disables scheduled backups — manual backup and restore via the WebUI still work. |
+| `MAILBOXD_BACKUP_SCHEDULE` | — | `empty (disabled)` | Cron expression controlling when scheduled backups run (fields: `sec min hour day-of-month month day-of-week`, server-local time). Empty disables scheduling. Requires `MAILBOXD_BACKUP_DIR`. |
+| `MAILBOXD_BACKUP_RETENTION` | — | `7` | Number of scheduled backup archives to keep; older ones are pruned after each run. 0 keeps all. |
 
 </details>
 
@@ -182,7 +196,7 @@ Every setting is available as a CLI flag and as the environment variable shown b
 | `MAILBOXD_OIDC_ENABLED` | — | `false` | Enable OIDC single sign-on. When `true`, the four settings below are required. |
 | `MAILBOXD_OIDC_ISSUER_URL` | — | — | Issuer URL of the OIDC provider (without the `/.well-known/openid-configuration` suffix). |
 | `MAILBOXD_OIDC_CLIENT_ID` | — | — | OAuth 2.0 client ID registered with the IdP. |
-| `MAILBOXD_OIDC_CLIENT_SECRET` | — | — | OAuth 2.0 client secret registered with the IdP. |
+| `MAILBOXD_OIDC_CLIENT_SECRET` | — | — | OAuth 2.0 client secret registered with the IdP. ID tokens must be signed with HS256 using this secret; asymmetric algorithms (RS256, ES256) are not yet supported, so configure the IdP client accordingly. |
 | `MAILBOXD_OIDC_REDIRECT_URI` | — | — | Redirect URI registered with the IdP. Must resolve to `<public-url>/api/auth/oidc/callback`. |
 | `MAILBOXD_OIDC_DEFAULT_ROLE_ID` | — | `100200000000000` | Global role ID assigned to auto-provisioned OIDC users (built-in `Member`). |
 | `MAILBOXD_OIDC_AUTO_REDIRECT` | — | `false` | When OIDC is configured, `/sign-in` redirects to the IdP immediately. The local login form remains reachable via `/sign-in?local=1`. |
@@ -253,6 +267,13 @@ Run the `mailboxd-admin` binary inside the container (`docker exec -it mailboxd 
 <summary><strong>How do I back up my data?</strong></summary>
 
 Back up the entire `MAILBOXD_ROOT_DIR` (plus `MAILBOXD_INDEX_DIR` and `MAILBOXD_DATA_DIR` if overridden). All three storage layers must be backed up together for consistency. Do not place any of these directories on network-mounted storage — sync locally, then rsync to a remote destination.
+
+</details>
+
+<details>
+<summary><strong>How do I use the built-in backup and restore?</strong></summary>
+
+Administrators can create a full backup from *Settings → Backup* in the WebUI: mailboxd bundles all archived mail, attachments, the search index and settings into a single tar + Zstd archive and downloads it. To restore, upload an archive on the same page — mailboxd validates and stages it, then restarts to replace all current data with the archive's contents. For unattended backups, set `MAILBOXD_BACKUP_DIR` and a `MAILBOXD_BACKUP_SCHEDULE` cron expression so archives are written on a schedule (bind-mount that directory to the host to retrieve them). Encrypted credentials are included in the archive and can only be restored with the matching `MAILBOXD_ENCRYPT_PASSWORD`.
 
 </details>
 
