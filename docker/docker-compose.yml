@@ -8,8 +8,21 @@ services:
     environment:
       MAILBOXD_ROOT_DIR: /data
       MAILBOXD_ENCRYPT_PASSWORD: change-me-in-production
+      # Directory for scheduled backup archives, bind-mounted below so archives
+      # are retrievable from the host. Manual backup/restore via the WebUI
+      # (Settings -> Backup) works without any of these settings.
+      MAILBOXD_BACKUP_DIR: /backups
+      # Enable automatic scheduled backups by setting a cron expression
+      # (fields: sec min hour day-of-month month day-of-week, server-local
+      # time). Empty/unset disables scheduling.
+      # MAILBOXD_BACKUP_SCHEDULE: "0 0 3 * * *"   # daily at 03:00
+      # Number of scheduled archives to keep; older ones are pruned (0 = all).
+      # MAILBOXD_BACKUP_RETENTION: 7
     volumes:
       - mailboxd-data:/data
+      # Host directory for scheduled backups. It must be writable by the
+      # container user (uid 1000), e.g. `mkdir -p backups && chown 1000:1000 backups`.
+      - ./backups:/backups
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:15630/api/status"]
       interval: 30s

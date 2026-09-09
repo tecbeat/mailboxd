@@ -46,6 +46,7 @@ repo:
     Embedded SMTP receiver: "Optional built-in SMTP server for direct email ingestion. STARTTLS or implicit TLS, AUTH PLAIN/LOGIN with API-token authentication."
     Embedded IMAP server: "Optional read-only IMAP server exposes archived mail to standard email clients (Thunderbird, Outlook, Apple Mail)."
     Import and export: "CLI tools import from EML directories, MBOX files (incl. Gmail's variant), Thunderbird profiles and Outlook PST files. Export as MBOX. All parsing happens server-side."
+    Instance backup and restore: "Administrators create and download a full server backup (all archived mail, attachments, search index and settings) from the WebUI, or schedule automatic backups to a directory via a cron expression with configurable retention. Restore by uploading an archive: the server validates and stages it, then restarts to apply it. Archives are tar + Zstd; encrypted credentials are included and restorable only with the matching encryption password."
     Scheduled downloads: "Per-account cron expressions run syncs at specific times — nightly-only or business-hours-only archiving."
     Remote-content blocking: "External images and tracking pixels in emails are blocked by default; users can selectively allow remote content per message."
     Async index dedup: "Duplicate detection in the search index runs asynchronously to reduce write latency during high-throughput ingestion."
@@ -66,6 +67,17 @@ repo:
       MAILBOXD_DATA_DIR:
         default: "{root}/mailboxd-storage"
         description: "Blob storage directory. Can live on high-capacity HDD."
+
+    Scheduled Backups:
+      MAILBOXD_BACKUP_DIR:
+        description: "Directory for scheduled backup archives; bind-mount it to the host to retrieve them. Unset disables scheduled backups — manual backup and restore via the WebUI still work."
+        default: "unset (scheduled backups disabled)"
+      MAILBOXD_BACKUP_SCHEDULE:
+        description: "Cron expression controlling when scheduled backups run (fields: `sec min hour day-of-month month day-of-week`, server-local time). Empty disables scheduling. Requires `MAILBOXD_BACKUP_DIR`."
+        default: "empty (disabled)"
+      MAILBOXD_BACKUP_RETENTION:
+        default: 7
+        description: "Number of scheduled backup archives to keep; older ones are pruned after each run. 0 keeps all."
 
     Server & Networking:
       MAILBOXD_HTTP_PORT:
@@ -256,6 +268,17 @@ repo:
       backed up together for consistency. Do not place any of these directories
       on network-mounted storage — sync locally, then rsync to a remote
       destination.
+    "How do I use the built-in backup and restore?": >-
+      Administrators can create a full backup from *Settings → Backup* in the
+      WebUI: mailboxd bundles all archived mail, attachments, the search index
+      and settings into a single tar + Zstd archive and downloads it. To
+      restore, upload an archive on the same page — mailboxd validates and
+      stages it, then restarts to replace all current data with the archive's
+      contents. For unattended backups, set `MAILBOXD_BACKUP_DIR` and a
+      `MAILBOXD_BACKUP_SCHEDULE` cron expression so archives are written on a
+      schedule (bind-mount that directory to the host to retrieve them).
+      Encrypted credentials are included in the archive and can only be
+      restored with the matching `MAILBOXD_ENCRYPT_PASSWORD`.
     "Default login credentials?": >-
       On first start, mailboxd creates a built-in admin user with username
       `admin` and password `admin@mailboxd`. **Change the password immediately**
