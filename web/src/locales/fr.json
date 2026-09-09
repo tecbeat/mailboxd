@@ -497,6 +497,44 @@
       "failed": "Échec"
     }
   },
+  "backup": {
+    "title": "Sauvegarde",
+    "description": "Créez et restaurez des sauvegardes complètes du serveur.",
+    "loadError": "Impossible de charger les paramètres de sauvegarde.",
+    "schedule": {
+      "title": "Sauvegardes planifiées",
+      "desc": "Les sauvegardes automatiques sont configurées via des variables d'environnement.",
+      "enabled": "Sauvegardes planifiées",
+      "on": "Activées",
+      "off": "Désactivées",
+      "keepAll": "Tout conserver",
+      "count": "Archives planifiées sur le disque",
+      "last": "Dernière sauvegarde planifiée",
+      "never": "Jamais"
+    },
+    "create": {
+      "title": "Créer une sauvegarde",
+      "desc": "Téléchargez une archive complète de tous les courriels archivés, des pièces jointes, de l'index de recherche et des paramètres.",
+      "button": "Créer et télécharger la sauvegarde",
+      "working": "Création de la sauvegarde…",
+      "startedTitle": "Sauvegarde créée",
+      "startedDesc": "La sauvegarde a été créée et votre téléchargement devrait commencer sous peu."
+    },
+    "restore": {
+      "title": "Restaurer à partir d'une sauvegarde",
+      "desc": "Téléversez une archive de sauvegarde. Toutes les données actuelles sont remplacées et le serveur redémarre pour l'appliquer.",
+      "warning": "La restauration remplace TOUTES les données actuelles et redémarre le serveur. Les archives chiffrées ne peuvent être restaurées qu'avec le mot de passe de chiffrement correspondant.",
+      "choose": "Choisir une archive…",
+      "uploading": "Téléversement…",
+      "restarting": "Le serveur redémarre pour appliquer la restauration. Veuillez recharger cette page dans un instant.",
+      "button": "Restaurer cette sauvegarde",
+      "confirmTitle": "Restaurer la sauvegarde ?",
+      "confirmDesc": "Cette action remplace définitivement toutes les données actuelles par le contenu de l'archive téléversée et redémarre le serveur. Cette action est irréversible.",
+      "confirmAction": "Restaurer et redémarrer",
+      "stagedTitle": "Restauration préparée",
+      "stagedDesc": "L'archive a été acceptée. Le serveur redémarre pour l'appliquer."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Êtes-vous sûr de vouloir vous déconnecter ?",
     "invalidPassword": "Mot de passe non valide. Veuillez réessayer.",
@@ -1450,6 +1488,7 @@
     "sidebar": {
       "access": "Droits d'accès",
       "apiTokens": "Jetons API",
+      "backup": "Sauvegarde",
       "configurations": "Configurations système",
       "profile": "Profil",
       "proxy": "Proxy réseau"

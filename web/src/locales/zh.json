@@ -507,6 +507,44 @@
       "failed": "失败"
     }
   },
+  "backup": {
+    "title": "备份",
+    "description": "创建和还原完整的服务器备份。",
+    "loadError": "无法加载备份设置。",
+    "schedule": {
+      "title": "计划备份",
+      "desc": "自动备份通过环境变量进行配置。",
+      "enabled": "计划备份",
+      "on": "已启用",
+      "off": "已禁用",
+      "keepAll": "全部保留",
+      "count": "磁盘上的计划归档",
+      "last": "上次计划备份",
+      "never": "从不"
+    },
+    "create": {
+      "title": "创建备份",
+      "desc": "下载包含所有已归档邮件、附件、搜索索引和设置的完整归档。",
+      "button": "创建并下载备份",
+      "working": "正在创建备份…",
+      "startedTitle": "已创建备份",
+      "startedDesc": "备份已创建，下载即将开始。"
+    },
+    "restore": {
+      "title": "从备份还原",
+      "desc": "上传备份归档。所有当前数据将被替换，服务器将重启以应用。",
+      "warning": "还原会替换所有当前数据并重启服务器。加密的归档只能使用匹配的加密密码还原。",
+      "choose": "选择归档…",
+      "uploading": "正在上传…",
+      "restarting": "服务器正在重启以应用还原。请稍后重新加载此页面。",
+      "button": "还原此备份",
+      "confirmTitle": "要还原备份吗？",
+      "confirmDesc": "这将用上传归档的内容永久替换所有当前数据，并重启服务器。此操作无法撤销。",
+      "confirmAction": "还原并重启",
+      "stagedTitle": "还原已暂存",
+      "stagedDesc": "归档已被接受。服务器正在重启以应用。"
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "您确定要退出登录吗？",
     "invalidPassword": "密码无效，请重试。",
@@ -1460,6 +1498,7 @@
     "sidebar": {
       "access": "访问权限",
       "apiTokens": "API 令牌",
+      "backup": "备份",
       "configurations": "系统配置",
       "profile": "个人资料",
       "proxy": "网络代理"

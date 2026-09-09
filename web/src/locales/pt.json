@@ -497,6 +497,44 @@
       "failed": "Falha"
     }
   },
+  "backup": {
+    "title": "Backup",
+    "description": "Crie e restaure backups completos do servidor.",
+    "loadError": "Falha ao carregar as configurações de backup.",
+    "schedule": {
+      "title": "Backups agendados",
+      "desc": "Os backups automáticos são configurados por variáveis de ambiente.",
+      "enabled": "Backups agendados",
+      "on": "Ativados",
+      "off": "Desativados",
+      "keepAll": "Manter todos",
+      "count": "Arquivos agendados no disco",
+      "last": "Último backup agendado",
+      "never": "Nunca"
+    },
+    "create": {
+      "title": "Criar um backup",
+      "desc": "Baixe um arquivo completo de todos os e-mails arquivados, anexos, índice de busca e configurações.",
+      "button": "Criar e baixar backup",
+      "working": "Criando backup…",
+      "startedTitle": "Backup criado",
+      "startedDesc": "O backup foi criado e o download deve começar em breve."
+    },
+    "restore": {
+      "title": "Restaurar a partir de um backup",
+      "desc": "Envie um arquivo de backup. Todos os dados atuais são substituídos e o servidor reinicia para aplicá-lo.",
+      "warning": "A restauração substitui TODOS os dados atuais e reinicia o servidor. Arquivos criptografados só podem ser restaurados com a senha de criptografia correspondente.",
+      "choose": "Escolher arquivo…",
+      "uploading": "Enviando…",
+      "restarting": "O servidor está reiniciando para aplicar a restauração. Recarregue esta página em instantes.",
+      "button": "Restaurar este backup",
+      "confirmTitle": "Restaurar backup?",
+      "confirmDesc": "Isso substitui permanentemente todos os dados atuais pelo conteúdo do arquivo enviado e reinicia o servidor. Não pode ser desfeito.",
+      "confirmAction": "Restaurar e reiniciar",
+      "stagedTitle": "Restauração preparada",
+      "stagedDesc": "O arquivo foi aceito. O servidor está reiniciando para aplicá-lo."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Tem certeza que deseja sair?",
     "invalidPassword": "Senha inválida, por favor, tente novamente.",
@@ -1450,6 +1488,7 @@
     "sidebar": {
       "access": "Permissões de acesso",
       "apiTokens": "Tokens API",
+      "backup": "Backup",
       "configurations": "Configurações do sistema",
       "profile": "Perfil",
       "proxy": "Proxy de rede"

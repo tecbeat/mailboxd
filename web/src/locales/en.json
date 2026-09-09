@@ -512,6 +512,44 @@
       "failed": "Failed"
     }
   },
+  "backup": {
+    "title": "Backup",
+    "description": "Create and restore full server backups.",
+    "loadError": "Failed to load backup settings.",
+    "schedule": {
+      "title": "Scheduled backups",
+      "desc": "Automatic backups are configured through environment variables.",
+      "enabled": "Scheduled backups",
+      "on": "Enabled",
+      "off": "Disabled",
+      "keepAll": "Keep all",
+      "count": "Scheduled archives on disk",
+      "last": "Last scheduled backup",
+      "never": "Never"
+    },
+    "create": {
+      "title": "Create a backup",
+      "desc": "Download a full archive of all archived mail, attachments, search index and settings.",
+      "button": "Create & download backup",
+      "working": "Creating backup…",
+      "startedTitle": "Backup created",
+      "startedDesc": "The backup has been created and your download should begin shortly."
+    },
+    "restore": {
+      "title": "Restore from a backup",
+      "desc": "Upload a backup archive. All current data is replaced and the server restarts to apply it.",
+      "warning": "Restoring replaces ALL current data and restarts the server. Encrypted archives can only be restored with the matching encryption password.",
+      "choose": "Choose archive…",
+      "uploading": "Uploading…",
+      "restarting": "The server is restarting to apply the restore. Please reload this page in a moment.",
+      "button": "Restore this backup",
+      "confirmTitle": "Restore backup?",
+      "confirmDesc": "This permanently replaces all current data with the contents of the uploaded archive and restarts the server. This cannot be undone.",
+      "confirmAction": "Restore and restart",
+      "stagedTitle": "Restore staged",
+      "stagedDesc": "The archive was accepted. The server is restarting to apply it."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Are you sure you want to log out?",
     "invalidPassword": "Invalid password. Please try again.",
@@ -1495,6 +1533,7 @@
     "sidebar": {
       "access": "Access Permissions",
       "apiTokens": "API Tokens",
+      "backup": "Backup",
       "configurations": "System Configurations",
       "profile": "Profile",
       "proxy": "Network Proxy"
