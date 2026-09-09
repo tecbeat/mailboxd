@@ -10,191 +10,183 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
+import { Route as authSsoCallbackRouteImport } from './routes/(auth)/sso-callback'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedAttachmentIndexRouteImport } from './routes/_authenticated/attachment/index'
+import { Route as AuthenticatedImportIndexRouteImport } from './routes/_authenticated/import/index'
+import { Route as AuthenticatedSearchIndexRouteImport } from './routes/_authenticated/search/index'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated/route'
-import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
-import { Route as authSsoCallbackImport } from './routes/(auth)/sso-callback'
-import { Route as authSignInImport } from './routes/(auth)/sign-in'
-import { Route as AuthenticatedSearchIndexImport } from './routes/_authenticated/search/index'
-import { Route as AuthenticatedImportIndexImport } from './routes/_authenticated/import/index'
-import { Route as AuthenticatedAttachmentIndexImport } from './routes/_authenticated/attachment/index'
-
-// Create Virtual Routes
-
-const errors503LazyImport = createFileRoute('/(errors)/503')()
-const errors500LazyImport = createFileRoute('/(errors)/500')()
-const errors404LazyImport = createFileRoute('/(errors)/404')()
-const errors403LazyImport = createFileRoute('/(errors)/403')()
-const errors401LazyImport = createFileRoute('/(errors)/401')()
-const AuthenticatedUsersRouteLazyImport = createFileRoute(
-  '/_authenticated/users',
-)()
-const AuthenticatedSettingsRouteLazyImport = createFileRoute(
+const errors401LazyRouteImport = createFileRoute('/(errors)/401')()
+const errors403LazyRouteImport = createFileRoute('/(errors)/403')()
+const errors404LazyRouteImport = createFileRoute('/(errors)/404')()
+const errors500LazyRouteImport = createFileRoute('/(errors)/500')()
+const errors503LazyRouteImport = createFileRoute('/(errors)/503')()
+const AuthenticatedSettingsRouteLazyRouteImport = createFileRoute(
   '/_authenticated/settings',
 )()
-const AuthenticatedUsersIndexLazyImport = createFileRoute(
-  '/_authenticated/users/',
+const AuthenticatedUsersRouteLazyRouteImport = createFileRoute(
+  '/_authenticated/users',
 )()
-const AuthenticatedSettingsIndexLazyImport = createFileRoute(
-  '/_authenticated/settings/',
-)()
-const AuthenticatedOauth2IndexLazyImport = createFileRoute(
-  '/_authenticated/oauth2/',
-)()
-const AuthenticatedOauth2ResultIndexLazyImport = createFileRoute(
-  '/_authenticated/oauth2-result/',
-)()
-const AuthenticatedApiDocsIndexLazyImport = createFileRoute(
-  '/_authenticated/api-docs/',
-)()
-const AuthenticatedAccountsIndexLazyImport = createFileRoute(
+const AuthenticatedAccountsIndexLazyRouteImport = createFileRoute(
   '/_authenticated/accounts/',
 )()
-const AuthenticatedUsersRolesLazyImport = createFileRoute(
-  '/_authenticated/users/roles',
-)()
-const AuthenticatedUsersApiTokensLazyImport = createFileRoute(
-  '/_authenticated/users/api-tokens',
-)()
-const AuthenticatedSettingsProxyLazyImport = createFileRoute(
-  '/_authenticated/settings/proxy',
-)()
-const AuthenticatedSettingsProfileLazyImport = createFileRoute(
-  '/_authenticated/settings/profile',
-)()
-const AuthenticatedSettingsConfigurationsLazyImport = createFileRoute(
-  '/_authenticated/settings/configurations',
-)()
-const AuthenticatedSettingsAppearanceLazyImport = createFileRoute(
-  '/_authenticated/settings/appearance',
-)()
-const AuthenticatedSettingsApiTokensLazyImport = createFileRoute(
-  '/_authenticated/settings/api-tokens',
-)()
-const AuthenticatedSettingsAccessLazyImport = createFileRoute(
-  '/_authenticated/settings/access',
-)()
-const AuthenticatedAccountsNewLazyImport = createFileRoute(
+const AuthenticatedAccountsNewLazyRouteImport = createFileRoute(
   '/_authenticated/accounts/new',
 )()
-const AuthenticatedAccountsIdSettingsLazyImport = createFileRoute(
+const AuthenticatedApiDocsIndexLazyRouteImport = createFileRoute(
+  '/_authenticated/api-docs/',
+)()
+const AuthenticatedOauth2ResultIndexLazyRouteImport = createFileRoute(
+  '/_authenticated/oauth2-result/',
+)()
+const AuthenticatedOauth2IndexLazyRouteImport = createFileRoute(
+  '/_authenticated/oauth2/',
+)()
+const AuthenticatedSettingsIndexLazyRouteImport = createFileRoute(
+  '/_authenticated/settings/',
+)()
+const AuthenticatedSettingsAccessLazyRouteImport = createFileRoute(
+  '/_authenticated/settings/access',
+)()
+const AuthenticatedSettingsApiTokensLazyRouteImport = createFileRoute(
+  '/_authenticated/settings/api-tokens',
+)()
+const AuthenticatedSettingsAppearanceLazyRouteImport = createFileRoute(
+  '/_authenticated/settings/appearance',
+)()
+const AuthenticatedSettingsConfigurationsLazyRouteImport = createFileRoute(
+  '/_authenticated/settings/configurations',
+)()
+const AuthenticatedSettingsProfileLazyRouteImport = createFileRoute(
+  '/_authenticated/settings/profile',
+)()
+const AuthenticatedSettingsProxyLazyRouteImport = createFileRoute(
+  '/_authenticated/settings/proxy',
+)()
+const AuthenticatedUsersIndexLazyRouteImport = createFileRoute(
+  '/_authenticated/users/',
+)()
+const AuthenticatedUsersApiTokensLazyRouteImport = createFileRoute(
+  '/_authenticated/users/api-tokens',
+)()
+const AuthenticatedUsersRolesLazyRouteImport = createFileRoute(
+  '/_authenticated/users/roles',
+)()
+const AuthenticatedAccountsIdSettingsLazyRouteImport = createFileRoute(
   '/_authenticated/accounts/$id/settings',
 )()
 
-// Create/Update Routes
-
-const AuthenticatedRouteRoute = AuthenticatedRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
+const authSignInRoute = authSignInRouteImport.update({
+  id: '/(auth)/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authSsoCallbackRoute = authSsoCallbackRouteImport.update({
+  id: '/(auth)/sso-callback',
+  path: '/sso-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors401LazyRoute = errors401LazyRouteImport
+  .update({
+    id: '/(errors)/401',
+    path: '/401',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+  .lazy(() => import('./routes/(errors)/401.lazy').then((d) => d.Route))
+const errors403LazyRoute = errors403LazyRouteImport
+  .update({
+    id: '/(errors)/403',
+    path: '/403',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+  .lazy(() => import('./routes/(errors)/403.lazy').then((d) => d.Route))
+const errors404LazyRoute = errors404LazyRouteImport
+  .update({
+    id: '/(errors)/404',
+    path: '/404',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+  .lazy(() => import('./routes/(errors)/404.lazy').then((d) => d.Route))
+const errors500LazyRoute = errors500LazyRouteImport
+  .update({
+    id: '/(errors)/500',
+    path: '/500',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+  .lazy(() => import('./routes/(errors)/500.lazy').then((d) => d.Route))
+const errors503LazyRoute = errors503LazyRouteImport
+  .update({
+    id: '/(errors)/503',
+    path: '/503',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+  .lazy(() => import('./routes/(errors)/503.lazy').then((d) => d.Route))
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-
-const errors503LazyRoute = errors503LazyImport
-  .update({
-    id: '/(errors)/503',
-    path: '/503',
-    getParentRoute: () => rootRoute,
-  } as any)
-  .lazy(() => import('./routes/(errors)/503.lazy').then((d) => d.Route))
-
-const errors500LazyRoute = errors500LazyImport
-  .update({
-    id: '/(errors)/500',
-    path: '/500',
-    getParentRoute: () => rootRoute,
-  } as any)
-  .lazy(() => import('./routes/(errors)/500.lazy').then((d) => d.Route))
-
-const errors404LazyRoute = errors404LazyImport
-  .update({
-    id: '/(errors)/404',
-    path: '/404',
-    getParentRoute: () => rootRoute,
-  } as any)
-  .lazy(() => import('./routes/(errors)/404.lazy').then((d) => d.Route))
-
-const errors403LazyRoute = errors403LazyImport
-  .update({
-    id: '/(errors)/403',
-    path: '/403',
-    getParentRoute: () => rootRoute,
-  } as any)
-  .lazy(() => import('./routes/(errors)/403.lazy').then((d) => d.Route))
-
-const errors401LazyRoute = errors401LazyImport
-  .update({
-    id: '/(errors)/401',
-    path: '/401',
-    getParentRoute: () => rootRoute,
-  } as any)
-  .lazy(() => import('./routes/(errors)/401.lazy').then((d) => d.Route))
-
-const AuthenticatedUsersRouteLazyRoute =
-  AuthenticatedUsersRouteLazyImport.update({
-    id: '/users',
-    path: '/users',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/users/route.lazy').then((d) => d.Route),
-  )
-
 const AuthenticatedSettingsRouteLazyRoute =
-  AuthenticatedSettingsRouteLazyImport.update({
+  AuthenticatedSettingsRouteLazyRouteImport.update({
     id: '/settings',
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any).lazy(() =>
     import('./routes/_authenticated/settings/route.lazy').then((d) => d.Route),
   )
-
-const authSsoCallbackRoute = authSsoCallbackImport.update({
-  id: '/(auth)/sso-callback',
-  path: '/sso-callback',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const authSignInRoute = authSignInImport.update({
-  id: '/(auth)/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthenticatedUsersIndexLazyRoute =
-  AuthenticatedUsersIndexLazyImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedUsersRouteLazyRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/users/index.lazy').then((d) => d.Route),
-  )
-
-const AuthenticatedSettingsIndexLazyRoute =
-  AuthenticatedSettingsIndexLazyImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/settings/index.lazy').then((d) => d.Route),
-  )
-
-const AuthenticatedOauth2IndexLazyRoute =
-  AuthenticatedOauth2IndexLazyImport.update({
-    id: '/oauth2/',
-    path: '/oauth2/',
+const AuthenticatedUsersRouteLazyRoute =
+  AuthenticatedUsersRouteLazyRouteImport.update({
+    id: '/users',
+    path: '/users',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any).lazy(() =>
-    import('./routes/_authenticated/oauth2/index.lazy').then((d) => d.Route),
+    import('./routes/_authenticated/users/route.lazy').then((d) => d.Route),
   )
-
+const AuthenticatedAccountsIndexLazyRoute =
+  AuthenticatedAccountsIndexLazyRouteImport.update({
+    id: '/accounts/',
+    path: '/accounts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/accounts/index.lazy').then((d) => d.Route),
+  )
+const AuthenticatedAccountsNewLazyRoute =
+  AuthenticatedAccountsNewLazyRouteImport.update({
+    id: '/accounts/new',
+    path: '/accounts/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/accounts/new.lazy').then((d) => d.Route),
+  )
+const AuthenticatedApiDocsIndexLazyRoute =
+  AuthenticatedApiDocsIndexLazyRouteImport.update({
+    id: '/api-docs/',
+    path: '/api-docs/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/api-docs/index.lazy').then((d) => d.Route),
+  )
+const AuthenticatedAttachmentIndexRoute =
+  AuthenticatedAttachmentIndexRouteImport.update({
+    id: '/attachment/',
+    path: '/attachment/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedImportIndexRoute =
+  AuthenticatedImportIndexRouteImport.update({
+    id: '/import/',
+    path: '/import/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOauth2ResultIndexLazyRoute =
-  AuthenticatedOauth2ResultIndexLazyImport.update({
+  AuthenticatedOauth2ResultIndexLazyRouteImport.update({
     id: '/oauth2-result/',
     path: '/oauth2-result/',
     getParentRoute: () => AuthenticatedRouteRoute,
@@ -203,108 +195,38 @@ const AuthenticatedOauth2ResultIndexLazyRoute =
       (d) => d.Route,
     ),
   )
-
-const AuthenticatedApiDocsIndexLazyRoute =
-  AuthenticatedApiDocsIndexLazyImport.update({
-    id: '/api-docs/',
-    path: '/api-docs/',
+const AuthenticatedOauth2IndexLazyRoute =
+  AuthenticatedOauth2IndexLazyRouteImport.update({
+    id: '/oauth2/',
+    path: '/oauth2/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any).lazy(() =>
-    import('./routes/_authenticated/api-docs/index.lazy').then((d) => d.Route),
+    import('./routes/_authenticated/oauth2/index.lazy').then((d) => d.Route),
   )
-
-const AuthenticatedAccountsIndexLazyRoute =
-  AuthenticatedAccountsIndexLazyImport.update({
-    id: '/accounts/',
-    path: '/accounts/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/accounts/index.lazy').then((d) => d.Route),
-  )
-
-const AuthenticatedSearchIndexRoute = AuthenticatedSearchIndexImport.update({
-  id: '/search/',
-  path: '/search/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
-const AuthenticatedImportIndexRoute = AuthenticatedImportIndexImport.update({
-  id: '/import/',
-  path: '/import/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
-const AuthenticatedAttachmentIndexRoute =
-  AuthenticatedAttachmentIndexImport.update({
-    id: '/attachment/',
-    path: '/attachment/',
+const AuthenticatedSearchIndexRoute =
+  AuthenticatedSearchIndexRouteImport.update({
+    id: '/search/',
+    path: '/search/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-
-const AuthenticatedUsersRolesLazyRoute =
-  AuthenticatedUsersRolesLazyImport.update({
-    id: '/roles',
-    path: '/roles',
-    getParentRoute: () => AuthenticatedUsersRouteLazyRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/users/roles.lazy').then((d) => d.Route),
-  )
-
-const AuthenticatedUsersApiTokensLazyRoute =
-  AuthenticatedUsersApiTokensLazyImport.update({
-    id: '/api-tokens',
-    path: '/api-tokens',
-    getParentRoute: () => AuthenticatedUsersRouteLazyRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/users/api-tokens.lazy').then(
-      (d) => d.Route,
-    ),
-  )
-
-const AuthenticatedSettingsProxyLazyRoute =
-  AuthenticatedSettingsProxyLazyImport.update({
-    id: '/proxy',
-    path: '/proxy',
+const AuthenticatedSettingsIndexLazyRoute =
+  AuthenticatedSettingsIndexLazyRouteImport.update({
+    id: '/',
+    path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
   } as any).lazy(() =>
-    import('./routes/_authenticated/settings/proxy.lazy').then((d) => d.Route),
+    import('./routes/_authenticated/settings/index.lazy').then((d) => d.Route),
   )
-
-const AuthenticatedSettingsProfileLazyRoute =
-  AuthenticatedSettingsProfileLazyImport.update({
-    id: '/profile',
-    path: '/profile',
+const AuthenticatedSettingsAccessLazyRoute =
+  AuthenticatedSettingsAccessLazyRouteImport.update({
+    id: '/access',
+    path: '/access',
     getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
   } as any).lazy(() =>
-    import('./routes/_authenticated/settings/profile.lazy').then(
-      (d) => d.Route,
-    ),
+    import('./routes/_authenticated/settings/access.lazy').then((d) => d.Route),
   )
-
-const AuthenticatedSettingsConfigurationsLazyRoute =
-  AuthenticatedSettingsConfigurationsLazyImport.update({
-    id: '/configurations',
-    path: '/configurations',
-    getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/settings/configurations.lazy').then(
-      (d) => d.Route,
-    ),
-  )
-
-const AuthenticatedSettingsAppearanceLazyRoute =
-  AuthenticatedSettingsAppearanceLazyImport.update({
-    id: '/appearance',
-    path: '/appearance',
-    getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
-  } as any).lazy(() =>
-    import('./routes/_authenticated/settings/appearance.lazy').then(
-      (d) => d.Route,
-    ),
-  )
-
 const AuthenticatedSettingsApiTokensLazyRoute =
-  AuthenticatedSettingsApiTokensLazyImport.update({
+  AuthenticatedSettingsApiTokensLazyRouteImport.update({
     id: '/api-tokens',
     path: '/api-tokens',
     getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
@@ -313,27 +235,72 @@ const AuthenticatedSettingsApiTokensLazyRoute =
       (d) => d.Route,
     ),
   )
-
-const AuthenticatedSettingsAccessLazyRoute =
-  AuthenticatedSettingsAccessLazyImport.update({
-    id: '/access',
-    path: '/access',
+const AuthenticatedSettingsAppearanceLazyRoute =
+  AuthenticatedSettingsAppearanceLazyRouteImport.update({
+    id: '/appearance',
+    path: '/appearance',
     getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
   } as any).lazy(() =>
-    import('./routes/_authenticated/settings/access.lazy').then((d) => d.Route),
+    import('./routes/_authenticated/settings/appearance.lazy').then(
+      (d) => d.Route,
+    ),
   )
-
-const AuthenticatedAccountsNewLazyRoute =
-  AuthenticatedAccountsNewLazyImport.update({
-    id: '/accounts/new',
-    path: '/accounts/new',
-    getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedSettingsConfigurationsLazyRoute =
+  AuthenticatedSettingsConfigurationsLazyRouteImport.update({
+    id: '/configurations',
+    path: '/configurations',
+    getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
   } as any).lazy(() =>
-    import('./routes/_authenticated/accounts/new.lazy').then((d) => d.Route),
+    import('./routes/_authenticated/settings/configurations.lazy').then(
+      (d) => d.Route,
+    ),
   )
-
+const AuthenticatedSettingsProfileLazyRoute =
+  AuthenticatedSettingsProfileLazyRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/settings/profile.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+const AuthenticatedSettingsProxyLazyRoute =
+  AuthenticatedSettingsProxyLazyRouteImport.update({
+    id: '/proxy',
+    path: '/proxy',
+    getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/settings/proxy.lazy').then((d) => d.Route),
+  )
+const AuthenticatedUsersIndexLazyRoute =
+  AuthenticatedUsersIndexLazyRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedUsersRouteLazyRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/users/index.lazy').then((d) => d.Route),
+  )
+const AuthenticatedUsersApiTokensLazyRoute =
+  AuthenticatedUsersApiTokensLazyRouteImport.update({
+    id: '/api-tokens',
+    path: '/api-tokens',
+    getParentRoute: () => AuthenticatedUsersRouteLazyRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/users/api-tokens.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+const AuthenticatedUsersRolesLazyRoute =
+  AuthenticatedUsersRolesLazyRouteImport.update({
+    id: '/roles',
+    path: '/roles',
+    getParentRoute: () => AuthenticatedUsersRouteLazyRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/users/roles.lazy').then((d) => d.Route),
+  )
 const AuthenticatedAccountsIdSettingsLazyRoute =
-  AuthenticatedAccountsIdSettingsLazyImport.update({
+  AuthenticatedAccountsIdSettingsLazyRouteImport.update({
     id: '/accounts/$id/settings',
     path: '/accounts/$id/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
@@ -343,224 +310,419 @@ const AuthenticatedAccountsIdSettingsLazyRoute =
     ),
   )
 
-// Populate the FileRoutesByPath interface
+export interface FileRoutesByFullPath {
+  '/': typeof AuthenticatedIndexRoute
+  '/sign-in': typeof authSignInRoute
+  '/sso-callback': typeof authSsoCallbackRoute
+  '/settings': typeof AuthenticatedSettingsRouteLazyRouteWithChildren
+  '/users': typeof AuthenticatedUsersRouteLazyRouteWithChildren
+  '/401': typeof errors401LazyRoute
+  '/403': typeof errors403LazyRoute
+  '/404': typeof errors404LazyRoute
+  '/500': typeof errors500LazyRoute
+  '/503': typeof errors503LazyRoute
+  '/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
+  '/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
+  '/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
+  '/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
+  '/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
+  '/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
+  '/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
+  '/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
+  '/users/roles': typeof AuthenticatedUsersRolesLazyRoute
+  '/attachment/': typeof AuthenticatedAttachmentIndexRoute
+  '/import/': typeof AuthenticatedImportIndexRoute
+  '/search/': typeof AuthenticatedSearchIndexRoute
+  '/accounts/': typeof AuthenticatedAccountsIndexLazyRoute
+  '/api-docs/': typeof AuthenticatedApiDocsIndexLazyRoute
+  '/oauth2-result/': typeof AuthenticatedOauth2ResultIndexLazyRoute
+  '/oauth2/': typeof AuthenticatedOauth2IndexLazyRoute
+  '/settings/': typeof AuthenticatedSettingsIndexLazyRoute
+  '/users/': typeof AuthenticatedUsersIndexLazyRoute
+  '/accounts/$id/settings': typeof AuthenticatedAccountsIdSettingsLazyRoute
+}
+export interface FileRoutesByTo {
+  '/sign-in': typeof authSignInRoute
+  '/sso-callback': typeof authSsoCallbackRoute
+  '/401': typeof errors401LazyRoute
+  '/403': typeof errors403LazyRoute
+  '/404': typeof errors404LazyRoute
+  '/500': typeof errors500LazyRoute
+  '/503': typeof errors503LazyRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
+  '/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
+  '/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
+  '/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
+  '/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
+  '/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
+  '/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
+  '/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
+  '/users/roles': typeof AuthenticatedUsersRolesLazyRoute
+  '/attachment': typeof AuthenticatedAttachmentIndexRoute
+  '/import': typeof AuthenticatedImportIndexRoute
+  '/search': typeof AuthenticatedSearchIndexRoute
+  '/accounts': typeof AuthenticatedAccountsIndexLazyRoute
+  '/api-docs': typeof AuthenticatedApiDocsIndexLazyRoute
+  '/oauth2-result': typeof AuthenticatedOauth2ResultIndexLazyRoute
+  '/oauth2': typeof AuthenticatedOauth2IndexLazyRoute
+  '/settings': typeof AuthenticatedSettingsIndexLazyRoute
+  '/users': typeof AuthenticatedUsersIndexLazyRoute
+  '/accounts/$id/settings': typeof AuthenticatedAccountsIdSettingsLazyRoute
+}
+export interface FileRoutesById {
+  __root__: typeof rootRouteImport
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/(auth)/sign-in': typeof authSignInRoute
+  '/(auth)/sso-callback': typeof authSsoCallbackRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRouteLazyRouteWithChildren
+  '/_authenticated/users': typeof AuthenticatedUsersRouteLazyRouteWithChildren
+  '/(errors)/401': typeof errors401LazyRoute
+  '/(errors)/403': typeof errors403LazyRoute
+  '/(errors)/404': typeof errors404LazyRoute
+  '/(errors)/500': typeof errors500LazyRoute
+  '/(errors)/503': typeof errors503LazyRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
+  '/_authenticated/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
+  '/_authenticated/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
+  '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
+  '/_authenticated/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
+  '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
+  '/_authenticated/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
+  '/_authenticated/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
+  '/_authenticated/users/roles': typeof AuthenticatedUsersRolesLazyRoute
+  '/_authenticated/attachment/': typeof AuthenticatedAttachmentIndexRoute
+  '/_authenticated/import/': typeof AuthenticatedImportIndexRoute
+  '/_authenticated/search/': typeof AuthenticatedSearchIndexRoute
+  '/_authenticated/accounts/': typeof AuthenticatedAccountsIndexLazyRoute
+  '/_authenticated/api-docs/': typeof AuthenticatedApiDocsIndexLazyRoute
+  '/_authenticated/oauth2-result/': typeof AuthenticatedOauth2ResultIndexLazyRoute
+  '/_authenticated/oauth2/': typeof AuthenticatedOauth2IndexLazyRoute
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexLazyRoute
+  '/_authenticated/users/': typeof AuthenticatedUsersIndexLazyRoute
+  '/_authenticated/accounts/$id/settings': typeof AuthenticatedAccountsIdSettingsLazyRoute
+}
+export interface FileRouteTypes {
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/'
+    | '/sign-in'
+    | '/sso-callback'
+    | '/settings'
+    | '/users'
+    | '/401'
+    | '/403'
+    | '/404'
+    | '/500'
+    | '/503'
+    | '/accounts/new'
+    | '/settings/access'
+    | '/settings/api-tokens'
+    | '/settings/appearance'
+    | '/settings/configurations'
+    | '/settings/profile'
+    | '/settings/proxy'
+    | '/users/api-tokens'
+    | '/users/roles'
+    | '/attachment/'
+    | '/import/'
+    | '/search/'
+    | '/accounts/'
+    | '/api-docs/'
+    | '/oauth2-result/'
+    | '/oauth2/'
+    | '/settings/'
+    | '/users/'
+    | '/accounts/$id/settings'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/sign-in'
+    | '/sso-callback'
+    | '/401'
+    | '/403'
+    | '/404'
+    | '/500'
+    | '/503'
+    | '/'
+    | '/accounts/new'
+    | '/settings/access'
+    | '/settings/api-tokens'
+    | '/settings/appearance'
+    | '/settings/configurations'
+    | '/settings/profile'
+    | '/settings/proxy'
+    | '/users/api-tokens'
+    | '/users/roles'
+    | '/attachment'
+    | '/import'
+    | '/search'
+    | '/accounts'
+    | '/api-docs'
+    | '/oauth2-result'
+    | '/oauth2'
+    | '/settings'
+    | '/users'
+    | '/accounts/$id/settings'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/(auth)/sign-in'
+    | '/(auth)/sso-callback'
+    | '/_authenticated/settings'
+    | '/_authenticated/users'
+    | '/(errors)/401'
+    | '/(errors)/403'
+    | '/(errors)/404'
+    | '/(errors)/500'
+    | '/(errors)/503'
+    | '/_authenticated/'
+    | '/_authenticated/accounts/new'
+    | '/_authenticated/settings/access'
+    | '/_authenticated/settings/api-tokens'
+    | '/_authenticated/settings/appearance'
+    | '/_authenticated/settings/configurations'
+    | '/_authenticated/settings/profile'
+    | '/_authenticated/settings/proxy'
+    | '/_authenticated/users/api-tokens'
+    | '/_authenticated/users/roles'
+    | '/_authenticated/attachment/'
+    | '/_authenticated/import/'
+    | '/_authenticated/search/'
+    | '/_authenticated/accounts/'
+    | '/_authenticated/api-docs/'
+    | '/_authenticated/oauth2-result/'
+    | '/_authenticated/oauth2/'
+    | '/_authenticated/settings/'
+    | '/_authenticated/users/'
+    | '/_authenticated/accounts/$id/settings'
+  fileRoutesById: FileRoutesById
+}
+export interface RootRouteChildren {
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  authSignInRoute: typeof authSignInRoute
+  authSsoCallbackRoute: typeof authSsoCallbackRoute
+  errors401LazyRoute: typeof errors401LazyRoute
+  errors403LazyRoute: typeof errors403LazyRoute
+  errors404LazyRoute: typeof errors404LazyRoute
+  errors500LazyRoute: typeof errors500LazyRoute
+  errors503LazyRoute: typeof errors503LazyRoute
+}
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRoute
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(auth)/sign-in': {
       id: '/(auth)/sign-in'
       path: '/sign-in'
       fullPath: '/sign-in'
-      preLoaderRoute: typeof authSignInImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof authSignInRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(auth)/sso-callback': {
       id: '/(auth)/sso-callback'
       path: '/sso-callback'
       fullPath: '/sso-callback'
-      preLoaderRoute: typeof authSsoCallbackImport
-      parentRoute: typeof rootRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteLazyImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/users': {
-      id: '/_authenticated/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AuthenticatedUsersRouteLazyImport
-      parentRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof authSsoCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(errors)/401': {
       id: '/(errors)/401'
       path: '/401'
       fullPath: '/401'
-      preLoaderRoute: typeof errors401LazyImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof errors401LazyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(errors)/403': {
       id: '/(errors)/403'
       path: '/403'
       fullPath: '/403'
-      preLoaderRoute: typeof errors403LazyImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof errors403LazyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(errors)/404': {
       id: '/(errors)/404'
       path: '/404'
       fullPath: '/404'
-      preLoaderRoute: typeof errors404LazyImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof errors404LazyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(errors)/500': {
       id: '/(errors)/500'
       path: '/500'
       fullPath: '/500'
-      preLoaderRoute: typeof errors500LazyImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof errors500LazyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(errors)/503': {
       id: '/(errors)/503'
       path: '/503'
       fullPath: '/503'
-      preLoaderRoute: typeof errors503LazyImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof errors503LazyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthenticatedUsersRouteLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/accounts/': {
+      id: '/_authenticated/accounts/'
+      path: '/accounts'
+      fullPath: '/accounts/'
+      preLoaderRoute: typeof AuthenticatedAccountsIndexLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/accounts/new': {
       id: '/_authenticated/accounts/new'
       path: '/accounts/new'
       fullPath: '/accounts/new'
-      preLoaderRoute: typeof AuthenticatedAccountsNewLazyImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/settings/access': {
-      id: '/_authenticated/settings/access'
-      path: '/access'
-      fullPath: '/settings/access'
-      preLoaderRoute: typeof AuthenticatedSettingsAccessLazyImport
-      parentRoute: typeof AuthenticatedSettingsRouteLazyImport
-    }
-    '/_authenticated/settings/api-tokens': {
-      id: '/_authenticated/settings/api-tokens'
-      path: '/api-tokens'
-      fullPath: '/settings/api-tokens'
-      preLoaderRoute: typeof AuthenticatedSettingsApiTokensLazyImport
-      parentRoute: typeof AuthenticatedSettingsRouteLazyImport
-    }
-    '/_authenticated/settings/appearance': {
-      id: '/_authenticated/settings/appearance'
-      path: '/appearance'
-      fullPath: '/settings/appearance'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceLazyImport
-      parentRoute: typeof AuthenticatedSettingsRouteLazyImport
-    }
-    '/_authenticated/settings/configurations': {
-      id: '/_authenticated/settings/configurations'
-      path: '/configurations'
-      fullPath: '/settings/configurations'
-      preLoaderRoute: typeof AuthenticatedSettingsConfigurationsLazyImport
-      parentRoute: typeof AuthenticatedSettingsRouteLazyImport
-    }
-    '/_authenticated/settings/profile': {
-      id: '/_authenticated/settings/profile'
-      path: '/profile'
-      fullPath: '/settings/profile'
-      preLoaderRoute: typeof AuthenticatedSettingsProfileLazyImport
-      parentRoute: typeof AuthenticatedSettingsRouteLazyImport
-    }
-    '/_authenticated/settings/proxy': {
-      id: '/_authenticated/settings/proxy'
-      path: '/proxy'
-      fullPath: '/settings/proxy'
-      preLoaderRoute: typeof AuthenticatedSettingsProxyLazyImport
-      parentRoute: typeof AuthenticatedSettingsRouteLazyImport
-    }
-    '/_authenticated/users/api-tokens': {
-      id: '/_authenticated/users/api-tokens'
-      path: '/api-tokens'
-      fullPath: '/users/api-tokens'
-      preLoaderRoute: typeof AuthenticatedUsersApiTokensLazyImport
-      parentRoute: typeof AuthenticatedUsersRouteLazyImport
-    }
-    '/_authenticated/users/roles': {
-      id: '/_authenticated/users/roles'
-      path: '/roles'
-      fullPath: '/users/roles'
-      preLoaderRoute: typeof AuthenticatedUsersRolesLazyImport
-      parentRoute: typeof AuthenticatedUsersRouteLazyImport
-    }
-    '/_authenticated/attachment/': {
-      id: '/_authenticated/attachment/'
-      path: '/attachment'
-      fullPath: '/attachment'
-      preLoaderRoute: typeof AuthenticatedAttachmentIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/import/': {
-      id: '/_authenticated/import/'
-      path: '/import'
-      fullPath: '/import'
-      preLoaderRoute: typeof AuthenticatedImportIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/search/': {
-      id: '/_authenticated/search/'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof AuthenticatedSearchIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/accounts/': {
-      id: '/_authenticated/accounts/'
-      path: '/accounts'
-      fullPath: '/accounts'
-      preLoaderRoute: typeof AuthenticatedAccountsIndexLazyImport
-      parentRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof AuthenticatedAccountsNewLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/api-docs/': {
       id: '/_authenticated/api-docs/'
       path: '/api-docs'
-      fullPath: '/api-docs'
-      preLoaderRoute: typeof AuthenticatedApiDocsIndexLazyImport
-      parentRoute: typeof AuthenticatedRouteImport
+      fullPath: '/api-docs/'
+      preLoaderRoute: typeof AuthenticatedApiDocsIndexLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/attachment/': {
+      id: '/_authenticated/attachment/'
+      path: '/attachment'
+      fullPath: '/attachment/'
+      preLoaderRoute: typeof AuthenticatedAttachmentIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/import/': {
+      id: '/_authenticated/import/'
+      path: '/import'
+      fullPath: '/import/'
+      preLoaderRoute: typeof AuthenticatedImportIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/oauth2-result/': {
       id: '/_authenticated/oauth2-result/'
       path: '/oauth2-result'
-      fullPath: '/oauth2-result'
-      preLoaderRoute: typeof AuthenticatedOauth2ResultIndexLazyImport
-      parentRoute: typeof AuthenticatedRouteImport
+      fullPath: '/oauth2-result/'
+      preLoaderRoute: typeof AuthenticatedOauth2ResultIndexLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/oauth2/': {
       id: '/_authenticated/oauth2/'
       path: '/oauth2'
-      fullPath: '/oauth2'
-      preLoaderRoute: typeof AuthenticatedOauth2IndexLazyImport
-      parentRoute: typeof AuthenticatedRouteImport
+      fullPath: '/oauth2/'
+      preLoaderRoute: typeof AuthenticatedOauth2IndexLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/search/': {
+      id: '/_authenticated/search/'
+      path: '/search'
+      fullPath: '/search/'
+      preLoaderRoute: typeof AuthenticatedSearchIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/'
       fullPath: '/settings/'
-      preLoaderRoute: typeof AuthenticatedSettingsIndexLazyImport
-      parentRoute: typeof AuthenticatedSettingsRouteLazyImport
+      preLoaderRoute: typeof AuthenticatedSettingsIndexLazyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
+    }
+    '/_authenticated/settings/access': {
+      id: '/_authenticated/settings/access'
+      path: '/access'
+      fullPath: '/settings/access'
+      preLoaderRoute: typeof AuthenticatedSettingsAccessLazyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
+    }
+    '/_authenticated/settings/api-tokens': {
+      id: '/_authenticated/settings/api-tokens'
+      path: '/api-tokens'
+      fullPath: '/settings/api-tokens'
+      preLoaderRoute: typeof AuthenticatedSettingsApiTokensLazyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
+    }
+    '/_authenticated/settings/appearance': {
+      id: '/_authenticated/settings/appearance'
+      path: '/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceLazyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
+    }
+    '/_authenticated/settings/configurations': {
+      id: '/_authenticated/settings/configurations'
+      path: '/configurations'
+      fullPath: '/settings/configurations'
+      preLoaderRoute: typeof AuthenticatedSettingsConfigurationsLazyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
+    }
+    '/_authenticated/settings/profile': {
+      id: '/_authenticated/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AuthenticatedSettingsProfileLazyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
+    }
+    '/_authenticated/settings/proxy': {
+      id: '/_authenticated/settings/proxy'
+      path: '/proxy'
+      fullPath: '/settings/proxy'
+      preLoaderRoute: typeof AuthenticatedSettingsProxyLazyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
     }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/'
       fullPath: '/users/'
-      preLoaderRoute: typeof AuthenticatedUsersIndexLazyImport
-      parentRoute: typeof AuthenticatedUsersRouteLazyImport
+      preLoaderRoute: typeof AuthenticatedUsersIndexLazyRouteImport
+      parentRoute: typeof AuthenticatedUsersRouteLazyRoute
+    }
+    '/_authenticated/users/api-tokens': {
+      id: '/_authenticated/users/api-tokens'
+      path: '/api-tokens'
+      fullPath: '/users/api-tokens'
+      preLoaderRoute: typeof AuthenticatedUsersApiTokensLazyRouteImport
+      parentRoute: typeof AuthenticatedUsersRouteLazyRoute
+    }
+    '/_authenticated/users/roles': {
+      id: '/_authenticated/users/roles'
+      path: '/roles'
+      fullPath: '/users/roles'
+      preLoaderRoute: typeof AuthenticatedUsersRolesLazyRouteImport
+      parentRoute: typeof AuthenticatedUsersRouteLazyRoute
     }
     '/_authenticated/accounts/$id/settings': {
       id: '/_authenticated/accounts/$id/settings'
       path: '/accounts/$id/settings'
       fullPath: '/accounts/$id/settings'
-      preLoaderRoute: typeof AuthenticatedAccountsIdSettingsLazyImport
-      parentRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof AuthenticatedAccountsIdSettingsLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
-
-// Create and export the route tree
 
 interface AuthenticatedSettingsRouteLazyRouteChildren {
   AuthenticatedSettingsAccessLazyRoute: typeof AuthenticatedSettingsAccessLazyRoute
@@ -647,211 +809,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-export interface FileRoutesByFullPath {
-  '': typeof AuthenticatedRouteRouteWithChildren
-  '/500': typeof errors500LazyRoute
-  '/sign-in': typeof authSignInRoute
-  '/sso-callback': typeof authSsoCallbackRoute
-  '/settings': typeof AuthenticatedSettingsRouteLazyRouteWithChildren
-  '/users': typeof AuthenticatedUsersRouteLazyRouteWithChildren
-  '/401': typeof errors401LazyRoute
-  '/403': typeof errors403LazyRoute
-  '/404': typeof errors404LazyRoute
-  '/503': typeof errors503LazyRoute
-  '/': typeof AuthenticatedIndexRoute
-  '/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
-  '/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
-  '/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
-  '/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
-  '/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
-  '/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
-  '/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
-  '/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
-  '/users/roles': typeof AuthenticatedUsersRolesLazyRoute
-  '/attachment': typeof AuthenticatedAttachmentIndexRoute
-  '/import': typeof AuthenticatedImportIndexRoute
-  '/search': typeof AuthenticatedSearchIndexRoute
-  '/accounts': typeof AuthenticatedAccountsIndexLazyRoute
-  '/api-docs': typeof AuthenticatedApiDocsIndexLazyRoute
-  '/oauth2-result': typeof AuthenticatedOauth2ResultIndexLazyRoute
-  '/oauth2': typeof AuthenticatedOauth2IndexLazyRoute
-  '/settings/': typeof AuthenticatedSettingsIndexLazyRoute
-  '/users/': typeof AuthenticatedUsersIndexLazyRoute
-  '/accounts/$id/settings': typeof AuthenticatedAccountsIdSettingsLazyRoute
-}
-
-export interface FileRoutesByTo {
-  '/500': typeof errors500LazyRoute
-  '/sign-in': typeof authSignInRoute
-  '/sso-callback': typeof authSsoCallbackRoute
-  '/401': typeof errors401LazyRoute
-  '/403': typeof errors403LazyRoute
-  '/404': typeof errors404LazyRoute
-  '/503': typeof errors503LazyRoute
-  '/': typeof AuthenticatedIndexRoute
-  '/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
-  '/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
-  '/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
-  '/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
-  '/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
-  '/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
-  '/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
-  '/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
-  '/users/roles': typeof AuthenticatedUsersRolesLazyRoute
-  '/attachment': typeof AuthenticatedAttachmentIndexRoute
-  '/import': typeof AuthenticatedImportIndexRoute
-  '/search': typeof AuthenticatedSearchIndexRoute
-  '/accounts': typeof AuthenticatedAccountsIndexLazyRoute
-  '/api-docs': typeof AuthenticatedApiDocsIndexLazyRoute
-  '/oauth2-result': typeof AuthenticatedOauth2ResultIndexLazyRoute
-  '/oauth2': typeof AuthenticatedOauth2IndexLazyRoute
-  '/settings': typeof AuthenticatedSettingsIndexLazyRoute
-  '/users': typeof AuthenticatedUsersIndexLazyRoute
-  '/accounts/$id/settings': typeof AuthenticatedAccountsIdSettingsLazyRoute
-}
-
-export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/(auth)/sign-in': typeof authSignInRoute
-  '/(auth)/sso-callback': typeof authSsoCallbackRoute
-  '/_authenticated/settings': typeof AuthenticatedSettingsRouteLazyRouteWithChildren
-  '/_authenticated/users': typeof AuthenticatedUsersRouteLazyRouteWithChildren
-  '/(errors)/401': typeof errors401LazyRoute
-  '/(errors)/403': typeof errors403LazyRoute
-  '/(errors)/404': typeof errors404LazyRoute
-  '/(errors)/500': typeof errors500LazyRoute
-  '/(errors)/503': typeof errors503LazyRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/_authenticated/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
-  '/_authenticated/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
-  '/_authenticated/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
-  '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
-  '/_authenticated/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
-  '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
-  '/_authenticated/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
-  '/_authenticated/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
-  '/_authenticated/users/roles': typeof AuthenticatedUsersRolesLazyRoute
-  '/_authenticated/attachment/': typeof AuthenticatedAttachmentIndexRoute
-  '/_authenticated/import/': typeof AuthenticatedImportIndexRoute
-  '/_authenticated/search/': typeof AuthenticatedSearchIndexRoute
-  '/_authenticated/accounts/': typeof AuthenticatedAccountsIndexLazyRoute
-  '/_authenticated/api-docs/': typeof AuthenticatedApiDocsIndexLazyRoute
-  '/_authenticated/oauth2-result/': typeof AuthenticatedOauth2ResultIndexLazyRoute
-  '/_authenticated/oauth2/': typeof AuthenticatedOauth2IndexLazyRoute
-  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexLazyRoute
-  '/_authenticated/users/': typeof AuthenticatedUsersIndexLazyRoute
-  '/_authenticated/accounts/$id/settings': typeof AuthenticatedAccountsIdSettingsLazyRoute
-}
-
-export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | ''
-    | '/500'
-    | '/sign-in'
-    | '/sso-callback'
-    | '/settings'
-    | '/users'
-    | '/401'
-    | '/403'
-    | '/404'
-    | '/503'
-    | '/'
-    | '/accounts/new'
-    | '/settings/access'
-    | '/settings/api-tokens'
-    | '/settings/appearance'
-    | '/settings/configurations'
-    | '/settings/profile'
-    | '/settings/proxy'
-    | '/users/api-tokens'
-    | '/users/roles'
-    | '/attachment'
-    | '/import'
-    | '/search'
-    | '/accounts'
-    | '/api-docs'
-    | '/oauth2-result'
-    | '/oauth2'
-    | '/settings/'
-    | '/users/'
-    | '/accounts/$id/settings'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/500'
-    | '/sign-in'
-    | '/sso-callback'
-    | '/401'
-    | '/403'
-    | '/404'
-    | '/503'
-    | '/'
-    | '/accounts/new'
-    | '/settings/access'
-    | '/settings/api-tokens'
-    | '/settings/appearance'
-    | '/settings/configurations'
-    | '/settings/profile'
-    | '/settings/proxy'
-    | '/users/api-tokens'
-    | '/users/roles'
-    | '/attachment'
-    | '/import'
-    | '/search'
-    | '/accounts'
-    | '/api-docs'
-    | '/oauth2-result'
-    | '/oauth2'
-    | '/settings'
-    | '/users'
-    | '/accounts/$id/settings'
-  id:
-    | '__root__'
-    | '/_authenticated'
-    | '/(auth)/sign-in'
-    | '/(auth)/sso-callback'
-    | '/_authenticated/settings'
-    | '/_authenticated/users'
-    | '/(errors)/401'
-    | '/(errors)/403'
-    | '/(errors)/404'
-    | '/(errors)/500'
-    | '/(errors)/503'
-    | '/_authenticated/'
-    | '/_authenticated/accounts/new'
-    | '/_authenticated/settings/access'
-    | '/_authenticated/settings/api-tokens'
-    | '/_authenticated/settings/appearance'
-    | '/_authenticated/settings/configurations'
-    | '/_authenticated/settings/profile'
-    | '/_authenticated/settings/proxy'
-    | '/_authenticated/users/api-tokens'
-    | '/_authenticated/users/roles'
-    | '/_authenticated/attachment/'
-    | '/_authenticated/import/'
-    | '/_authenticated/search/'
-    | '/_authenticated/accounts/'
-    | '/_authenticated/api-docs/'
-    | '/_authenticated/oauth2-result/'
-    | '/_authenticated/oauth2/'
-    | '/_authenticated/settings/'
-    | '/_authenticated/users/'
-    | '/_authenticated/accounts/$id/settings'
-  fileRoutesById: FileRoutesById
-}
-
-export interface RootRouteChildren {
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  authSignInRoute: typeof authSignInRoute
-  authSsoCallbackRoute: typeof authSsoCallbackRoute
-  errors401LazyRoute: typeof errors401LazyRoute
-  errors403LazyRoute: typeof errors403LazyRoute
-  errors404LazyRoute: typeof errors404LazyRoute
-  errors500LazyRoute: typeof errors500LazyRoute
-  errors503LazyRoute: typeof errors503LazyRoute
-}
-
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   authSignInRoute: authSignInRoute,
@@ -862,167 +819,6 @@ const rootRouteChildren: RootRouteChildren = {
   errors500LazyRoute: errors500LazyRoute,
   errors503LazyRoute: errors503LazyRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/_authenticated",
-        "/(auth)/sign-in",
-        "/(auth)/sso-callback",
-        "/(errors)/401",
-        "/(errors)/403",
-        "/(errors)/404",
-        "/(errors)/500",
-        "/(errors)/503"
-      ]
-    },
-    "/_authenticated": {
-      "filePath": "_authenticated/route.tsx",
-      "children": [
-        "/_authenticated/settings",
-        "/_authenticated/users",
-        "/_authenticated/",
-        "/_authenticated/accounts/new",
-        "/_authenticated/attachment/",
-        "/_authenticated/import/",
-        "/_authenticated/search/",
-        "/_authenticated/accounts/",
-        "/_authenticated/api-docs/",
-        "/_authenticated/oauth2-result/",
-        "/_authenticated/oauth2/",
-        "/_authenticated/accounts/$id/settings"
-      ]
-    },
-    "/(auth)/sign-in": {
-      "filePath": "(auth)/sign-in.tsx"
-    },
-    "/(auth)/sso-callback": {
-      "filePath": "(auth)/sso-callback.tsx"
-    },
-    "/_authenticated/settings": {
-      "filePath": "_authenticated/settings/route.lazy.tsx",
-      "parent": "/_authenticated",
-      "children": [
-        "/_authenticated/settings/access",
-        "/_authenticated/settings/api-tokens",
-        "/_authenticated/settings/appearance",
-        "/_authenticated/settings/configurations",
-        "/_authenticated/settings/profile",
-        "/_authenticated/settings/proxy",
-        "/_authenticated/settings/"
-      ]
-    },
-    "/_authenticated/users": {
-      "filePath": "_authenticated/users/route.lazy.tsx",
-      "parent": "/_authenticated",
-      "children": [
-        "/_authenticated/users/api-tokens",
-        "/_authenticated/users/roles",
-        "/_authenticated/users/"
-      ]
-    },
-    "/(errors)/401": {
-      "filePath": "(errors)/401.lazy.tsx"
-    },
-    "/(errors)/403": {
-      "filePath": "(errors)/403.lazy.tsx"
-    },
-    "/(errors)/404": {
-      "filePath": "(errors)/404.lazy.tsx"
-    },
-    "/(errors)/500": {
-      "filePath": "(errors)/500.lazy.tsx"
-    },
-    "/(errors)/503": {
-      "filePath": "(errors)/503.lazy.tsx"
-    },
-    "/_authenticated/": {
-      "filePath": "_authenticated/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/accounts/new": {
-      "filePath": "_authenticated/accounts/new.lazy.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/settings/access": {
-      "filePath": "_authenticated/settings/access.lazy.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/api-tokens": {
-      "filePath": "_authenticated/settings/api-tokens.lazy.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/appearance": {
-      "filePath": "_authenticated/settings/appearance.lazy.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/configurations": {
-      "filePath": "_authenticated/settings/configurations.lazy.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/profile": {
-      "filePath": "_authenticated/settings/profile.lazy.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/proxy": {
-      "filePath": "_authenticated/settings/proxy.lazy.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/users/api-tokens": {
-      "filePath": "_authenticated/users/api-tokens.lazy.tsx",
-      "parent": "/_authenticated/users"
-    },
-    "/_authenticated/users/roles": {
-      "filePath": "_authenticated/users/roles.lazy.tsx",
-      "parent": "/_authenticated/users"
-    },
-    "/_authenticated/attachment/": {
-      "filePath": "_authenticated/attachment/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/import/": {
-      "filePath": "_authenticated/import/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/search/": {
-      "filePath": "_authenticated/search/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/accounts/": {
-      "filePath": "_authenticated/accounts/index.lazy.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/api-docs/": {
-      "filePath": "_authenticated/api-docs/index.lazy.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/oauth2-result/": {
-      "filePath": "_authenticated/oauth2-result/index.lazy.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/oauth2/": {
-      "filePath": "_authenticated/oauth2/index.lazy.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/settings/": {
-      "filePath": "_authenticated/settings/index.lazy.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/users/": {
-      "filePath": "_authenticated/users/index.lazy.tsx",
-      "parent": "/_authenticated/users"
-    },
-    "/_authenticated/accounts/$id/settings": {
-      "filePath": "_authenticated/accounts/$id.settings.lazy.tsx",
-      "parent": "/_authenticated"
-    }
-  }
-}
-ROUTE_MANIFEST_END */
