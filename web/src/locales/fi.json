@@ -497,6 +497,44 @@
       "failed": "Epäonnistui"
     }
   },
+  "backup": {
+    "title": "Varmuuskopiot",
+    "description": "Luo ja palauta täydellisiä palvelimen varmuuskopioita.",
+    "loadError": "Varmuuskopiointiasetusten lataaminen epäonnistui.",
+    "schedule": {
+      "title": "Ajastetut varmuuskopiot",
+      "desc": "Automaattiset varmuuskopiot määritetään ympäristömuuttujilla.",
+      "enabled": "Ajastetut varmuuskopiot",
+      "on": "Käytössä",
+      "off": "Pois käytöstä",
+      "keepAll": "Säilytä kaikki",
+      "count": "Ajastetut arkistot levyllä",
+      "last": "Viimeisin ajastettu varmuuskopio",
+      "never": "Ei koskaan"
+    },
+    "create": {
+      "title": "Luo varmuuskopio",
+      "desc": "Lataa täydellinen arkisto kaikesta arkistoidusta postista, liitteistä, hakuindeksistä ja asetuksista.",
+      "button": "Luo ja lataa varmuuskopio",
+      "working": "Luodaan varmuuskopiota…",
+      "startedTitle": "Varmuuskopio luotu",
+      "startedDesc": "Varmuuskopio on luotu ja lataus alkaa pian."
+    },
+    "restore": {
+      "title": "Palauta varmuuskopiosta",
+      "desc": "Lähetä varmuuskopioarkisto. Kaikki nykyiset tiedot korvataan ja palvelin käynnistyy uudelleen ottaakseen sen käyttöön.",
+      "warning": "Palauttaminen korvaa KAIKKI nykyiset tiedot ja käynnistää palvelimen uudelleen. Salatut arkistot voidaan palauttaa vain vastaavalla salasanalla.",
+      "choose": "Valitse arkisto…",
+      "uploading": "Lähetetään…",
+      "restarting": "Palvelin käynnistyy uudelleen ottaakseen palautuksen käyttöön. Lataa tämä sivu hetken kuluttua uudelleen.",
+      "button": "Palauta tämä varmuuskopio",
+      "confirmTitle": "Palautetaanko varmuuskopio?",
+      "confirmDesc": "Tämä korvaa pysyvästi kaikki nykyiset tiedot lähetetyn arkiston sisällöllä ja käynnistää palvelimen uudelleen. Tätä ei voi kumota.",
+      "confirmAction": "Palauta ja käynnistä uudelleen",
+      "stagedTitle": "Palautus valmisteltu",
+      "stagedDesc": "Arkisto hyväksyttiin. Palvelin käynnistyy uudelleen ottaakseen sen käyttöön."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Oletko varma, että haluat kirjautua ulos?",
     "invalidPassword": "Virheellinen salasana. Yritä uudelleen.",
@@ -1450,6 +1488,7 @@
     "sidebar": {
       "access": "Käyttöoikeudet",
       "apiTokens": "API-tunnukset",
+      "backup": "Varmuuskopiot",
       "configurations": "Järjestelmäasetukset",
       "profile": "Profiili",
       "proxy": "Verkkovälityspalvelin"

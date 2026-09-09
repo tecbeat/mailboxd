@@ -497,6 +497,44 @@
       "failed": "Misslyckades"
     }
   },
+  "backup": {
+    "title": "Säkerhetskopiering",
+    "description": "Skapa och återställ fullständiga serversäkerhetskopior.",
+    "loadError": "Det gick inte att läsa in inställningarna för säkerhetskopiering.",
+    "schedule": {
+      "title": "Schemalagda säkerhetskopior",
+      "desc": "Automatiska säkerhetskopior konfigureras via miljövariabler.",
+      "enabled": "Schemalagda säkerhetskopior",
+      "on": "Aktiverad",
+      "off": "Inaktiverad",
+      "keepAll": "Behåll alla",
+      "count": "Schemalagda arkiv på disken",
+      "last": "Senaste schemalagda säkerhetskopia",
+      "never": "Aldrig"
+    },
+    "create": {
+      "title": "Skapa en säkerhetskopia",
+      "desc": "Ladda ner ett fullständigt arkiv med all arkiverad e-post, bilagor, sökindex och inställningar.",
+      "button": "Skapa och ladda ner säkerhetskopia",
+      "working": "Skapar säkerhetskopia…",
+      "startedTitle": "Säkerhetskopia skapad",
+      "startedDesc": "Säkerhetskopian har skapats och nedladdningen bör börja snart."
+    },
+    "restore": {
+      "title": "Återställ från en säkerhetskopia",
+      "desc": "Ladda upp ett säkerhetskopiearkiv. All nuvarande data ersätts och servern startar om för att tillämpa det.",
+      "warning": "Återställning ersätter ALL nuvarande data och startar om servern. Krypterade arkiv kan endast återställas med matchande krypteringslösenord.",
+      "choose": "Välj arkiv…",
+      "uploading": "Laddar upp…",
+      "restarting": "Servern startar om för att tillämpa återställningen. Ladda om den här sidan om en stund.",
+      "button": "Återställ denna säkerhetskopia",
+      "confirmTitle": "Återställa säkerhetskopia?",
+      "confirmDesc": "Detta ersätter permanent all nuvarande data med innehållet i det uppladdade arkivet och startar om servern. Detta kan inte ångras.",
+      "confirmAction": "Återställ och starta om",
+      "stagedTitle": "Återställning förberedd",
+      "stagedDesc": "Arkivet accepterades. Servern startar om för att tillämpa det."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Är du säker på att du vill logga ut?",
     "invalidPassword": "Ogiltigt lösenord. Var god försök igen.",
@@ -1450,6 +1488,7 @@
     "sidebar": {
       "access": "Behörigheter",
       "apiTokens": "API-tokens",
+      "backup": "Säkerhetskopiering",
       "configurations": "Systemkonfigurationer",
       "profile": "Profil",
       "proxy": "Nätverksproxy"

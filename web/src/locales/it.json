@@ -497,6 +497,44 @@
       "failed": "Non riuscito"
     }
   },
+  "backup": {
+    "title": "Backup",
+    "description": "Crea e ripristina backup completi del server.",
+    "loadError": "Impossibile caricare le impostazioni di backup.",
+    "schedule": {
+      "title": "Backup pianificati",
+      "desc": "I backup automatici si configurano tramite variabili d'ambiente.",
+      "enabled": "Backup pianificati",
+      "on": "Abilitati",
+      "off": "Disabilitati",
+      "keepAll": "Conserva tutti",
+      "count": "Archivi pianificati su disco",
+      "last": "Ultimo backup pianificato",
+      "never": "Mai"
+    },
+    "create": {
+      "title": "Crea un backup",
+      "desc": "Scarica un archivio completo di tutta la posta archiviata, gli allegati, l'indice di ricerca e le impostazioni.",
+      "button": "Crea e scarica backup",
+      "working": "Creazione del backup…",
+      "startedTitle": "Backup creato",
+      "startedDesc": "Il backup è stato creato e il download inizierà a breve."
+    },
+    "restore": {
+      "title": "Ripristina da un backup",
+      "desc": "Carica un archivio di backup. Tutti i dati attuali vengono sostituiti e il server si riavvia per applicarlo.",
+      "warning": "Il ripristino sostituisce TUTTI i dati attuali e riavvia il server. Gli archivi cifrati possono essere ripristinati solo con la password di cifratura corrispondente.",
+      "choose": "Scegli archivio…",
+      "uploading": "Caricamento…",
+      "restarting": "Il server si sta riavviando per applicare il ripristino. Ricarica questa pagina tra poco.",
+      "button": "Ripristina questo backup",
+      "confirmTitle": "Ripristinare il backup?",
+      "confirmDesc": "Questa operazione sostituisce definitivamente tutti i dati attuali con il contenuto dell'archivio caricato e riavvia il server. Non può essere annullata.",
+      "confirmAction": "Ripristina e riavvia",
+      "stagedTitle": "Ripristino preparato",
+      "stagedDesc": "L'archivio è stato accettato. Il server si sta riavviando per applicarlo."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Sei sicuro di voler uscire?",
     "invalidPassword": "Password non valida. Riprova.",
@@ -1450,6 +1488,7 @@
     "sidebar": {
       "access": "Permessi di accesso",
       "apiTokens": "Token API",
+      "backup": "Backup",
       "configurations": "Configurazioni di sistema",
       "profile": "Profilo",
       "proxy": "Proxy di rete"

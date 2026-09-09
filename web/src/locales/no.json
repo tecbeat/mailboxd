@@ -497,6 +497,44 @@
       "failed": "Mislyktes"
     }
   },
+  "backup": {
+    "title": "Sikkerhetskopi",
+    "description": "Opprett og gjenopprett fullstendige serversikkerhetskopier.",
+    "loadError": "Kunne ikke laste innstillinger for sikkerhetskopiering.",
+    "schedule": {
+      "title": "Planlagte sikkerhetskopier",
+      "desc": "Automatiske sikkerhetskopier konfigureres via miljøvariabler.",
+      "enabled": "Planlagte sikkerhetskopier",
+      "on": "Aktivert",
+      "off": "Deaktivert",
+      "keepAll": "Behold alle",
+      "count": "Planlagte arkiver på disken",
+      "last": "Siste planlagte sikkerhetskopi",
+      "never": "Aldri"
+    },
+    "create": {
+      "title": "Opprett en sikkerhetskopi",
+      "desc": "Last ned et fullstendig arkiv med all arkivert e-post, vedlegg, søkeindeks og innstillinger.",
+      "button": "Opprett og last ned sikkerhetskopi",
+      "working": "Oppretter sikkerhetskopi…",
+      "startedTitle": "Sikkerhetskopi opprettet",
+      "startedDesc": "Sikkerhetskopien er opprettet, og nedlastingen bør starte snart."
+    },
+    "restore": {
+      "title": "Gjenopprett fra en sikkerhetskopi",
+      "desc": "Last opp et sikkerhetskopiarkiv. Alle gjeldende data erstattes, og serveren starter på nytt for å ta det i bruk.",
+      "warning": "Gjenoppretting erstatter ALLE gjeldende data og starter serveren på nytt. Krypterte arkiver kan bare gjenopprettes med tilhørende krypteringspassord.",
+      "choose": "Velg arkiv…",
+      "uploading": "Laster opp…",
+      "restarting": "Serveren starter på nytt for å ta i bruk gjenopprettingen. Last inn denne siden på nytt om et øyeblikk.",
+      "button": "Gjenopprett denne sikkerhetskopien",
+      "confirmTitle": "Gjenopprette sikkerhetskopi?",
+      "confirmDesc": "Dette erstatter permanent alle gjeldende data med innholdet i det opplastede arkivet og starter serveren på nytt. Dette kan ikke angres.",
+      "confirmAction": "Gjenopprett og start på nytt",
+      "stagedTitle": "Gjenoppretting klargjort",
+      "stagedDesc": "Arkivet ble godtatt. Serveren starter på nytt for å ta det i bruk."
+    }
+  },
   "auth": {
     "areYouSureYouWantToLogOut": "Er du sikker på at du vil logge ut?",
     "invalidPassword": "Ugyldig passord. Vennligst prøv igjen.",
@@ -1450,6 +1488,7 @@
     "sidebar": {
       "access": "Tilgang",
       "apiTokens": "API-tokener",
+      "backup": "Sikkerhetskopi",
       "configurations": "Systemkonfigurasjoner",
       "profile": "Profil",
       "proxy": "Nettverksproxy"
