@@ -436,6 +436,38 @@ pub struct Settings {
         help = "Audit-log retention period in days (0 keeps entries indefinitely)"
     )]
     pub mailboxd_audit_retention_days: u64,
+
+    /// Directory where scheduled backup archives are written. Should map to a
+    /// mounted volume so archives can be retrieved from outside the container.
+    /// When unset, scheduled backups are disabled; manual create/download and
+    /// upload/restore via the web UI continue to work.
+    #[clap(
+        long,
+        env,
+        help = "Directory for scheduled backup archives (maps to a mounted volume); unset disables scheduled backups"
+    )]
+    pub mailboxd_backup_dir: Option<String>,
+
+    /// Cron expression controlling when scheduled backups run, in server local
+    /// time. Uses the `cron` field order `sec min hour day-of-month month
+    /// day-of-week [year]`. When empty, scheduled backups are disabled.
+    #[clap(
+        long,
+        default_value = "",
+        env,
+        help = "Cron expression for scheduled backups (empty disables scheduling)"
+    )]
+    pub mailboxd_backup_schedule: String,
+
+    /// Number of scheduled backup archives to keep. After each scheduled run,
+    /// older archives beyond this count are pruned. A value of 0 keeps all.
+    #[clap(
+        long,
+        default_value = "7",
+        env,
+        help = "Number of scheduled backup archives to keep (0 keeps all)"
+    )]
+    pub mailboxd_backup_retention: u64,
 }
 
 impl Settings {

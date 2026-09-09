@@ -19,6 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::audit::task::AuditCleanTask;
+use crate::backup::{ops as backup_ops, task::BackupTask};
 use crate::common::periodic::TaskHandle;
 use crate::context::MailboxdTask;
 use crate::oauth2::{refresh::OAuth2RefreshTask, task::OAuth2CleanTask};
@@ -37,6 +38,11 @@ impl PeriodicTasks {
         tasks.push(OidcCleanTask::start());
         tasks.push(AuditCleanTask::start());
         tasks.push(DedupTask::start());
+        // Only run the backup scheduler when a directory and cron schedule are
+        // configured; otherwise it would tick uselessly every minute.
+        if backup_ops::scheduled_enabled() {
+            tasks.push(BackupTask::start());
+        }
         Self { tasks }
     }
 
