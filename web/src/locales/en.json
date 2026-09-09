@@ -525,7 +525,8 @@
     "username": "Username",
     "welcome": "Welcome to mailboxd",
     "youWillNeedToLogInAgain": "You will need to log in again to access your account.",
-    "ssoLogin": "Sign in with SSO"
+    "ssoLogin": "Sign in with SSO",
+    "signingIn": "Signing you in…"
   },
   "command": {
     "dark": "Dark",

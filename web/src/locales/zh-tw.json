@@ -510,7 +510,8 @@
     "username": "使用者名稱",
     "welcome": "歡迎使用 mailboxd",
     "youWillNeedToLogInAgain": "您將需要再次登入才能存取您的帳號。",
-    "ssoLogin": "使用 SSO 登入"
+    "ssoLogin": "使用 SSO 登入",
+    "signingIn": "正在為您登入…"
   },
   "command": {
     "dark": "深色",
@@ -1408,6 +1409,7 @@
         "password_keep": "留空以保留目前的密碼"
       },
       "removeAvatar": "移除頭像",
+      "sso_managed_credentials": "您的密碼由 SSO 提供者管理，無法在此處變更。",
       "section": {
         "accounts": "已連結 {{count}} 個帳戶",
         "roles": "角色"

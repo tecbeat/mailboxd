@@ -17,6 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { setToken } from '@/stores/authStore'
 import axiosInstance from '@/api/axiosInstance'
@@ -33,6 +34,7 @@ interface SignInSearch {
 
 function SsoCallback() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -91,7 +93,7 @@ function SsoCallback() {
     <div className='flex min-h-screen items-center justify-center'>
       <div className='flex flex-col items-center gap-2'>
         <Spinner />
-        <p className='text-sm text-muted-foreground'>Signing you in…</p>
+        <p className='text-sm text-muted-foreground'>{t('auth.signingIn')}</p>
       </div>
     </div>
   )

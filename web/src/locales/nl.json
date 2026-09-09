@@ -510,7 +510,8 @@
     "username": "Gebruikersnaam",
     "welcome": "Welkom bij mailboxd",
     "youWillNeedToLogInAgain": "U moet opnieuw inloggen om toegang te krijgen tot uw account.",
-    "ssoLogin": "Inloggen met SSO"
+    "ssoLogin": "Inloggen met SSO",
+    "signingIn": "U wordt aangemeld…"
   },
   "command": {
     "dark": "Donker",
@@ -1408,6 +1409,7 @@
         "password_keep": "Laat leeg om het huidige wachtwoord te behouden"
       },
       "removeAvatar": "Avatar verwijderen",
+      "sso_managed_credentials": "Uw wachtwoord wordt beheerd door uw SSO-provider en kan hier niet worden gewijzigd.",
       "section": {
         "accounts": "{{count}} gekoppelde accounts",
         "roles": "Rollen"

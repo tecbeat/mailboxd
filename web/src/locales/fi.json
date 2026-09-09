@@ -510,7 +510,8 @@
     "username": "Käyttäjänimi",
     "welcome": "Tervetuloa mailboxdiin",
     "youWillNeedToLogInAgain": "Sinun on kirjauduttava sisään uudelleen päästäksesi tilillesi.",
-    "ssoLogin": "Kirjaudu SSO:lla"
+    "ssoLogin": "Kirjaudu SSO:lla",
+    "signingIn": "Kirjaudutaan sisään…"
   },
   "command": {
     "dark": "Tumma",
@@ -1408,6 +1409,7 @@
         "password_keep": "Jätä tyhjäksi säilyttääksesi nykyisen salasanan"
       },
       "removeAvatar": "Poista avatar",
+      "sso_managed_credentials": "Salasanaasi hallinnoi SSO-palveluntarjoajasi, eikä sitä voi vaihtaa täällä.",
       "section": {
         "accounts": "{{count}} liitettyä tiliä",
         "roles": "Roolit"

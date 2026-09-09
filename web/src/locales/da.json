@@ -510,7 +510,8 @@
     "username": "Brugernavn",
     "welcome": "Velkommen til mailboxd",
     "youWillNeedToLogInAgain": "Du skal logge ind igen for at få adgang til din konto.",
-    "ssoLogin": "Log ind med SSO"
+    "ssoLogin": "Log ind med SSO",
+    "signingIn": "Logger dig ind…"
   },
   "command": {
     "dark": "Mørk",
@@ -1408,6 +1409,7 @@
         "password_keep": "Lad feltet være tomt for at beholde nuværende adgangskode"
       },
       "removeAvatar": "Fjern avatar",
+      "sso_managed_credentials": "Din adgangskode administreres af din SSO-udbyder og kan ikke ændres her.",
       "section": {
         "accounts": "{{count}} tilknyttede konti",
         "roles": "Roller"

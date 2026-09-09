@@ -510,7 +510,8 @@
     "username": "Nazwa",
     "welcome": "Witaj w mailboxd",
     "youWillNeedToLogInAgain": "Musisz zalogować się ponownie, aby ponownie móc korzystać.",
-    "ssoLogin": "Zaloguj się przez SSO"
+    "ssoLogin": "Zaloguj się przez SSO",
+    "signingIn": "Logowanie…"
   },
   "command": {
     "dark": "Ciemny",
@@ -1408,6 +1409,7 @@
         "password_keep": "Pozostaw puste, aby zachować obecne hasło"
       },
       "removeAvatar": "Usuń awatar",
+      "sso_managed_credentials": "Twoje hasło jest zarządzane przez dostawcę SSO i nie można go tutaj zmienić.",
       "section": {
         "accounts": "Połączone konta: {{count}}",
         "roles": "Role"

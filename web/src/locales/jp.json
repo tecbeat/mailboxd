@@ -510,7 +510,8 @@
     "username": "ユーザー名",
     "welcome": "mailboxd へようこそ",
     "youWillNeedToLogInAgain": "アカウントにアクセスするには、再度ログインする必要があります。",
-    "ssoLogin": "SSOでサインイン"
+    "ssoLogin": "SSOでサインイン",
+    "signingIn": "サインインしています…"
   },
   "command": {
     "dark": "ダーク",
@@ -1408,6 +1409,7 @@
         "password_keep": "空欄のままにすると現在のパスワードを保持します"
       },
       "removeAvatar": "アバターを削除",
+      "sso_managed_credentials": "パスワードは SSO プロバイダーによって管理されており、ここでは変更できません。",
       "section": {
         "accounts": "連携アカウント {{count}} 件",
         "roles": "ロール"

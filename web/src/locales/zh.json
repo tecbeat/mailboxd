@@ -520,7 +520,8 @@
     "username": "用户名",
     "welcome": "欢迎使用 mailboxd",
     "youWillNeedToLogInAgain": "您需要重新登录才能访问您的账户。",
-    "ssoLogin": "使用 SSO 登录"
+    "ssoLogin": "使用 SSO 登录",
+    "signingIn": "正在为您登录…"
   },
   "command": {
     "dark": "深色",
@@ -1418,6 +1419,7 @@
         "password_keep": "留空以保持当前密码"
       },
       "removeAvatar": "移除头像",
+      "sso_managed_credentials": "您的密码由 SSO 提供商管理，无法在此处更改。",
       "section": {
         "accounts": "已关联 {{count}} 个账户",
         "roles": "角色"
