@@ -179,6 +179,12 @@ impl AuditEntry {
             Event::SettingsChanged { key, user } => {
                 Self::build("settings.changed", user, None, None, Some(key), true)
             }
+            Event::BackupCreated { user } => {
+                Self::build("backup.created", user, None, None, None, true)
+            }
+            Event::BackupRestoreStaged { user } => {
+                Self::build("backup.restore_staged", user, None, None, None, true)
+            }
         }
     }
 }
