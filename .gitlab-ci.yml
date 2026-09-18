@@ -93,7 +93,7 @@ migration_tests:
 .web_check:
   extends: .skip_on_default_branch
   stage: unittest
-  image: node:24-alpine3.24@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81
+  image: node:24-alpine3.24@sha256:760e44b64c78674d9c79fa32e63c0ba8f817f79791e1aa32e07669bb0bfeaeaa
   needs: []
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
