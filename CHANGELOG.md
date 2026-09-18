@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.3](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.3) - 2026-09-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update Node.js to 760e44b - ([7c2994f](https://git.teccave.de/tecbeat/mailboxd/commit/7c2994f947c24d302f9ff25320e97a7cd1a904b5))
+
 ## [1.7.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.2) - 2026-09-12
 
 ### 🐛 Bug Fixes
