@@ -897,6 +897,53 @@ impl ImapExecutor {
         ImapConnectionManager::build(account_id).await
     }
 
+    /// Enumerate the UIDs present in a mailbox at or above `start_uid`, without
+    /// downloading any bodies.
+    ///
+    /// This is the enumeration half of [`fetch_new_mail`], exposed on its own so
+    /// the source-agnostic sync engine (via the `MailSource` abstraction) can
+    /// separate "which messages changed" from "download this message". It uses a
+    /// ranged `UID FETCH {start}:* (UID)` for the same RFC 3501 §6.4.4
+    /// closed-interval guarantee that makes `fetch_new_mail` drift-safe, and
+    /// applies the same clamp against non-compliant servers (e.g. Zoho) that
+    /// return UIDs below `start_uid`. The returned list is sorted ascending.
+    pub async fn enumerate_uids_from(
+        session: &mut Session<Box<dyn SessionStream>>,
+        encoded_mailbox_name: &str,
+        start_uid: u32,
+    ) -> MailboxdResult<Vec<u32>> {
+        assert!(start_uid > 0, "start_uid must be greater than 0");
+
+        session
+            .examine(encoded_mailbox_name)
+            .await
+            .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
+
+        let uid_range = format!("{start_uid}:*");
+        let mut stream = session
+            .uid_fetch(&uid_range, "(UID)")
+            .await
+            .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
+
+        let mut uids: Vec<u32> = Vec::new();
+        while let Some(fetch) = stream
+            .try_next()
+            .await
+            .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?
+        {
+            if let Some(uid) = fetch.uid {
+                // Non-compliant servers may clamp `{start}:*` and return the last
+                // message even when start_uid exceeds the highest UID; drop the
+                // out-of-range results so callers never re-see stored mail.
+                if uid >= start_uid {
+                    uids.push(uid);
+                }
+            }
+        }
+        uids.sort_unstable();
+        Ok(uids)
+    }
+
     /// Fetch UID → Message-ID mapping without downloading bodies.
     /// `uid_set` is an IMAP sequence-set string (e.g. "1:100" or "1,3,5").
     pub async fn fetch_uid_metadata(
