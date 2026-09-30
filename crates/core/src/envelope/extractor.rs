@@ -94,6 +94,30 @@ pub async fn extract_envelope_from_eml(
     extract_envelope_core(body, 0, body.len() as u32, 0, account_id, mailbox_id).await
 }
 
+/// Store a [`RawMessage`] produced by any [`MailSource`](crate::archive::source).
+///
+/// This is the single, source-agnostic entry point the sync engine (issue #49)
+/// uses to hand a downloaded message to the storage/indexing pipeline. It simply
+/// forwards the raw bytes plus the source-provided `(uid, size, internal_date)`
+/// metadata to [`extract_envelope_core`], mirroring what
+/// [`extract_envelope_and_store_it`] does for an IMAP `Fetch` — but without any
+/// dependency on the IMAP protocol types.
+pub async fn extract_envelope_from_raw(
+    message: &crate::archive::source::RawMessage,
+    account_id: u64,
+    mailbox_id: u64,
+) -> MailboxdResult<ExtractOutcome> {
+    extract_envelope_core(
+        &message.body,
+        message.uid,
+        message.size,
+        message.internal_date,
+        account_id,
+        mailbox_id,
+    )
+    .await
+}
+
 pub async fn extract_envelope_from_smtp(
     body: &[u8],
     account_id: u64,

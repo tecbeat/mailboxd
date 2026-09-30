@@ -24,6 +24,7 @@ use std::sync::{Arc, LazyLock};
 use tokio::sync::Semaphore;
 
 pub mod imap;
+pub mod source;
 
 pub static SEMAPHORE: LazyLock<Arc<Semaphore>> = LazyLock::new(|| {
     Arc::new(Semaphore::new(
