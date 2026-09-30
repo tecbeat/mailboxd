@@ -71,6 +71,7 @@ uuid.workspace = true
 mailboxd-blob.workspace = true
 tracing-log.workspace = true
 tokio-util.workspace = true
+async-trait.workspace = true
 deunicode = "1.6.2"
 scopeguard = "1.2.0"
 cron = "0.17"
