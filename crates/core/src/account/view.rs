@@ -23,8 +23,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     account::{
-        entity::ImapConfig,
-        migration::{AccountModel, AccountType, ArchiveRules, QuotaWindow},
+        entity::{ImapConfig, JmapConfig},
+        migration::{AccountModel, AccountType, ArchiveRules, ExtractionRules, QuotaWindow},
         since::{DateSince, RelativeDate},
     },
     users::UserModel,
@@ -35,6 +35,7 @@ use crate::{
 pub struct AccountResp {
     pub id: u64,
     pub imap: Option<ImapConfig>,
+    pub jmap: Option<JmapConfig>,
     pub enabled: bool,
     pub email: String,
     pub account_name: Option<String>,
@@ -61,6 +62,7 @@ pub struct AccountResp {
     pub download_schedule: Option<String>,
     pub archive_rules: Option<ArchiveRules>,
     pub retention_days: Option<u64>,
+    pub extraction_rules: Option<ExtractionRules>,
     pub deleting: bool,
 }
 
@@ -70,6 +72,7 @@ impl AccountResp {
         AccountResp {
             id: account.id,
             imap: account.imap,
+            jmap: account.jmap,
             enabled: account.enabled,
             email: account.email,
             account_name: account.account_name,
@@ -100,6 +103,7 @@ impl AccountResp {
             download_schedule: account.download_schedule,
             archive_rules: account.archive_rules,
             retention_days: account.retention_days,
+            extraction_rules: account.extraction_rules,
             deleting: account.deleting,
         }
     }
