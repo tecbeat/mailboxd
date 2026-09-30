@@ -24,7 +24,7 @@ use tracing::info;
 
 use crate::{
     account::{
-        entity::ImapConfig,
+        entity::{ImapConfig, JmapConfig},
         payload::{AccountCreateRequest, AccountUpdateRequest, MinimalAccount},
         since::{DateSince, RelativeDate},
         state::DownloadState,
@@ -54,6 +54,9 @@ pub enum AccountType {
     #[default]
     IMAP,
     NoSync,
+    /// JMAP (RFC 8620 / RFC 8621) mail source. Model-only for now (epic #44);
+    /// sync is wired in a later issue.
+    JMAP,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
@@ -281,6 +284,10 @@ fn validate_patterns(patterns: &[String], field_name: &str) -> Result<(), String
 pub struct Account {
     pub id: u64,
     pub imap: Option<ImapConfig>,
+    /// JMAP source configuration. `None` for non-JMAP accounts. `#[serde(default)]`
+    /// keeps existing stored accounts (IMAP/NoSync) deserializing unchanged (FA-18).
+    #[serde(default)]
+    pub jmap: Option<JmapConfig>,
     pub enabled: bool,
     #[cfg_attr(
         feature = "web-api",
@@ -337,6 +344,7 @@ impl Account {
             login_name: request.login_name,
             account_name: request.account_name,
             imap: request.imap.map(|i| i.try_encrypt_password()).transpose()?,
+            jmap: request.jmap.map(|j| j.try_encrypt_secret()).transpose()?,
             enabled: request.enabled,
             capabilities: None,
             date_since: request.date_since,
@@ -642,18 +650,35 @@ impl Account {
                     current_imap.use_proxy = imap.use_proxy;
                 }
             }
+        }
 
+        if matches!(old.account_type, AccountType::JMAP) {
+            if let Some(jmap) = &request.jmap {
+                if let Some(current_jmap) = &mut new.jmap {
+                    current_jmap.session_url = jmap.session_url.clone();
+                    current_jmap.auth.auth_type = jmap.auth.auth_type.clone();
+                    current_jmap.auth.username = jmap.auth.username.clone();
+                    if let Some(secret) = &jmap.auth.secret {
+                        let encrypted_secret = encrypt!(secret)?;
+                        current_jmap.auth.secret = Some(encrypted_secret);
+                    }
+                    current_jmap.use_proxy = jmap.use_proxy;
+                }
+            }
+        }
+
+        // Shared sync/download settings apply to any server-backed source
+        // (IMAP and JMAP alike, FA-6); NoSync accounts ignore them.
+        if matches!(old.account_type, AccountType::IMAP | AccountType::JMAP) {
             if let Some(folder_names) = request.sync_folders {
                 new.download_folders = Some(folder_names);
             }
             if let Some(sync_interval_min) = &request.download_interval_min {
                 new.download_interval_min = Some(*sync_interval_min);
             }
-
             if let Some(download_batch_size) = &request.download_batch_size {
                 new.download_batch_size = Some(*download_batch_size);
             }
-
             if let Some(max_email_size_bytes) = request.max_email_size_bytes {
                 new.max_email_size_bytes = Some(max_email_size_bytes);
             }
@@ -988,5 +1013,247 @@ mod tests {
             ..Default::default()
         };
         assert!(rules.validate().is_err());
+    }
+
+    // ── JMAP account model (#47) ─────────────────────────────────────
+
+    use crate::account::entity::{JmapAuthConfig, JmapAuthType, JmapConfig};
+    use crate::account::payload::AccountCreateRequest;
+    use crate::decrypt;
+
+    fn jmap_create_request(auth: JmapAuthConfig, session_url: Option<String>) -> AccountCreateRequest {
+        AccountCreateRequest {
+            email: "user@example.com".into(),
+            account_type: AccountType::JMAP,
+            jmap: Some(JmapConfig {
+                session_url,
+                auth,
+                use_proxy: None,
+            }),
+            enabled: true,
+            download_interval_min: Some(60),
+            ..Default::default()
+        }
+    }
+
+    // -- JmapAuthConfig::validate ------------------------------------
+
+    #[test]
+    fn jmap_auth_basic_requires_username_and_secret() {
+        let ok = JmapAuthConfig {
+            auth_type: JmapAuthType::Basic,
+            username: Some("user".into()),
+            secret: Some("pw".into()),
+        };
+        assert!(ok.validate().is_ok());
+
+        let no_user = JmapAuthConfig {
+            auth_type: JmapAuthType::Basic,
+            username: None,
+            secret: Some("pw".into()),
+        };
+        assert!(no_user.validate().is_err());
+
+        let no_secret = JmapAuthConfig {
+            auth_type: JmapAuthType::Basic,
+            username: Some("user".into()),
+            secret: None,
+        };
+        assert!(no_secret.validate().is_err());
+    }
+
+    #[test]
+    fn jmap_auth_bearer_requires_secret() {
+        let ok = JmapAuthConfig {
+            auth_type: JmapAuthType::Bearer,
+            username: None,
+            secret: Some("api-token".into()),
+        };
+        assert!(ok.validate().is_ok());
+
+        let missing = JmapAuthConfig {
+            auth_type: JmapAuthType::Bearer,
+            username: None,
+            secret: None,
+        };
+        assert!(missing.validate().is_err());
+    }
+
+    #[test]
+    fn jmap_auth_oauth2_needs_no_inline_secret() {
+        let auth = JmapAuthConfig {
+            auth_type: JmapAuthType::OAuth2,
+            username: None,
+            secret: None,
+        };
+        assert!(auth.validate().is_ok());
+    }
+
+    // -- Payload cross-field validation (no encryption reached) ------
+
+    #[test]
+    fn create_jmap_without_config_is_rejected() {
+        let req = AccountCreateRequest {
+            email: "user@example.com".into(),
+            account_type: AccountType::JMAP,
+            jmap: None,
+            enabled: true,
+            download_interval_min: Some(60),
+            ..Default::default()
+        };
+        assert!(req.create_entity(1).is_err());
+    }
+
+    #[test]
+    fn create_imap_type_with_jmap_config_is_rejected() {
+        let req = AccountCreateRequest {
+            email: "user@example.com".into(),
+            account_type: AccountType::IMAP,
+            jmap: Some(JmapConfig {
+                session_url: Some("https://jmap.example.com/session".into()),
+                auth: JmapAuthConfig {
+                    auth_type: JmapAuthType::Bearer,
+                    username: None,
+                    secret: Some("t".into()),
+                },
+                use_proxy: None,
+            }),
+            enabled: true,
+            download_interval_min: Some(60),
+            ..Default::default()
+        };
+        assert!(req.create_entity(1).is_err());
+    }
+
+    #[test]
+    fn create_jmap_without_interval_or_schedule_is_rejected() {
+        let mut req = jmap_create_request(
+            JmapAuthConfig {
+                auth_type: JmapAuthType::Bearer,
+                username: None,
+                secret: Some("token".into()),
+            },
+            Some("https://jmap.example.com/session".into()),
+        );
+        req.download_interval_min = None;
+        req.download_schedule = None;
+        assert!(req.create_entity(1).is_err());
+    }
+
+    // -- Full create_entity round-trip with encryption --------------
+    // Relies on the SETTINGS default encryption password (also set in CI via
+    // MAILBOXD_ENCRYPT_PASSWORD), matching the existing IMAP behaviour.
+
+    #[test]
+    fn create_jmap_basic_encrypts_secret_roundtrip() {
+        let req = jmap_create_request(
+            JmapAuthConfig {
+                auth_type: JmapAuthType::Basic,
+                username: Some("user@example.com".into()),
+                secret: Some("s3cr3t".into()),
+            },
+            None,
+        );
+        let entity = req.create_entity(1).expect("JMAP Basic account should be created");
+        assert_eq!(entity.account_type, AccountType::JMAP);
+        let jmap = entity.jmap.expect("jmap config present");
+        assert_eq!(jmap.auth.auth_type, JmapAuthType::Basic);
+        assert_eq!(jmap.auth.username.as_deref(), Some("user@example.com"));
+        let stored = jmap.auth.secret.expect("secret present");
+        assert_ne!(stored, "s3cr3t", "secret must be encrypted at rest");
+        assert_eq!(decrypt!(&stored).unwrap(), "s3cr3t");
+    }
+
+    #[test]
+    fn create_jmap_bearer_encrypts_token_roundtrip() {
+        let req = jmap_create_request(
+            JmapAuthConfig {
+                auth_type: JmapAuthType::Bearer,
+                username: None,
+                secret: Some("fastmail-app-token".into()),
+            },
+            Some("https://api.fastmail.com/jmap/session".into()),
+        );
+        let entity = req.create_entity(1).expect("JMAP Bearer account should be created");
+        let jmap = entity.jmap.expect("jmap config present");
+        assert_eq!(jmap.auth.auth_type, JmapAuthType::Bearer);
+        assert_eq!(
+            jmap.session_url.as_deref(),
+            Some("https://api.fastmail.com/jmap/session")
+        );
+        let stored = jmap.auth.secret.expect("token present");
+        assert_ne!(stored, "fastmail-app-token");
+        assert_eq!(decrypt!(&stored).unwrap(), "fastmail-app-token");
+    }
+
+    #[test]
+    fn create_jmap_oauth2_has_no_inline_secret() {
+        let req = jmap_create_request(
+            JmapAuthConfig {
+                auth_type: JmapAuthType::OAuth2,
+                username: None,
+                secret: None,
+            },
+            Some("https://jmap.example.com/session".into()),
+        );
+        let entity = req.create_entity(1).expect("JMAP OAuth2 account should be created");
+        let jmap = entity.jmap.expect("jmap config present");
+        assert_eq!(jmap.auth.auth_type, JmapAuthType::OAuth2);
+        assert!(jmap.auth.secret.is_none());
+    }
+
+    // -- Backward compatibility (FA-18) -----------------------------
+
+    #[test]
+    fn legacy_imap_account_json_without_jmap_field_deserializes() {
+        // A stored IMAP account serialized before the `jmap` field existed.
+        let legacy = r#"{
+            "id": 42,
+            "imap": null,
+            "enabled": true,
+            "email": "old@example.com",
+            "account_name": null,
+            "login_name": null,
+            "capabilities": null,
+            "date_since": null,
+            "date_before": null,
+            "download_folders": null,
+            "account_type": "IMAP",
+            "download_interval_min": 60,
+            "download_batch_size": null,
+            "known_folders": null,
+            "created_at": 1,
+            "updated_at": 1,
+            "created_by": 100,
+            "use_dangerous": false,
+            "pgp_key": null,
+            "imap_quota_bytes": null,
+            "imap_quota_window": null,
+            "auto_download_new_mailboxes": null,
+            "download_schedule": null
+        }"#;
+        let account: Account = serde_json::from_str(legacy).expect("legacy IMAP account must load");
+        assert_eq!(account.account_type, AccountType::IMAP);
+        assert!(account.jmap.is_none(), "missing jmap must default to None");
+        assert_eq!(account.email, "old@example.com");
+    }
+
+    #[test]
+    fn legacy_nosync_account_json_without_jmap_field_deserializes() {
+        let legacy = r#"{
+            "id": 7,
+            "imap": null,
+            "enabled": true,
+            "email": "nosync@example.com",
+            "account_type": "NoSync",
+            "created_at": 1,
+            "updated_at": 1,
+            "created_by": 100,
+            "use_dangerous": false
+        }"#;
+        let account: Account =
+            serde_json::from_str(legacy).expect("legacy NoSync account must load");
+        assert_eq!(account.account_type, AccountType::NoSync);
+        assert!(account.jmap.is_none());
     }
 }

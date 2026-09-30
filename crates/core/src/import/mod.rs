@@ -92,7 +92,9 @@ impl ImportEmls {
         }
 
         let mailbox_id = match account.account_type {
-            AccountType::IMAP => {
+            // Server-backed sources (IMAP, JMAP) require the target folder to
+            // already exist from a prior sync.
+            AccountType::IMAP | AccountType::JMAP => {
                 let all_mailboxes = MailBox::list_all(account.id)?;
                 let mailbox = all_mailboxes
                     .into_iter()
@@ -394,7 +396,7 @@ fn validate_import_account(account_id: u64) -> MailboxdResult<AccountModel> {
 /// Resolve or create a mailbox/folder for the given account.
 pub(super) fn resolve_mailbox(account: &AccountModel, folder: &str) -> MailboxdResult<u64> {
     match account.account_type {
-        AccountType::IMAP => {
+        AccountType::IMAP | AccountType::JMAP => {
             // Shouldn't reach here (validated above), but handle gracefully
             let all_mailboxes = MailBox::list_all(account.id)?;
             let mailbox = all_mailboxes.into_iter().find(|m| m.name == folder);
