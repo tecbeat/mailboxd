@@ -136,7 +136,12 @@ fn build_client(cfg: &OidcConfig<'_>, discovery: &OidcDiscovery) -> MailboxdResu
     Ok(client)
 }
 
-fn build_http_client() -> MailboxdResult<reqwest::Client> {
+// NOTE: Returns oauth2's bundled reqwest client (currently 0.12), not the
+// workspace reqwest (0.13). It is passed to `request_async`, whose trait bound
+// requires oauth2's own reqwest client type. See build_http_client in
+// `oauth2/flow.rs` for the full rationale; both will be unified once `oauth2`
+// supports reqwest 0.13 (follow-up issue).
+fn build_http_client() -> MailboxdResult<oauth2::reqwest::Client> {
     oauth2::reqwest::ClientBuilder::new()
         .redirect(oauth2::reqwest::redirect::Policy::none())
         .timeout(Duration::from_secs(15))
