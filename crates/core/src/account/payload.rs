@@ -20,7 +20,7 @@
 
 use std::str::FromStr;
 
-use crate::account::entity::ImapConfig;
+use crate::account::entity::{ImapConfig, JmapConfig};
 use crate::account::migration::{
     AccountModel, AccountType, ArchiveRules, ExtractionRules, QuotaWindow,
 };
@@ -41,6 +41,9 @@ pub struct AccountCreateRequest {
     pub login_name: Option<String>,
     pub account_name: Option<String>,
     pub imap: Option<ImapConfig>,
+    /// JMAP source configuration. Required when `account_type` is `JMAP`,
+    /// must be absent otherwise.
+    pub jmap: Option<JmapConfig>,
     pub enabled: bool,
     pub date_since: Option<DateSince>,
     pub date_before: Option<RelativeDate>,
@@ -92,6 +95,21 @@ impl AccountCreateRequest {
             date_before.validate_date()?;
         }
 
+        // A config block must match the declared account_type: exactly the
+        // right one present, the other absent.
+        if !matches!(self.account_type, AccountType::IMAP) && self.imap.is_some() {
+            return Err(raise_error!(
+                "imap configuration is only allowed for IMAP account type".into(),
+                ErrorCode::InvalidParameter
+            ));
+        }
+        if !matches!(self.account_type, AccountType::JMAP) && self.jmap.is_some() {
+            return Err(raise_error!(
+                "jmap configuration is only allowed for JMAP account type".into(),
+                ErrorCode::InvalidParameter
+            ));
+        }
+
         match self.account_type {
             AccountType::IMAP => {
                 match &self.imap {
@@ -106,6 +124,26 @@ impl AccountCreateRequest {
                 if self.download_interval_min.is_none() && self.download_schedule.is_none() {
                     return Err(raise_error!(
                         "`sync_interval_min` or `download_schedule` is required for IMAP account type".into(),
+                        ErrorCode::InvalidParameter
+                    ));
+                }
+                if let Some(ref schedule) = self.download_schedule {
+                    validate_cron_expression(schedule)?;
+                }
+            }
+            AccountType::JMAP => {
+                match &self.jmap {
+                    Some(jmap) => Self::validate_jmap_request(jmap, &self.email)?,
+                    None => {
+                        return Err(raise_error!(
+                            "JMAP configuration is required for JMAP account type".into(),
+                            ErrorCode::InvalidParameter
+                        ))
+                    }
+                }
+                if self.download_interval_min.is_none() && self.download_schedule.is_none() {
+                    return Err(raise_error!(
+                        "`sync_interval_min` or `download_schedule` is required for JMAP account type".into(),
                         ErrorCode::InvalidParameter
                     ));
                 }
@@ -138,6 +176,23 @@ impl AccountCreateRequest {
         validate_email!(email)?;
         Ok(())
     }
+
+    fn validate_jmap_request(jmap: &JmapConfig, email: &str) -> MailboxdResult<()> {
+        jmap.auth
+            .validate()
+            .map_err(|e| raise_error!(e.to_owned(), ErrorCode::InvalidParameter))?;
+        // FA-2: a JMAP account is set up via an explicit session URL or via a
+        // resolvable email address (autodiscovery). Require at least one.
+        if jmap.session_url.is_none() && email.trim().is_empty() {
+            return Err(raise_error!(
+                "JMAP account requires either a session_url or an email address for autodiscovery"
+                    .into(),
+                ErrorCode::InvalidParameter
+            ));
+        }
+        validate_email!(email)?;
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
@@ -153,6 +208,8 @@ pub struct AccountUpdateRequest {
     pub account_name: Option<String>,
     /// IMAP server configuration
     pub imap: Option<ImapConfig>,
+    /// JMAP source configuration. Only applied to JMAP accounts.
+    pub jmap: Option<JmapConfig>,
     /// Controls initial synchronization time range
     ///
     /// When dealing with large mailboxes, this restricts scanning to:
@@ -239,7 +296,10 @@ impl AccountUpdateRequest {
             date_before.validate_date()?;
         }
 
-        if matches!(account.account_type, AccountType::IMAP) {
+        if matches!(
+            account.account_type,
+            AccountType::IMAP | AccountType::JMAP
+        ) {
             if let Some(mailboxes) = self.sync_folders.as_ref() {
                 if mailboxes.is_empty() {
                     return Err(raise_error!(
@@ -256,6 +316,15 @@ impl AccountUpdateRequest {
             }
             if let Some(ref schedule) = self.download_schedule {
                 validate_cron_expression(schedule)?;
+            }
+        }
+
+        // If a jmap config block is supplied on update, validate its credentials.
+        if matches!(account.account_type, AccountType::JMAP) {
+            if let Some(ref jmap) = self.jmap {
+                jmap.auth
+                    .validate()
+                    .map_err(|e| raise_error!(e.to_owned(), ErrorCode::InvalidParameter))?;
             }
         }
         if let Some(ref rules) = self.extraction_rules {
