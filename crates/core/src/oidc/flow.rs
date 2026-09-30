@@ -140,7 +140,12 @@ fn build_client(cfg: &OidcConfig<'_>, discovery: &OidcDiscovery) -> MailboxdResu
     Ok(client)
 }
 
-fn build_http_client() -> MailboxdResult<reqwest::Client> {
+// NOTE: Returns oauth2's bundled reqwest client (currently 0.12), not the
+// workspace reqwest (0.13). It is passed to `request_async`, whose trait bound
+// requires oauth2's own reqwest client type. See build_http_client in
+// `oauth2/flow.rs` for the full rationale; both will be unified once `oauth2`
+// supports reqwest 0.13 (follow-up issue).
+fn build_http_client() -> MailboxdResult<oauth2::reqwest::Client> {
     oauth2::reqwest::ClientBuilder::new()
         .redirect(oauth2::reqwest::redirect::Policy::none())
         .timeout(Duration::from_secs(15))
@@ -148,6 +153,22 @@ fn build_http_client() -> MailboxdResult<reqwest::Client> {
         .map_err(|e| {
             raise_error!(
                 format!("Failed to build HTTP client for OIDC: {}", e),
+                ErrorCode::InternalError
+            )
+        })
+}
+
+/// Workspace reqwest (0.13) client for the UserInfo request, which is plain
+/// HTTP and not bound to oauth2's bundled reqwest 0.12. Same policy as
+/// `build_http_client`: no redirects, 15 s timeout.
+fn build_userinfo_http_client() -> MailboxdResult<reqwest::Client> {
+    reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .timeout(Duration::from_secs(15))
+        .build()
+        .map_err(|e| {
+            raise_error!(
+                format!("Failed to build HTTP client for OIDC UserInfo: {}", e),
                 ErrorCode::InternalError
             )
         })
@@ -274,8 +295,13 @@ pub async fn complete_login(state: &str, code: &str) -> MailboxdResult<OidcCallb
 
     if needs_userinfo(&claims) {
         if let Some(endpoint) = discovery.userinfo_endpoint.as_deref() {
-            let info =
-                fetch_userinfo(&http, endpoint, token_response.access_token().secret()).await?;
+            let userinfo_http = build_userinfo_http_client()?;
+            let info = fetch_userinfo(
+                &userinfo_http,
+                endpoint,
+                token_response.access_token().secret(),
+            )
+            .await?;
             merge_userinfo(&mut claims, info)?;
         }
     }

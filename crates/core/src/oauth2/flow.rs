@@ -264,14 +264,21 @@ impl OAuth2Flow {
     }
 }
 
-// Helper function to build the HTTP client
-fn build_http_client(use_proxy: Option<u64>) -> MailboxdResult<reqwest::Client> {
+// Helper function to build the HTTP client.
+//
+// NOTE: This deliberately uses `oauth2::reqwest` types (which re-export the
+// reqwest version bundled with the `oauth2` crate, currently 0.12) rather than
+// the workspace `reqwest` (now 0.13). The client is passed to
+// `request_async(&http_client)`, whose bound requires oauth2's own reqwest
+// client type. Mixing the two reqwest versions here would not type-check.
+// This will be unified once `oauth2` supports reqwest 0.13 (see follow-up issue).
+fn build_http_client(use_proxy: Option<u64>) -> MailboxdResult<oauth2::reqwest::Client> {
     if let Some(proxy_id) = use_proxy {
         let proxy = Proxy::get(proxy_id)?;
         let proxy_url = parse_proxy_url(&proxy.url)?.standard_url();
         return oauth2::reqwest::ClientBuilder::new()
             .redirect(oauth2::reqwest::redirect::Policy::none())
-            .proxy(reqwest::Proxy::all(&proxy_url).map_err(|_| {
+            .proxy(oauth2::reqwest::Proxy::all(&proxy_url).map_err(|_| {
                 raise_error!(
                     "Failed to configure proxy. Please check the proxy configuration.".into(),
                     ErrorCode::InternalError
