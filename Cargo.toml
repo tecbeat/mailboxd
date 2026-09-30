@@ -32,11 +32,18 @@ tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
 base64 = "0.23.0"
 snafu = "0.9.1"
-reqwest = { version = "0.12.28", default-features = false, features = [
+# NOTE: reqwest 0.13 renamed the `rustls-tls` feature to `rustls`.
+# The `oauth2` crate (5.0.0) still pins reqwest ^0.12, so the build
+# intentionally contains two reqwest versions for now: 0.13 for the
+# workspace and 0.12 pulled in transitively by `oauth2`. The OAuth2/OIDC
+# flows use `oauth2::reqwest` types so they stay on oauth2's 0.12 client.
+# This split is tracked and will be collapsed once `oauth2` gains stable
+# reqwest 0.13 support (see follow-up issue).
+reqwest = { version = "0.13", default-features = false, features = [
     "json",
     "stream",
     #"native-tls",
-    "rustls-tls",
+    "rustls",
     "blocking",
     "socks",
 ] }
