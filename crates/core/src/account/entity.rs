@@ -127,3 +127,110 @@ impl From<bool> for Encryption {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// JMAP (RFC 8620 / RFC 8621) source configuration
+//
+// Model-only support (epic #44, issue #47): this defines how a JMAP account is
+// configured and stored. No sync logic is wired to it yet (that lands in #49).
+// Secrets (password / bearer token) are encrypted at rest with the same
+// AES-256-GCM `encrypt!` path used by `ImapConfig`.
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
+pub struct JmapConfig {
+    /// Explicit JMAP Session resource URL (e.g. `https://api.fastmail.com/jmap/session`).
+    ///
+    /// Optional: when omitted, the session URL is resolved from the account's
+    /// email address via autodiscovery (`/.well-known/jmap`, handled by a later
+    /// issue). At least one of `session_url` or a resolvable email must exist;
+    /// this cross-field rule is enforced in the payload validation.
+    #[cfg_attr(feature = "web-api", oai(validator(max_length = 2048)))]
+    pub session_url: Option<String>,
+    /// Authentication configuration for the JMAP endpoint.
+    pub auth: JmapAuthConfig,
+    /// Optional proxy ID for establishing the connection.
+    /// - If `None`, the client connects directly to the JMAP server.
+    /// - If `Some(proxy_id)`, the pre-configured proxy with the given ID is used.
+    pub use_proxy: Option<u64>,
+}
+
+impl JmapConfig {
+    /// Encrypt the embedded secret (password / bearer token) for storage.
+    pub fn try_encrypt_secret(self) -> MailboxdResult<Self> {
+        Ok(Self {
+            session_url: self.session_url,
+            auth: self.auth.encrypt()?,
+            use_proxy: self.use_proxy,
+        })
+    }
+}
+
+#[derive(Default, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "web-api", derive(poem_openapi::Enum))]
+pub enum JmapAuthType {
+    /// HTTP Basic authentication (username + password).
+    #[default]
+    Basic,
+    /// Bearer / API token (e.g. a Fastmail app-specific token).
+    Bearer,
+    /// OAuth 2.0, reusing the existing OAuth2 infrastructure.
+    OAuth2,
+}
+
+#[derive(Default, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
+pub struct JmapAuthConfig {
+    /// Authentication method to use.
+    pub auth_type: JmapAuthType,
+    /// Login/username for `Basic` authentication. Ignored for other methods.
+    #[cfg_attr(feature = "web-api", oai(validator(max_length = 320, min_length = 1)))]
+    pub username: Option<String>,
+    /// Secret for `Basic` (password) or `Bearer` (API token) authentication.
+    ///
+    /// Users provide a plaintext value (1 to 4096 characters). The server
+    /// encrypts it with AES-256-GCM before storing. Not used for `OAuth2`,
+    /// where tokens are managed by the existing OAuth2 subsystem.
+    #[cfg_attr(feature = "web-api", oai(validator(max_length = 4096, min_length = 1)))]
+    pub secret: Option<String>,
+}
+
+impl JmapAuthConfig {
+    pub fn encrypt(self) -> MailboxdResult<Self> {
+        match self.secret {
+            Some(secret) => Ok(Self {
+                auth_type: self.auth_type,
+                username: self.username,
+                secret: Some(encrypt!(&secret)?),
+            }),
+            None => Ok(self),
+        }
+    }
+
+    /// Validate that the credentials required for the chosen auth method are present.
+    ///
+    /// - `Basic`  → username and secret (password) required.
+    /// - `Bearer` → secret (token) required.
+    /// - `OAuth2` → no inline secret; tokens come from the OAuth2 subsystem.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        match self.auth_type {
+            JmapAuthType::Basic => {
+                if self.username.is_none() {
+                    return Err("When auth_type is Basic, username must not be None.");
+                }
+                if self.secret.is_none() {
+                    return Err("When auth_type is Basic, secret (password) must not be None.");
+                }
+                Ok(())
+            }
+            JmapAuthType::Bearer => {
+                if self.secret.is_none() {
+                    return Err("When auth_type is Bearer, secret (API token) must not be None.");
+                }
+                Ok(())
+            }
+            JmapAuthType::OAuth2 => Ok(()),
+        }
+    }
+}

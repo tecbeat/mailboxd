@@ -239,6 +239,8 @@ impl From<AccountV3> for AccountModel {
         Self {
             id: value.id,
             imap: value.imap,
+            // Legacy accounts predate JMAP support; no JMAP config exists.
+            jmap: None,
             enabled: value.enabled,
             email: value.email,
             account_name: None,
