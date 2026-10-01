@@ -32,6 +32,13 @@ pub enum ErrorCode {
     ImapAuthenticationFailed = 50010,
     ImapUnexpectedResult = 50020,
     AutoconfigFetchFailed = 50060,
+    // JMAP (RFC 8620/8621) errors (50100–50199)
+    JmapRequestFailed = 50100,
+    JmapAuthenticationFailed = 50110,
+    JmapUnexpectedResult = 50120,
+    JmapCapabilityUnsupported = 50130,
+    JmapMethodError = 50140,
+    JmapCannotCalculateChanges = 50150,
     // Internal system errors (70000–70999)
     InternalError = 70000,
     UnhandledPoemError = 70010,
