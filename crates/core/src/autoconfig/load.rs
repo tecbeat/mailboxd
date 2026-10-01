@@ -20,7 +20,7 @@
 
 use crate::account::entity::Encryption;
 use crate::autoconfig::client::{self, MailConfig};
-use crate::autoconfig::entity::{MailServerConfig, ServerConfig};
+use crate::autoconfig::entity::{JmapServerConfig, MailServerConfig, ServerConfig};
 use crate::autoconfig::oauth2_providers::lookup_oauth2;
 use crate::autoconfig::CachedMailSettings;
 use crate::error::code::ErrorCode;
@@ -68,6 +68,7 @@ pub(crate) fn mail_config_to_server_config(config: &MailConfig) -> Option<MailSe
     Some(MailServerConfig {
         imap: ServerConfig::new(imap.hostname.clone(), port, encryption),
         oauth2,
+        jmap: None,
     })
 }
 
@@ -86,32 +87,50 @@ pub async fn resolve_autoconfig(email: impl AsRef<str>) -> MailboxdResult<Option
         return Ok(Some(cached_entity.config));
     }
 
-    let config = client::fetch(domain).await.map_err(|e| {
-        error!(
-            email = %email,
-            domain = %domain,
-            error = ?e,
-            "Autoconfig fetch failed"
-        );
-        raise_error!(
-            format!(
-                "Failed to fetch autoconfig for email '{}': {:#?}",
-                email_address.email(),
-                e
-            ),
-            ErrorCode::AutoconfigFetchFailed
-        )
-    })?;
+    // Probe JMAP autodiscovery (`/.well-known/jmap`) in parallel with the
+    // IMAP-oriented cascade. A JMAP-only domain is a valid result (FA-2).
+    let jmap = client::fetch_jmap_session_url(domain)
+        .await
+        .map(|session_url| JmapServerConfig {
+            session_url,
+            oauth2: None,
+        });
 
-    let result = mail_config_to_server_config(&config).ok_or_else(|| {
-        raise_error!(
-            format!(
-                "No IMAP server found in autoconfig for email: {}",
-                email_address.email()
-            ),
-            ErrorCode::ResourceNotFound
-        )
-    })?;
+    let imap_config = match client::fetch(domain).await {
+        Ok(config) => mail_config_to_server_config(&config),
+        Err(e) => {
+            // An IMAP miss is not fatal when JMAP was found; only log it.
+            error!(
+                email = %email,
+                domain = %domain,
+                error = ?e,
+                "IMAP autoconfig fetch failed"
+            );
+            None
+        }
+    };
+
+    // Combine: carry IMAP (+ its OAuth2) when present, attach JMAP when present.
+    let result = match (imap_config, jmap) {
+        (Some(mut cfg), jmap) => {
+            cfg.jmap = jmap;
+            cfg
+        }
+        (None, Some(jmap)) => MailServerConfig {
+            imap: ServerConfig::default(),
+            oauth2: None,
+            jmap: Some(jmap),
+        },
+        (None, None) => {
+            return Err(raise_error!(
+                format!(
+                    "No IMAP or JMAP server found in autoconfig for email: {}",
+                    email_address.email()
+                ),
+                ErrorCode::ResourceNotFound
+            ));
+        }
+    };
 
     CachedMailSettings::add(domain.into(), result.clone())?;
     Ok(Some(result))
