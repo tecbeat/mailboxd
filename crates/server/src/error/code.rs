@@ -30,7 +30,8 @@ impl IntoStatusCode for ErrorCode {
         match self {
             ErrorCode::InvalidParameter
             | ErrorCode::MissingConfiguration
-            | ErrorCode::Incompatible => StatusCode::BAD_REQUEST,
+            | ErrorCode::Incompatible
+            | ErrorCode::JmapCapabilityUnsupported => StatusCode::BAD_REQUEST,
             ErrorCode::PermissionDenied => StatusCode::UNAUTHORIZED,
             ErrorCode::AccountDisabled | ErrorCode::OAuth2ItemDisabled | ErrorCode::Forbidden => {
                 StatusCode::FORBIDDEN
@@ -53,6 +54,11 @@ impl IntoStatusCode for ErrorCode {
             | ErrorCode::NetworkError
             | ErrorCode::ConnectionTimeout
             | ErrorCode::ConnectionPoolTimeout
+            | ErrorCode::JmapRequestFailed
+            | ErrorCode::JmapAuthenticationFailed
+            | ErrorCode::JmapUnexpectedResult
+            | ErrorCode::JmapMethodError
+            | ErrorCode::JmapCannotCalculateChanges
             | ErrorCode::UnhandledPoemError => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorCode::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
         }
@@ -148,6 +154,12 @@ mod tests {
             ErrorCode::NetworkError,
             ErrorCode::ConnectionTimeout,
             ErrorCode::ConnectionPoolTimeout,
+            ErrorCode::JmapRequestFailed,
+            ErrorCode::JmapAuthenticationFailed,
+            ErrorCode::JmapUnexpectedResult,
+            ErrorCode::JmapCapabilityUnsupported,
+            ErrorCode::JmapMethodError,
+            ErrorCode::JmapCannotCalculateChanges,
             ErrorCode::UnhandledPoemError,
             ErrorCode::MethodNotAllowed,
         ];
