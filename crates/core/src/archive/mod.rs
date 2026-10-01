@@ -23,7 +23,9 @@ use crate::settings::cli::SETTINGS;
 use std::sync::{Arc, LazyLock};
 use tokio::sync::Semaphore;
 
+pub mod engine;
 pub mod imap;
+pub mod jmap;
 pub mod source;
 
 pub static SEMAPHORE: LazyLock<Arc<Semaphore>> = LazyLock::new(|| {
