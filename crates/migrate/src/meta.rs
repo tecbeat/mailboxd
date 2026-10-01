@@ -668,6 +668,7 @@ impl From<MailBox> for mailboxd_core::archive::imap::mailbox::MailBox {
             uid_next: value.uid_next,
             uid_validity: value.uid_validity,
             highest_uid: None,
+            sync_cursor: None,
         }
     }
 }
