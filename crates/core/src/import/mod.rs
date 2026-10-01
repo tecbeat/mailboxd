@@ -125,6 +125,7 @@ impl ImportEmls {
                     uid_next: None,
                     uid_validity: None,
                     highest_uid: None,
+                    sync_cursor: None,
                 };
                 let mailbox_id = mailbox.id;
                 // Upsert the mailbox, creating it if it doesn't exist
@@ -423,6 +424,7 @@ pub(super) fn resolve_mailbox(account: &AccountModel, folder: &str) -> MailboxdR
                 uid_next: None,
                 uid_validity: None,
                 highest_uid: None,
+                sync_cursor: None,
             };
             let mailbox_id = mailbox.id;
             MailBox::batch_upsert(&[mailbox])?;
