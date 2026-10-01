@@ -398,6 +398,12 @@ impl MailSession for JmapMailSession {
     }
 }
 
+/// Extract the domain part of an email address (everything after the last `@`),
+/// falling back to the whole string if there is no `@`.
+fn email_domain(email: &str) -> &str {
+    email.rsplit_once('@').map(|(_, d)| d).unwrap_or(email)
+}
+
 /// Parse an RFC 3339 timestamp (JMAP `UTCDate`) to epoch milliseconds (helper).
 pub(crate) fn parse_rfc3339_millis(s: &str) -> Option<i64> {
     chrono::DateTime::parse_from_rfc3339(s)
@@ -425,14 +431,22 @@ impl MailSource for JmapSource {
             )
         })?;
 
-        let session_url = jmap.session_url.clone().ok_or_else(|| {
-            // Autodiscovery from the email address lands in #50; until then a
-            // session URL is required.
-            raise_error!(
-                "JMAP account has no session_url (autodiscovery is tracked in #50)".into(),
-                ErrorCode::MissingConfiguration
-            )
-        })?;
+        // Use the explicit session URL, or resolve it from the account email via
+        // `/.well-known/jmap` autodiscovery (FA-2).
+        let session_url = match jmap.session_url.clone() {
+            Some(url) => url,
+            None => crate::autoconfig::client::fetch_jmap_session_url(email_domain(&account.email))
+                .await
+                .ok_or_else(|| {
+                    raise_error!(
+                        format!(
+                            "JMAP autodiscovery found no /.well-known/jmap endpoint for '{}'",
+                            account.email
+                        ),
+                        ErrorCode::MissingConfiguration
+                    )
+                })?,
+        };
 
         let auth = resolve_auth(account_id, jmap)?;
         let client =

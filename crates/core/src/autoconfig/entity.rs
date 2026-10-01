@@ -55,11 +55,26 @@ pub struct OAuth2Config {
     /// URL of the authorization server's token endpoint
     pub token_url: String,
 }
+/// Discovered JMAP endpoint for a domain (RFC 8620 §2.2 autodiscovery).
+#[derive(Debug, Clone, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
+pub struct JmapServerConfig {
+    /// The JMAP Session resource URL resolved from `/.well-known/jmap`.
+    pub session_url: String,
+    /// OAuth 2.0 client configuration, if the provider advertises it.
+    pub oauth2: Option<OAuth2Config>,
+}
+
 #[derive(Debug, Clone, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
 pub struct MailServerConfig {
-    /// IMAP server configuration
+    /// IMAP server configuration. Empty/default when only JMAP was discovered.
     pub imap: ServerConfig,
     /// OAuth 2.0 client configuration parameters
     pub oauth2: Option<OAuth2Config>,
+    /// JMAP endpoint, when the domain publishes `/.well-known/jmap`.
+    /// `#[serde(default)]` keeps older cached entries (pre-JMAP) loading
+    /// unchanged.
+    #[serde(default)]
+    pub jmap: Option<JmapServerConfig>,
 }
