@@ -44,6 +44,9 @@ if (!window.matchMedia) {
     }) as MediaQueryList;
 }
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+// msw v3 renamed `onUnhandledRequest` to `onUnhandledFrame` (it now covers both
+// HTTP requests and WebSocket connections). 'error' still fails tests that hit
+// an unmocked endpoint.
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())

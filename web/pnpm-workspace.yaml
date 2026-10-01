@@ -1,5 +1,9 @@
 strictDepBuilds: false
 verifyDepsBeforeRun: false
+# Disable pnpm's built-in supply-chain "minimum release age" gate. It blocks
+# freshly published versions (e.g. msw 3.x) from entering the lockfile, which
+# stalls routine dependency updates; we rely on Renovate + review instead.
+minimumReleaseAge: 0
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@swc/core'
