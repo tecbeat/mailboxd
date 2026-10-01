@@ -32,6 +32,7 @@ mailboxd is a self-hosted email archiving server built in Rust and a fork of Bic
 - [Stack](#stack)
 - [Development](#development)
 - [FAQ](#faq)
+- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -284,6 +285,10 @@ On first start, mailboxd creates a built-in admin user with username `admin` and
 
 </details>
 
+
+## Roadmap
+
+- **JMAP Support** — Add JMAP (RFC 8620 / RFC 8621) as a second mail source alongside IMAP, via a reusable MailSource abstraction. Tracks epic #44.
 
 ## Contributing
 
