@@ -431,7 +431,10 @@ impl Account {
             },
         )?;
 
-        if matches!(cloned.account_type, AccountType::IMAP) {
+        if matches!(
+            cloned.account_type,
+            AccountType::IMAP | AccountType::JMAP
+        ) {
             DOWNLOAD_CONTROLLER
                 .trigger_schedule(cloned.id, cloned.email.clone())
                 .await;
@@ -461,7 +464,7 @@ impl Account {
         let account = Self::get(account_id)?;
 
         // Immediately stop scheduling to prevent new downloads
-        if matches!(account.account_type, AccountType::IMAP) {
+        if matches!(account.account_type, AccountType::IMAP | AccountType::JMAP) {
             SYNC_TASKS.stop(account.id).await?;
         }
 
@@ -508,7 +511,7 @@ impl Account {
 
     async fn cleanup_account_resources_sequential(account: &AccountModel) -> MailboxdResult<()> {
         // Sync task already stopped in delete() before spawning this background task
-        if matches!(account.account_type, AccountType::IMAP) {
+        if matches!(account.account_type, AccountType::IMAP | AccountType::JMAP) {
             DownloadState::delete(account.id)?;
         }
         OAuth2AccessToken::try_delete(account.id)?;

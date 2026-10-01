@@ -62,6 +62,15 @@ pub struct MailBox {
     /// Used for incremental sync: next fetch starts from `highest_uid + 1`.
     /// If `None`, a fallback query against the Tantivy index will be performed once.
     pub highest_uid: Option<u32>,
+    /// Opaque, source-defined incremental-sync cursor (see
+    /// [`SyncCursor`](crate::archive::source::SyncCursor)).
+    ///
+    /// Non-UID sources (JMAP) persist their `state` string here; the IMAP path
+    /// keeps using `uid_validity`/`highest_uid` above and leaves this `None`.
+    /// `#[serde(default)]` keeps existing stored mailboxes deserializing
+    /// unchanged (backward compatible).
+    #[serde(default)]
+    pub sync_cursor: Option<String>,
 }
 
 impl MemDbModel for MailBox {

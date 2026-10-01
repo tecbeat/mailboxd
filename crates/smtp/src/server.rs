@@ -651,6 +651,7 @@ async fn parse_email(data: &[u8], session: &Session) -> MailboxdResult<()> {
             uid_next: None,
             uid_validity: None,
             highest_uid: None,
+            sync_cursor: None,
         };
 
         if let Err(e) = MailBox::batch_upsert(&[mailbox]) {
