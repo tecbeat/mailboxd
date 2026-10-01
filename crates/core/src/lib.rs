@@ -13,6 +13,7 @@ pub mod envelope;
 pub mod error;
 pub mod imap;
 pub mod import;
+pub mod jmap;
 pub mod logger;
 pub mod mailbox;
 pub mod message;
