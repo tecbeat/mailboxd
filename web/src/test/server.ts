@@ -65,20 +65,6 @@ export function makeSysConfig(overrides: Partial<ServerConfigurations> = {}): Se
 // Benign defaults so components render without hitting the network.
 // Individual tests override with `server.use(...)`.
 export const handlers = [
-  // msw v3 intercepts CORS preflight requests: in jsdom the test origin differs
-  // from the API base, so cross-origin calls (DELETE/POST with custom headers)
-  // emit an OPTIONS preflight. Answer any preflight with a permissive 204 so the
-  // real request proceeds; without this, `onUnhandledFrame: 'error'` fails tests.
-  http.options(`${BASE}/*`, () =>
-    new HttpResponse(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-        'Access-Control-Allow-Headers': '*',
-      },
-    }),
-  ),
   http.get(`${BASE}/api/v1/accounts`, () => HttpResponse.json({ items: [] })),
   http.get(`${BASE}/api/v1/import-history`, () => HttpResponse.json([])),
   http.get(`${BASE}/api/v1/notifications`, () =>
