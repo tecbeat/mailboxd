@@ -368,3 +368,54 @@ fn convert_unknown_host_no_oauth2() {
     let result = mail_config_to_server_config(&config).expect("should convert");
     assert!(result.oauth2.is_none(), "unknown hostname → no OAuth2 mapping");
 }
+
+// ---------------------------------------------------------------------------
+// JMAP autodiscovery (/.well-known/jmap) — issue #50
+// ---------------------------------------------------------------------------
+
+use crate::jmap::mock_server::MockJmapServer;
+
+/// A minimal valid JMAP Session resource body (must carry `apiUrl`).
+fn jmap_session_body() -> &'static str {
+    r#"{
+        "capabilities": { "urn:ietf:params:jmap:core": {}, "urn:ietf:params:jmap:mail": {} },
+        "accounts": {},
+        "primaryAccounts": {},
+        "username": "u@example.com",
+        "apiUrl": "https://api.example.com/jmap/api",
+        "downloadUrl": "https://api.example.com/dl",
+        "uploadUrl": "https://api.example.com/up",
+        "state": "s0"
+    }"#
+}
+
+#[tokio::test]
+async fn jmap_well_known_success_returns_final_url() {
+    let handle = MockJmapServer::new()
+        .route("GET", "/.well-known/jmap", jmap_session_body())
+        .start()
+        .await;
+
+    let url = format!("{}/.well-known/jmap", handle.base_url());
+    let resolved = client::probe_jmap_well_known(&url).await;
+    assert_eq!(resolved.as_deref(), Some(url.as_str()));
+}
+
+#[tokio::test]
+async fn jmap_well_known_not_found_returns_none() {
+    // Server with no matching route → 404.
+    let handle = MockJmapServer::new().start().await;
+    let url = format!("{}/.well-known/jmap", handle.base_url());
+    assert!(client::probe_jmap_well_known(&url).await.is_none());
+}
+
+#[tokio::test]
+async fn jmap_well_known_non_session_json_returns_none() {
+    // 200 OK but the body is not a Session resource (no apiUrl).
+    let handle = MockJmapServer::new()
+        .route("GET", "/.well-known/jmap", r#"{"hello":"world"}"#)
+        .start()
+        .await;
+    let url = format!("{}/.well-known/jmap", handle.base_url());
+    assert!(client::probe_jmap_well_known(&url).await.is_none());
+}
