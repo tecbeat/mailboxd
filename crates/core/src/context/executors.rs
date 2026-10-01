@@ -56,7 +56,10 @@ impl MailboxdContext {
         let accounts = AccountModel::list_all()?;
         let active_accounts: Vec<AccountModel> = accounts
             .into_iter()
-            .filter(|a| a.enabled && matches!(a.account_type, AccountType::IMAP))
+            .filter(|a| {
+                a.enabled
+                    && matches!(a.account_type, AccountType::IMAP | AccountType::JMAP)
+            })
             .collect();
 
         if active_accounts.is_empty() {
@@ -64,7 +67,7 @@ impl MailboxdContext {
             return Ok(());
         }
         info!(
-            "System has {} active IMAP accounts to initialize.",
+            "System has {} active syncable accounts to initialize.",
             active_accounts.len()
         );
         for account in active_accounts {
