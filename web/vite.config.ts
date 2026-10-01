@@ -16,6 +16,15 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    // Match the jsdom origin to the dev API base (see api/axiosInstance.ts) so
+    // test requests are same-origin. Otherwise they are cross-origin and msw v3
+    // — which enforces real CORS semantics — issues preflight/CORS checks that
+    // msw v2 silently skipped, breaking mutation→invalidation integration tests.
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost:15630',
+      },
+    },
     setupFiles: './src/test/setup.ts',
     css: false,
   },
