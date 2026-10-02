@@ -109,7 +109,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         <DropdownMenuContent align='end' className='w-[220px]'>
           {hasPermission && <DropdownMenuItem
             onClick={() => {
-              if (account_type === "IMAP") {
+              if (account_type === "IMAP" || account_type === "JMAP") {
                 navigate({ to: '/accounts/$id/settings', params: { id: String(row.original.id) } });
               } else {
                 setCurrentRow(row.original)
@@ -122,7 +122,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <Pencil />
             </DropdownMenuShortcut>
           </DropdownMenuItem>}
-          {account_type === "IMAP" && hasPermission && <DropdownMenuItem
+          {(account_type === "IMAP" || account_type === "JMAP") && hasPermission && <DropdownMenuItem
             onClick={() => {
               navigate({ to: '/accounts/$id/settings', params: { id: String(row.original.id) } });
             }}
