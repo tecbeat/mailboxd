@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -107,9 +107,15 @@ interface AccountSettingsPageProps {
   accountId: number;
 }
 
+/**
+ * Outer loader: fetches the account and only mounts the form once it exists, so
+ * the inner form's `defaultValues` are fully populated on first paint. This is
+ * what makes conditionally-rendered nested fields (e.g. the JMAP auth Select)
+ * show their stored value — `defaultValues` is read once at mount, so the form
+ * must not mount before the data is available.
+ */
 export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const { data: accountList } = useQuery({
     queryKey: ['account-list'],
@@ -118,13 +124,39 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
 
   const account = accountList?.items?.find((a) => a.id === accountId);
 
+  if (!account) {
+    return (
+      <>
+        <FixedHeader />
+        <Main>
+          <div className="text-center text-muted-foreground">
+            {t('accounts.settings.loading')}
+          </div>
+        </Main>
+      </>
+    );
+  }
+
+  return <AccountSettingsForm key={account.id} account={account} />;
+}
+
+function AccountSettingsForm({ account }: { account: AccountModel }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const accountId = account.id;
+
+  const initialValues = useMemo(
+    () => mapAccountToFormValues(account),
+    [account]
+  );
+
   const accountSchema = getAccountSchema(true, t);
   const form = useForm<AccountFormValues>({
     mode: "onChange",
-    // Reactively sync the form when the account loads or changes, keeping any
-    // edits the user has already made so a background refetch does not clobber
-    // them. This replaces a manual reset effect.
-    values: account ? mapAccountToFormValues(account) : undefined,
+    // The account is guaranteed loaded here, so defaultValues are complete at
+    // first mount; `values` keeps the form synced on background refetches.
+    defaultValues: initialValues,
+    values: initialValues,
     resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(accountSchema),
   });
@@ -202,7 +234,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
       if (!data.date_since && !data.date_before) {
         payload.clear_date_range = true;
       }
-      if (!data.download_schedule && account?.download_schedule) {
+      if (!data.download_schedule && account.download_schedule) {
         payload.clear_download_schedule = true;
       }
 
@@ -210,19 +242,6 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
     },
     [updateAccount, account]
   );
-
-  if (!account) {
-    return (
-      <>
-        <FixedHeader />
-        <Main>
-          <div className="text-center text-muted-foreground">
-            {t('accounts.settings.loading')}
-          </div>
-        </Main>
-      </>
-    );
-  }
 
   return (
     <>
