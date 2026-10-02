@@ -20,7 +20,7 @@
 
 use std::str::FromStr;
 
-use crate::account::entity::{ImapConfig, JmapConfig};
+use crate::account::entity::{ImapConfig, JmapAuthType, JmapConfig};
 use crate::account::migration::{
     AccountModel, AccountType, ArchiveRules, ExtractionRules, QuotaWindow,
 };
@@ -319,12 +319,21 @@ impl AccountUpdateRequest {
             }
         }
 
-        // If a jmap config block is supplied on update, validate its credentials.
+        // If a jmap config block is supplied on update, validate its structure.
+        // Unlike create, a blank secret is allowed on update: it means "keep the
+        // currently stored secret" (mirroring how the IMAP update path does not
+        // re-require the password). So we only enforce the Basic-auth username
+        // here, not the secret.
         if matches!(account.account_type, AccountType::JMAP) {
             if let Some(ref jmap) = self.jmap {
-                jmap.auth
-                    .validate()
-                    .map_err(|e| raise_error!(e.to_owned(), ErrorCode::InvalidParameter))?;
+                if matches!(jmap.auth.auth_type, JmapAuthType::Basic)
+                    && jmap.auth.username.is_none()
+                {
+                    return Err(raise_error!(
+                        "When auth_type is Basic, username must not be None.".into(),
+                        ErrorCode::InvalidParameter
+                    ));
+                }
             }
         }
         if let Some(ref rules) = self.extraction_rules {
