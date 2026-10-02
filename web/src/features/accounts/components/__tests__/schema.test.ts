@@ -4,6 +4,7 @@ import { getAccountSchema, getAuthConfigSchema } from '../schema'
 const t = (key: string) => key
 
 const validAccountData = {
+  account_type: 'IMAP' as const,
   email: 'user@example.com',
   imap: {
     host: 'imap.example.com',
@@ -326,6 +327,75 @@ describe('Auth Config Schema (password validation)', () => {
     it('accepts with undefined password', () => {
       const result = schema.safeParse({
         auth_type: 'Password',
+      })
+      expect(result.success).toBe(true)
+    })
+  })
+
+  describe('JMAP account', () => {
+    const jmapBase = {
+      account_type: 'JMAP' as const,
+      email: 'user@example.com',
+      enabled: true,
+      use_dangerous: false,
+      download_interval_min: 60,
+      download_batch_size: 30,
+      max_email_size_bytes: 10 * 1024 * 1024,
+      auto_download_new_mailboxes: true,
+    }
+
+    it('accepts JMAP with Basic auth (username + secret)', () => {
+      const result = getAccountSchema(false, t).safeParse({
+        ...jmapBase,
+        jmap: {
+          session_url: 'https://jmap.example.com/session',
+          auth: { auth_type: 'Basic', username: 'user', secret: 'pw' },
+        },
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('accepts JMAP with Bearer token and no session URL (autodiscovery)', () => {
+      const result = getAccountSchema(false, t).safeParse({
+        ...jmapBase,
+        jmap: { auth: { auth_type: 'Bearer', secret: 'token-123' } },
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('rejects JMAP Basic auth without a secret', () => {
+      const result = getAccountSchema(false, t).safeParse({
+        ...jmapBase,
+        jmap: { auth: { auth_type: 'Basic', username: 'user' } },
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects JMAP Bearer auth without a secret', () => {
+      const result = getAccountSchema(false, t).safeParse({
+        ...jmapBase,
+        jmap: { auth: { auth_type: 'Bearer' } },
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('accepts JMAP OAuth2 without inline credentials', () => {
+      const result = getAccountSchema(false, t).safeParse({
+        ...jmapBase,
+        jmap: { auth: { auth_type: 'OAuth2' } },
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('rejects a JMAP account with no jmap config', () => {
+      const result = getAccountSchema(false, t).safeParse(jmapBase)
+      expect(result.success).toBe(false)
+    })
+
+    it('allows blank secret on edit (keep existing)', () => {
+      const result = getAccountSchema(true, t).safeParse({
+        ...jmapBase,
+        jmap: { auth: { auth_type: 'Basic', username: 'user' } },
       })
       expect(result.success).toBe(true)
     })

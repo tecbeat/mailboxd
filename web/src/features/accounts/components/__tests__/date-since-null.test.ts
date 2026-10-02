@@ -5,6 +5,7 @@ const t = (key: string) => key
 
 // An existing account as loaded into the settings form (password cleared).
 const editData = {
+  account_type: 'IMAP' as const,
   email: 'test@example.com',
   imap: {
     host: 'imap.example.com',

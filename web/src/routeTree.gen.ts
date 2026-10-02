@@ -37,6 +37,9 @@ const AuthenticatedAccountsIndexLazyRouteImport = createFileRoute(
 const AuthenticatedAccountsNewLazyRouteImport = createFileRoute(
   '/_authenticated/accounts/new',
 )()
+const AuthenticatedAccountsNewJmapLazyRouteImport = createFileRoute(
+  '/_authenticated/accounts/new-jmap',
+)()
 const AuthenticatedApiDocsIndexLazyRouteImport = createFileRoute(
   '/_authenticated/api-docs/',
 )()
@@ -171,6 +174,16 @@ const AuthenticatedAccountsNewLazyRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any).lazy(() =>
     import('./routes/_authenticated/accounts/new.lazy').then((d) => d.Route),
+  )
+const AuthenticatedAccountsNewJmapLazyRoute =
+  AuthenticatedAccountsNewJmapLazyRouteImport.update({
+    id: '/accounts/new-jmap',
+    path: '/accounts/new-jmap',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/accounts/new-jmap.lazy').then(
+      (d) => d.Route,
+    ),
   )
 const AuthenticatedApiDocsIndexLazyRoute =
   AuthenticatedApiDocsIndexLazyRouteImport.update({
@@ -351,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500LazyRoute
   '/503': typeof errors503LazyRoute
   '/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
+  '/accounts/new-jmap': typeof AuthenticatedAccountsNewJmapLazyRoute
   '/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
   '/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
@@ -383,6 +397,7 @@ export interface FileRoutesByTo {
   '/503': typeof errors503LazyRoute
   '/': typeof AuthenticatedIndexRoute
   '/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
+  '/accounts/new-jmap': typeof AuthenticatedAccountsNewJmapLazyRoute
   '/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
   '/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
@@ -419,6 +434,7 @@ export interface FileRoutesById {
   '/(errors)/503': typeof errors503LazyRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/accounts/new': typeof AuthenticatedAccountsNewLazyRoute
+  '/_authenticated/accounts/new-jmap': typeof AuthenticatedAccountsNewJmapLazyRoute
   '/_authenticated/settings/access': typeof AuthenticatedSettingsAccessLazyRoute
   '/_authenticated/settings/api-tokens': typeof AuthenticatedSettingsApiTokensLazyRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
@@ -455,6 +471,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/accounts/new'
+    | '/accounts/new-jmap'
     | '/settings/access'
     | '/settings/api-tokens'
     | '/settings/appearance'
@@ -487,6 +504,7 @@ export interface FileRouteTypes {
     | '/503'
     | '/'
     | '/accounts/new'
+    | '/accounts/new-jmap'
     | '/settings/access'
     | '/settings/api-tokens'
     | '/settings/appearance'
@@ -522,6 +540,7 @@ export interface FileRouteTypes {
     | '/(errors)/503'
     | '/_authenticated/'
     | '/_authenticated/accounts/new'
+    | '/_authenticated/accounts/new-jmap'
     | '/_authenticated/settings/access'
     | '/_authenticated/settings/api-tokens'
     | '/_authenticated/settings/appearance'
@@ -647,6 +666,13 @@ declare module '@tanstack/react-router' {
       path: '/accounts/new'
       fullPath: '/accounts/new'
       preLoaderRoute: typeof AuthenticatedAccountsNewLazyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/accounts/new-jmap': {
+      id: '/_authenticated/accounts/new-jmap'
+      path: '/accounts/new-jmap'
+      fullPath: '/accounts/new-jmap'
+      preLoaderRoute: typeof AuthenticatedAccountsNewJmapLazyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/api-docs/': {
@@ -849,6 +875,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsersRouteLazyRoute: typeof AuthenticatedUsersRouteLazyRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAccountsNewLazyRoute: typeof AuthenticatedAccountsNewLazyRoute
+  AuthenticatedAccountsNewJmapLazyRoute: typeof AuthenticatedAccountsNewJmapLazyRoute
   AuthenticatedAttachmentIndexRoute: typeof AuthenticatedAttachmentIndexRoute
   AuthenticatedAuditLogIndexRoute: typeof AuthenticatedAuditLogIndexRoute
   AuthenticatedImportIndexRoute: typeof AuthenticatedImportIndexRoute
@@ -867,6 +894,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedUsersRouteLazyRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAccountsNewLazyRoute: AuthenticatedAccountsNewLazyRoute,
+  AuthenticatedAccountsNewJmapLazyRoute: AuthenticatedAccountsNewJmapLazyRoute,
   AuthenticatedAttachmentIndexRoute: AuthenticatedAttachmentIndexRoute,
   AuthenticatedAuditLogIndexRoute: AuthenticatedAuditLogIndexRoute,
   AuthenticatedImportIndexRoute: AuthenticatedImportIndexRoute,
