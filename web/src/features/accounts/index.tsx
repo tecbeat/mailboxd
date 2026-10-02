@@ -30,7 +30,7 @@ import { AccountDeleteDialog } from './components/delete-dialog'
 import { AccountTable } from './components/table'
 import AccountProvider from './context/provider'
 import { type AccountDialogType } from './context'
-import { Mail, Database } from 'lucide-react'
+import { Mail, Database, Globe } from 'lucide-react'
 import { AccountDetailDrawer } from './components/account-detail'
 import { AccountModel, list_accounts } from '@/api/account/api'
 import { TableSkeleton } from '@/components/table-skeleton'
@@ -80,6 +80,10 @@ export default function Accounts() {
                 <Button onClick={() => navigate({ to: '/accounts/new' })}>
                   <Mail className="mr-1.5 h-4 w-4" />
                   {t('accounts.imapAccount')}
+                </Button>
+                <Button variant="outline" onClick={() => navigate({ to: '/accounts/new-jmap' })}>
+                  <Globe className="mr-1.5 h-4 w-4" />
+                  {t('accounts.jmapAccount')}
                 </Button>
                 <Button variant="outline" onClick={() => setOpen("add-nosync")}>
                   <Database className="mr-1.5 h-4 w-4" />

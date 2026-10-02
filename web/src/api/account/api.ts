@@ -92,7 +92,10 @@ export interface DownloadState {
 type Encryption = 'Ssl' | 'StartTls' | 'None';
 type AuthType = 'Password' | 'OAuth2';
 type Unit = 'Days' | 'Months' | 'Years';
-type AccountType = 'IMAP' | 'NoSync';
+type AccountType = 'IMAP' | 'NoSync' | 'JMAP';
+
+// JMAP auth method, mirroring the backend JmapAuthType enum.
+export type JmapAuthType = 'Basic' | 'Bearer' | 'OAuth2';
 
 // Interface definitions
 interface AuthConfig {
@@ -105,6 +108,22 @@ export interface ImapConfig {
     port: number; // integer, 0-65535
     encryption: Encryption;
     auth: AuthConfig;
+    use_proxy?: number;
+}
+
+export interface JmapAuthConfig {
+    auth_type: JmapAuthType;
+    // Username for Basic auth; ignored for Bearer/OAuth2.
+    username?: string;
+    // Secret: password (Basic) or API token (Bearer). Unused for OAuth2.
+    secret?: string;
+}
+
+export interface JmapConfig {
+    // Explicit JMAP Session URL; when absent the backend resolves it from the
+    // email via /.well-known/jmap autodiscovery.
+    session_url?: string;
+    auth: JmapAuthConfig;
     use_proxy?: number;
 }
 
@@ -138,6 +157,7 @@ export interface AccountModel {
     id: number;
     account_type: AccountType;
     imap?: ImapConfig;
+    jmap?: JmapConfig;
     enabled: boolean;
     login_name?: string,
     account_name?: string,
@@ -202,6 +222,12 @@ export const cancel_account_download = async (account_id: number) => {
 
 export interface AutoConfigResult {
     imap: ServerConfig;
+    oauth2?: OAuth2Config;
+    jmap?: JmapServerConfig;
+}
+
+export interface JmapServerConfig {
+    session_url: string;
     oauth2?: OAuth2Config;
 }
 

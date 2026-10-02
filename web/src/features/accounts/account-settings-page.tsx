@@ -34,6 +34,7 @@ import { Main } from "@/components/layout/main";
 import { PageHeader } from "@/components/layout/page-header";
 import { TabGeneral } from "./components/tab-general";
 import { TabServer } from "./components/tab-server";
+import { TabServerJmap } from "./components/tab-server-jmap";
 import { TabDownload } from "./components/tab-download";
 import { TabFilters } from "./components/tab-filters";
 import { update_account, list_accounts, type AccountModel } from "@/api/account/api";
@@ -50,14 +51,36 @@ const emptyImap = {
 };
 
 function mapAccountToFormValues(account: AccountModel): AccountFormValues {
-  const imap = { ...(account.imap ?? emptyImap) };
-  imap.auth = { ...imap.auth, password: undefined };
+  const isJmap = account.account_type === 'JMAP';
+
+  const imap = isJmap
+    ? undefined
+    : (() => {
+        const i = { ...(account.imap ?? emptyImap) };
+        i.auth = { ...i.auth, password: undefined };
+        return i;
+      })();
+
+  const jmap = isJmap
+    ? {
+        session_url: account.jmap?.session_url ?? undefined,
+        // Never prefill the stored secret; blank means "keep existing".
+        auth: {
+          auth_type: account.jmap?.auth.auth_type ?? ('Basic' as const),
+          username: account.jmap?.auth.username ?? undefined,
+          secret: undefined,
+        },
+        use_proxy: account.jmap?.use_proxy ?? undefined,
+      }
+    : undefined;
 
   return {
+    account_type: isJmap ? 'JMAP' : 'IMAP',
     account_name: account.account_name ?? undefined,
     login_name: account.login_name ?? undefined,
     email: account.email,
     imap,
+    jmap,
     enabled: account.enabled,
     use_dangerous: account.use_dangerous,
     date_since: account.date_since ?? undefined,
@@ -134,21 +157,10 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
 
   const onSubmit = useCallback(
     (data: AccountFormValues) => {
-      const { use_proxy, ...imapRest } = data.imap;
       const payload: Record<string, unknown> = {
         email: data.email,
         account_name: data.account_name,
         login_name: data.login_name,
-        imap: {
-          ...imapRest,
-          use_proxy,
-          auth: {
-            ...data.imap.auth,
-            password: data.imap.auth.auth_type === 'OAuth2'
-              ? undefined
-              : (data.imap.auth.password ? data.imap.auth.password : undefined),
-          },
-        },
         enabled: data.enabled,
         use_dangerous: data.use_dangerous,
         date_since: data.date_since,
@@ -160,6 +172,32 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
         download_schedule: data.download_schedule || null,
         archive_rules: data.archive_rules || null,
       };
+
+      if (data.account_type === 'JMAP' && data.jmap) {
+        const { use_proxy, auth, session_url } = data.jmap;
+        payload.jmap = {
+          session_url: session_url?.trim() ? session_url.trim() : undefined,
+          use_proxy,
+          auth: {
+            auth_type: auth.auth_type,
+            username: auth.auth_type === 'Basic' ? auth.username : undefined,
+            // Blank secret on edit → keep the stored one.
+            secret: auth.auth_type === 'OAuth2' ? undefined : (auth.secret ? auth.secret : undefined),
+          },
+        };
+      } else if (data.imap) {
+        const { use_proxy, ...imapRest } = data.imap;
+        payload.imap = {
+          ...imapRest,
+          use_proxy,
+          auth: {
+            ...data.imap.auth,
+            password: data.imap.auth.auth_type === 'OAuth2'
+              ? undefined
+              : (data.imap.auth.password ? data.imap.auth.password : undefined),
+          },
+        };
+      }
 
       if (!data.date_since && !data.date_before) {
         payload.clear_date_range = true;
@@ -226,7 +264,7 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
                       title={t('accounts.settings.server')}
                       description={t('accounts.settings.serverDesc')}
                     />
-                    <TabServer isEdit />
+                    {account.account_type === 'JMAP' ? <TabServerJmap isEdit /> : <TabServer isEdit />}
                   </section>
 
                   <hr />
