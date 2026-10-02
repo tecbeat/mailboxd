@@ -45,6 +45,46 @@ export const getImapConfigSchema = (isEdit: boolean, t: (key: string) => string)
     use_proxy: z.number().optional(),
   })
 
+const jmapAuthTypeSchema = z.union([
+  z.literal('Basic'),
+  z.literal('Bearer'),
+  z.literal('OAuth2'),
+])
+
+// JMAP auth: Basic needs username + secret; Bearer needs a secret (token);
+// OAuth2 needs neither inline. On edit the secret may be left blank to keep the
+// stored value.
+export const getJmapAuthConfigSchema = (isEdit: boolean, t: (key: string) => string) =>
+  z
+    .object({
+      auth_type: jmapAuthTypeSchema,
+      username: z.string().optional(),
+      secret: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        if (isEdit) return true
+        if (data.auth_type === 'Basic') {
+          return !!data.username?.trim() && !!data.secret?.trim()
+        }
+        if (data.auth_type === 'Bearer') {
+          return !!data.secret?.trim()
+        }
+        return true
+      },
+      {
+        message: t('validation.jmapCredentialsRequired'),
+        path: ['secret'],
+      }
+    )
+
+export const getJmapConfigSchema = (isEdit: boolean, t: (key: string) => string) =>
+  z.object({
+    session_url: z.string().optional(),
+    auth: getJmapAuthConfigSchema(isEdit, t),
+    use_proxy: z.number().optional(),
+  })
+
 const relativeDateSchema = (t: (key: string) => string) =>
   z.object({
     unit: z.enum(['Days', 'Months', 'Years'], {
@@ -82,6 +122,8 @@ const archiveRulesSchema = z.object({
 
 export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
   z.object({
+    // Hidden discriminator so one shared form serves IMAP and JMAP.
+    account_type: z.union([z.literal('IMAP'), z.literal('JMAP')]),
     account_name: z.string().optional(),
     login_name: z.string().optional(),
     email: z
@@ -91,7 +133,11 @@ export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
             ? t('validation.emailRequired')
             : t('validation.invalidEmail'),
       }),
-    imap: getImapConfigSchema(isEdit, t),
+    // Exactly one of imap/jmap is used, selected by account_type (enforced in
+    // the refine below). Both optional at the field level so the unused branch
+    // doesn't trip validation.
+    imap: getImapConfigSchema(isEdit, t).optional(),
+    jmap: getJmapConfigSchema(isEdit, t).optional(),
     enabled: z.boolean(),
     use_dangerous: z.boolean(),
     date_since: dateSelectionSchema(t).optional(),
@@ -137,6 +183,13 @@ export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
       ),
     archive_rules: archiveRulesSchema.optional(),
   })
+    .refine(
+      (data) => (data.account_type === 'JMAP' ? !!data.jmap : !!data.imap),
+      {
+        message: t('validation.serverConfigRequired'),
+        path: ['imap'],
+      }
+    )
 
 export type AccountFormValues = z.infer<
   ReturnType<typeof getAccountSchema>
