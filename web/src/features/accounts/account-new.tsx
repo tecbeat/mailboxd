@@ -34,34 +34,51 @@ import { Main } from "@/components/layout/main";
 import { PageHeader } from "@/components/layout/page-header";
 import { TabGeneral } from "./components/tab-general";
 import { TabServer } from "./components/tab-server";
+import { TabServerJmap } from "./components/tab-server-jmap";
 import { TabDownload } from "./components/tab-download";
 import { TabFilters } from "./components/tab-filters";
 import { create_account, autoconfig } from "@/api/account/api";
 import { getAccountSchema, type AccountFormValues } from "./components/schema";
 import axios, { type AxiosError } from "axios";
 
-const defaultValues: AccountFormValues = {
-  login_name: undefined,
-  account_name: undefined,
-  email: '',
-  imap: {
-    host: "",
-    port: 993,
-    encryption: 'Ssl',
-    auth: { auth_type: 'Password', password: undefined },
-    use_proxy: undefined,
-  },
-  enabled: true,
-  use_dangerous: false,
-  date_since: undefined,
-  date_before: undefined,
-  download_interval_min: 60,
-  download_batch_size: 30,
-  max_email_size_bytes: 100 * 1024 * 1024,
-  auto_download_new_mailboxes: true,
-  download_schedule: undefined,
-  archive_rules: undefined,
-};
+type NewAccountType = 'IMAP' | 'JMAP';
+
+function buildDefaults(accountType: NewAccountType): AccountFormValues {
+  return {
+    account_type: accountType,
+    login_name: undefined,
+    account_name: undefined,
+    email: '',
+    imap:
+      accountType === 'IMAP'
+        ? {
+            host: "",
+            port: 993,
+            encryption: 'Ssl',
+            auth: { auth_type: 'Password', password: undefined },
+            use_proxy: undefined,
+          }
+        : undefined,
+    jmap:
+      accountType === 'JMAP'
+        ? {
+            session_url: undefined,
+            auth: { auth_type: 'Basic', username: undefined, secret: undefined },
+            use_proxy: undefined,
+          }
+        : undefined,
+    enabled: true,
+    use_dangerous: false,
+    date_since: undefined,
+    date_before: undefined,
+    download_interval_min: 60,
+    download_batch_size: 30,
+    max_email_size_bytes: 100 * 1024 * 1024,
+    auto_download_new_mailboxes: true,
+    download_schedule: undefined,
+    archive_rules: undefined,
+  };
+}
 
 function SectionHeader({ title, description }: { title: string; description?: string }) {
   return (
@@ -72,16 +89,22 @@ function SectionHeader({ title, description }: { title: string; description?: st
   );
 }
 
-export function AccountNewPage() {
+interface AccountNewPageProps {
+  /** Which source type to create. Defaults to IMAP (existing behaviour). */
+  accountType?: NewAccountType;
+}
+
+export function AccountNewPage({ accountType = 'IMAP' }: AccountNewPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [autoConfigLoading, setAutoConfigLoading] = useState(false);
+  const isJmap = accountType === 'JMAP';
 
   const accountSchema = getAccountSchema(false, t);
   const form = useForm<AccountFormValues>({
     mode: "onChange",
-    defaultValues,
+    defaultValues: buildDefaults(accountType),
     resolver: zodResolver(accountSchema),
   });
 
@@ -114,19 +137,10 @@ export function AccountNewPage() {
 
   const onSubmit = useCallback(
     (data: AccountFormValues) => {
-      const { use_proxy, ...imapRest } = data.imap;
-      createAccount({
+      const shared = {
         email: data.email,
         account_name: data.account_name,
         login_name: data.login_name,
-        imap: {
-          ...imapRest,
-          use_proxy,
-          auth: {
-            ...data.imap.auth,
-            password: data.imap.auth.auth_type === 'OAuth2' ? undefined : data.imap.auth.password,
-          },
-        },
         enabled: data.enabled,
         use_dangerous: data.use_dangerous,
         date_since: data.date_since,
@@ -136,9 +150,42 @@ export function AccountNewPage() {
         max_email_size_bytes: data.max_email_size_bytes,
         auto_download_new_mailboxes: data.auto_download_new_mailboxes,
         download_schedule: data.download_schedule || null,
-        account_type: "IMAP",
         archive_rules: data.archive_rules || null,
-      });
+      };
+
+      if (data.account_type === 'JMAP' && data.jmap) {
+        const { use_proxy, auth, session_url } = data.jmap;
+        createAccount({
+          ...shared,
+          account_type: 'JMAP',
+          jmap: {
+            session_url: session_url?.trim() ? session_url.trim() : undefined,
+            use_proxy,
+            auth: {
+              auth_type: auth.auth_type,
+              username: auth.auth_type === 'Basic' ? auth.username : undefined,
+              secret: auth.auth_type === 'OAuth2' ? undefined : auth.secret,
+            },
+          },
+        });
+        return;
+      }
+
+      if (data.imap) {
+        const { use_proxy, ...imapRest } = data.imap;
+        createAccount({
+          ...shared,
+          account_type: 'IMAP',
+          imap: {
+            ...imapRest,
+            use_proxy,
+            auth: {
+              ...data.imap.auth,
+              password: data.imap.auth.auth_type === 'OAuth2' ? undefined : data.imap.auth.password,
+            },
+          },
+        });
+      }
     },
     [createAccount]
   );
@@ -146,13 +193,16 @@ export function AccountNewPage() {
   const handleAutoConfig = async () => {
     const email = form.getValues('email');
     if (!email) return;
-    const imap = form.getValues('imap');
-    if (imap.host.trim() !== "" && imap.port > 0) return;
 
     setAutoConfigLoading(true);
     try {
       const result = await autoconfig(email);
-      if (result) {
+      if (result && isJmap) {
+        // Prefill the JMAP session URL from the discovered `jmap` block (#50).
+        if (result.jmap?.session_url) {
+          form.setValue('jmap.session_url', result.jmap.session_url);
+        }
+      } else if (result) {
         form.setValue('imap.host', result.imap.host);
         form.setValue('imap.port', result.imap.port);
         form.setValue('imap.encryption', result.imap.encryption);
@@ -191,7 +241,7 @@ export function AccountNewPage() {
 
           <PageHeader
             className="mb-6"
-            title={t('accounts.addAccount')}
+            title={isJmap ? t('accounts.addJmapAccount') : t('accounts.addAccount')}
             description={t('accounts.addNewEmailAccountHere')}
           />
 
@@ -226,7 +276,7 @@ export function AccountNewPage() {
                         {autoConfigLoading ? t('accounts.autoConfiguring') : t('accounts.autoDiscover')}
                       </Button>
                     </div>
-                    <TabServer />
+                    {isJmap ? <TabServerJmap /> : <TabServer />}
                   </section>
 
                   <hr />

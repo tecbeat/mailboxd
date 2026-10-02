@@ -4,6 +4,7 @@ import { getAccountSchema } from '../schema'
 const t = (key: string) => key
 
 const baseData = {
+  account_type: 'IMAP' as const,
   email: 'test@example.com',
   imap: {
     host: 'imap.example.com',
