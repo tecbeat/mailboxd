@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.6](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.6) - 2026-10-03
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies - ([3b71e57](https://git.teccave.de/tecbeat/mailboxd/commit/3b71e572b9a7843fbd83a1e1fe168f1e3cd21d2a))
+
+## [1.7.5](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.5) - 2026-10-01
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency msw to v3 - ([7f68d20](https://git.teccave.de/tecbeat/mailboxd/commit/7f68d200d46be586fd40ba518692a20d6617e51c))
+- *(deps)* Update all non-major dependencies - ([2e70955](https://git.teccave.de/tecbeat/mailboxd/commit/2e709551e2de80279dc3d4d63c25c3b897e92428))
+- *(deps)* Update rust:1.98.1-slim-bookworm docker digest to ff52144 - ([0fad411](https://git.teccave.de/tecbeat/mailboxd/commit/0fad4115a6bf3b051141b0b650174b800dd77c4d))
+- *(deps)* Update node.js to ebfe2f9 - ([d7c687f](https://git.teccave.de/tecbeat/mailboxd/commit/d7c687f2d0f8e1a1a6bc55febcf7661866f417e3))
+- *(deps)* Update docker/dockerfile:1.27 docker digest to 4edf897 - ([a6e7623](https://git.teccave.de/tecbeat/mailboxd/commit/a6e7623fba32a84f45521f963ed27a3b5e7e23f1))
+- *(deps)* Update debian:bookworm-slim docker digest to 3783cc0 - ([2fa400d](https://git.teccave.de/tecbeat/mailboxd/commit/2fa400da5cb2153c9dd49748ad7c6f1648823e86))
+
+### 🧪 Testing
+
+- *(web)* Make jsdom same-origin so msw v3 CORS doesn't break tests - ([998ade7](https://git.teccave.de/tecbeat/mailboxd/commit/998ade776be94b23660cc35163487a6959f9bc34))
+
 ## [1.7.4](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.4) - 2026-09-30
 
 ### 🐛 Bug Fixes
