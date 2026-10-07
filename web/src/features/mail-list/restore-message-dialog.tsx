@@ -119,7 +119,7 @@ export function RestoreMessageDialog({
             title: t('restore_message.success', 'Messages restored'),
             description: t(
                 'restore_message.successDesc',
-                'The selected messages have been restored to the IMAP server.'
+                'The selected messages have been restored to the mail server.'
             ),
             action: (
                 <ToastAction altText={t('common.close')}>
@@ -161,7 +161,7 @@ export function RestoreMessageDialog({
                 <p className="text-sm text-muted-foreground">
                     {t(
                         'restore_message.desc',
-                        'This action will append the selected messages to their corresponding mailboxes on the IMAP server.'
+                        'This action will append the selected messages to their corresponding mailboxes on the mail server.'
                     )}
                 </p>
 
