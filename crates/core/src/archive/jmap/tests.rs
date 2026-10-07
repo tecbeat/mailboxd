@@ -23,6 +23,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::archive::imap::mailbox::AttributeEnum;
 use crate::archive::source::{MailSession, MessageRef, SyncCursor};
+use crate::error::code::ErrorCode;
 use crate::jmap::client::{JmapAuth, JmapClient};
 use crate::jmap::mail::JmapMailbox;
 use crate::jmap::mock_server::MockJmapServer;
@@ -298,4 +299,87 @@ async fn load_raw_downloads_blob_bytes() {
     assert_eq!(raw.body, b"Hello world!");
     assert_eq!(raw.size, 12);
     assert_eq!(raw.internal_date, 1767225600000);
+}
+
+#[tokio::test]
+async fn append_uploads_blob_and_imports_into_original_mailbox() {
+    // Restore (FA-17): resolve the mailbox by name, upload the EML as a blob,
+    // then Email/import it. The mock returns the uploaded blobId and a
+    // successful import.
+    let mailbox_resp = r#"{"methodResponses":[["Mailbox/get",{"accountId":"A1","state":"m1","list":[{"id":"mb1","name":"Inbox","role":"inbox"}],"notFound":[]},"0"]],"sessionState":"s0"}"#;
+    let upload_resp = r#"{"accountId":"A1","blobId":"uploaded-b1","type":"message/rfc822","size":42}"#;
+    let import_resp = r#"{"methodResponses":[["Email/import",{"accountId":"A1","created":{"restore":{"id":"new-e1","blobId":"uploaded-b1","threadId":"t1","size":42}},"notCreated":{}},"0"]],"sessionState":"s0"}"#;
+
+    let handle = MockJmapServer::new()
+        .route("GET", "/jmap/session", session_json(true))
+        .route_body("POST", "/jmap/api", "Mailbox/get", mailbox_resp)
+        .route_body("POST", "/jmap/api", "Email/import", import_resp)
+        .route("POST", "/jmap/upload/", upload_resp)
+        .start()
+        .await;
+
+    let mut session = connect_session(&handle.session_url()).await;
+    session
+        .append("Inbox", b"From: a@example.com\r\nSubject: hi\r\n\r\nbody")
+        .await
+        .expect("append should succeed");
+
+    // The uploaded blob bytes must have reached the upload endpoint.
+    let captured = handle.captured().await;
+    let upload = captured
+        .iter()
+        .find(|r| r.path.contains("/jmap/upload/"))
+        .expect("an upload request was made");
+    assert!(upload.body.contains("Subject: hi"));
+}
+
+#[tokio::test]
+async fn append_into_missing_mailbox_fails_gracefully() {
+    // The message's original mailbox no longer exists on the server: resolution
+    // must fail with ResourceNotFound and no upload/import is attempted.
+    let mailbox_resp = r#"{"methodResponses":[["Mailbox/get",{"accountId":"A1","state":"m1","list":[{"id":"mb1","name":"Inbox","role":"inbox"}],"notFound":[]},"0"]],"sessionState":"s0"}"#;
+
+    let handle = MockJmapServer::new()
+        .route("GET", "/jmap/session", session_json(true))
+        .route_body("POST", "/jmap/api", "Mailbox/get", mailbox_resp)
+        .start()
+        .await;
+
+    let mut session = connect_session(&handle.session_url()).await;
+    let err = session
+        .append("Archive/2020", b"From: a@example.com\r\n\r\nbody")
+        .await
+        .expect_err("append into a missing mailbox must fail");
+    assert_eq!(err.code(), ErrorCode::ResourceNotFound);
+
+    // No upload must have happened when the target mailbox is gone.
+    let captured = handle.captured().await;
+    assert!(
+        !captured.iter().any(|r| r.path.contains("/jmap/upload/")),
+        "no blob should be uploaded when the mailbox does not exist"
+    );
+}
+
+#[tokio::test]
+async fn append_surfaces_import_not_created_as_error() {
+    // Email/import reports per-email rejections in `notCreated`; the adapter must
+    // surface that as an error so restore reports the failure per message.
+    let mailbox_resp = r#"{"methodResponses":[["Mailbox/get",{"accountId":"A1","state":"m1","list":[{"id":"mb1","name":"Inbox","role":"inbox"}],"notFound":[]},"0"]],"sessionState":"s0"}"#;
+    let upload_resp = r#"{"accountId":"A1","blobId":"uploaded-b1","type":"message/rfc822","size":42}"#;
+    let import_resp = r#"{"methodResponses":[["Email/import",{"accountId":"A1","created":{},"notCreated":{"restore":{"type":"invalidEmail","description":"bad message"}}},"0"]],"sessionState":"s0"}"#;
+
+    let handle = MockJmapServer::new()
+        .route("GET", "/jmap/session", session_json(true))
+        .route_body("POST", "/jmap/api", "Mailbox/get", mailbox_resp)
+        .route_body("POST", "/jmap/api", "Email/import", import_resp)
+        .route("POST", "/jmap/upload/", upload_resp)
+        .start()
+        .await;
+
+    let mut session = connect_session(&handle.session_url()).await;
+    let err = session
+        .append("Inbox", b"From: a@example.com\r\n\r\nbody")
+        .await
+        .expect_err("a notCreated import must fail");
+    assert_eq!(err.code(), ErrorCode::JmapMethodError);
 }

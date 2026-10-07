@@ -1,10 +1,10 @@
 use crate::{
-    encode_mailbox_name, raise_error,
+    raise_error,
     {
-        account::migration::{AccountModel, AccountType},
+        account::migration::AccountModel,
+        archive::source::mail_source_for,
         envelope::extractor::reattach_eml_content,
         error::{code::ErrorCode, MailboxdResult},
-        imap::executor::ImapExecutor,
     },
 };
 //use poem_openapi::Object;
@@ -32,27 +32,22 @@ pub async fn restore_emails(account_id: u64, envelope_ids: Vec<String>) -> Mailb
     }
 
     let account = AccountModel::check_account_exists(account_id)?;
-    if !matches!(account.account_type, AccountType::IMAP) {
-        return Err(raise_error!(
-            "Account type is not IMAP".into(),
+    // Restore is "read from archive → MailSource::append": IMAP via APPEND, JMAP
+    // via Email/import (FA-17). `NoSync` accounts have no server to restore into.
+    let source = mail_source_for(account.account_type).ok_or_else(|| {
+        raise_error!(
+            "Account type does not support restore".into(),
             ErrorCode::Incompatible
-        ));
-    }
+        )
+    })?;
 
     let mut failed = Vec::new();
-    let mut session = ImapExecutor::create_connection(account_id).await?;
+    let mut session = source.connect(account_id).await?;
     for envelope_id in envelope_ids {
         let result: MailboxdResult<()> = async {
             let (envelope, eml) = reattach_eml_content(account_id, envelope_id.clone())?;
             if let Some(mailbox_name) = envelope.mailbox_name {
-                ImapExecutor::append(
-                    &mut session,
-                    encode_mailbox_name!(&mailbox_name),
-                    None,
-                    None,
-                    &eml,
-                )
-                .await?;
+                session.append(&mailbox_name, eml.as_ref()).await?;
             }
 
             Ok(())

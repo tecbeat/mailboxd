@@ -48,6 +48,12 @@ const WARN_INTERVAL_MS: i64 = 600_000;
 /// IMAP keeps its battle-tested dedicated flow unchanged; JMAP runs through the
 /// source-generic engine (`archive::engine`). `NoSync` accounts never schedule a
 /// download, so they are a no-op here.
+///
+/// This is deliberately *not* driven by
+/// [`mail_source_for`](crate::archive::source::mail_source_for): archival sync
+/// is the one documented exception where IMAP bypasses the `MailSource` seam to
+/// keep its dedicated flow (see #49). All other source-generic consumers (e.g.
+/// restore) go through the factory.
 async fn dispatch_download(
     account: &AccountModel,
     token: CancellationToken,
