@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.8](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.8) - 2026-10-07
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ui)* Update logo and favicon to new mailboxd icon - ([816d07e](https://git.teccave.de/tecbeat/mailboxd/commit/816d07e501f1db0fdaffedc129da7e62a2e1c5de))
+
 ## [1.7.8](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.8) - 2026-10-06
 
 ### 🐛 Bug Fixes
