@@ -209,6 +209,27 @@ impl JmapMailSession {
         }
     }
 
+    /// Resolve a hierarchical mailbox name (e.g. `Inbox/Archive`) to its JMAP
+    /// mailbox id by fetching the current mailbox tree. Used by restore, which
+    /// targets the message's original mailbox by name. A `ResourceNotFound`
+    /// error signals the mailbox no longer exists on the server (FA-17), so the
+    /// caller can fail that message gracefully like the IMAP path does.
+    async fn resolve_mailbox_id(&self, mailbox_name: &str) -> MailboxdResult<String> {
+        let resp = self.client.mailbox_get(&self.jmap_account_id, None).await?;
+        let by_id: HashMap<String, JmapMailbox> =
+            resp.list.iter().map(|m| (m.id.clone(), m.clone())).collect();
+        resp.list
+            .iter()
+            .find(|m| resolve_hierarchical_name(m, &by_id) == mailbox_name)
+            .map(|m| m.id.clone())
+            .ok_or_else(|| {
+                raise_error!(
+                    format!("JMAP mailbox '{mailbox_name}' no longer exists; cannot restore"),
+                    ErrorCode::ResourceNotFound
+                )
+            })
+    }
+
     /// Query email ids in a mailbox, optionally bounded by the account date
     /// window, newest first. Used for the initial sync and the
     /// `cannotCalculateChanges` reconcile.
@@ -380,16 +401,52 @@ impl MailSession for JmapMailSession {
         })
     }
 
-    async fn append(&mut self, _mailbox: &str, _eml: &[u8]) -> MailboxdResult<()> {
-        // Restore (FA-17) is implemented in a later issue (#52): it uploads the
-        // blob via uploadUrl then Email/import into the target mailbox. The
-        // low-level pieces exist on JmapClient; wiring the mailbox-name → id
-        // resolution and keyword handling is deferred to keep this issue focused
-        // on archival (download) sync.
-        Err(raise_error!(
-            "JMAP restore (append) is not yet implemented (tracked in #52)".into(),
-            ErrorCode::MethodNotAllowed
-        ))
+    async fn append(&mut self, mailbox: &str, eml: &[u8]) -> MailboxdResult<()> {
+        // Restore (FA-17): place the reconstructed RFC 5322 message back into its
+        // original mailbox. Resolve the mailbox by name first so a vanished
+        // mailbox fails this message cleanly (ResourceNotFound) rather than
+        // silently importing into nowhere.
+        let mailbox_id = self.resolve_mailbox_id(mailbox).await?;
+
+        // Upload the raw message as a blob, then Email/import it into the mailbox
+        // (RFC 8621 §4.8). The server assigns the Email a new id.
+        let upload = self
+            .client
+            .upload_blob(&self.jmap_account_id, "message/rfc822", eml.to_vec())
+            .await?;
+        let blob_id = upload
+            .get("blobId")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                raise_error!(
+                    "JMAP blob upload response is missing 'blobId'".into(),
+                    ErrorCode::JmapUnexpectedResult
+                )
+            })?
+            .to_string();
+
+        let result = self
+            .client
+            .email_import(&self.jmap_account_id, &blob_id, &[mailbox_id], None, None)
+            .await?;
+
+        // Email/import reports per-email failures in `notCreated` rather than as
+        // a method-level error; surface those so restore matches the IMAP path's
+        // per-message failure reporting.
+        if let Some(not_created) = result.get("notCreated").and_then(|v| v.as_object()) {
+            if let Some((_, err)) = not_created.iter().next() {
+                let reason = err
+                    .get("type")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown");
+                return Err(raise_error!(
+                    format!("JMAP Email/import rejected the message: {reason}"),
+                    ErrorCode::JmapMethodError
+                ));
+            }
+        }
+
+        Ok(())
     }
 
     async fn logout(&mut self) -> MailboxdResult<()> {
