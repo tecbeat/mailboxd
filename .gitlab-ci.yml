@@ -1,8 +1,11 @@
 ---
 include:
   - project: 'maintenance/teccave_pipeline'
-    ref: main
+    ref: 16-named-feature-image
     file: '/.pipeline_defs/.build_image.yml'
+
+variables:
+  FEATURE_IMAGE: "true"
 
 # Skip the branch-level gates on the default branch. The identical jobs already
 # ran (and passed) on the source branch's pipeline before the merge, so
