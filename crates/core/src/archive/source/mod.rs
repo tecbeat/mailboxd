@@ -51,7 +51,9 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 
-use crate::{archive::imap::mailbox::MailBox, error::MailboxdResult};
+use crate::{
+    account::migration::AccountType, archive::imap::mailbox::MailBox, error::MailboxdResult,
+};
 
 /// An opaque, source-defined per-mailbox synchronization cursor.
 ///
@@ -203,6 +205,26 @@ pub trait MailSource: Send + Sync {
 
     /// Open a live session for the given account.
     async fn connect(&self, account_id: u64) -> MailboxdResult<Box<dyn MailSession>>;
+}
+
+/// Resolve the [`MailSource`] for an account type — the single place that maps
+/// `AccountType` → source implementation.
+///
+/// Every source-generic consumer (restore today; future features) goes through
+/// here, so adding a new protocol means implementing [`MailSource`] and adding
+/// one arm below — no scattered `match account_type` blocks.
+///
+/// Returns `None` for account types that have no live server to talk to
+/// (`NoSync`). Note this is intentionally *not* used by the archival sync
+/// dispatch (`archive::imap::task`): IMAP keeps its dedicated, battle-tested
+/// download flow rather than running through the generic engine (see #49), so
+/// that dispatch is the one documented exception to this mapping.
+pub fn mail_source_for(account_type: AccountType) -> Option<Box<dyn MailSource>> {
+    match account_type {
+        AccountType::IMAP => Some(Box::new(imap::ImapSource)),
+        AccountType::JMAP => Some(Box::new(crate::archive::jmap::source::JmapSource)),
+        AccountType::NoSync => None,
+    }
 }
 
 #[cfg(test)]
