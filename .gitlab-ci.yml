@@ -18,7 +18,7 @@ include:
 cargo_test:
   extends: .skip_on_default_branch
   stage: unittest
-  image: rust:1.99.0-slim-bookworm@sha256:452176c0cefca88c0b3184ce85a4eb03e3d4fa05d2afb5366abcba853221019e
+  image: rust:1.99.0-slim-bookworm@sha256:2c3a22f0a5533ea2dd5a16627bc841228151faa2d4de2644ac9987e4a2f1f2fa
   needs: []
   variables:
     MAILBOXD_ROOT_DIR: /tmp/mailboxd-test
@@ -58,7 +58,7 @@ cargo_test:
 migration_tests:
   extends: .skip_on_default_branch
   stage: unittest
-  image: rust:1.99.0-slim-bookworm@sha256:452176c0cefca88c0b3184ce85a4eb03e3d4fa05d2afb5366abcba853221019e
+  image: rust:1.99.0-slim-bookworm@sha256:2c3a22f0a5533ea2dd5a16627bc841228151faa2d4de2644ac9987e4a2f1f2fa
   needs:
     - cargo_test
   variables:
