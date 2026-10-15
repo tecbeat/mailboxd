@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.12](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.12) - 2026-10-15
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies - ([0b420ce](https://git.teccave.de/tecbeat/mailboxd/commit/0b420ceedd593e974113866d404d1f9377e415d7))
+
 ## [1.7.11](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.11) - 2026-10-12
 
 ### 🐛 Bug Fixes
