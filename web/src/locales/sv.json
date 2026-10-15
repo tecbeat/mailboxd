@@ -545,6 +545,7 @@
     "sessionExpired": "Sessionen har löpt ut!",
     "sessionExpiredDesc": "Din session har avslutas på grund av inaktivitet. Vänligen logga in igen för att fortsätta.",
     "somethingWentWrong": "Något gick fel",
+    "tooManyAttempts": "För många inloggningsförsök. Vänta några minuter och försök igen.",
     "username": "Användarnamn",
     "welcome": "Välkommen till mailboxd",
     "youWillNeedToLogInAgain": "Du måste logga in igen för att komma åt ditt konto.",

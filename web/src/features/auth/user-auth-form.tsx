@@ -37,7 +37,6 @@ import { PasswordInput } from '@/components/password-input'
 import { useMutation } from '@tanstack/react-query'
 import { setToken } from '@/stores/authStore'
 import { toast } from '@/hooks/use-toast'
-import { AxiosError } from 'axios'
 import { ToastAction } from '@/components/ui/toast'
 import { useLocation, useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
@@ -48,6 +47,7 @@ import { login } from '@/api/users/api'
 import { useTheme, Theme } from '@/context/theme-context'
 import { useOidcConfig } from '@/hooks/use-oidc-config'
 import { safeAppRedirect } from '@/lib/app-location'
+import { describeLoginError } from './login-error'
 
 type UserAuthFormProps = HTMLAttributes<HTMLDivElement>
 
@@ -133,22 +133,13 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         setIsLoading(false);
       },
       onError: (error) => {
-        const { t } = i18n
-        if (error instanceof AxiosError && error.response && error.response.status === 401) {
-          toast({
-            variant: "destructive",
-            title: t('auth.loginFailed'),
-            description: t('auth.invalidPassword'),
-            action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: t('auth.somethingWentWrong'),
-            description: (error as Error).message,
-            action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
-          })
-        }
+        const { title, description } = describeLoginError(error, i18n.t)
+        toast({
+          variant: "destructive",
+          title,
+          description,
+          action: <ToastAction altText={t('common.tryAgain')}>{t('common.tryAgain')}</ToastAction>,
+        })
         setIsLoading(false)
       }
     });

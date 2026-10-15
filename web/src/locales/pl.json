@@ -545,6 +545,7 @@
     "sessionExpired": "Sesja wygasła",
     "sessionExpiredDesc": "Twoja sesja wygasła z powodu bezczynności. Zaloguj się ponownie",
     "somethingWentWrong": "Coś poszło nie tak",
+    "tooManyAttempts": "Zbyt wiele prób logowania. Odczekaj kilka minut i spróbuj ponownie.",
     "username": "Nazwa",
     "welcome": "Witaj w mailboxd",
     "youWillNeedToLogInAgain": "Musisz zalogować się ponownie, aby ponownie móc korzystać.",

@@ -545,6 +545,7 @@
     "sessionExpired": "Sitzung abgelaufen!",
     "sessionExpiredDesc": "Ihre Sitzung ist aufgrund von Inaktivität abgelaufen. Bitte melden Sie sich an, um fortzufahren.",
     "somethingWentWrong": "Etwas ist schiefgelaufen",
+    "tooManyAttempts": "Zu viele Anmeldeversuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
     "username": "Benutzername",
     "welcome": "Willkommen bei mailboxd",
     "youWillNeedToLogInAgain": "Sie müssen sich erneut anmelden, um auf Ihr Konto zuzugreifen.",

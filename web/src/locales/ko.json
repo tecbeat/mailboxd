@@ -545,6 +545,7 @@
     "sessionExpired": "세션이 만료되었습니다!",
     "sessionExpiredDesc": "비활성화로 인해 세션이 종료되었습니다. 계속하려면 다시 로그인하십시오.",
     "somethingWentWrong": "문제가 발생했습니다",
+    "tooManyAttempts": "로그인 시도 횟수가 너무 많습니다. 몇 분 후에 다시 시도하세요.",
     "username": "사용자 이름",
     "welcome": "mailboxd에 오신 것을 환영합니다",
     "youWillNeedToLogInAgain": "계정에 접근하려면 다시 로그인해야 합니다.",
