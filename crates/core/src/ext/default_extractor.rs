@@ -170,7 +170,10 @@ fn extract_ooxml(bytes: &[u8], kind: OoxmlKind) -> Option<String> {
                     Ok(f) => f,
                     Err(_) => continue,
                 };
-                let name = file.name().to_string();
+                let name = match file.name() {
+                    Ok(n) => n.into_owned(),
+                    Err(_) => continue,
+                };
                 if name.starts_with("ppt/slides/slide") && name.ends_with(".xml") {
                     let mut xml = Vec::new();
                     if file.read_to_end(&mut xml).is_ok() {
