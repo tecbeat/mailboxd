@@ -1,11 +1,11 @@
 use std::path::{Path, PathBuf};
 
+use console::{style, Emoji};
+use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use mailboxd_core::{
     admin::meta::{find_admin, open_database, update_admin_password},
     utils::encrypt::internal_decrypt_string,
 };
-use console::{style, Emoji};
-use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 
 pub fn handle_reset_password(theme: &ColorfulTheme) {
     let root_dir_str: String = Input::with_theme(theme)
@@ -136,6 +136,12 @@ pub fn handle_reset_password(theme: &ColorfulTheme) {
             println!("{:<12} : {}", "Email", style(&user.email).cyan());
 
             let pwd_display = match &user.password {
+                Some(p) if p.starts_with("$argon2id$") => {
+                    style("(argon2id hash - cannot be displayed)")
+                        .dim()
+                        .italic()
+                        .to_string()
+                }
                 Some(p) => {
                     let password = match internal_decrypt_string(&encryption_key, p) {
                         Ok(p) => p,
@@ -218,7 +224,7 @@ pub fn handle_reset_password(theme: &ColorfulTheme) {
 
     println!("\n{} {}", style("⌛").yellow(), "Updating database...");
 
-    match update_admin_password(&database, new_login_password, &encryption_key) {
+    match update_admin_password(&database, new_login_password) {
         Ok(_) => {
             println!(
                 "\n{} {}",
