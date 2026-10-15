@@ -1019,6 +1019,7 @@ impl IndexManager {
                     exts.push(Group {
                         key: ext.clone(),
                         count: entry.doc_count,
+                        account_id: None,
                     });
                 }
             }
@@ -1032,6 +1033,7 @@ impl IndexManager {
                     cats.push(Group {
                         key: cat.clone(),
                         count: entry.doc_count,
+                        account_id: None,
                     });
                 }
             }
@@ -1046,6 +1048,7 @@ impl IndexManager {
                     ctypes.push(Group {
                         key: content_type.clone(),
                         count: entry.doc_count,
+                        account_id: None,
                     });
                 }
             }
