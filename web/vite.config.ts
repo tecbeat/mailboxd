@@ -10,7 +10,29 @@ export default defineConfig({
   plugins: [react(), TanStackRouterVite()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
+    },
+  },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: (moduleId) =>
+                `locale-${moduleId.match(/[\\/]locales[\\/]([\w-]+)\.json$/)?.[1]}`,
+              test: /[\\/]src[\\/]locales[\\/][\w-]+\.json$/,
+              priority: 20,
+            },
+            {
+              name: 'vendor',
+              test: /[\\/]node_modules[\\/]/,
+              priority: 10,
+              maxSize: 400_000,
+            },
+          ],
+        },
+      },
     },
   },
   test: {
