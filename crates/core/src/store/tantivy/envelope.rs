@@ -1105,37 +1105,9 @@ impl IndexManager {
         // still-referenced blob would be deleted.
         fatal_commit(writer);
         let searcher = self.create_searcher()?;
-        let fields = SchemaTools::email_fields();
-        let mut eml: HashSet<String> = HashSet::new();
-        for content_hash in eml_content_hashes {
-            // Check if any other emails still reference this content hash
-            let hash_term = Term::from_field_text(fields.f_content_hash, &content_hash);
-            let hash_query = TermQuery::new(hash_term, IndexRecordOption::Basic);
-            let count = searcher
-                .search(&hash_query, &Count)
-                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-
-            // If no references found, delete from KV store
-            if count == 0 {
-                eml.insert(content_hash);
-            }
-        }
-        let mut attachments: HashSet<String> = HashSet::new();
-        for content_hash in attachments_content_hashes {
-            // Check if any other emails still reference this content hash
-            let hash_term = Term::from_field_text(fields.f_attachment_content_hash, &content_hash);
-            let hash_query = TermQuery::new(hash_term, IndexRecordOption::Basic);
-            let count = searcher
-                .search(&hash_query, &Count)
-                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-
-            // If no references found, delete from KV store
-            if count == 0 {
-                attachments.insert(content_hash);
-            }
-        }
-
-        BLOB_MANAGER.delete(&eml, &attachments)
+        let to_delete =
+            unreferenced_hashes(&searcher, eml_content_hashes, attachments_content_hashes)?;
+        BLOB_MANAGER.delete(&to_delete, std::iter::empty::<&str>())
     }
 
     pub async fn delete_envelopes_multi_account(
@@ -1899,6 +1871,39 @@ impl IndexManager {
         }
         Ok(stats)
     }
+}
+
+/// Return the candidate blob keys that no indexed email references anymore.
+///
+/// Email and attachment blobs share one key space, so a key can be referenced
+/// both as an email content hash and as an attachment content hash (e.g. a
+/// nested `.eml` attachment that was also archived standalone). A key is only
+/// unreferenced when neither field still uses it.
+fn unreferenced_hashes(
+    searcher: &Searcher,
+    eml_content_hashes: HashSet<String>,
+    attachments_content_hashes: HashSet<String>,
+) -> MailboxdResult<HashSet<String>> {
+    let fields = SchemaTools::email_fields();
+    let count = |field, hash: &str| {
+        let query = TermQuery::new(Term::from_field_text(field, hash), IndexRecordOption::Basic);
+        searcher
+            .search(&query, &Count)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
+    };
+
+    let mut unreferenced = HashSet::new();
+    for hash in eml_content_hashes
+        .into_iter()
+        .chain(attachments_content_hashes)
+    {
+        if count(fields.f_content_hash, &hash)? == 0
+            && count(fields.f_attachment_content_hash, &hash)? == 0
+        {
+            unreferenced.insert(hash);
+        }
+    }
+    Ok(unreferenced)
 }
 
 #[cfg(test)]
@@ -2742,5 +2747,59 @@ mod tests {
                 uid
             );
         }
+    }
+
+    fn index_with_docs(docs: &[(&str, &[&str])]) -> Index {
+        let f = SchemaTools::email_fields();
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        index.tokenizers().register("euro", EuroTokenizer::new());
+        let mut writer = index
+            .writer_with_num_threads(1, 15_000_000)
+            .expect("writer");
+        for (content_hash, attachment_hashes) in docs {
+            let mut doc = TantivyDocument::new();
+            doc.add_text(f.f_content_hash, content_hash);
+            for h in attachment_hashes.iter() {
+                doc.add_text(f.f_attachment_content_hash, h);
+            }
+            writer.add_document(doc).unwrap();
+        }
+        writer.commit().unwrap();
+        index
+    }
+
+    fn set(items: &[&str]) -> HashSet<String> {
+        items.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn unreferenced_hashes_keeps_email_key_still_used_as_attachment() {
+        // "shared" is the content hash of a deleted email, but a remaining
+        // email still carries the same blob as a (nested .eml) attachment.
+        let index = index_with_docs(&[("other-email", &["shared"])]);
+        let searcher = index.reader().unwrap().searcher();
+        let result = unreferenced_hashes(&searcher, set(&["shared", "gone"]), set(&[])).unwrap();
+        assert_eq!(result, set(&["gone"]));
+    }
+
+    #[test]
+    fn unreferenced_hashes_keeps_attachment_key_still_used_as_email() {
+        let index = index_with_docs(&[("shared", &[])]);
+        let searcher = index.reader().unwrap().searcher();
+        let result = unreferenced_hashes(&searcher, set(&[]), set(&["shared", "gone"])).unwrap();
+        assert_eq!(result, set(&["gone"]));
+    }
+
+    #[test]
+    fn unreferenced_hashes_keeps_keys_referenced_in_their_own_field() {
+        let index = index_with_docs(&[("email-1", &["att-1"])]);
+        let searcher = index.reader().unwrap().searcher();
+        let result = unreferenced_hashes(
+            &searcher,
+            set(&["email-1", "email-2"]),
+            set(&["att-1", "att-2"]),
+        )
+        .unwrap();
+        assert_eq!(result, set(&["email-2", "att-2"]));
     }
 }
