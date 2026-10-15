@@ -243,7 +243,7 @@ impl ImapExecutor {
                     start_uid,
                     examined.uid_next,
                 ) {
-                    tracing::warn!(
+                    info!(
                         account_id = account.id,
                         mailbox = %mailbox.name,
                         start_uid,
@@ -251,15 +251,7 @@ impl ImapExecutor {
                         "{}",
                         msg
                     );
-                    DownloadState::append_session_error(account.id, msg)?;
-                    DownloadState::update_folder_progress(
-                        account.id,
-                        mailbox.name.clone(),
-                        0,
-                        0,
-                        FolderStatus::Failed,
-                        Some("UID enumeration came back empty despite new mail on server. Retrying on next sync.".into()),
-                    )?;
+                    record_purged_tail(account.id, &mailbox.name)?;
                     return Ok(None);
                 }
             }
@@ -516,7 +508,7 @@ impl ImapExecutor {
                     start_uid,
                     examined.uid_next,
                 ) {
-                    tracing::warn!(
+                    info!(
                         account_id = account.id,
                         mailbox = %mailbox.name,
                         start_uid,
@@ -524,15 +516,7 @@ impl ImapExecutor {
                         "{}",
                         msg
                     );
-                    DownloadState::append_session_error(account.id, msg)?;
-                    DownloadState::update_folder_progress(
-                        account.id,
-                        mailbox.name.clone(),
-                        0,
-                        0,
-                        FolderStatus::Failed,
-                        Some("UID enumeration came back empty despite new mail on server. Retrying on next sync.".into()),
-                    )?;
+                    record_purged_tail(account.id, &mailbox.name)?;
                     return Ok(None);
                 }
             }
@@ -1208,6 +1192,21 @@ fn filter_before_date(
     Ok(uid_vec)
 }
 
+/// Record an empty `UID FETCH {start}:*` despite a higher UIDNEXT. Servers
+/// report this when the newest messages were deleted, so it is a normal state
+/// rather than a sync error: the folder counts as successful and highest_uid
+/// stays unchanged so a later sync still picks up anything that was missed.
+fn record_purged_tail(account_id: u64, mailbox_name: &str) -> MailboxdResult<()> {
+    DownloadState::update_folder_progress(
+        account_id,
+        mailbox_name.to_string(),
+        0,
+        0,
+        FolderStatus::Success,
+        Some("UID FETCH range returned empty; the newest UIDs appear to have been purged on the server. highest_uid unchanged, will retry on next sync.".into()),
+    )
+}
+
 /// When a range enumeration comes back empty, decide whether that is an
 /// anomaly (server claims messages exist in the range but none were returned)
 /// or a genuine "no new mail" result. Returns a warning message for the
@@ -1256,6 +1255,27 @@ mod test {
     use super::*;
     use crate::imap::session::SessionStream;
     use tokio_io_timeout::TimeoutStream;
+
+    #[tokio::test]
+    async fn purged_tail_marks_folder_successful_without_session_error() {
+        // Account id used by no other test.
+        let account_id = 59_342_001;
+        DownloadState::init(account_id).await.unwrap();
+
+        record_purged_tail(account_id, "INBOX").unwrap();
+
+        let session = DownloadState::get(account_id)
+            .unwrap()
+            .and_then(|state| state.active_session)
+            .expect("session stays active");
+        assert!(session.errors.is_empty());
+        let folder = &session.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert!(folder
+            .message
+            .as_deref()
+            .is_some_and(|m| m.contains("purged")));
+    }
 
     // ── compress_uid_list ──────────────────────────────────────────
 
