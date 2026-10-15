@@ -624,6 +624,7 @@ mod tests {
     ///
     /// This test is read-only — it does not modify the index.
     #[test]
+    #[ignore = "diagnostic for a local production index; run explicitly with --ignored"]
     fn inspect_production_duplicates() {
         let index_path = r"E:\mailboxd-data\mailboxd-indices\mail_metadata";
         let report_path = std::path::PathBuf::from(r"E:\mailboxd\dedup_report.txt");
