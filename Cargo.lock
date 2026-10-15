@@ -2847,6 +2847,7 @@ dependencies = [
  "mailboxd-blob",
  "mailboxd-memdb",
  "memmap2",
+ "mime_guess",
  "murmur3",
  "num_cpus",
  "oauth2",
