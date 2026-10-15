@@ -39,6 +39,7 @@ email_address.workspace = true
 futures.workspace = true
 utf7-imap.workspace = true
 mail-parser.workspace = true
+mime_guess.workspace = true
 tokio-rustls.workspace = true
 oauth2.workspace = true
 sysinfo.workspace = true
