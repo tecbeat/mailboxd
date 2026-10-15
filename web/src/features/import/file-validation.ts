@@ -37,6 +37,17 @@ const BLOCKED_MIME_PREFIXES = [
   'application/x-msdownload', 'application/x-executable',
 ];
 
+/**
+ * MIME types browsers report for supported files that the generic blocklist
+ * would otherwise reject (`.pst` is `application/vnd.ms-outlook` via
+ * shared-mime-info).
+ */
+const ALLOWED_MIME_TYPES = new Set([
+  'application/vnd.ms-outlook',
+  'application/x-pst',
+  'application/mbox',
+]);
+
 /** Server-configured upload limits, in bytes. */
 export interface UploadLimits {
   maxMbox: number;
@@ -57,13 +68,10 @@ export function getExtension(fileName: string): string {
 
 /** True when the file looks like an email file: an allowed extension and no blocked MIME type. */
 export function isValidFileType(file: File, ext: string): boolean {
+  if (ext !== 'eml' && ext !== 'mbox' && ext !== 'pst') return false;
   const mime = file.type.toLowerCase();
-  if (mime) {
-    for (const prefix of BLOCKED_MIME_PREFIXES) {
-      if (mime.startsWith(prefix)) return false;
-    }
-  }
-  return ext === 'eml' || ext === 'mbox' || ext === 'pst';
+  if (!mime || ALLOWED_MIME_TYPES.has(mime)) return true;
+  return !BLOCKED_MIME_PREFIXES.some((prefix) => mime.startsWith(prefix));
 }
 
 /** Byte limit that applies to a given extension. */
