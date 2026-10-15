@@ -19,7 +19,10 @@
 use crate::error::code::ErrorCode;
 use crate::error::MailboxdResult;
 use crate::oidc::discovery::{get_discovery, OidcDiscovery};
-use crate::oidc::id_token::{verify_and_parse, IdTokenClaims, VerifyParams};
+use crate::oidc::id_token::{
+    decode_header, ensure_alg_advertised, verify_and_parse, IdTokenClaims, VerifyParams,
+};
+use crate::oidc::jwks::{get_jwks, resolve_decoding_key};
 use crate::oidc::pending::OidcPendingEntity;
 use crate::raise_error;
 use crate::settings::cli::SETTINGS;
@@ -248,14 +251,21 @@ pub async fn complete_login(state: &str, code: &str) -> MailboxdResult<OidcCallb
             )
         })?;
 
+    let header = decode_header(id_token_str)?;
+    ensure_alg_advertised(header.alg, &discovery.id_token_signing_alg_values_supported)?;
+    let key = resolve_decoding_key(&header, cfg.client_secret.as_bytes(), |force_refresh| {
+        get_jwks(&discovery.jwks_uri, force_refresh)
+    })
+    .await?;
+
     let now_secs = chrono::Utc::now().timestamp();
     let claims = verify_and_parse(
         id_token_str,
+        &key,
         &VerifyParams {
             expected_issuer: &discovery.issuer,
             expected_audience: cfg.client_id,
             expected_nonce: &pending.nonce,
-            client_secret: cfg.client_secret.as_bytes(),
             clock_skew_secs: 60,
             now_secs,
         },
