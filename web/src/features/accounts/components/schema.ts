@@ -59,11 +59,12 @@ const relativeDateSchema = (t: (key: string) => string) =>
 const dateSelectionSchema = (t: (key: string) => string) =>
   z
     .object({
+      // nullish: the API returns the unused half as null
       fixed: z
         .string({ error: t('accounts.selectDate') })
         .min(1, { message: t('accounts.selectDate') })
-        .optional(),
-      relative: relativeDateSchema(t).optional(),
+        .nullish(),
+      relative: relativeDateSchema(t).nullish(),
     })
     .optional()
 
