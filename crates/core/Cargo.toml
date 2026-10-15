@@ -39,6 +39,7 @@ utf7-imap.workspace = true
 mail-parser.workspace = true
 tokio-rustls.workspace = true
 oauth2.workspace = true
+jsonwebtoken.workspace = true
 sysinfo.workspace = true
 num_cpus.workspace = true
 rand.workspace = true
@@ -90,3 +91,6 @@ rtf-parser = { version = "0.4.3", default-features = false }
 # Docker image free of extra apt dependencies.
 tar = "0.4.46"
 zstd = "0.14"
+
+[dev-dependencies]
+aws-lc-rs = "1.16.3"
