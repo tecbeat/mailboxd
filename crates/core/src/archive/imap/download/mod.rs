@@ -113,7 +113,7 @@ pub async fn process_imap_download(
         };
         match result {
             Ok(_) => {
-                DownloadState::update_session_status(account_id, DownloadStatus::Success, None)?;
+                DownloadState::finish_completed_session(account_id)?;
             }
             Err(e) => {
                 let err_msg = format!("Email Download interrupted: {:#?}", e);
@@ -183,7 +183,7 @@ pub async fn process_imap_download(
     // during gap-fill are not dropped (update_session_status closes the active
     // session, moving it into history).
     match reconcile_result {
-        Ok(_) => DownloadState::update_session_status(account_id, DownloadStatus::Success, None)?,
+        Ok(_) => DownloadState::finish_completed_session(account_id)?,
         Err(e) => {
             let err_msg = format!("Email Download interrupted: {:#?}", e);
             DownloadState::append_session_error(account_id, err_msg.clone())?;
