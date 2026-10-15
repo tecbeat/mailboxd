@@ -201,7 +201,7 @@ async fn extract_envelope_core(
         subject = normalize_subject(message.header_raw(HeaderName::Subject));
     }
 
-    let date = message.date().map(|d| d.to_timestamp() * 1000).unwrap_or(0);
+    let date = resolve_message_date(&message, internal_date);
     let internal_date = if internal_date == 0 {
         date
     } else {
@@ -367,7 +367,7 @@ pub fn extract_envelope_from_nested_message(
         subject = normalize_subject(message.header_raw(HeaderName::Subject));
     }
 
-    let date = message.date().map(|d| d.to_timestamp() * 1000).unwrap_or(0);
+    let date = resolve_message_date(&message, 0);
 
     let parse_addrs = |addrs: Option<&Address<'_>>| {
         addrs
@@ -418,6 +418,25 @@ pub fn extract_envelope_from_nested_message(
     };
 
     Ok(envelope)
+}
+
+/// Message date in milliseconds. Falls back from the `Date` header to the
+/// IMAP internal date (pass 0 when there is none) and then to the newest
+/// `Received` header, so a missing or unparseable `Date` (rustmailer/bichon#332)
+/// doesn't archive the message as 1970. Returns 0 only without any source.
+pub(crate) fn resolve_message_date(message: &Message<'_>, internal_date: i64) -> i64 {
+    let to_ms = |d: &mail_parser::DateTime| Some(d.to_timestamp() * 1000).filter(|&ms| ms > 0);
+    if let Some(ms) = message.date().and_then(to_ms) {
+        return ms;
+    }
+    if internal_date > 0 {
+        return internal_date;
+    }
+    message
+        .received_all()
+        .filter_map(|r| r.date().as_ref().and_then(to_ms))
+        .max()
+        .unwrap_or(0)
 }
 
 pub fn compute_thread_id(
@@ -969,6 +988,54 @@ async fn recover_message_blob(envelope: &Envelope) -> MailboxdResult<Bytes> {
 #[cfg(test)]
 mod test {
     use html2text::config;
+
+    mod message_date {
+        use super::super::resolve_message_date;
+        use mail_parser::MessageParser;
+
+        const RECEIVED: &str = "Received: from relay.example.com by mx.example.com; Tue, 2 Jan 2024 10:00:00 +0000\r\n\
+             Received: from origin.example.com by relay.example.com; Mon, 1 Jan 2024 10:00:00 +0000\r\n";
+        // Tue, 2 Jan 2024 10:00:00 UTC
+        const NEWEST_RECEIVED_MS: i64 = 1_704_189_600_000;
+
+        fn date_of(headers: &str, internal_date: i64) -> i64 {
+            let raw = format!("{headers}From: a@example.com\r\nSubject: x\r\n\r\nbody");
+            let message = MessageParser::default().parse(raw.as_bytes()).unwrap();
+            resolve_message_date(&message, internal_date)
+        }
+
+        #[test]
+        fn uses_the_date_header() {
+            // Wed, 3 Jan 2024 10:00:00 UTC
+            let headers = format!("{RECEIVED}Date: Wed, 3 Jan 2024 10:00:00 +0000\r\n");
+            assert_eq!(date_of(&headers, 42), 1_704_276_000_000);
+        }
+
+        #[test]
+        fn unparseable_date_falls_back_to_internal_date() {
+            let headers = format!("{RECEIVED}Date: not a date\r\n");
+            assert_eq!(date_of(&headers, 1_700_000_000_000), 1_700_000_000_000);
+        }
+
+        #[test]
+        fn missing_date_and_internal_date_falls_back_to_newest_received() {
+            assert_eq!(date_of(RECEIVED, 0), NEWEST_RECEIVED_MS);
+        }
+
+        #[test]
+        fn corrupted_header_before_date_falls_back_to_received() {
+            // rustmailer/bichon#332: a broken header swallowed the Date header.
+            let headers = format!(
+                "{RECEIVED}X-MS-TNEF-Correlator: =?utf-8?B?broken\r\n Date: Wed, 3 Jan 2024 10:00:00 +0000\r\n"
+            );
+            assert_eq!(date_of(&headers, 0), NEWEST_RECEIVED_MS);
+        }
+
+        #[test]
+        fn zero_only_without_any_date_source() {
+            assert_eq!(date_of("", 0), 0);
+        }
+    }
 
     // Keep the blob writer alive across these storage tests.
     static STORAGE_RUNTIME: std::sync::LazyLock<tokio::runtime::Runtime> =
