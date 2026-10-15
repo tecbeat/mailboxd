@@ -519,11 +519,11 @@ pub async fn detach_and_store_attachments(
             stripped_eml.splice(raw_start..raw_end, placeholder.as_bytes().iter().cloned());
             Some(raw_hash)
         } else {
-            // Invalid range: store a zero-length blob so the consistency
-            // check passes; reattachment will log a warning for the missing
-            // blob data but won't panic.
-            attachments.push((content_hash.clone(), Bytes::new()));
-            None
+            // No replacement is needed, but keep the empty storage record in
+            // the raw key domain so it cannot shadow a decoded or email blob.
+            let raw_hash = crate::utils::compute_raw_attachment_hash(b"");
+            attachments.push((raw_hash.clone(), Bytes::new()));
+            Some(raw_hash)
         };
 
         let inline = att
@@ -835,6 +835,22 @@ async fn recover_message_blob(envelope: &Envelope) -> MailboxdResult<Bytes> {
 mod test {
     use html2text::config;
 
+    // Keep the blob writer alive across these storage tests.
+    static STORAGE_RUNTIME: std::sync::LazyLock<tokio::runtime::Runtime> =
+        std::sync::LazyLock::new(|| tokio::runtime::Runtime::new().unwrap());
+
+    #[test]
+    fn empty_attachment_uses_the_raw_storage_key_space() {
+        STORAGE_RUNTIME.block_on(async {
+            let raw = b"From: test@example.com\r\nContent-Type: application/octet-stream\r\nContent-Disposition: attachment; filename=empty.bin\r\n\r\n";
+            let message = mail_parser::MessageParser::new().parse(raw).unwrap();
+            let infos = super::detach_and_store_attachments(
+                raw, &message, &crate::utils::compute_content_hash(raw), 0, 0,
+            ).await;
+            assert_ne!(infos[0].storage_hash(), infos[0].content_hash);
+        });
+    }
+
     #[test]
     fn repeated_attachment_is_restored_once_per_placeholder() {
         let payload = b"BEGIN:VCALENDAR\r\nDESCRIPTION:Repeated invitation\r\nEND:VCALENDAR\r\n";
@@ -960,8 +976,12 @@ mod test {
     /// Regression test for: "range end index X out of range for slice of
     /// length Y" panic caused by a malformed email whose attachment
     /// `raw_end_offset` exceeded the actual body size.
-    #[tokio::test]
-    async fn detach_attachments_bounds_check() {
+    #[test]
+    fn detach_attachments_bounds_check() {
+        STORAGE_RUNTIME.block_on(check_attachment_bounds());
+    }
+
+    async fn check_attachment_bounds() {
         let raw = concat!(
             "From: sender@example.com\r\n",
             "To: recipient@example.com\r\n",
