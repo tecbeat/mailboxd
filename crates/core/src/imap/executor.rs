@@ -1229,25 +1229,19 @@ fn empty_enumeration_anomaly(
     }
 }
 
+/// Extract the Message-ID from a fetched header block.
+///
+/// Uses mail-parser, the parser that produced the archived Message-ID, so
+/// header-name casing, folded values, non-UTF-8 bytes in other headers and
+/// angle brackets are handled exactly as at archive time and gap-fill
+/// comparisons match.
 fn parse_message_id_header(header_bytes: &[u8]) -> Option<String> {
-    let header = std::str::from_utf8(header_bytes).ok()?;
-    for line in header.lines() {
-        if let Some(value) = line
-            .strip_prefix("Message-ID:")
-            .or_else(|| line.strip_prefix("Message-Id:"))
-            .or_else(|| line.strip_prefix("Message-id:"))
-        {
-            // mail_parser strips angle brackets, so we must do the same
-            // to ensure comparisons against the Tantivy index match.
-            let trimmed = value.trim();
-            let stripped = trimmed.strip_prefix('<').unwrap_or(trimmed);
-            let stripped = stripped.strip_suffix('>').unwrap_or(stripped);
-            if !stripped.is_empty() {
-                return Some(stripped.to_string());
-            }
-        }
-    }
-    None
+    let message = mail_parser::MessageParser::new().parse_headers(header_bytes)?;
+    message
+        .message_id()
+        .map(str::trim)
+        .filter(|id| !id.is_empty())
+        .map(str::to_string)
 }
 
 #[cfg(test)]
@@ -1440,6 +1434,41 @@ To: recipient@example.com\r\n\r\n";
             parse_message_id_header(header),
             Some("plain@example.com".into())
         );
+    }
+
+    #[test]
+    fn parse_message_id_all_lowercase_header_name() {
+        let header = b"message-id: <low@example.com>\r\n";
+        assert_eq!(parse_message_id_header(header), Some("low@example.com".into()));
+    }
+
+    #[test]
+    fn parse_folded_message_id() {
+        let header = b"Message-ID:\r\n <folded@example.com>\r\n\r\n";
+        assert_eq!(
+            parse_message_id_header(header),
+            Some("folded@example.com".into())
+        );
+    }
+
+    #[test]
+    fn parse_message_id_next_to_non_utf8_header() {
+        let header = b"Subject: caf\xe9\r\nMessage-ID: <latin1@example.com>\r\n\r\n";
+        assert_eq!(
+            parse_message_id_header(header),
+            Some("latin1@example.com".into())
+        );
+    }
+
+    #[test]
+    fn parse_message_id_matches_archived_message_id() {
+        // Gap-fill compares this value against the Message-ID that
+        // mail-parser extracted when the message was archived.
+        let raw = b"Message-ID:\r\n  <same@example.com>\r\nSubject: x\r\n\r\nbody";
+        let archived = mail_parser::MessageParser::new()
+            .parse(&raw[..])
+            .and_then(|m| m.message_id().map(str::to_string));
+        assert_eq!(parse_message_id_header(raw), archived);
     }
 
     // ── empty_enumeration_anomaly ──────────────────────────────────
