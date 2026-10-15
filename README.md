@@ -197,7 +197,7 @@ Every setting is available as a CLI flag and as the environment variable shown b
 | `MAILBOXD_OIDC_ENABLED` | — | `false` | Enable OIDC single sign-on. When `true`, the four settings below are required. |
 | `MAILBOXD_OIDC_ISSUER_URL` | — | — | Issuer URL of the OIDC provider (without the `/.well-known/openid-configuration` suffix). |
 | `MAILBOXD_OIDC_CLIENT_ID` | — | — | OAuth 2.0 client ID registered with the IdP. |
-| `MAILBOXD_OIDC_CLIENT_SECRET` | — | — | OAuth 2.0 client secret registered with the IdP. ID tokens must be signed with HS256 using this secret; asymmetric algorithms (RS256, ES256) are not yet supported, so configure the IdP client accordingly. |
+| `MAILBOXD_OIDC_CLIENT_SECRET` | — | — | OAuth 2.0 client secret registered with the IdP. Asymmetrically signed ID tokens (RS256/384/512, PS256/384/512, ES256/384, EdDSA) are verified against the provider's JWKS (`jwks_uri` from discovery); HS256/384/512 tokens are verified with this secret. |
 | `MAILBOXD_OIDC_REDIRECT_URI` | — | — | Redirect URI registered with the IdP. Must resolve to `<public-url>/api/auth/oidc/callback`. |
 | `MAILBOXD_OIDC_DEFAULT_ROLE_ID` | — | `100200000000000` | Global role ID assigned to auto-provisioned OIDC users (built-in `Member`). |
 | `MAILBOXD_OIDC_AUTO_REDIRECT` | — | `false` | When OIDC is configured, `/sign-in` redirects to the IdP immediately. The local login form remains reachable via `/sign-in?local=1`. |
