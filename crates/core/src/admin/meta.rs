@@ -26,8 +26,7 @@ use crate::{
     database::MemDbModel,
     error::{code::ErrorCode, MailboxdResult},
     raise_error,
-    users::{UserModel, DEFAULT_ADMIN_USER_ID},
-    utils::encrypt::internal_encrypt_string,
+    users::{hash_login_password, UserModel, DEFAULT_ADMIN_USER_ID},
 };
 
 pub fn open_database(path: impl AsRef<Path>) -> MailboxdResult<MemDb> {
@@ -46,11 +45,7 @@ pub fn find_admin(db: &MemDb) -> MailboxdResult<Option<UserModel>> {
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
 }
 
-pub fn update_admin_password(
-    db: &MemDb,
-    password: String,
-    encrypt_key: &str,
-) -> MailboxdResult<()> {
+pub fn update_admin_password(db: &MemDb, password: String) -> MailboxdResult<()> {
     let key = DEFAULT_ADMIN_USER_ID.to_string();
     let coll = db.collection(UserModel::collection());
     let entity: UserModel = coll
@@ -58,10 +53,7 @@ pub fn update_admin_password(
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
     let mut updated = entity.clone();
-    updated.password = Some(
-        internal_encrypt_string(encrypt_key, &password)
-            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?,
-    );
+    updated.password = Some(hash_login_password(&password)?);
 
     coll.upsert(&key, &updated)
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;

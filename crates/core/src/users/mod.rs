@@ -23,7 +23,7 @@ use crate::{
         delete_impl, filter_impl, find_impl, list_all_impl, manager::DB_MANAGER, update_impl,
         with_transaction, MemDbModel,
     },
-    decrypt, encrypt,
+    decrypt,
     error::{code::ErrorCode, MailboxdResult},
     generate_token, id, raise_error,
     token::{AccessTokenModel, TokenType},
@@ -36,8 +36,13 @@ use crate::{
     },
     utc_now,
 };
+use argon2::{
+    password_hash::{phc::PasswordHash, PasswordHasher, PasswordVerifier},
+    Argon2,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
+use subtle::ConstantTimeEq;
 use tracing::warn;
 
 pub mod acl;
@@ -191,7 +196,7 @@ fn apply_user_update(current: &UserModel, request: UserUpdateRequest) -> Mailbox
         updated.description = Some(desc);
     }
     if let Some(password) = request.password {
-        updated.password = Some(encrypt!(&password)?);
+        updated.password = Some(hash_login_password(&password)?);
     }
     if let Some(global_roles) = request.global_roles {
         updated.global_roles = global_roles;
@@ -332,7 +337,7 @@ impl MailboxdUserV2 {
                 id: DEFAULT_ADMIN_USER_ID,
                 username: "admin".into(),
                 email: "placeholder@example.com".into(),
-                password: Some(encrypt!("admin@mailboxd")?),
+                password: Some(hash_login_password("admin@mailboxd")?),
 
                 // Use global_roles as defined in our new schema
                 global_roles: vec![DEFAULT_ADMIN_ROLE_ID],
@@ -404,9 +409,13 @@ impl MailboxdUserV2 {
         };
 
         match user.password.as_ref() {
-            Some(encrypted_password) => {
-                let decrypted = decrypt!(encrypted_password)?;
-                if password == decrypted {
+            Some(stored_password) => {
+                if let PasswordCheck::Match { needs_upgrade } =
+                    check_stored_password(stored_password, &password)?
+                {
+                    if needs_upgrade {
+                        upgrade_password_storage(&user, &password);
+                    }
                     let new_token = AccessTokenModel::reset_webui_token(user.id)?;
                     Ok(LoginResult {
                         success: true,
@@ -490,9 +499,11 @@ impl MailboxdUserV2 {
             user.sso_provider = Some(provider.to_string());
             user.updated_at = now;
             let user_clone = user.clone();
-            update_impl(DB_MANAGER.db(), &user.id.to_string(), move |_current: UserModel| {
-                Ok(user_clone.clone())
-            })?;
+            update_impl(
+                DB_MANAGER.db(),
+                &user.id.to_string(),
+                move |_current: UserModel| Ok(user_clone.clone()),
+            )?;
             return Ok(user);
         }
 
@@ -559,7 +570,7 @@ impl MailboxdUserV2 {
         Self::check_username_conflict(&request.username)?;
         Self::check_email_conflict(&request.email)?;
 
-        let password_hash = Some(encrypt!(&request.password)?);
+        let password_hash = Some(hash_login_password(&request.password)?);
         let now = utc_now!();
 
         let user = UserModel {
@@ -741,9 +752,176 @@ impl MailboxdUserV2 {
     }
 }
 
+/// PHC prefix of the argon2id hashes written by [`hash_login_password`].
+/// Anything else in `UserModel::password` is a legacy, reversibly encrypted
+/// password from before #70.
+const ARGON2ID_PREFIX: &str = "$argon2id$";
+
+#[derive(Debug, PartialEq, Eq)]
+enum PasswordCheck {
+    /// `needs_upgrade` is set when the stored value is a legacy encrypted
+    /// password that should be replaced by an argon2id hash.
+    Match {
+        needs_upgrade: bool,
+    },
+    Mismatch,
+}
+
+/// Hash a login password as an argon2id PHC string with a random salt.
+pub fn hash_login_password(password: &str) -> MailboxdResult<String> {
+    Argon2::default()
+        .hash_password(password.as_bytes())
+        .map(|hash| hash.to_string())
+        .map_err(|e| {
+            raise_error!(
+                format!("Failed to hash password: {e}"),
+                ErrorCode::InternalError
+            )
+        })
+}
+
+/// Compare a login attempt with the stored password value.
+///
+/// argon2id hashes are verified by argon2; legacy encrypted values are
+/// decrypted and compared in constant time.
+fn check_stored_password(stored: &str, password: &str) -> MailboxdResult<PasswordCheck> {
+    if stored.starts_with(ARGON2ID_PREFIX) {
+        let matches = match PasswordHash::new(stored) {
+            Ok(parsed) => Argon2::default()
+                .verify_password(password.as_bytes(), &parsed)
+                .is_ok(),
+            Err(e) => {
+                warn!("Stored password hash is malformed: {e}");
+                false
+            }
+        };
+        return Ok(if matches {
+            PasswordCheck::Match {
+                needs_upgrade: false,
+            }
+        } else {
+            PasswordCheck::Mismatch
+        });
+    }
+
+    let decrypted = decrypt!(stored)?;
+    Ok(
+        if bool::from(password.as_bytes().ct_eq(decrypted.as_bytes())) {
+            PasswordCheck::Match {
+                needs_upgrade: true,
+            }
+        } else {
+            PasswordCheck::Mismatch
+        },
+    )
+}
+
+/// Replace a legacy encrypted password with an argon2id hash after a
+/// successful login. Failures are logged; the login itself still succeeds
+/// and the upgrade is retried on the next login.
+fn upgrade_password_storage(user: &UserModel, password: &str) {
+    let hashed = match hash_login_password(password) {
+        Ok(hashed) => hashed,
+        Err(e) => {
+            warn!(
+                "Login succeeded but hashing the password for user '{}' failed: {:#?}",
+                user.username, e
+            );
+            return;
+        }
+    };
+    if let Err(e) =
+        update_impl::<UserModel>(DB_MANAGER.db(), &user.id.to_string(), move |current| {
+            let mut updated = current.clone();
+            updated.password = Some(hashed);
+            updated.updated_at = utc_now!();
+            Ok(updated)
+        })
+    {
+        warn!(
+            "Login succeeded but upgrading the password storage for user '{}' failed: {:#?}",
+            user.username, e
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hash_login_password_produces_salted_argon2id_hashes() {
+        let first = hash_login_password("s3cret").unwrap();
+        let second = hash_login_password("s3cret").unwrap();
+        assert!(first.starts_with(ARGON2ID_PREFIX));
+        assert_ne!(first, second, "each hash must use a fresh salt");
+    }
+
+    #[test]
+    fn check_stored_password_accepts_matching_argon2_hash() {
+        let stored = hash_login_password("s3cret").unwrap();
+        assert_eq!(
+            check_stored_password(&stored, "s3cret").unwrap(),
+            PasswordCheck::Match {
+                needs_upgrade: false
+            }
+        );
+    }
+
+    #[test]
+    fn check_stored_password_rejects_wrong_password_for_argon2_hash() {
+        let stored = hash_login_password("s3cret").unwrap();
+        assert_eq!(
+            check_stored_password(&stored, "wrong").unwrap(),
+            PasswordCheck::Mismatch
+        );
+    }
+
+    #[test]
+    fn check_stored_password_rejects_malformed_argon2_hash() {
+        assert_eq!(
+            check_stored_password("$argon2id$garbage", "s3cret").unwrap(),
+            PasswordCheck::Mismatch
+        );
+    }
+
+    #[test]
+    fn check_stored_password_accepts_legacy_encrypted_password_and_requests_upgrade() {
+        let stored = crate::encrypt!("s3cret").unwrap();
+        assert_eq!(
+            check_stored_password(&stored, "s3cret").unwrap(),
+            PasswordCheck::Match {
+                needs_upgrade: true
+            }
+        );
+    }
+
+    #[test]
+    fn check_stored_password_rejects_wrong_password_for_legacy_encryption() {
+        let stored = crate::encrypt!("s3cret").unwrap();
+        assert_eq!(
+            check_stored_password(&stored, "s3cre").unwrap(),
+            PasswordCheck::Mismatch
+        );
+    }
+
+    #[test]
+    fn apply_user_update_stores_new_password_as_argon2_hash() {
+        let current = UserModel::default();
+        let request = UserUpdateRequest {
+            password: Some("n3w-password".into()),
+            ..Default::default()
+        };
+        let updated = apply_user_update(&current, request).unwrap();
+        let stored = updated.password.unwrap();
+        assert!(stored.starts_with(ARGON2ID_PREFIX));
+        assert_eq!(
+            check_stored_password(&stored, "n3w-password").unwrap(),
+            PasswordCheck::Match {
+                needs_upgrade: false
+            }
+        );
+    }
 
     #[test]
     fn rejects_password_change_for_sso_user() {
