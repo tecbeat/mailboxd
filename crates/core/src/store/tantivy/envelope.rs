@@ -435,19 +435,7 @@ impl IndexManager {
     }
 
     fn envelope_query(&self, account_id: u64, eid: &str) -> Box<dyn Query> {
-        let account_id_query = TermQuery::new(
-            Term::from_field_u64(SchemaTools::email_fields().f_account_id, account_id),
-            IndexRecordOption::Basic,
-        );
-        let envelope_id_query = TermQuery::new(
-            Term::from_field_text(SchemaTools::email_fields().f_id, eid),
-            IndexRecordOption::Basic,
-        );
-        let boolean_query = BooleanQuery::new(vec![
-            (Occur::Must, Box::new(account_id_query)),
-            (Occur::Must, Box::new(envelope_id_query)),
-        ]);
-        Box::new(boolean_query)
+        envelope_query(account_id, eid)
     }
 
     fn filter_query(
@@ -1110,13 +1098,19 @@ impl IndexManager {
         BLOB_MANAGER.delete(&to_delete, std::iter::empty::<&str>())
     }
 
+    /// Deletes the given envelopes, keyed by account id, and returns how many
+    /// of them existed. Nothing is written when none of them exist.
     pub async fn delete_envelopes_multi_account(
         &self,
         deletes: HashMap<u64, Vec<String>>,
-    ) -> MailboxdResult<()> {
+    ) -> MailboxdResult<u64> {
         if deletes.is_empty() {
             tracing::warn!("delete_envelopes_multi_account: deletes is empty, nothing to delete");
-            return Ok(());
+            return Ok(0);
+        }
+        let matched = count_matching_envelopes(&self.create_searcher()?, &deletes)?;
+        if matched == 0 {
+            return Ok(0);
         }
 
         let mut eml_content_hash_triples: HashSet<(u64, u64, String)> = HashSet::new();
@@ -1177,7 +1171,7 @@ impl IndexManager {
             DEDUP_CACHE.remove(aid, mid, &hash);
         }
 
-        Ok(())
+        Ok(matched)
     }
 
     fn collect_facets_recursive(
@@ -1908,6 +1902,41 @@ fn unreferenced_hashes(
     Ok(unreferenced)
 }
 
+fn envelope_query(account_id: u64, eid: &str) -> Box<dyn Query> {
+    let account_id_query = TermQuery::new(
+        Term::from_field_u64(SchemaTools::email_fields().f_account_id, account_id),
+        IndexRecordOption::Basic,
+    );
+    let envelope_id_query = TermQuery::new(
+        Term::from_field_text(SchemaTools::email_fields().f_id, eid),
+        IndexRecordOption::Basic,
+    );
+    Box::new(BooleanQuery::new(vec![
+        (Occur::Must, Box::new(account_id_query)),
+        (Occur::Must, Box::new(envelope_id_query)),
+    ]))
+}
+
+/// Number of distinct envelopes in `deletes` (keyed by account id) that exist.
+fn count_matching_envelopes(
+    searcher: &Searcher,
+    deletes: &HashMap<u64, Vec<String>>,
+) -> MailboxdResult<u64> {
+    let mut matched = 0u64;
+    for (account_id, envelope_ids) in deletes {
+        let unique_ids: HashSet<&String> = envelope_ids.iter().collect();
+        for eid in unique_ids {
+            let count = searcher
+                .search(&envelope_query(*account_id, eid), &Count)
+                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+            if count > 0 {
+                matched += 1;
+            }
+        }
+    }
+    Ok(matched)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2344,6 +2373,40 @@ mod tests {
         ids.sort();
 
         assert_eq!(ids, vec!["<msg-a@test>", "<msg-b@test>"]);
+    }
+
+    #[test]
+    fn count_matching_envelopes_counts_only_existing_ids_per_account() {
+        let f = SchemaTools::email_fields();
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        index.tokenizers().register("euro", EuroTokenizer::new());
+        {
+            let mut writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
+            for (account_id, eid) in [(1, "a1"), (1, "a2"), (2, "b1")] {
+                let mut doc = TantivyDocument::new();
+                doc.add_u64(f.f_account_id, account_id);
+                doc.add_u64(f.f_mailbox_id, 10);
+                doc.add_text(f.f_id, eid);
+                writer.add_document(doc).unwrap();
+            }
+            writer.commit().unwrap();
+        }
+        let reader = index.reader().unwrap();
+        reader.reload().unwrap();
+        let searcher = reader.searcher();
+
+        let deletes = HashMap::from([
+            (
+                1,
+                vec!["a1".to_string(), "a1".to_string(), "missing".to_string()],
+            ),
+            (2, vec!["b1".to_string()]),
+        ]);
+        assert_eq!(count_matching_envelopes(&searcher, &deletes).unwrap(), 2);
+
+        // Keyed by a mailbox id instead of the account id: nothing matches.
+        let wrong_key = HashMap::from([(10, vec!["a1".to_string()])]);
+        assert_eq!(count_matching_envelopes(&searcher, &wrong_key).unwrap(), 0);
     }
 
     #[test]
