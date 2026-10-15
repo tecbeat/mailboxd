@@ -545,6 +545,7 @@
     "sessionExpired": "Sessie verlopen!",
     "sessionExpiredDesc": "Uw sessie is beëindigd vanwege inactiviteit. Log opnieuw in om door te gaan.",
     "somethingWentWrong": "Er is iets fout gegaan",
+    "tooManyAttempts": "Te veel inlogpogingen. Wacht een paar minuten en probeer het opnieuw.",
     "username": "Gebruikersnaam",
     "welcome": "Welkom bij mailboxd",
     "youWillNeedToLogInAgain": "U moet opnieuw inloggen om toegang te krijgen tot uw account.",

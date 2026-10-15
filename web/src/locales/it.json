@@ -545,6 +545,7 @@
     "sessionExpired": "Sessione scaduta!",
     "sessionExpiredDesc": "La tua sessione è terminata per inattività. Esegui nuovamente l'accesso per continuare.",
     "somethingWentWrong": "Qualcosa è andato storto",
+    "tooManyAttempts": "Troppi tentativi di accesso. Attendi qualche minuto e riprova.",
     "username": "Nome utente",
     "welcome": "Benvenuto in mailboxd",
     "youWillNeedToLogInAgain": "Dovrai accedere nuovamente per accedere al tuo account.",

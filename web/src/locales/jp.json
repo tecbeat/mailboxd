@@ -545,6 +545,7 @@
     "sessionExpired": "セッションの有効期限が切れました！",
     "sessionExpiredDesc": "操作がないためセッションが終了しました。継続するには再度ログインしてください。",
     "somethingWentWrong": "問題が発生しました",
+    "tooManyAttempts": "ログイン試行回数が多すぎます。数分待ってから再度お試しください。",
     "username": "ユーザー名",
     "welcome": "mailboxd へようこそ",
     "youWillNeedToLogInAgain": "アカウントにアクセスするには、再度ログインする必要があります。",
