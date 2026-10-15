@@ -25,7 +25,7 @@ use tracing::error;
 use uuid::Uuid;
 
 use crate::{
-    account::migration::AccountModel,
+    account::migration::{AccountModel, ExtractionRules},
     archive::imap::mailbox::MailBox,
     common::AddrVec,
     envelope::{
@@ -450,6 +450,185 @@ pub fn extract_references(message: &Message<'_>) -> Option<Vec<String>> {
         .map(|ids| ids.iter().map(String::from).collect())
 }
 
+/// Prefix of the placeholder that replaces an attachment body inside a
+/// stripped EML. Full form: `<<MAILBOXD_DETACH_HASH:{64 hex chars}>>`.
+///
+/// Which hash the 64 hex chars carry depends on when the record was written,
+/// so tooling that scans placeholders must consult the attachment metadata
+/// (`AttachmentInfo::raw_content_hash`) — the prefix alone cannot tell the
+/// domains apart, because both produce 64-character blake3 hex digests:
+///
+/// - **Current records** (`raw_content_hash` is `Some`): the
+///   domain-separated hash of the *original encoded* MIME body
+///   (`compute_raw_attachment_hash`). The blob is stored under the same key.
+/// - **Legacy records** (pre-#375, `raw_content_hash` is `None`): the plain
+///   hash of the *decoded* attachment contents (`compute_content_hash`),
+///   which is also the blob key. `AttachmentInfo::storage_hash()` selects
+///   the right one per record.
+pub const DETACH_PLACEHOLDER_PREFIX: &str = "<<MAILBOXD_DETACH_HASH:";
+
+/// Decoded contents of an attachment selected for text extraction, collected
+/// while detaching so the extraction can run in one background batch.
+pub struct TextCandidate {
+    pub content_hash: String,
+    pub file_type: String,
+    pub ext: String,
+    pub bytes: Vec<u8>,
+}
+
+/// Context deciding which detached attachments are queued for text
+/// extraction. Supplied by the live ingest path; offline tools pass `None`
+/// to [`strip_attachment_bodies`] and skip extraction entirely.
+pub struct ExtractionFilter<'a> {
+    /// Per-account rules; `None` means no rules are configured and the
+    /// default is to extract every supported type.
+    pub rules: Option<&'a ExtractionRules>,
+    pub mailbox_name: Option<&'a str>,
+    pub sender: Option<&'a str>,
+}
+
+/// Output of [`strip_attachment_bodies`].
+pub struct DetachedBody {
+    /// The EML with every valid attachment body replaced by a
+    /// `<<MAILBOXD_DETACH_HASH:...>>` placeholder.
+    pub stripped_eml: Vec<u8>,
+    /// `(storage key, raw encoded MIME body)` pairs to persist in the blob
+    /// store. Invalid attachment ranges contribute a shared empty record in
+    /// the raw key domain.
+    pub blobs: Vec<(String, Bytes)>,
+    /// Attachment metadata, in descending raw-offset order.
+    pub infos: Vec<AttachmentInfo>,
+    /// Attachments selected for text extraction (empty unless an
+    /// [`ExtractionFilter`] was supplied).
+    pub text_candidates: Vec<TextCandidate>,
+}
+
+/// Strips attachment bodies out of a raw message and computes everything the
+/// storage layer needs to persist and later reconstruct it: the stripped EML
+/// with hash placeholders, the raw blob records, attachment metadata, and
+/// text-extraction candidates.
+///
+/// This is the single canonical implementation shared by the live ingest path
+/// ([`detach_and_store_attachments`]) and the offline store migration; the
+/// two must never diverge, or a migrated store stops matching what the
+/// runtime writes and reads back.
+pub fn strip_attachment_bodies(
+    original_body: &[u8],
+    message: &Message<'_>,
+    filter: Option<&ExtractionFilter<'_>>,
+) -> DetachedBody {
+    let mut stripped_eml = original_body.to_vec();
+    let mut infos = Vec::new();
+    let mut blobs = Vec::new();
+    let mut text_candidates = Vec::new();
+
+    // Collect and sort attachment ranges in reverse to maintain offset
+    // integrity while splicing placeholders.
+    let mut ranges: Vec<_> = attachment_parts(message)
+        .map(|att| (att.offset_body() as usize, att.offset_end() as usize, att))
+        .collect();
+    ranges.sort_by(|a, b| b.0.cmp(&a.0));
+
+    for (raw_start, raw_end, att) in ranges {
+        // mail-parser may report attachment offsets past the body end for
+        // malformed messages; clamp the range to avoid a slice panic.
+        let body_len = original_body.len();
+        let raw_start = raw_start.min(body_len);
+        let raw_end = raw_end.min(body_len);
+        let range_valid = raw_start < raw_end;
+
+        // content hash is computed from the decoded attachment contents,
+        // which is always available regardless of raw offset validity.
+        let contents = part_contents(&att);
+        let content_hash = compute_content_hash(&contents);
+
+        let raw_content_hash = if range_valid {
+            let raw_bytes = &original_body[raw_start..raw_end];
+            // Different transfer encodings of one file must not share a raw blob.
+            let raw_hash = crate::utils::compute_raw_attachment_hash(raw_bytes);
+            blobs.push((raw_hash.clone(), Bytes::copy_from_slice(raw_bytes)));
+
+            // Replace raw attachment content with a hash-based placeholder
+            let placeholder = format!("{DETACH_PLACEHOLDER_PREFIX}{raw_hash}>>");
+            stripped_eml.splice(raw_start..raw_end, placeholder.as_bytes().iter().cloned());
+            Some(raw_hash)
+        } else {
+            // No replacement is needed, but keep the empty storage record in
+            // the raw key domain so it cannot shadow a decoded or email blob.
+            let raw_hash = crate::utils::compute_raw_attachment_hash(b"");
+            blobs.push((raw_hash.clone(), Bytes::new()));
+            Some(raw_hash)
+        };
+
+        let inline = att
+            .content_disposition()
+            .map(|d| d.is_inline())
+            .unwrap_or_else(|| att.content_id().is_some());
+        let file_type = att
+            .content_type()
+            .map(|ct| format!("{}/{}", ct.ctype(), ct.subtype().unwrap_or("")))
+            .unwrap_or_else(|| "application/octet-stream".to_string());
+        let has_cid = att.content_id().is_some();
+        let att_name = att.attachment_name().map(|n| n.to_string());
+        let ext = att_name
+            .as_deref()
+            .and_then(|n| {
+                std::path::Path::new(n)
+                    .extension()
+                    .and_then(|e| e.to_str())
+                    .map(|s| s.to_ascii_lowercase())
+            })
+            .unwrap_or_default();
+
+        // Collect candidates for text extraction (non-inline, known document
+        // types allowed by the filter).
+        if let Some(filter) = filter {
+            let should_extract = filter.rules.map_or(true, |r| {
+                r.should_extract(
+                    &ext,
+                    filter.mailbox_name,
+                    att_name.as_deref(),
+                    filter.sender,
+                )
+            });
+
+            if (!inline || !has_cid)
+                && should_extract
+                && contents.len() <= crate::ext::text_extractor::MAX_EXTRACT_BYTES
+                && crate::ext::text_extractor::should_try_extract(&file_type, &ext)
+            {
+                text_candidates.push(TextCandidate {
+                    content_hash: content_hash.clone(),
+                    file_type: file_type.clone(),
+                    ext: ext.clone(),
+                    bytes: contents.to_vec(),
+                });
+            }
+        }
+
+        infos.push(AttachmentInfo {
+            filename: att.attachment_name().map(|n| n.to_string()),
+            size: contents.len(),
+            inline,
+            file_type,
+            content_id: att.content_id().map(|id| id.to_string()),
+            content_hash,
+            raw_content_hash,
+            is_message: att.is_message(),
+            extracted_text: None,
+            extracted_page_count: None,
+            extracted_is_ocr: false,
+        });
+    }
+
+    DetachedBody {
+        stripped_eml,
+        blobs,
+        infos,
+        text_candidates,
+    }
+}
+
 pub async fn detach_and_store_attachments(
     original_body: &[u8],
     message: &Message<'_>,
@@ -475,119 +654,16 @@ pub async fn detach_and_store_attachments(
         .and_then(|addr| AddrVec::from(addr).0.into_iter().next())
         .and_then(|add| add.address);
 
-    let mut stripped_eml = original_body.to_vec();
-    let mut attachment_infos = Vec::new();
-    // Step 1: Collect and sort attachment ranges in reverse to maintain offset
-    // integrity
-    let mut ranges: Vec<_> = attachment_parts(message)
-        .map(|att| (att.offset_body() as usize, att.offset_end() as usize, att))
-        .collect();
-
-    ranges.sort_by(|a, b| b.0.cmp(&a.0));
-    let mut attachments = Vec::with_capacity(ranges.len());
-
-    // Collect candidates for text extraction (non-inline, known document types).
-    struct TextCandidate {
-        content_hash: String,
-        file_type: String,
-        ext: String,
-        bytes: Vec<u8>,
-    }
-    let mut text_candidates: Vec<TextCandidate> = Vec::new();
-
-    for (raw_start, raw_end, att) in ranges {
-        // mail-parser may report attachment offsets past the body end for
-        // malformed messages; clamp the range to avoid a slice panic.
-        let body_len = original_body.len();
-        let raw_start = raw_start.min(body_len);
-        let raw_end = raw_end.min(body_len);
-        let range_valid = raw_start < raw_end;
-
-        // content hash is computed from the decoded attachment contents,
-        // which is always available regardless of raw offset validity.
-        let contents = part_contents(&att);
-        let content_hash = compute_content_hash(&contents);
-
-        let raw_content_hash = if range_valid {
-            let raw_bytes = &original_body[raw_start..raw_end];
-            // Different transfer encodings of one file must not share a raw blob.
-            let raw_hash = crate::utils::compute_raw_attachment_hash(raw_bytes);
-            attachments.push((raw_hash.clone(), Bytes::copy_from_slice(raw_bytes)));
-
-            // Replace raw attachment content with a hash-based placeholder
-            let placeholder = format!("<<MAILBOXD_DETACH_HASH:{}>>", &raw_hash);
-            stripped_eml.splice(raw_start..raw_end, placeholder.as_bytes().iter().cloned());
-            Some(raw_hash)
-        } else {
-            // No replacement is needed, but keep the empty storage record in
-            // the raw key domain so it cannot shadow a decoded or email blob.
-            let raw_hash = crate::utils::compute_raw_attachment_hash(b"");
-            attachments.push((raw_hash.clone(), Bytes::new()));
-            Some(raw_hash)
-        };
-
-        let inline = att
-            .content_disposition()
-            .map(|d| d.is_inline())
-            .unwrap_or_else(|| att.content_id().is_some());
-        let file_type = att
-            .content_type()
-            .map(|ct| format!("{}/{}", ct.ctype(), ct.subtype().unwrap_or("")))
-            .unwrap_or_else(|| "application/octet-stream".to_string());
-        let has_cid = att.content_id().is_some();
-        let att_name = att.attachment_name().map(|n| n.to_string());
-        let ext = att_name
-            .as_deref()
-            .and_then(|n| {
-                std::path::Path::new(n)
-                    .extension()
-                    .and_then(|e| e.to_str())
-                    .map(|s| s.to_ascii_lowercase())
-            })
-            .unwrap_or_default();
-
-        let should_extract = rules.as_ref().map_or(true, |r| {
-            r.should_extract(
-                &ext,
-                mailbox_name.as_deref(),
-                att_name.as_deref(),
-                sender.as_deref(),
-            )
-        });
-
-        if !inline || !has_cid {
-            let decoded_len = contents.len();
-            if should_extract
-                && decoded_len <= crate::ext::text_extractor::MAX_EXTRACT_BYTES
-                && crate::ext::text_extractor::should_try_extract(&file_type, &ext)
-            {
-                text_candidates.push(TextCandidate {
-                    content_hash: content_hash.clone(),
-                    file_type: file_type.clone(),
-                    ext: ext.clone(),
-                    bytes: contents.to_vec(),
-                });
-            }
-        }
-
-        let info = AttachmentInfo {
-            filename: att.attachment_name().map(|n| n.to_string()),
-            size: contents.len(),
-            inline,
-            file_type,
-            content_id: att.content_id().map(|id| id.to_string()),
-            content_hash: content_hash.clone(),
-            raw_content_hash,
-            is_message: att.is_message(),
-            extracted_text: None,
-            extracted_page_count: None,
-            extracted_is_ocr: false,
-        };
-
-        attachment_infos.push(info);
-    }
+    let filter = ExtractionFilter {
+        rules: rules.as_ref(),
+        mailbox_name: mailbox_name.as_deref(),
+        sender: sender.as_deref(),
+    };
+    let detached = strip_attachment_bodies(original_body, message, Some(&filter));
+    let mut attachment_infos = detached.infos;
 
     // Run text extraction in a single spawn_blocking batch.
+    let text_candidates = detached.text_candidates;
     if !text_candidates.is_empty() {
         if let Ok(mut extracted_map) = tokio::task::spawn_blocking(move || {
             let mut map: std::collections::HashMap<String, (String, Option<u32>, bool)> =
@@ -615,8 +691,11 @@ pub async fn detach_and_store_attachments(
     // Step 4: Store the final stripped EML content
     BLOB_MANAGER
         .queue(DetachedEmail {
-            email: (eml_content_hash.to_string(), Bytes::from(stripped_eml)),
-            attachments: Some(attachments),
+            email: (
+                eml_content_hash.to_string(),
+                Bytes::from(detached.stripped_eml),
+            ),
+            attachments: Some(detached.blobs),
         })
         .await;
 
@@ -734,7 +813,7 @@ fn schedule_placeholder(
     hash: &str,
     alt: Option<&str>,
 ) -> usize {
-    let placeholder_str = format!("<<MAILBOXD_DETACH_HASH:{}>>", hash);
+    let placeholder_str = format!("{DETACH_PLACEHOLDER_PREFIX}{hash}>>");
     let pattern = placeholder_str.as_bytes();
     let pattern_len = pattern.len();
 
@@ -973,15 +1052,14 @@ mod test {
             ..Default::default()
         };
         let stripped = format!("head\r\n<<MAILBOXD_DETACH_HASH:{decoded_hash}>>\r\ntail");
-        let restored =
-            super::reattach_parts(stripped.into_bytes(), vec![info], |hash| {
-                Ok(Some(if hash == decoded_hash {
-                    bytes::Bytes::from_static(b"legacy body")
-                } else {
-                    bytes::Bytes::from_static(b"raw body")
-                }))
-            })
-            .expect("reattach mixed-format record");
+        let restored = super::reattach_parts(stripped.into_bytes(), vec![info], |hash| {
+            Ok(Some(if hash == decoded_hash {
+                bytes::Bytes::from_static(b"legacy body")
+            } else {
+                bytes::Bytes::from_static(b"raw body")
+            }))
+        })
+        .expect("reattach mixed-format record");
         assert_eq!(restored.as_ref(), b"head\r\nlegacy body\r\ntail".as_slice());
     }
 
@@ -999,22 +1077,24 @@ mod test {
             ..Default::default()
         };
         let stripped = format!("<<MAILBOXD_DETACH_HASH:{decoded_hash}>>");
-        let restored =
-            super::reattach_parts(stripped.into_bytes(), vec![info], |hash| {
-                if hash == raw_hash {
-                    Ok(Some(bytes::Bytes::from_static(b"raw body")))
-                } else {
-                    Ok(None)
-                }
-            })
-            .expect("reattach via raw-key alternate");
+        let restored = super::reattach_parts(stripped.into_bytes(), vec![info], |hash| {
+            if hash == raw_hash {
+                Ok(Some(bytes::Bytes::from_static(b"raw body")))
+            } else {
+                Ok(None)
+            }
+        })
+        .expect("reattach via raw-key alternate");
         assert_eq!(restored.as_ref(), b"raw body".as_slice());
     }
 
     #[test]
     fn raw_blob_key_cannot_alias_legacy_attachment_or_email_key() {
         let payload = b"same bytes in a legacy decoded attachment or original email";
-        assert_ne!(crate::utils::compute_raw_attachment_hash(payload), crate::utils::compute_content_hash(payload));
+        assert_ne!(
+            crate::utils::compute_raw_attachment_hash(payload),
+            crate::utils::compute_content_hash(payload)
+        );
     }
 
     #[test]
