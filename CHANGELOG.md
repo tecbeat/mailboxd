@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.13](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.13) - 2026-10-15
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump mdast-util-to-hast to 13.2.1 - ([ed81966](https://git.teccave.de/tecbeat/mailboxd/commit/ed819667a7682d82588e5b68cfcee8c987f613c1))
+- *(deps)* Update debian:bookworm-slim docker digest to 7c7b2c9 - ([4fa2f55](https://git.teccave.de/tecbeat/mailboxd/commit/4fa2f55b4f2976a7c56791b72c2da4f19a18ec42))
+- *(deps)* Update rust crate zip to v9 - ([5a919f6](https://git.teccave.de/tecbeat/mailboxd/commit/5a919f6c68a13d02c34ab01360e2eb05b68cf41d))
+- *(deps)* Update node.js to 44fce69 - ([1385171](https://git.teccave.de/tecbeat/mailboxd/commit/1385171326daba1e9dc19094c4e6eb56a1cb095f))
+- *(ext)* Adapt OOXML extraction to fallible zip 9 entry names - ([8f17027](https://git.teccave.de/tecbeat/mailboxd/commit/8f17027d1e4cd92546c0801e718ac94c8454315e))
+- *(server)* Drop deprecated std::u32 module import - ([f5304aa](https://git.teccave.de/tecbeat/mailboxd/commit/f5304aa52528f86080cfbf0b8ad1a08467b62548))
+- *(web)* Resolve vite config and chunk size build warnings - ([f1af476](https://git.teccave.de/tecbeat/mailboxd/commit/f1af47678b7e046a79923bd0ef4e87deb8046206))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update gitlab-ci - ([8ab7b5a](https://git.teccave.de/tecbeat/mailboxd/commit/8ab7b5a028e4a21999921d00e0bc413495bba566))
+
 ## [1.7.12](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.12) - 2026-10-15
 
 ### 🐛 Bug Fixes
