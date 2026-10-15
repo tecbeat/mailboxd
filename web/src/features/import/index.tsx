@@ -9,8 +9,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
-import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight } from 'lucide-react';
+import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight, Copy } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +46,7 @@ import {
 import { get_system_configurations } from '@/api/system/api';
 import { list_mailboxes } from '@/api/mailbox/api';
 import { extractFolderHint, type FolderHint } from './folder-hint';
+import { importFiles, errorMessage } from './import-files';
 import { resolveEffectiveFolder, type FolderMode } from './effective-folder';
 import { buildQueue, getExtension, type QueuedFile } from './file-validation';
 
@@ -85,7 +85,14 @@ export default function ImportPage() {
   // Combobox state for account selection
   const [accountOpen, setAccountOpen] = useState(false);
 
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const processedCount = progress ? progress.success + progress.failed + progress.duplicates : 0;
+  const processedPct = progress && progress.total > 0 ? (processedCount / progress.total) * 100 : 0;
+
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
 
   const { data: accounts = [] } = useQuery({
     queryKey: ['nosync-accounts'],
@@ -124,33 +131,6 @@ export default function ImportPage() {
   });
 
   const effectiveFolder = resolveEffectiveFolder({ isPst: isPstSelected, folderMode, headerFolder, folder });
-
-  const startPolling = useCallback((id: string) => {
-    if (pollRef.current) clearInterval(pollRef.current);
-    let retries = 0;
-    pollRef.current = setInterval(async () => {
-      try {
-        const p = await get_import_progress(id);
-        setProgress(p);
-        retries = 0;
-        if (p.status === 'Completed' || p.status === 'Failed') {
-          if (pollRef.current) clearInterval(pollRef.current);
-          setPhase('done');
-          refetchHistory();
-        }
-      } catch {
-        retries++;
-        if (retries > 5) {
-          if (pollRef.current) clearInterval(pollRef.current);
-          setPhase('idle');
-        }
-      }
-    }, 1000);
-  }, [refetchHistory]);
-
-  useEffect(() => {
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, []);
 
   const handleFiles = useCallback(async (newFiles: FileList | File[]) => {
     const queued = buildQueue(newFiles, { maxMbox, maxPst });
@@ -225,26 +205,32 @@ export default function ImportPage() {
   const importMutation = useMutation({
     mutationFn: async () => {
       if (!accountId || !files.length) return;
-      const file = files[0].file;
+      const controller = new AbortController();
+      abortRef.current = controller;
       setPhase('uploading');
       setUploadPct(0);
-      const result = await upload_import(
-        Number(accountId),
-        effectiveFolder,
-        file.name,
-        file,
-        (pct) => setUploadPct(pct),
+      setProgress(null);
+      await importFiles(
+        files.map((q) => q.file),
+        {
+          upload: (file, onPct) =>
+            upload_import(Number(accountId), effectiveFolder, file.name, file, onPct),
+          getProgress: get_import_progress,
+          onUploadPct: setUploadPct,
+          onProgress: setProgress,
+          onPhase: setPhase,
+          signal: controller.signal,
+        },
       );
-      //setImportId(result.import_id);
-      setProgress(result);
-      setPhase('processing');
-      startPolling(result.import_id);
+      setPhase('done');
+      refetchHistory();
     },
-    onError: (err: AxiosError<{ message?: string }>) => {
+    onError: (err: unknown) => {
       setPhase('idle');
+      setProgress(null);
       toast({
         title: t('common.failed'),
-        description: err.response?.data?.message || err.message,
+        description: errorMessage(err),
         variant: 'destructive',
       });
     },
@@ -621,18 +607,11 @@ export default function ImportPage() {
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>
-                        {t('import.processed', { current: progress.success + progress.failed, total: progress.total })}
+                        {t('import.processed', { current: processedCount, total: progress.total })}
                       </span>
-                      <span>
-                        {progress.total > 0
-                          ? Math.round(((progress.success + progress.failed) / progress.total) * 100)
-                          : 0}%
-                      </span>
+                      <span>{Math.round(processedPct)}%</span>
                     </div>
-                    <Progress
-                      value={progress.total > 0 ? ((progress.success + progress.failed) / progress.total) * 100 : 0}
-                      className="h-2"
-                    />
+                    <Progress value={processedPct} className="h-2" />
                   </div>
                 )}
 
@@ -646,6 +625,12 @@ export default function ImportPage() {
                       <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
                       {t('import.failedCount', { count: progress.failed })}
                     </span>
+                    {progress.duplicates > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                        {t('import.duplicateCount', { count: progress.duplicates })}
+                      </span>
+                    )}
                   </div>
                 )}
 
