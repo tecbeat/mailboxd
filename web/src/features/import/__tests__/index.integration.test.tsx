@@ -56,3 +56,16 @@ describe('ImportPage upload limits', () => {
     expect(await screen.findByText('Too large')).toBeInTheDocument();
   });
 });
+
+describe('ImportPage PST selection', () => {
+  it('accepts a PST that the browser reports as application/vnd.ms-outlook', async () => {
+    renderWithProviders(<ImportPage />);
+
+    const dropzone = (await screen.findByText(/Drop .* files here/i)).closest('div')!;
+    const pst = new File([new Uint8Array(16)], 'backup.pst', { type: 'application/vnd.ms-outlook' });
+    fireEvent.drop(dropzone, { dataTransfer: { files: [pst] } });
+
+    expect(await screen.findByText(/PST folder structure will be preserved/)).toBeInTheDocument();
+    expect(screen.queryByText('Invalid type')).not.toBeInTheDocument();
+  });
+});

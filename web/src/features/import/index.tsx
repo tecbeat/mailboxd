@@ -47,12 +47,12 @@ import {
 import { get_system_configurations } from '@/api/system/api';
 import { list_mailboxes } from '@/api/mailbox/api';
 import { extractFolderHint, type FolderHint } from './folder-hint';
+import { resolveEffectiveFolder, type FolderMode } from './effective-folder';
 import { buildQueue, getExtension, type QueuedFile } from './file-validation';
 
 const DEFAULT_MAX_MBOX = 1024 * 1024 * 1024; // 1 GB (fallback; actual limit from server settings)
 const DEFAULT_MAX_PST = 2048 * 1024 * 1024; // 2 GB (fallback; actual limit from server settings)
 
-type FolderMode = '' | 'header' | 'existing' | 'custom';
 
 function folderHintLabel(hint: FolderHint): string {
   switch (hint.source) {
@@ -123,18 +123,7 @@ export default function ImportPage() {
     staleTime: 10_000,
   });
 
-  // Resolve the effective folder based on current mode
-  const effectiveFolder = (() => {
-    switch (folderMode) {
-      case 'header':
-        return headerFolder;
-      case 'existing':
-      case 'custom':
-        return folder;
-      default:
-        return '';
-    }
-  })();
+  const effectiveFolder = resolveEffectiveFolder({ isPst: isPstSelected, folderMode, headerFolder, folder });
 
   const startPolling = useCallback((id: string) => {
     if (pollRef.current) clearInterval(pollRef.current);

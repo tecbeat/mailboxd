@@ -66,6 +66,23 @@ describe('isValidFileType', () => {
       expect(isValidFileType(new File([''], 'f.eml', { type }), 'eml')).toBe(false);
     }
   });
+
+  it.each(['application/vnd.ms-outlook', 'application/x-pst'])(
+    'accepts a .pst reported as %s',
+    (type) => {
+      expect(isValidFileType(new File([''], 'backup.pst', { type }), 'pst')).toBe(true);
+    }
+  );
+
+  it('accepts an .mbox reported as application/mbox', () => {
+    const file = new File([''], 'inbox.mbox', { type: 'application/mbox' });
+    expect(isValidFileType(file, 'mbox')).toBe(true);
+  });
+
+  it('rejects an allowed email MIME type on an unsupported extension', () => {
+    const file = new File([''], 'backup.ost', { type: 'application/vnd.ms-outlook' });
+    expect(isValidFileType(file, 'ost')).toBe(false);
+  });
 });
 
 describe('classifyFile', () => {
