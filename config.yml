@@ -181,7 +181,7 @@ repo:
       MAILBOXD_OIDC_CLIENT_ID:
         description: "OAuth 2.0 client ID registered with the IdP."
       MAILBOXD_OIDC_CLIENT_SECRET:
-        description: "OAuth 2.0 client secret registered with the IdP. ID tokens must be signed with HS256 using this secret; asymmetric algorithms (RS256, ES256) are not yet supported, so configure the IdP client accordingly."
+        description: "OAuth 2.0 client secret registered with the IdP. Asymmetrically signed ID tokens (RS256/384/512, PS256/384/512, ES256/384, EdDSA) are verified against the provider's JWKS (`jwks_uri` from discovery); HS256/384/512 tokens are verified with this secret."
       MAILBOXD_OIDC_REDIRECT_URI:
         description: "Redirect URI registered with the IdP. Must resolve to `<public-url>/api/auth/oidc/callback`."
       MAILBOXD_OIDC_DEFAULT_ROLE_ID:
