@@ -22,7 +22,7 @@ use crate::error::code::IntoStatusCode;
 use mailboxd_core::error::MailboxdError;
 use poem::http::StatusCode;
 use poem_openapi::{payload::Json, ApiResponse, Object};
-use std::{fmt::Formatter, u32};
+use std::fmt::Formatter;
 
 pub mod code;
 pub mod handler;
