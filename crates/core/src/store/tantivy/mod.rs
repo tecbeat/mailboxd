@@ -47,33 +47,31 @@ pub fn fatal_commit(writer: &mut IndexWriter) {
                 }
                 return;
             }
-            Err(e) => match &e {
-                tantivy::TantivyError::IoError(io_error) => {
-                    if attempt < MAX_RETRIES {
-                        eprintln!(
-                            "[WARN] Commit failed (attempt {}/{}): {:?}. Retrying in {}ms...",
-                            attempt + 1,
-                            MAX_RETRIES + 1,
-                            io_error,
-                            RETRY_DELAY_MS * (attempt as u64 + 1)
-                        );
-                        std::thread::sleep(std::time::Duration::from_millis(
-                            RETRY_DELAY_MS * (attempt as u64 + 1),
-                        ));
-                    } else {
-                        eprintln!(
-                            "[FATAL] Tantivy commit failed after {} attempts: {:?}",
-                            MAX_RETRIES + 1,
-                            io_error
-                        );
-                        std::process::exit(1);
-                    }
-                }
-                _ => {
-                    eprintln!("[FATAL] Tantivy commit failed with non-IO error: {e:?}");
+            Err(e) if is_retryable_commit_error(&e) => {
+                if attempt < MAX_RETRIES {
+                    eprintln!(
+                        "[WARN] Commit failed (attempt {}/{}): {:?}. Retrying in {}ms...",
+                        attempt + 1,
+                        MAX_RETRIES + 1,
+                        e,
+                        RETRY_DELAY_MS * (attempt as u64 + 1)
+                    );
+                    std::thread::sleep(std::time::Duration::from_millis(
+                        RETRY_DELAY_MS * (attempt as u64 + 1),
+                    ));
+                } else {
+                    eprintln!(
+                        "[FATAL] Tantivy commit failed after {} attempts: {:?}",
+                        MAX_RETRIES + 1,
+                        e
+                    );
                     std::process::exit(1);
                 }
-            },
+            }
+            Err(e) => {
+                eprintln!("[FATAL] Tantivy commit failed with non-retryable error: {e:?}");
+                std::process::exit(1);
+            }
         }
     }
 }
@@ -82,4 +80,36 @@ pub fn validate_facet(tag: &str) -> MailboxdResult<()> {
     Facet::from_text(tag)
         .map(|_| ())
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))
+}
+
+/// Transient I/O failures, including a file briefly locked while opening it
+/// for writing, are retried; anything else is fatal.
+fn is_retryable_commit_error(error: &tantivy::TantivyError) -> bool {
+    matches!(
+        error,
+        tantivy::TantivyError::IoError(_) | tantivy::TantivyError::OpenWriteError(_)
+    )
+}
+
+#[cfg(test)]
+mod commit_retry_tests {
+    use super::is_retryable_commit_error;
+    use std::{path::PathBuf, sync::Arc};
+    use tantivy::{directory::error::OpenWriteError, TantivyError};
+
+    #[test]
+    fn io_and_open_write_errors_are_retried() {
+        let io = std::io::Error::other("locked");
+        assert!(is_retryable_commit_error(&TantivyError::IoError(Arc::new(io))));
+        assert!(is_retryable_commit_error(&TantivyError::OpenWriteError(
+            OpenWriteError::FileAlreadyExists(PathBuf::from("meta.json"))
+        )));
+    }
+
+    #[test]
+    fn other_errors_are_fatal() {
+        assert!(!is_retryable_commit_error(&TantivyError::InvalidArgument(
+            "bad".into()
+        )));
+    }
 }
