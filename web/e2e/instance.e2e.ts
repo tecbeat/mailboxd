@@ -75,6 +75,18 @@ async function signIn(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible()
 }
 
+// Full-page screenshots of every page, kept as CI artifacts for a visual check.
+let screenshotIndex = 0
+async function capture(page: Page, path: string): Promise<void> {
+  await page.waitForLoadState('networkidle')
+  const name = path === '/' ? 'dashboard' : path.slice(1).replaceAll('/', '-')
+  screenshotIndex += 1
+  await page.screenshot({
+    path: `e2e-results/screenshots/${String(screenshotIndex).padStart(2, '0')}-${name}.png`,
+    fullPage: true,
+  })
+}
+
 async function expectNoErrorPage(page: Page): Promise<void> {
   await expect(page.getByText(/^Oops!/)).toHaveCount(0)
 }
@@ -110,6 +122,7 @@ test('the admin signs in and every page renders without errors', async ({ page }
       await page.goto(path)
       await expect(page.getByRole('heading', { level: 1, name: heading, exact: true })).toBeVisible()
       await expectNoErrorPage(page)
+      await capture(page, path)
     })
   }
 
@@ -119,6 +132,7 @@ test('the admin signs in and every page renders without errors', async ({ page }
       await expect(page).not.toHaveURL(/\/sign-in/)
       await expect(page.getByRole('main')).toBeVisible()
       await expectNoErrorPage(page)
+      await capture(page, path)
     })
   }
 
