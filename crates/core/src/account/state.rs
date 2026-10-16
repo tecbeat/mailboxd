@@ -174,7 +174,7 @@ impl DownloadState {
         }
     }
 
-    pub async fn init(account_id: u64) -> MailboxdResult<()> {
+    pub async fn init(account_id: u64, trigger: TriggerType) -> MailboxdResult<()> {
         let now = utc_now!();
         let state = DownloadState {
             account_id,
@@ -182,7 +182,7 @@ impl DownloadState {
             active_session: Some(DownloadSession {
                 start_time: now,
                 status: DownloadStatus::Running,
-                trigger: TriggerType::Scheduled,
+                trigger,
                 ..Default::default()
             }),
             history: Default::default(),
