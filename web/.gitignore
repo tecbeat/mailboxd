@@ -8,5 +8,8 @@ dist
 # Test coverage
 coverage
 
+# Playwright output
+e2e-results
+
 # Local env files
 *.local
