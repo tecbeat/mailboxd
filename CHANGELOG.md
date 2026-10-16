@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.14](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.14) - 2026-10-16
+
+### ⛰️  Features
+
+- *(deps)* Add jsonwebtoken 11.1.0 for OIDC ID token verification - ([9afb95d](https://git.teccave.de/tecbeat/mailboxd/commit/9afb95de5f883b343978107e675d95e3fd6f3d7d))
+- *(oidc)* Verify asymmetric ID tokens against the provider JWKS - ([082d841](https://git.teccave.de/tecbeat/mailboxd/commit/082d841bebc4c3decd23b1c30fd4f9d41ea80f2a))
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies - ([133a04c](https://git.teccave.de/tecbeat/mailboxd/commit/133a04cac3841d65139796f88b3b7126a566a3ee))
+
+### 📚 Documentation
+
+- *(oidc)* Document JWKS-based ID token verification - ([72102d3](https://git.teccave.de/tecbeat/mailboxd/commit/72102d3addd6a434a9ef0d96bd044e6f486eb240))
+
 ## [1.7.13](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.13) - 2026-10-15
 
 ### 🐛 Bug Fixes
