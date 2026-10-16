@@ -284,6 +284,7 @@ pub async fn rebuild_mailbox_cache_by_date(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::account::state::TriggerType;
     use crate::imap::mock_server::{
         malformed_response, mock_mails, register_mock_account, uid_fetch_body_response,
         MockImapServer, MockImapServerHandle,
@@ -303,7 +304,9 @@ mod tests {
             .start()
             .await;
         let account = register_mock_account(&handle, account_id);
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let folder = |name: &str| MailBox {
             id: 1_000_000 + (uuid::Uuid::new_v4().as_u128() % 1_000_000_000) as u64,
             account_id,
