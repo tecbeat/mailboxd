@@ -53,26 +53,7 @@ pub async fn decide_next_download_task(
         Some(s) => s,
     };
 
-    let should_start = match trigger_type {
-        TriggerType::Manual => true,
-        TriggerType::SyncFull => true,
-        TriggerType::Scheduled => {
-            let now = utc_now!();
-            let cooldown_ok = now - state.last_finished_at.unwrap_or(0) > 60 * 1000;
-            if !cooldown_ok {
-                false
-            } else if let Some(ref schedule) = account.download_schedule {
-                should_trigger_scheduled(schedule, state.last_trigger_at)
-            } else {
-                should_trigger_next_download(
-                    state.last_trigger_at,
-                    account.download_interval_min.unwrap_or(60),
-                )
-            }
-        }
-    };
-
-    if should_start {
+    if is_download_due(account, &trigger_type, Some(&state), utc_now!()) {
         DownloadState::start_new_session(account.id, trigger_type)?;
         Ok(DownloadTask::TraceFetch)
     } else {
@@ -84,8 +65,40 @@ pub async fn decide_next_download_task(
         Ok(DownloadTask::Idle)
     }
 }
-fn should_trigger_next_download(last_trigger_at: i64, sync_interval_min: i64) -> bool {
-    let now = utc_now!();
+/// Whether a download for `account` should start now.
+///
+/// Shared by every mail source so scheduled runs honour the account's
+/// interval/cron and the post-run cooldown. `state` is `None` before the first
+/// run, which is always due.
+pub fn is_download_due(
+    account: &AccountModel,
+    trigger_type: &TriggerType,
+    state: Option<&DownloadState>,
+    now: i64,
+) -> bool {
+    let Some(state) = state else {
+        return true;
+    };
+    match trigger_type {
+        TriggerType::Manual | TriggerType::SyncFull => true,
+        TriggerType::Scheduled => {
+            let cooldown_ok = now - state.last_finished_at.unwrap_or(0) > 60 * 1000;
+            if !cooldown_ok {
+                false
+            } else if let Some(ref schedule) = account.download_schedule {
+                should_trigger_scheduled(schedule, state.last_trigger_at)
+            } else {
+                should_trigger_next_download(
+                    state.last_trigger_at,
+                    account.download_interval_min.unwrap_or(60),
+                    now,
+                )
+            }
+        }
+    }
+}
+
+fn should_trigger_next_download(last_trigger_at: i64, sync_interval_min: i64, now: i64) -> bool {
     now - last_trigger_at > (sync_interval_min * 60 * 1000)
 }
 
@@ -150,6 +163,59 @@ mod test {
     #[test]
     fn invalid_cron_returns_false() {
         assert!(!should_trigger_scheduled("invalid cron expression", 0));
+    }
+
+    fn account_with_interval(minutes: i64) -> AccountModel {
+        AccountModel {
+            download_interval_min: Some(minutes),
+            ..Default::default()
+        }
+    }
+
+    fn state_triggered_at(last_trigger_at: i64, last_finished_at: i64) -> DownloadState {
+        DownloadState {
+            last_trigger_at,
+            last_finished_at: Some(last_finished_at),
+            ..Default::default()
+        }
+    }
+
+    const NOW: i64 = 1_800_000_000_000;
+    const MINUTE: i64 = 60 * 1000;
+
+    #[test]
+    fn first_run_without_state_is_due() {
+        let account = account_with_interval(60);
+        assert!(is_download_due(&account, &TriggerType::Scheduled, None, NOW));
+    }
+
+    #[test]
+    fn scheduled_run_within_interval_is_not_due() {
+        let account = account_with_interval(60);
+        let state = state_triggered_at(NOW - 10 * MINUTE, NOW - 9 * MINUTE);
+        assert!(!is_download_due(&account, &TriggerType::Scheduled, Some(&state), NOW));
+    }
+
+    #[test]
+    fn scheduled_run_after_interval_is_due() {
+        let account = account_with_interval(60);
+        let state = state_triggered_at(NOW - 61 * MINUTE, NOW - 60 * MINUTE);
+        assert!(is_download_due(&account, &TriggerType::Scheduled, Some(&state), NOW));
+    }
+
+    #[test]
+    fn scheduled_run_inside_cooldown_is_not_due() {
+        let account = account_with_interval(0);
+        let state = state_triggered_at(NOW - 5 * MINUTE, NOW - 30 * 1000);
+        assert!(!is_download_due(&account, &TriggerType::Scheduled, Some(&state), NOW));
+    }
+
+    #[test]
+    fn manual_and_full_sync_are_always_due() {
+        let account = account_with_interval(60);
+        let state = state_triggered_at(NOW - MINUTE, NOW - 1000);
+        assert!(is_download_due(&account, &TriggerType::Manual, Some(&state), NOW));
+        assert!(is_download_due(&account, &TriggerType::SyncFull, Some(&state), NOW));
     }
 
     #[test]

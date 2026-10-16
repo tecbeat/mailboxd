@@ -22,6 +22,7 @@ use crate::account::entity::AuthType;
 use crate::account::migration::AccountType;
 use crate::account::state::{DownloadState, TriggerType};
 use crate::archive::engine::run_sync;
+use crate::archive::imap::download::download_type::is_download_due;
 use crate::archive::imap::download::process_imap_download;
 use crate::archive::jmap::source::JmapSource;
 use crate::common::periodic::{PeriodicTask, TaskHandle};
@@ -65,6 +66,11 @@ async fn dispatch_download(
             process_imap_download(account, token, trigger_type, run_gap_fill).await
         }
         AccountType::JMAP => {
+            let state = DownloadState::get(account.id)?;
+            if !is_download_due(account, &trigger_type, state.as_ref(), utc_now!()) {
+                DownloadState::finalize_stale_session(account.id)?;
+                return Ok(());
+            }
             run_sync(account, &JmapSource, token, trigger_type).await.map(|_| ())
         }
         AccountType::NoSync => Ok(()),
