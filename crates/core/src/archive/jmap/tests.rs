@@ -218,14 +218,45 @@ async fn changes_since_initial_enumerates_all_and_captures_state() {
 }
 
 #[tokio::test]
-async fn changes_since_incremental_returns_created_and_updated() {
-    let mailbox_resp = r#"{"methodResponses":[["Mailbox/get",{"accountId":"A1","state":"m1","list":[{"id":"mb1","name":"Inbox","role":"inbox"}],"notFound":[]},"0"]],"sessionState":"s0"}"#;
-    let changes_resp = r#"{"methodResponses":[["Email/changes",{"accountId":"A1","oldState":"old","newState":"new","hasMoreChanges":false,"created":["e3"],"updated":["e4"],"destroyed":["e0"]}, "0"]],"sessionState":"s0"}"#;
+async fn changes_since_incremental_keeps_only_this_mailbox() {
+    // Email/changes is account-wide; a change in another mailbox must not be
+    // archived under this one.
+    let mailbox_resp = r#"{"methodResponses":[["Mailbox/get",{"accountId":"A1","state":"m1","list":[{"id":"mb1","name":"Inbox","role":"inbox"},{"id":"mb2","name":"Sent","role":"sent"}],"notFound":[]},"0"]],"sessionState":"s0"}"#;
+    let changes_resp = r#"{"methodResponses":[["Email/changes",{"accountId":"A1","oldState":"old","newState":"new","hasMoreChanges":false,"created":["e3","e5"],"updated":[],"destroyed":[]}, "0"]],"sessionState":"s0"}"#;
+    let email_get_resp = r#"{"methodResponses":[["Email/get",{"accountId":"A1","state":"new","list":[{"id":"e3","mailboxIds":{"mb1":true}},{"id":"e5","mailboxIds":{"mb2":true}}],"notFound":[]}, "0"]],"sessionState":"s0"}"#;
 
     let handle = MockJmapServer::new()
         .route("GET", "/jmap/session", session_json(true))
         .route_body("POST", "/jmap/api", "Mailbox/get", mailbox_resp)
         .route_body("POST", "/jmap/api", "Email/changes", changes_resp)
+        .route_body("POST", "/jmap/api", "Email/get", email_get_resp)
+        .start()
+        .await;
+
+    let mut session = connect_session(&handle.session_url()).await;
+    let boxes = session.list_mailboxes().await.unwrap();
+    let inbox = boxes.iter().find(|m| m.name == "Inbox").unwrap();
+
+    let changes = session
+        .changes_since(inbox, Some(SyncCursor::new("old")), CancellationToken::new())
+        .await
+        .expect("incremental changes");
+
+    assert_eq!(changes.messages, vec![MessageRef("e3".into())]);
+    assert_eq!(changes.cursor, Some(SyncCursor::new("new")));
+}
+
+#[tokio::test]
+async fn changes_since_incremental_returns_created_and_updated() {
+    let mailbox_resp = r#"{"methodResponses":[["Mailbox/get",{"accountId":"A1","state":"m1","list":[{"id":"mb1","name":"Inbox","role":"inbox"}],"notFound":[]},"0"]],"sessionState":"s0"}"#;
+    let changes_resp = r#"{"methodResponses":[["Email/changes",{"accountId":"A1","oldState":"old","newState":"new","hasMoreChanges":false,"created":["e3"],"updated":["e4"],"destroyed":["e0"]}, "0"]],"sessionState":"s0"}"#;
+    let email_get_resp = r#"{"methodResponses":[["Email/get",{"accountId":"A1","state":"new","list":[{"id":"e3","mailboxIds":{"mb1":true}},{"id":"e4","mailboxIds":{"mb1":true}}],"notFound":[]}, "0"]],"sessionState":"s0"}"#;
+
+    let handle = MockJmapServer::new()
+        .route("GET", "/jmap/session", session_json(true))
+        .route_body("POST", "/jmap/api", "Mailbox/get", mailbox_resp)
+        .route_body("POST", "/jmap/api", "Email/changes", changes_resp)
+        .route_body("POST", "/jmap/api", "Email/get", email_get_resp)
         .start()
         .await;
 
