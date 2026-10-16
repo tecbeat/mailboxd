@@ -261,6 +261,17 @@ impl JmapMailSession {
         }
         Ok(refs)
     }
+
+    /// The account's current `Email` state, via `Email/get` with no ids
+    /// (RFC 8620 §5.1). Taken before enumerating, so mail arriving meanwhile
+    /// shows up in the next `Email/changes` delta instead of being missed.
+    async fn email_state_snapshot(&self) -> MailboxdResult<Option<SyncCursor>> {
+        let resp = self
+            .client
+            .email_get(&self.jmap_account_id, Vec::new(), Some(vec!["id".into()]))
+            .await?;
+        Ok(Some(resp.state).filter(|s| !s.is_empty()).map(SyncCursor::new))
+    }
 }
 
 #[async_trait]
@@ -295,17 +306,11 @@ impl MailSession for JmapMailSession {
 
         // No prior state → initial sync: enumerate everything in scope.
         let Some(cursor) = cursor else {
+            let cursor = self.email_state_snapshot().await?;
             let messages = self.query_all_in_mailbox(&jmap_mailbox_id).await?;
-            // Capture the current Email state so the next run is incremental.
-            let state = self
-                .client
-                .email_changes(&self.jmap_account_id, "", None)
-                .await
-                .ok()
-                .map(|c| c.new_state);
             return Ok(MailboxChanges {
                 messages,
-                cursor: state.filter(|s| !s.is_empty()).map(SyncCursor::new),
+                cursor,
                 requires_full_resync: false,
             });
         };
@@ -330,16 +335,11 @@ impl MailSession for JmapMailSession {
             }
             Err(e) if e.code() == ErrorCode::JmapCannotCalculateChanges => {
                 // State too old: full reconcile (idempotent via dedup, FA-11).
+                let cursor = self.email_state_snapshot().await?;
                 let messages = self.query_all_in_mailbox(&jmap_mailbox_id).await?;
-                let state = self
-                    .client
-                    .email_changes(&self.jmap_account_id, "", None)
-                    .await
-                    .ok()
-                    .map(|c| c.new_state);
                 Ok(MailboxChanges {
                     messages,
-                    cursor: state.filter(|s| !s.is_empty()).map(SyncCursor::new),
+                    cursor,
                     requires_full_resync: true,
                 })
             }
