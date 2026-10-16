@@ -1238,6 +1238,7 @@ async fn perform_incremental_sync(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::account::state::TriggerType;
     use crate::imap::session::SessionStream;
     use std::sync::Arc;
     use tokio_io_timeout::TimeoutStream;
@@ -1862,7 +1863,9 @@ mod tests {
     ) -> (AccountModel, MockImapServerHandle) {
         let handle = server.start().await;
         let account = register_mock_account(&handle, account_id);
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         (account, handle)
     }
 

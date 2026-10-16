@@ -75,7 +75,13 @@ pub async fn run_sync(
     trigger_type: TriggerType,
 ) -> MailboxdResult<SyncStats> {
     let account_id = account.id;
-    DownloadState::start_new_session(account_id, trigger_type)?;
+    // Session updates are no-ops without a stored state, so the first run must
+    // create it (as the IMAP flow does in `decide_next_download_task`).
+    if DownloadState::get(account_id)?.is_none() {
+        DownloadState::init(account_id, trigger_type).await?;
+    } else {
+        DownloadState::start_new_session(account_id, trigger_type)?;
+    }
 
     let result = run_sync_inner(account, source, token).await;
 

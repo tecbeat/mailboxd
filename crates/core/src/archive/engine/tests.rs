@@ -85,7 +85,7 @@ mod cursor_persistence {
     use tokio_util::sync::CancellationToken;
 
     use crate::account::migration::{Account, AccountType};
-    use crate::account::state::TriggerType;
+    use crate::account::state::{DownloadState, DownloadStatus, TriggerType};
     use crate::archive::engine::run_sync;
     use crate::archive::imap::mailbox::MailBox;
     use crate::archive::source::{
@@ -188,5 +188,38 @@ mod cursor_persistence {
             *seen_cursors.lock().unwrap(),
             vec![None, Some("state-1".to_string())]
         );
+    }
+
+    #[tokio::test]
+    async fn sync_records_download_state_for_a_new_account() {
+        let account_id = crate::id!(64);
+        let source = RecordingSource {
+            mailbox: MailBox {
+                id: crate::id!(64),
+                account_id,
+                name: "INBOX".to_string(),
+                ..Default::default()
+            },
+            seen_cursors: Arc::new(Mutex::new(Vec::new())),
+        };
+        let account = Account {
+            id: account_id,
+            account_type: AccountType::JMAP,
+            ..Default::default()
+        };
+
+        run_sync(&account, &source, CancellationToken::new(), TriggerType::Manual)
+            .await
+            .unwrap();
+
+        let state = DownloadState::get(account_id)
+            .unwrap()
+            .expect("the first sync must create the download state");
+        assert!(state.last_trigger_at > 0);
+        assert!(state.last_finished_at.is_some());
+        assert!(state.active_session.is_none());
+        let session = state.history.last().expect("the finished session is kept in history");
+        assert_eq!(session.status, DownloadStatus::Success);
+        assert_eq!(session.trigger, TriggerType::Manual);
     }
 }

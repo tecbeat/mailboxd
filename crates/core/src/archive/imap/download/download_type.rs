@@ -47,7 +47,7 @@ pub async fn decide_next_download_task(
 ) -> MailboxdResult<DownloadTask> {
     let state = match DownloadState::get(account.id)? {
         None => {
-            DownloadState::init(account.id).await?;
+            DownloadState::init(account.id, trigger_type).await?;
             return Ok(DownloadTask::FullFetch);
         }
         Some(s) => s,
