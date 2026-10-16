@@ -183,17 +183,20 @@ async fn list_mailboxes_maps_role_and_hierarchy() {
 
 #[tokio::test]
 async fn changes_since_initial_enumerates_all_and_captures_state() {
-    // Mailbox/get (for the id map), then Email/query page, then Email/changes("")
-    // for the initial state snapshot.
+    // Mailbox/get (for the id map), Email/get with no ids for the state
+    // snapshot (RFC 8620 §5.1), then the Email/query page. Real servers reject
+    // `Email/changes` with an empty `sinceState`, so the mock does too.
     let mailbox_resp = r#"{"methodResponses":[["Mailbox/get",{"accountId":"A1","state":"m1","list":[{"id":"mb1","name":"Inbox","role":"inbox"}],"notFound":[]},"0"]],"sessionState":"s0"}"#;
+    let state_resp = r#"{"methodResponses":[["Email/get",{"accountId":"A1","state":"state-123","list":[],"notFound":[]}, "0"]],"sessionState":"s0"}"#;
     let query_resp = r#"{"methodResponses":[["Email/query",{"accountId":"A1","queryState":"q1","position":0,"total":2,"ids":["e1","e2"]}, "0"]],"sessionState":"s0"}"#;
-    let changes_resp = r#"{"methodResponses":[["Email/changes",{"accountId":"A1","oldState":"","newState":"state-123","hasMoreChanges":false,"created":[],"updated":[],"destroyed":[]}, "0"]],"sessionState":"s0"}"#;
+    let empty_since_state_resp = r#"{"methodResponses":[["error",{"type":"invalidArguments","description":"invalid JMAP State"}, "0"]],"sessionState":"s0"}"#;
 
     let handle = MockJmapServer::new()
         .route("GET", "/jmap/session", session_json(true))
         .route_body("POST", "/jmap/api", "Mailbox/get", mailbox_resp)
+        .route_body("POST", "/jmap/api", r#""ids":[]"#, state_resp)
         .route_body("POST", "/jmap/api", "Email/query", query_resp)
-        .route_body("POST", "/jmap/api", "Email/changes", changes_resp)
+        .route_body("POST", "/jmap/api", "Email/changes", empty_since_state_resp)
         .start()
         .await;
 
@@ -251,12 +254,12 @@ async fn changes_since_cannot_calculate_triggers_full_resync() {
     let error_resp = r#"{"methodResponses":[["error",{"type":"cannotCalculateChanges"}, "0"]],"sessionState":"s0"}"#;
     let query_resp = r#"{"methodResponses":[["Email/query",{"accountId":"A1","queryState":"q1","position":0,"total":1,"ids":["e9"]}, "0"]],"sessionState":"s0"}"#;
 
-    // Both the failing Email/changes and the follow-up snapshot Email/changes("")
-    // match the same body pattern; the mock returns the error for both. The
-    // adapter treats a failed snapshot as "no cursor change", which is fine.
+    let state_resp = r#"{"methodResponses":[["Email/get",{"accountId":"A1","state":"fresh","list":[],"notFound":[]}, "0"]],"sessionState":"s0"}"#;
+
     let handle = MockJmapServer::new()
         .route("GET", "/jmap/session", session_json(true))
         .route_body("POST", "/jmap/api", "Mailbox/get", mailbox_resp)
+        .route_body("POST", "/jmap/api", r#""ids":[]"#, state_resp)
         .route_body("POST", "/jmap/api", "Email/query", query_resp)
         .route_body("POST", "/jmap/api", "Email/changes", error_resp)
         .start()
@@ -272,6 +275,7 @@ async fn changes_since_cannot_calculate_triggers_full_resync() {
         .expect("reconcile");
 
     assert_eq!(changes.messages, vec![MessageRef("e9".into())]);
+    assert_eq!(changes.cursor, Some(SyncCursor::new("fresh")));
     assert!(changes.requires_full_resync);
 }
 
