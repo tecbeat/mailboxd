@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.8.1) - 2026-10-16
+
+### 🐛 Bug Fixes
+
+- *(web)* Restore WebUI by dropping the vendor chunk size cap - ([c28d05b](https://git.teccave.de/tecbeat/mailboxd/commit/c28d05b4420ed70115ebd8fe656ca5d6d14ff4ff))
+
+## [1.8.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.8.0) - 2026-10-16
+
 ## [1.7.14](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.7.14) - 2026-10-16
 
 ### ⛰️  Features
