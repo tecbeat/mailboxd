@@ -25,8 +25,8 @@ use crate::{
         MemDbModel,
     },
     encrypt,
-    error::MailboxdResult,
-    id, utc_now,
+    error::{code::ErrorCode, MailboxdResult},
+    id, raise_error, utc_now,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -232,6 +232,11 @@ pub struct OAuth2UpdateRequest {
 
     /// route OAuth through proxy (when direct access is blocked)
     pub use_proxy: Option<u64>,
+
+    /// Set to true to stop routing OAuth through a proxy. An absent
+    /// `use_proxy` keeps the current proxy, so clearing needs this flag.
+    /// Must not be combined with `use_proxy`.
+    pub clear_proxy: Option<bool>,
 }
 
 fn apply_update(old: &OAuth2, request: OAuth2UpdateRequest) -> MailboxdResult<OAuth2> {
@@ -263,9 +268,75 @@ fn apply_update(old: &OAuth2, request: OAuth2UpdateRequest) -> MailboxdResult<OA
     if let Some(enabled) = request.enabled {
         new.enabled = enabled;
     }
-    if let Some(use_proxy) = request.use_proxy {
+    let clear_proxy = request.clear_proxy.unwrap_or(false);
+    if clear_proxy && request.use_proxy.is_some() {
+        return Err(raise_error!(
+            "use_proxy and clear_proxy cannot be set together".into(),
+            ErrorCode::InvalidParameter
+        ));
+    }
+    if clear_proxy {
+        new.use_proxy = None;
+    } else if let Some(use_proxy) = request.use_proxy {
         new.use_proxy = Some(use_proxy);
     }
     new.updated_at = utc_now!();
     Ok(new)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn with_proxy() -> OAuth2 {
+        OAuth2 {
+            use_proxy: Some(3),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn clear_proxy_removes_the_proxy() {
+        let request = OAuth2UpdateRequest {
+            clear_proxy: Some(true),
+            ..Default::default()
+        };
+        assert_eq!(
+            apply_update(&with_proxy(), request).unwrap().use_proxy,
+            None
+        );
+    }
+
+    #[test]
+    fn absent_proxy_fields_keep_the_proxy() {
+        let request = OAuth2UpdateRequest::default();
+        assert_eq!(
+            apply_update(&with_proxy(), request).unwrap().use_proxy,
+            Some(3)
+        );
+    }
+
+    #[test]
+    fn use_proxy_replaces_the_proxy() {
+        let request = OAuth2UpdateRequest {
+            use_proxy: Some(5),
+            clear_proxy: Some(false),
+            ..Default::default()
+        };
+        assert_eq!(
+            apply_update(&with_proxy(), request).unwrap().use_proxy,
+            Some(5)
+        );
+    }
+
+    #[test]
+    fn clear_proxy_together_with_use_proxy_is_rejected() {
+        let request = OAuth2UpdateRequest {
+            use_proxy: Some(5),
+            clear_proxy: Some(true),
+            ..Default::default()
+        };
+        let err = apply_update(&with_proxy(), request).unwrap_err();
+        assert_eq!(err.code(), ErrorCode::InvalidParameter);
+    }
 }
