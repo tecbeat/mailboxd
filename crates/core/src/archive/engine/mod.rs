@@ -107,8 +107,8 @@ async fn run_sync_inner(
 
     // Discover mailboxes and persist/refresh the local records (FA-7, FA-9).
     let remote = session.list_mailboxes().await?;
-    let selected = select_mailboxes(account, &remote);
-    persist_mailboxes(&remote)?;
+    let stored = persist_mailboxes(&remote)?;
+    let selected = select_mailboxes(account, &stored);
 
     DownloadState::init_folder_details(
         account_id,
@@ -287,8 +287,9 @@ fn select_mailboxes(account: &AccountModel, remote: &[MailBox]) -> Vec<MailBox> 
 }
 
 /// Upsert discovered mailboxes, preserving the previously-stored `sync_cursor`
-/// (the freshly-listed records carry `sync_cursor: None`).
-fn persist_mailboxes(remote: &[MailBox]) -> MailboxdResult<()> {
+/// (the freshly-listed records carry `sync_cursor: None`). Returns the stored
+/// records so the caller syncs from the persisted cursor, not from `None`.
+fn persist_mailboxes(remote: &[MailBox]) -> MailboxdResult<Vec<MailBox>> {
     let mut to_store = Vec::with_capacity(remote.len());
     for m in remote {
         let mut record = m.clone();
@@ -297,7 +298,8 @@ fn persist_mailboxes(remote: &[MailBox]) -> MailboxdResult<()> {
         }
         to_store.push(record);
     }
-    MailBox::batch_upsert(&to_store)
+    MailBox::batch_upsert(&to_store)?;
+    Ok(to_store)
 }
 
 /// Persist the opaque cursor for a mailbox after a successful sync.
