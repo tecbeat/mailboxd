@@ -199,3 +199,141 @@ image_update_test:
     - start_server
     - grep -qx "2" "$MAILBOXD_ROOT_DIR/STORAGE_VERSION"
     - stop_server
+
+.github_mirror:
+  stage: release
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      when: on_success
+    - when: never
+  variables:
+    GITHUB_REPO: tecbeat/mailboxd
+    GHCR_IMAGE: ghcr.io/tecbeat/mailboxd
+    GHCR_USER: tecbeat
+  tags:
+    - teccave
+
+# Copies the released image to GHCR by digest. Needs the masked, protected
+# CI variable GHCR_TOKEN (classic PAT, scope write:packages only).
+mirror_image:
+  extends: .github_mirror
+  image:
+    name: ghcr.io/regclient/regctl:v0.11.6-alpine@sha256:5fe7c6a6206e1d9d71af719674c9db03e74a4ae221a32089b691f5b55533d6ea
+    entrypoint: [""]
+  needs:
+    - job: versioner
+      artifacts: true
+    - job: build_image
+      artifacts: false
+  script:
+    - |
+      if [ "$CHANGED" != "True" ]; then
+        echo "versioner reported CHANGED=$CHANGED; nothing to mirror."
+        exit 0
+      fi
+    - echo "$CI_REGISTRY_PASSWORD" | regctl registry login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --pass-stdin
+    - echo "$GHCR_TOKEN" | regctl registry login ghcr.io -u "$GHCR_USER" --pass-stdin
+    - regctl image copy "$CI_REGISTRY_IMAGE:$VERSION" "$GHCR_IMAGE:$VERSION"
+    - SRC_DIGEST=$(regctl image digest "$CI_REGISTRY_IMAGE:$VERSION")
+    - DST_DIGEST=$(regctl image digest "$GHCR_IMAGE:$VERSION")
+    - echo "source $SRC_DIGEST, mirror $DST_DIGEST"
+    - test "$SRC_DIGEST" = "$DST_DIGEST"
+
+# Publishes the GitLab release notes as a GitHub release. Needs the masked,
+# protected CI variable GITHUB_RELEASE_TOKEN (fine-grained PAT, only
+# tecbeat/mailboxd, Contents: read and write). Tags reach GitHub only through
+# the GitLab push mirror, so the job waits for the mirrored tag instead of
+# letting the release API create one.
+mirror_release:
+  extends: .github_mirror
+  image: hub.teccave.de/images/core:v1.4.44@sha256:87c0009e018b866f9f82d7ef7827dd3eb37e95aa2c360d2de4d7a84e8faec353
+  needs:
+    - job: versioner
+      artifacts: true
+    - job: changelogger
+      artifacts: true
+    - job: releaser
+      artifacts: false
+    - job: mirror_image
+      artifacts: false
+  variables:
+    GITHUB_API: https://api.github.com/repos/tecbeat/mailboxd
+    GITHUB_API_VERSION: "2026-03-10"
+    MIRROR_WAIT_ATTEMPTS: "30"
+    MIRROR_WAIT_SECONDS: "30"
+  script:
+    - |
+      set -euo pipefail
+
+      github_api() {
+        local method=$1 path=$2
+        shift 2
+        curl -sS -X "$method" -o response.json -w '%{http_code}' \
+          -H "Authorization: Bearer $GITHUB_RELEASE_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: $GITHUB_API_VERSION" \
+          "$@" "$GITHUB_API$path"
+      }
+
+      json_get() {
+        python3 -c 'import json, sys; print(json.load(open("response.json"))[sys.argv[1]])' "$1"
+      }
+
+      release_payload() {
+        python3 -c 'import json, os; print(json.dumps({"tag_name": os.environ["VERSION"], "name": os.environ["VERSION"], "body": open("RELEASE.md", encoding="utf-8").read(), "make_latest": "true"}))'
+      }
+
+      gitlab_tag_sha() {
+        git fetch --quiet --no-tags origin "refs/tags/$VERSION:refs/tags/$VERSION"
+        git rev-parse "$VERSION^{commit}"
+      }
+
+      github_tag_sha() {
+        git ls-remote --tags "https://github.com/$GITHUB_REPO.git" "$VERSION" "$VERSION^{}" \
+          | awk -v ref="refs/tags/$VERSION" '
+              $2 == ref        { sha = $1 }
+              $2 == ref "^{}"  { peeled = $1 }
+              END              { print (peeled != "" ? peeled : sha) }'
+      }
+
+      wait_for_mirrored_tag() {
+        local expected=$1 actual attempt
+        for ((attempt = 1; attempt <= MIRROR_WAIT_ATTEMPTS; attempt++)); do
+          actual=$(github_tag_sha) || actual=""
+          if [[ -n $actual ]]; then
+            [[ $actual == "$expected" ]] && return 0
+            echo "GitHub tag $VERSION points to $actual, expected $expected" >&2
+            return 1
+          fi
+          echo "[$attempt/$MIRROR_WAIT_ATTEMPTS] tag $VERSION not mirrored yet; retrying in ${MIRROR_WAIT_SECONDS}s"
+          sleep "$MIRROR_WAIT_SECONDS"
+        done
+        echo "tag $VERSION did not reach GitHub in time" >&2
+        return 1
+      }
+
+      upsert_release() {
+        local status
+        release_payload > release.json
+        status=$(github_api GET "/releases/tags/$VERSION")
+        case $status in
+          200) status=$(github_api PATCH "/releases/$(json_get id)" --data @release.json) ;;
+          404) status=$(github_api POST "/releases" --data @release.json) ;;
+        esac
+        if [[ $status != 200 && $status != 201 ]]; then
+          echo "GitHub API returned HTTP $status:" >&2
+          cat response.json >&2
+          return 1
+        fi
+        echo "GitHub release: $(json_get html_url)"
+      }
+
+      if [[ $CHANGED != True ]]; then
+        echo "versioner reported CHANGED=$CHANGED; nothing to mirror."
+        exit 0
+      fi
+
+      tag_sha=$(gitlab_tag_sha)
+      echo "GitLab tag $VERSION -> $tag_sha"
+      wait_for_mirrored_tag "$tag_sha"
+      upsert_release
