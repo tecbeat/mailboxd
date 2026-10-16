@@ -166,3 +166,6 @@ async fn initialize() -> MailboxdResult<()> {
     LazyLock::force(&ATTACHMENT_MANAGER);
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

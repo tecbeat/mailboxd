@@ -45,8 +45,12 @@ async fn proxy_crud() {
         .await;
     resp.assert_status_is_ok();
     let proxies: Vec<Proxy> = resp.json().await.value().deserialize();
-    assert!(!proxies.is_empty(), "should have at least one proxy");
-    let proxy_id = proxies[0].id;
+    // Other tests share the database, so find the proxy created here.
+    let proxy_id = proxies
+        .iter()
+        .find(|p| p.url == "socks5://127.0.0.1:1080")
+        .expect("created proxy is listed")
+        .id;
 
     // Get single proxy
     let resp = cli
@@ -65,6 +69,15 @@ async fn proxy_crud() {
         .send()
         .await;
     resp.assert_status_is_ok();
+
+    let resp = cli
+        .get(&format!("/api/v1/proxy/{}", proxy_id))
+        .header("Authorization", &format!("Bearer {}", token))
+        .send()
+        .await;
+    resp.assert_status_is_ok();
+    let proxy: Proxy = resp.json().await.value().deserialize();
+    assert_eq!(proxy.url, "socks5://192.168.1.1:1080");
 
     // Delete proxy
     let resp = cli

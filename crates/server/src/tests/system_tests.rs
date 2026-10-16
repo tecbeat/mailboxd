@@ -18,14 +18,10 @@ fn api_client(route: impl poem::Endpoint) -> TestClient<impl poem::Endpoint> {
 struct SystemConfig {
     mailboxd_root_dir: String,
     mailboxd_http_port: i32,
-    mailboxd_version: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct DashboardStats {
-    account_count: usize,
-    email_count: u64,
-    attachment_count: u64,
     system_version: String,
 }
 
@@ -42,6 +38,9 @@ async fn get_system_configurations() {
         .send()
         .await;
     resp.assert_status_is_ok();
+    let config: SystemConfig = resp.json().await.value().deserialize();
+    assert!(!config.mailboxd_root_dir.is_empty());
+    assert!(config.mailboxd_http_port > 0);
 }
 
 #[tokio::test]
@@ -57,11 +56,9 @@ async fn get_dashboard_stats_returns_data() {
         .send()
         .await;
 
-    // Dashboard stats may return errors if tantivy schemas are empty,
-    // but should always produce a response (not a crash)
-    let status = resp.0.status();
-    // Accept both success (200) and error (4xx/5xx) — just ensure it doesn't panic
-    assert!(status.as_u16() > 0, "should produce a valid HTTP response");
+    resp.assert_status_is_ok();
+    let stats: DashboardStats = resp.json().await.value().deserialize();
+    assert!(!stats.system_version.is_empty());
 }
 
 #[tokio::test]

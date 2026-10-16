@@ -25,6 +25,11 @@ struct CreateOAuth2Payload {
 }
 
 #[derive(Debug, Deserialize)]
+struct OAuth2Page {
+    items: Vec<OAuth2Config>,
+}
+
+#[derive(Debug, Deserialize)]
 struct OAuth2Config {
     id: u64,
     client_id: String,
@@ -67,10 +72,14 @@ async fn oauth2_crud() {
         .send()
         .await;
     resp.assert_status_is_ok();
-    let list: serde_json::Value = resp.json().await.value().deserialize();
-    let items = list["items"].as_array().expect("items array");
-    assert!(!items.is_empty(), "should have at least one OAuth2 config");
-    let id = items[0]["id"].as_u64().unwrap();
+    let list: OAuth2Page = resp.json().await.value().deserialize();
+    let created = list
+        .items
+        .iter()
+        .find(|c| c.client_id == "test-client-id")
+        .expect("created OAuth2 config is listed");
+    assert!(!created.enabled);
+    let id = created.id;
 
     // Get by ID
     let resp = cli
@@ -91,6 +100,15 @@ async fn oauth2_crud() {
         .send()
         .await;
     resp.assert_status_is_ok();
+
+    let resp = cli
+        .get(&format!("/api/v1/oauth2/{}", id))
+        .header("Authorization", &format!("Bearer {}", token))
+        .send()
+        .await;
+    resp.assert_status_is_ok();
+    let config: OAuth2Config = resp.json().await.value().deserialize();
+    assert!(config.enabled, "update must enable the config");
 
     // Delete
     let resp = cli
