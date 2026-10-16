@@ -272,6 +272,33 @@ impl JmapMailSession {
             .await?;
         Ok(Some(resp.state).filter(|s| !s.is_empty()).map(SyncCursor::new))
     }
+
+    /// Keep only the email ids that are currently in `jmap_mailbox_id`.
+    async fn retain_in_mailbox(
+        &self,
+        ids: Vec<String>,
+        jmap_mailbox_id: &str,
+    ) -> MailboxdResult<Vec<String>> {
+        let mut kept = Vec::with_capacity(ids.len());
+        let page = self.client.max_objects_in_get().max(1) as usize;
+        for chunk in ids.chunks(page) {
+            let resp = self
+                .client
+                .email_get(
+                    &self.jmap_account_id,
+                    chunk.to_vec(),
+                    Some(vec!["id".into(), "mailboxIds".into()]),
+                )
+                .await?;
+            kept.extend(
+                resp.list
+                    .into_iter()
+                    .filter(|e| e.mailbox_ids.get(jmap_mailbox_id).copied().unwrap_or(false))
+                    .map(|e| e.id),
+            );
+        }
+        Ok(kept)
+    }
 }
 
 #[async_trait]
@@ -323,10 +350,11 @@ impl MailSession for JmapMailSession {
         {
             Ok(changes) => {
                 // created + updated are candidates; the engine's content-hash
-                // dedup makes re-downloads of `updated` harmless. We only keep
-                // those still in this mailbox by intersecting later via load.
+                // dedup makes re-downloads of `updated` harmless. The delta is
+                // account-wide, so keep only the emails in this mailbox.
                 let mut ids: Vec<String> = changes.created;
                 ids.extend(changes.updated);
+                let ids = self.retain_in_mailbox(ids, &jmap_mailbox_id).await?;
                 Ok(MailboxChanges {
                     messages: ids.into_iter().map(MessageRef).collect(),
                     cursor: Some(SyncCursor::new(changes.new_state)),
