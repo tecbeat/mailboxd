@@ -200,7 +200,7 @@ impl DownloadState {
         }
     }
 
-    pub async fn init(account_id: u64) -> MailboxdResult<()> {
+    pub async fn init(account_id: u64, trigger: TriggerType) -> MailboxdResult<()> {
         let now = utc_now!();
         let state = DownloadState {
             account_id,
@@ -208,7 +208,7 @@ impl DownloadState {
             active_session: Some(DownloadSession {
                 start_time: now,
                 status: DownloadStatus::Running,
-                trigger: TriggerType::Scheduled,
+                trigger,
                 ..Default::default()
             }),
             history: Default::default(),
@@ -673,7 +673,9 @@ mod tests {
     async fn finish_completed_session_records_failed_folders_as_failed() {
         // Account id used by no other test.
         let account_id = 74_201_001;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         progress(account_id, "INBOX", FolderStatus::Success);
         progress(account_id, "Junk", FolderStatus::Failed);
 
@@ -692,7 +694,9 @@ mod tests {
     async fn finish_completed_session_records_success_without_failed_folders() {
         // Account id used by no other test.
         let account_id = 74_201_002;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         progress(account_id, "INBOX", FolderStatus::Success);
 
         DownloadState::finish_completed_session(account_id).unwrap();

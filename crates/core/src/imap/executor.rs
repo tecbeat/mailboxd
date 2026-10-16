@@ -1296,6 +1296,7 @@ fn parse_message_id_header(header_bytes: &[u8]) -> Option<String> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::account::state::TriggerType;
     use crate::imap::session::SessionStream;
     use tokio_io_timeout::TimeoutStream;
 
@@ -1303,7 +1304,9 @@ mod test {
     async fn purged_tail_marks_folder_successful_without_session_error() {
         // Account id used by no other test.
         let account_id = 59_342_001;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
 
         record_purged_tail(account_id, "INBOX").unwrap();
 
@@ -1740,7 +1743,9 @@ To: recipient@example.com\r\n\r\n";
     #[tokio::test]
     async fn batch_download_skips_unparseable_email_and_stores_the_rest() {
         let account_id = 59_342_101;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let first = minimal_eml("first", "first@batch.test");
         let third = minimal_eml("third", "third@batch.test");
         // An empty body is the input mail-parser refuses to parse.
@@ -1811,7 +1816,9 @@ To: recipient@example.com\r\n\r\n";
         // UIDNEXT 10 claims mail at or above start_uid 5, but the ranged
         // enumeration returns nothing: the newest messages were purged.
         let account_id = 59_342_103;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let handle = download_server(examine_response("INBOX", 4, 42, 10), &[])
             .start()
             .await;
@@ -1840,7 +1847,9 @@ To: recipient@example.com\r\n\r\n";
     #[tokio::test]
     async fn empty_tail_fetch_with_date_filter_is_recorded_as_purged_mail() {
         let account_id = 59_342_104;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let handle = download_server(examine_response("INBOX", 4, 42, 10), &[])
             .start()
             .await;
@@ -1869,7 +1878,9 @@ To: recipient@example.com\r\n\r\n";
     #[tokio::test]
     async fn incremental_fetch_counts_only_stored_messages() {
         let account_id = 59_342_105;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let five = minimal_eml("five", "five@range.test");
         let seven = minimal_eml("seven", "seven@range.test");
         let bodies: [(u32, &[u8]); 3] = [(5, &five), (6, b""), (7, &seven)];
@@ -1903,7 +1914,9 @@ To: recipient@example.com\r\n\r\n";
     #[tokio::test]
     async fn date_filtered_incremental_fetch_counts_only_stored_messages() {
         let account_id = 59_342_106;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let five = minimal_eml("five", "five@before.test");
         let seven = minimal_eml("seven", "seven@before.test");
         let bodies: [(u32, &[u8]); 3] = [(5, &five), (6, b""), (7, &seven)];
