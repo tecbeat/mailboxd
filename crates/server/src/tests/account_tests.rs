@@ -32,6 +32,7 @@ struct AccountResp {
     email: String,
     enabled: bool,
     account_name: Option<String>,
+    deleting: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -74,6 +75,7 @@ async fn account_crud() {
     resp.assert_status_is_ok();
     let account: AccountResp = resp.json().await.value().deserialize();
     assert_eq!(account.email, "test-crud@example.com");
+    assert_eq!(account.account_name.as_deref(), Some("CRUD Test Account"));
     assert!(!account.enabled);
     let account_id = account.id;
 
@@ -94,6 +96,9 @@ async fn account_crud() {
         .send()
         .await;
     resp.assert_status_is_ok();
+    let page: DataPage<AccountResp> = resp.json().await.value().deserialize();
+    assert!(page.items.iter().any(|a| a.id == account_id));
+    assert!(page.total_items >= 1);
 
     // ── Update ──────────────────────────────────────────────────────────
     let update_payload = UpdateAccountPayload {
@@ -108,6 +113,16 @@ async fn account_crud() {
         .await;
     resp.assert_status_is_ok();
 
+    let resp = cli
+        .get(&format!("/api/v1/account/{}", account_id))
+        .header("Authorization", &format!("Bearer {}", token))
+        .send()
+        .await;
+    resp.assert_status_is_ok();
+    let account: AccountResp = resp.json().await.value().deserialize();
+    assert_eq!(account.account_name.as_deref(), Some("Updated Name"));
+    assert!(account.enabled);
+
     // ── Delete ──────────────────────────────────────────────────────────
     let resp = cli
         .delete(&format!("/api/v1/account/{}", account_id))
@@ -117,12 +132,27 @@ async fn account_crud() {
     resp.assert_status_is_ok();
 
     // ── Verify deleted ──────────────────────────────────────────────────
-    let resp = cli
-        .get(&format!("/api/v1/account/{}", account_id))
-        .header("Authorization", &format!("Bearer {}", token))
-        .send()
-        .await;
-    assert!(resp.0.status().is_client_error(), "should be 4xx after delete");
+    // Deletion marks the account as `deleting` and removes it in a
+    // background task, so wait for it to disappear.
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    loop {
+        let resp = cli
+            .get(&format!("/api/v1/account/{}", account_id))
+            .header("Authorization", &format!("Bearer {}", token))
+            .send()
+            .await;
+        if resp.0.status().is_client_error() {
+            break;
+        }
+        resp.assert_status_is_ok();
+        let account: AccountResp = resp.json().await.value().deserialize();
+        assert!(account.deleting, "a deleted account must be marked as deleting");
+        assert!(
+            std::time::Instant::now() < deadline,
+            "account still exists 10 s after delete"
+        );
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
 }
 
 #[tokio::test]
