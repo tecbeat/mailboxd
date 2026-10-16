@@ -54,6 +54,7 @@ tokio-rustls = { version = "0.26.4", default-features = false, features = [
 ] }
 timeago = "0.6.1"
 oauth2 = { version = "5.0.0", features = ["reqwest-blocking"] }
+jsonwebtoken = { version = "11.1.0", features = ["aws_lc_rs"] }
 url = { version = "2.5.8", features = ["serde"] }
 sysinfo = "0.39.4"
 num_cpus = "1.17.0"
