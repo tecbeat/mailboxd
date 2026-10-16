@@ -77,3 +77,116 @@ fn ignores_subscribed_folders_not_present_remotely() {
     let names: Vec<_> = selected.iter().map(|m| m.name.as_str()).collect();
     assert_eq!(names, vec!["Inbox"]);
 }
+
+mod cursor_persistence {
+    use std::sync::{Arc, Mutex};
+
+    use async_trait::async_trait;
+    use tokio_util::sync::CancellationToken;
+
+    use crate::account::migration::{Account, AccountType};
+    use crate::account::state::TriggerType;
+    use crate::archive::engine::run_sync;
+    use crate::archive::imap::mailbox::MailBox;
+    use crate::archive::source::{
+        MailSession, MailSource, MailboxChanges, MessageRef, RawMessage, SyncCursor,
+    };
+    use crate::error::MailboxdResult;
+
+    /// A source with one empty mailbox that hands out a fixed cursor and
+    /// records the cursor the engine passes into every `changes_since` call.
+    struct RecordingSource {
+        mailbox: MailBox,
+        seen_cursors: Arc<Mutex<Vec<Option<String>>>>,
+    }
+
+    struct RecordingSession {
+        mailbox: MailBox,
+        seen_cursors: Arc<Mutex<Vec<Option<String>>>>,
+    }
+
+    #[async_trait]
+    impl MailSource for RecordingSource {
+        fn name(&self) -> &'static str {
+            "recording"
+        }
+
+        async fn connect(&self, _account_id: u64) -> MailboxdResult<Box<dyn MailSession>> {
+            Ok(Box::new(RecordingSession {
+                mailbox: self.mailbox.clone(),
+                seen_cursors: self.seen_cursors.clone(),
+            }))
+        }
+    }
+
+    #[async_trait]
+    impl MailSession for RecordingSession {
+        async fn list_mailboxes(&mut self) -> MailboxdResult<Vec<MailBox>> {
+            Ok(vec![self.mailbox.clone()])
+        }
+
+        async fn changes_since(
+            &mut self,
+            _mailbox: &MailBox,
+            cursor: Option<SyncCursor>,
+            _token: CancellationToken,
+        ) -> MailboxdResult<MailboxChanges> {
+            self.seen_cursors
+                .lock()
+                .unwrap()
+                .push(cursor.map(|c| c.as_str().to_string()));
+            Ok(MailboxChanges {
+                cursor: Some(SyncCursor::new("state-1")),
+                ..Default::default()
+            })
+        }
+
+        async fn load_raw(
+            &mut self,
+            _mailbox: &MailBox,
+            _msg: &MessageRef,
+        ) -> MailboxdResult<RawMessage> {
+            unreachable!("the recording mailbox has no messages")
+        }
+
+        async fn append(&mut self, _mailbox: &str, _eml: &[u8]) -> MailboxdResult<()> {
+            Ok(())
+        }
+
+        async fn logout(&mut self) -> MailboxdResult<()> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn second_sync_resumes_from_the_stored_cursor() {
+        // Fresh ids: the test database outlives a single test run.
+        let account_id = crate::id!(64);
+        let seen_cursors = Arc::new(Mutex::new(Vec::new()));
+        let source = RecordingSource {
+            mailbox: MailBox {
+                id: crate::id!(64),
+                account_id,
+                name: "INBOX".to_string(),
+                ..Default::default()
+            },
+            seen_cursors: seen_cursors.clone(),
+        };
+        let account = Account {
+            id: account_id,
+            account_type: AccountType::JMAP,
+            ..Default::default()
+        };
+
+        for _ in 0..2 {
+            run_sync(&account, &source, CancellationToken::new(), TriggerType::Manual)
+                .await
+                .unwrap();
+        }
+
+        assert_eq!(
+            *seen_cursors.lock().unwrap(),
+            vec![None, Some("state-1".to_string())]
+        );
+    }
+}
