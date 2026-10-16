@@ -288,6 +288,7 @@ On first start, mailboxd creates a built-in admin user with username `admin` and
 
 ## Roadmap
 
+- **Upstream sync (bichon 2.0.2 – 2.1.1+)** — Port relevant bug fixes and features from upstream rustmailer/bichon released after 2.0.1 (our last port).
 - **JMAP Support** — Add JMAP (RFC 8620 / RFC 8621) as a second mail source alongside IMAP, via a reusable MailSource abstraction. Tracks epic #44.
 
 ## Contributing
