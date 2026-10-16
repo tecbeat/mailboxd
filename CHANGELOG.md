@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.0) - 2026-10-16
+
+### ⛰️  Features
+
+- *(ci)* Mirror release images and notes to GitHub - ([272886e](https://git.teccave.de/tecbeat/mailboxd/commit/272886ef5a0064d146e0e4f642c5ddec1755f1a1))
+
 ## [1.8.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.8.1) - 2026-10-16
 
 ### 🐛 Bug Fixes
