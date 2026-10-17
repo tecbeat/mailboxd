@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.2) - 2026-10-17
+
+### 🐛 Bug Fixes
+
+- *(deps)* Pin rust crate aws-lc-rs to v1.16.3 - ([19054d5](https://git.teccave.de/tecbeat/mailboxd/commit/19054d5342fccf4c44e34416fce415cb16f95575))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update hub.teccave.de/images/core Docker tag to v1.4.45 - ([fb3ba10](https://git.teccave.de/tecbeat/mailboxd/commit/fb3ba10e3b42e9bb76128fded6cee62ad7083139))
+
 ## [1.9.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.1) - 2026-10-17
 
 ### 🐛 Bug Fixes
