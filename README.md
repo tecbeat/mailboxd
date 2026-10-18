@@ -50,31 +50,42 @@ docker compose up -d
 
 ## Features
 
-- **Multi-account IMAP download** — Concurrent per-account sync with PLAIN/LOGIN and SASL XOAUTH2, automatic OAuth token refresh with PKCE, and support for SSL/TLS, STARTTLS or plain connections.
-- **Incremental delta fetch** — UID-based delta fetching downloads only new messages after the initial sync. UIDVALIDITY changes trigger automatic cache rebuilds.
-- **Fetch scoping** — Filter downloads by date range, mailbox folder limit or specific folder names. Optional per-account SOCKS5 proxy routing.
-- **Auto-configuration** — Discover IMAP server settings automatically from an email domain.
-- **Full-text search** — Tantivy indices for envelopes and attachments with Zstd compression. Optimised for European languages.
-- **Attachment text extraction** — Attachment contents are extracted and full-text indexed out of the box: PDF, Word (docx), PowerPoint (pptx), spreadsheets (xls/xlsx/ods), OpenDocument (odt/odp), RTF and plain text. Pure-Rust parsers, no external tools required. Attachments above 10 MiB and legacy binary Office formats (doc/ppt) are skipped; OCR of image-only PDFs is out of scope.
-- **Advanced filters** — Date range, size range, attachment presence, file type, content category and facet-based tag combinations.
-- **Thread grouping** — Reconstruct and view complete conversation threads across folders.
-- **Attachment search** — Browse and filter attachments by sender, file type, size and other attachment properties.
-- **Faceted tags** — Add, remove or overwrite tags on messages and attachments; filter by tag combinations with real-time count updates.
-- **Contacts view** — Extracted and deduplicated sender/recipient address book across all authorised accounts.
-- **Three-layer storage** — memdb for relational metadata, Tantivy for full-text indexing and mailboxd-blob (embedded, content-addressed, Zstd-compressed) for raw message and attachment storage — all embedded, no external dependencies.
-- **Content deduplication** — BLAKE3 content hashing gives insert-time deduplication across accounts and folders. Folder moves update metadata only.
-- **Dashboard analytics** — Email volume trends, top senders, storage usage breakdown, attachment statistics and per-account activity — scoped by user permissions.
-- **OpenAPI 3.0** — All endpoints documented and browsable via Swagger UI, ReDoc and Scalar. Long-lived API tokens for programmatic access.
-- **Multi-user RBAC** — 5 built-in roles (Admin, Manager, Member, AccountManager, AccountViewer) plus custom roles with 22 granular permissions. Account-level ACLs scope data access per user.
-- **OpenID Connect SSO** — Authorization Code flow with PKCE against any OIDC provider (Authentik, Keycloak, PocketID, Authelia, Zitadel, Dex). Auto-provisioning of new users with a configurable default role.
-- **Embedded SMTP receiver** — Optional built-in SMTP server for direct email ingestion. STARTTLS or implicit TLS, AUTH PLAIN/LOGIN with API-token authentication.
-- **Embedded IMAP server** — Optional read-only IMAP server exposes archived mail to standard email clients (Thunderbird, Outlook, Apple Mail).
-- **Import and export** — CLI tools import from EML directories, MBOX files (incl. Gmail's variant), Thunderbird profiles and Outlook PST files. Export as MBOX. All parsing happens server-side.
-- **Instance backup and restore** — Administrators create and download a full server backup (all archived mail, attachments, search index and settings) from the WebUI, or schedule automatic backups to a directory via a cron expression with configurable retention. Restore by uploading an archive: the server validates and stages it, then restarts to apply it. Archives are tar + Zstd; encrypted credentials are included and restorable only with the matching encryption password.
-- **Scheduled downloads** — Per-account cron expressions run syncs at specific times — nightly-only or business-hours-only archiving.
-- **Remote-content blocking** — External images and tracking pixels in emails are blocked by default; users can selectively allow remote content per message.
-- **Async index dedup** — Duplicate detection in the search index runs asynchronously to reduce write latency during high-throughput ingestion.
-- **Multi-language WebUI** — React + TypeScript frontend served embedded, localised into 18 languages with light and dark themes.
+| Feature | Description |
+|---------|-------------|
+| **Multi-account IMAP download** | Concurrent per-account sync with PLAIN/LOGIN and SASL XOAUTH2, automatic OAuth token refresh with PKCE, and support for SSL/TLS, STARTTLS or plain connections. |
+| **Incremental delta fetch** | UID-based delta fetching downloads only new messages after the initial sync. UIDVALIDITY changes trigger automatic cache rebuilds. |
+| **Fetch scoping** | Filter downloads by date range, mailbox folder limit or specific folder names. Optional per-account SOCKS5 proxy routing. |
+| **Auto-configuration** | Discover IMAP server settings automatically from an email domain. |
+| **Full-text search** | Tantivy indices for envelopes and attachments with Zstd compression. Optimised for European languages. |
+| **Attachment text extraction** | Attachment contents are extracted and full-text indexed out of the box: PDF, Word (docx), PowerPoint (pptx), spreadsheets (xls/xlsx/ods), OpenDocument (odt/odp), RTF and plain text. Pure-Rust parsers, no external tools required. Attachments above 10 MiB and legacy binary Office formats (doc/ppt) are skipped; OCR of image-only PDFs is out of scope. |
+| **Advanced filters** | Date range, size range, attachment presence, file type, content category and facet-based tag combinations. |
+| **Thread grouping** | Reconstruct and view complete conversation threads across folders. |
+
+<details>
+<summary><strong>Show 17 more features</strong></summary>
+<br/>
+
+| Feature | Description |
+|---------|-------------|
+| **Attachment search** | Browse and filter attachments by sender, file type, size and other attachment properties. |
+| **Faceted tags** | Add, remove or overwrite tags on messages and attachments; filter by tag combinations with real-time count updates. |
+| **Contacts view** | Extracted and deduplicated sender/recipient address book across all authorised accounts. |
+| **Three-layer storage** | memdb for relational metadata, Tantivy for full-text indexing and mailboxd-blob (embedded, content-addressed, Zstd-compressed) for raw message and attachment storage — all embedded, no external dependencies. |
+| **Content deduplication** | BLAKE3 content hashing gives insert-time deduplication across accounts and folders. Folder moves update metadata only. |
+| **Dashboard analytics** | Email volume trends, top senders, storage usage breakdown, attachment statistics and per-account activity — scoped by user permissions. |
+| **OpenAPI 3.0** | All endpoints documented and browsable via Swagger UI, ReDoc and Scalar. Long-lived API tokens for programmatic access. |
+| **Multi-user RBAC** | 5 built-in roles (Admin, Manager, Member, AccountManager, AccountViewer) plus custom roles with 22 granular permissions. Account-level ACLs scope data access per user. |
+| **OpenID Connect SSO** | Authorization Code flow with PKCE against any OIDC provider (Authentik, Keycloak, PocketID, Authelia, Zitadel, Dex). Auto-provisioning of new users with a configurable default role. |
+| **Embedded SMTP receiver** | Optional built-in SMTP server for direct email ingestion. STARTTLS or implicit TLS, AUTH PLAIN/LOGIN with API-token authentication. |
+| **Embedded IMAP server** | Optional read-only IMAP server exposes archived mail to standard email clients (Thunderbird, Outlook, Apple Mail). |
+| **Import and export** | CLI tools import from EML directories, MBOX files (incl. Gmail's variant), Thunderbird profiles and Outlook PST files. Export as MBOX. All parsing happens server-side. |
+| **Instance backup and restore** | Administrators create and download a full server backup (all archived mail, attachments, search index and settings) from the WebUI, or schedule automatic backups to a directory via a cron expression with configurable retention. Restore by uploading an archive: the server validates and stages it, then restarts to apply it. Archives are tar + Zstd; encrypted credentials are included and restorable only with the matching encryption password. |
+| **Scheduled downloads** | Per-account cron expressions run syncs at specific times — nightly-only or business-hours-only archiving. |
+| **Remote-content blocking** | External images and tracking pixels in emails are blocked by default; users can selectively allow remote content per message. |
+| **Async index dedup** | Duplicate detection in the search index runs asynchronously to reduce write latency during high-throughput ingestion. |
+| **Multi-language WebUI** | React + TypeScript frontend served embedded, localised into 18 languages with light and dark themes. |
+
+</details>
 
 ## Configuration
 
