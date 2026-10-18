@@ -8,7 +8,7 @@ mailboxd-core = { path = "../core" }
 mailboxd-blob.workspace = true
 mailboxd-memdb.workspace = true
 fjall.workspace = true
-tantivy = { version = "0.26.1", features = ["zstd-compression", "quickwit"] }
+tantivy = { version = "0.27.0", features = ["zstd-compression", "quickwit"] }
 native_db = "0.8.2"
 native_model = "0.4.20"
 serde.workspace = true
