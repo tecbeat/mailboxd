@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.5](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.5) - 2026-10-19
+
+### 🧪 Testing
+
+- *(web)* Capture a screenshot of every page in the instance suite - ([7c5a1b4](https://git.teccave.de/tecbeat/mailboxd/commit/7c5a1b479634a4dd4f968e258a857bbcd6415788))
+- *(web)* Add a Playwright suite for a running mailboxd instance - ([d8d624d](https://git.teccave.de/tecbeat/mailboxd/commit/d8d624dd19c4f9ddc92c83eec38c1fc8df0a94e4))
+- *(web)* Add Playwright smoke test for the production build - ([297464e](https://git.teccave.de/tecbeat/mailboxd/commit/297464e58e9312f173ad3835fe0d4305d9ad581b))
+
+### ⚙️ Miscellaneous Tasks
+
+- Expire e2e artifacts after one day - ([8a07397](https://git.teccave.de/tecbeat/mailboxd/commit/8a0739753f3012c43b63a201d850e261db769c16))
+- Gate the pipeline on image_e2e against the built image - ([1ee5bc9](https://git.teccave.de/tecbeat/mailboxd/commit/1ee5bc9ac243e7ee6df6fa6febad898d10b9348c))
+- Gate the pipeline on the web_e2e browser smoke test - ([d62dcca](https://git.teccave.de/tecbeat/mailboxd/commit/d62dcca38ed45c70a09c3187f338747ea4da0326))
+
 ## [1.9.4](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.4) - 2026-10-19
 
 ### 🐛 Bug Fixes
