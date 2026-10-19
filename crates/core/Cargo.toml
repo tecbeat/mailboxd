@@ -82,7 +82,7 @@ hex.workspace = true
 # the dependency graph pure-Rust (no bzip2/zstd/lzma C libs via zip; no
 # wasm-bindgen via rtf-parser) so the slim Docker image needs no apt deps.
 pdf-extract = "0.12.0"
-calamine = "0.36.1"
+calamine = "0.37.0"
 zip = { version = "9.0.0", default-features = false, features = ["deflate-flate2"] }
 rtf-parser = { version = "0.4.3", default-features = false }
 # Instance backup archives (issue #42): a tar container wrapped in zstd. zstd is
