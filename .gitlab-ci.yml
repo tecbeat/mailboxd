@@ -125,6 +125,55 @@ web_lint:
   script:
     - pnpm run lint
 
+# Hard gate: the production build must boot in a real browser. Unit tests run
+# against source modules, so bundling/chunking breakage (e.g. a blank WebUI
+# from a bad code-splitting config) only surfaces in the built `dist/`.
+web_e2e:
+  extends: .web_check
+  image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:7852dc5a7d72f5fe458a597d690f6c42fbc8e9e26ddfa95f8e6ef552558d9bbf
+  script:
+    - pnpm run build
+    - pnpm test:e2e
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - web/e2e-results/
+    reports:
+      junit: web/e2e-results/junit.xml
+
+# Hard gate on the release artifact: boot the freshly built image on an empty
+# volume, exactly as an operator would, and drive the real WebUI + API in a
+# browser (sign-in, every page, no JS errors, no 5xx, no missing assets).
+# `web_e2e` proves the bundle boots; this proves the server ships and serves it.
+image_e2e:
+  extends: [.web_check, .test_image]
+  image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:7852dc5a7d72f5fe458a597d690f6c42fbc8e9e26ddfa95f8e6ef552558d9bbf
+  services:
+    - name: ${CI_REGISTRY_IMAGE}:${VERSION}
+      alias: mailboxd
+      variables:
+        MAILBOXD_ROOT_DIR: /data
+        MAILBOXD_ENCRYPT_PASSWORD: ci-test-password
+        MAILBOXD_PUBLIC_URL: http://mailboxd:15630
+  variables:
+    MAILBOXD_E2E_URL: http://mailboxd:15630
+  script:
+    - |
+      for _ in $(seq 1 60); do
+        curl -fsS "$MAILBOXD_E2E_URL/api/status" >/dev/null 2>&1 && break
+        sleep 2
+      done
+    - curl -fsS "$MAILBOXD_E2E_URL/api/status"
+    - pnpm test:e2e
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - web/e2e-results/
+    reports:
+      junit: web/e2e-results/junit.xml
+
 # End-to-end coverage against the actual release artifact: the built container
 # image. `cargo_test`/`migration_tests` exercise the Rust logic in isolation;
 # these jobs boot the real image the way an operator would, so a broken

@@ -16,6 +16,11 @@
       "matchDepNames": ["typescript"],
       "allowedVersions": "<6.1.0",
       "description": "typescript-eslint 8.x supports TypeScript <6.1.0; TS 7 crashes eslint."
+    },
+    {
+      "matchDepNames": ["@playwright/test", "mcr.microsoft.com/playwright"],
+      "groupName": "playwright",
+      "description": "The browsers in the CI image must match the @playwright/test version."
     }
   ]
 }
