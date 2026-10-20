@@ -20,7 +20,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@hookform/resolvers": "^5.0.0",
+    "@hookform/resolvers": "^6.0.0",
     "@mui/material": "^9.0.0",
     "@mui/x-tree-view": "^9.0.0",
     "@radix-ui/react-accordion": "^1.2.2",
