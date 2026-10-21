@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.6](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.6) - 2026-10-21
+
+### 🐛 Bug Fixes
+
+- *(deps)* Regenerate pnpm lockfile for vite 8.3.5 - ([61e2b69](https://git.teccave.de/tecbeat/mailboxd/commit/61e2b69b811786ebf4b6f1157f823e963614b19d))
+- *(deps)* Update rust:1.99.1-slim-bookworm docker digest to 16113eb - ([ecc38dc](https://git.teccave.de/tecbeat/mailboxd/commit/ecc38dc33162b107ea420dc338be7280616c5470))
+- *(deps)* Update node.js to 6a1c190 - ([094b365](https://git.teccave.de/tecbeat/mailboxd/commit/094b36556b71a6b7907beac48b58a46afbfadc2a))
+- *(deps)* Update debian:bookworm-slim docker digest to 7ff6ba3 - ([abfd8d3](https://git.teccave.de/tecbeat/mailboxd/commit/abfd8d3c3b2f0779e2d1edffdca69d0c816502e6))
+- *(deps)* Update dependency @hookform/resolvers to v6 - ([8632341](https://git.teccave.de/tecbeat/mailboxd/commit/863234165e0a8364c56788d474642ed47f726fb2))
+- *(deps)* Update all non-major dependencies - ([7188e28](https://git.teccave.de/tecbeat/mailboxd/commit/7188e28ab11e41b6ea8d335cd312177d42d9151a))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update all non-major dependencies - ([ef762aa](https://git.teccave.de/tecbeat/mailboxd/commit/ef762aadeb69c592ee0c5b9496846f290c22ec5b))
+- *(deps)* Update gitlab-ci - ([7c06995](https://git.teccave.de/tecbeat/mailboxd/commit/7c069952801f0e815a9b77610ae4df9c261098ac))
+
 ## [1.9.5](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.5) - 2026-10-19
 
 ### 🧪 Testing
