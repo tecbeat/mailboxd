@@ -295,7 +295,7 @@ mirror_image:
 # letting the release API create one.
 mirror_release:
   extends: .github_mirror
-  image: hub.teccave.de/images/core:v1.4.46@sha256:bf8cb58802077ae2dc8ded40efea4fdf3dca96c32ccdcd716e31455064eb7a64
+  image: hub.teccave.de/images/core:v1.4.48@sha256:01daf11eaa1e768e72081d256ea130a3daba024385a802e92294f7fd49a9d860
   needs:
     - job: versioner
       artifacts: true
