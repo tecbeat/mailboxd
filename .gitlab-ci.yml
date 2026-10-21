@@ -18,7 +18,7 @@ include:
 cargo_test:
   extends: .skip_on_default_branch
   stage: unittest
-  image: rust:1.99.1-slim-bookworm@sha256:a24e292b4af7bdee351a31d3a6379972a5652f0ea22a1b6d6883324ac4f5097c
+  image: rust:1.99.1-slim-bookworm@sha256:16113eb5d5c1e25d9359f40115225ce8719997fb0d9a3dab83e921da0308992f
   needs: []
   variables:
     MAILBOXD_ROOT_DIR: /tmp/mailboxd-test
@@ -58,7 +58,7 @@ cargo_test:
 migration_tests:
   extends: .skip_on_default_branch
   stage: unittest
-  image: rust:1.99.1-slim-bookworm@sha256:a24e292b4af7bdee351a31d3a6379972a5652f0ea22a1b6d6883324ac4f5097c
+  image: rust:1.99.1-slim-bookworm@sha256:16113eb5d5c1e25d9359f40115225ce8719997fb0d9a3dab83e921da0308992f
   needs:
     - cargo_test
   variables:
@@ -93,7 +93,7 @@ migration_tests:
 .web_check:
   extends: .skip_on_default_branch
   stage: unittest
-  image: node:24-alpine3.24@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f
+  image: node:24-alpine3.24@sha256:6a1c190e17215d844926b0677f4bf87273ff7d5e54db06d3b5b5863ab0b09a3d
   needs: []
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
@@ -267,7 +267,7 @@ image_update_test:
 mirror_image:
   extends: .github_mirror
   image:
-    name: ghcr.io/regclient/regctl:v0.11.6-alpine@sha256:5fe7c6a6206e1d9d71af719674c9db03e74a4ae221a32089b691f5b55533d6ea
+    name: ghcr.io/regclient/regctl:v0.11.7-alpine@sha256:e9e208e2420fbf9fd47ae24ad4dd4ac40089bd4ead05c1ecd763c43e24fd55b5
     entrypoint: [""]
   needs:
     - job: versioner
