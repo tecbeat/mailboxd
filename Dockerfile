@@ -25,7 +25,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 # ---------------------------------------------------------------------------
 # Stage 2: build the Rust server, cli and admin binaries
 # ---------------------------------------------------------------------------
-FROM rust:1.99.1-slim-bookworm@sha256:16113eb5d5c1e25d9359f40115225ce8719997fb0d9a3dab83e921da0308992f AS rust-builder
+FROM rust:1.99.1-slim-bookworm@sha256:86234e857a413004348b471d11a4ebe1aa92d2eae2b6b143cac68fd1ac3c48be AS rust-builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
