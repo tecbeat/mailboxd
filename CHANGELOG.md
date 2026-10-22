@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
+- *(deps)* Update rust:1.99.1-slim-bookworm docker digest to 86234e8 - ([43c0265](https://git.teccave.de/tecbeat/mailboxd/commit/43c0265b012e1b2f687f5f238f92e17d0d79f7b3))
 - *(deps)* Update node.js to 06d7adf - ([af652d2](https://git.teccave.de/tecbeat/mailboxd/commit/af652d25d74852fda5ed2c8437c627c0b2cfd375))
 - *(deps)* Update pnpm to v12.15.0 - ([62f1edb](https://git.teccave.de/tecbeat/mailboxd/commit/62f1edb49307174f1d559553902a6ddf122831e7))
 
