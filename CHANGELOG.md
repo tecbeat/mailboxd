@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.9](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.9) - 2026-10-22
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update node.js to 06d7adf - ([a0bd7b0](https://git.teccave.de/tecbeat/mailboxd/commit/a0bd7b016da3cbaba2ed507830d82584845a45d2))
+- *(deps)* Update pnpm to v12.15.0 - ([f51f501](https://git.teccave.de/tecbeat/mailboxd/commit/f51f501c5f74837f141240ec4479f21f92cadc51))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update gitlab-ci - ([be4e96b](https://git.teccave.de/tecbeat/mailboxd/commit/be4e96b1aefcde358b86d2020eb141de28c3d743))
+
 ## [1.9.8](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.8) - 2026-10-22
 
 ### ⚙️ Miscellaneous Tasks
