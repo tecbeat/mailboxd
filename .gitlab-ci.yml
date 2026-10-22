@@ -18,7 +18,7 @@ include:
 cargo_test:
   extends: .skip_on_default_branch
   stage: unittest
-  image: rust:1.99.1-slim-bookworm@sha256:16113eb5d5c1e25d9359f40115225ce8719997fb0d9a3dab83e921da0308992f
+  image: rust:1.99.1-slim-bookworm@sha256:86234e857a413004348b471d11a4ebe1aa92d2eae2b6b143cac68fd1ac3c48be
   needs: []
   variables:
     MAILBOXD_ROOT_DIR: /tmp/mailboxd-test
@@ -58,7 +58,7 @@ cargo_test:
 migration_tests:
   extends: .skip_on_default_branch
   stage: unittest
-  image: rust:1.99.1-slim-bookworm@sha256:16113eb5d5c1e25d9359f40115225ce8719997fb0d9a3dab83e921da0308992f
+  image: rust:1.99.1-slim-bookworm@sha256:86234e857a413004348b471d11a4ebe1aa92d2eae2b6b143cac68fd1ac3c48be
   needs:
     - cargo_test
   variables:
@@ -93,7 +93,7 @@ migration_tests:
 .web_check:
   extends: .skip_on_default_branch
   stage: unittest
-  image: node:24-alpine3.24@sha256:6a1c190e17215d844926b0677f4bf87273ff7d5e54db06d3b5b5863ab0b09a3d
+  image: node:24-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
   needs: []
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
