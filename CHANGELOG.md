@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.11](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.11) - 2026-10-22
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update hub.teccave.de/images/core Docker tag to v1.4.51 - ([753a476](https://git.teccave.de/tecbeat/mailboxd/commit/753a47612e72c13e7e9b18d519fcd83407fde245))
+
+## [1.9.10](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.10) - 2026-10-22
+
 ## [1.9.9](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.9) - 2026-10-22
 
 ### 🐛 Bug Fixes
