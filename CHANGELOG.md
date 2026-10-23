@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.13](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.13) - 2026-10-23
+
+### ⚙️ Miscellaneous Tasks
+
+- *(deps)* Update mcr.microsoft.com/playwright:v1.64.1-noble Docker digest to 47b510d - ([3bb3353](https://git.teccave.de/tecbeat/mailboxd/commit/3bb335341045c99f46c432a6c28b67beb8561ca7))
+
 ## [1.9.12](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.12) - 2026-10-23
 
 ### 🐛 Bug Fixes
