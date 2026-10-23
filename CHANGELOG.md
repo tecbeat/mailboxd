@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.12](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.12) - 2026-10-23
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency @tanstack/router-plugin to v1.168.48 - ([bcc9992](https://git.teccave.de/tecbeat/mailboxd/commit/bcc999225667e4f75208edf48cc61a79428abfed))
+
 ## [1.9.11](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.11) - 2026-10-22
 
 ### ⚙️ Miscellaneous Tasks
