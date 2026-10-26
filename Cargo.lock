@@ -1249,6 +1249,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
+name = "encodify"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e95d6e27686e1d6991a3077f4dbec9d33d18903466d234165ad86cd08c3ebc79"
+dependencies = [
+ "memchr",
+ "simdutf8",
+]
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1759,6 +1769,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "hashify"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66f5a65bf7824ada2de4a2cf9fa0981dabffc5392bb8550767c3c3d71ed52e4d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.3",
 ]
 
 [[package]]
@@ -2596,10 +2617,10 @@ dependencies = [
  "flate2",
  "getrandom 0.2.17",
  "getrandom 0.4.2",
- "hashify",
+ "hashify 0.2.9",
  "hickory-resolver",
  "mail-builder",
- "mail-parser",
+ "mail-parser 0.11.4",
  "quick-xml 0.41.0",
  "rustls-pki-types",
  "serde",
@@ -2624,8 +2645,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2c0e7e0704500930be5b6c629f30d23fd1dde4d1800e138e04b3fa302e64d51"
 dependencies = [
  "encoding_rs",
- "hashify",
+ "hashify 0.2.9",
+]
+
+[[package]]
+name = "mail-parser"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "908e05ffd2f281e4494cdb77552e6df2dc1476da22af811685b37773d415b2df"
+dependencies = [
+ "encodify",
+ "hashify 0.3.1",
+ "memchr",
  "serde",
+ "simdutf8",
 ]
 
 [[package]]
@@ -2688,7 +2721,7 @@ dependencies = [
  "console",
  "dialoguer",
  "indicatif",
- "mail-parser",
+ "mail-parser 1.0.0",
  "mailboxd-core",
  "memmap2",
  "outlook-pst",
@@ -2728,7 +2761,7 @@ dependencies = [
  "itoa",
  "jsonwebtoken",
  "lru 0.19.0",
- "mail-parser",
+ "mail-parser 1.0.0",
  "mail-send",
  "mailboxd-blob",
  "mailboxd-memdb",
@@ -2796,7 +2829,7 @@ dependencies = [
  "hex",
  "indicatif",
  "itertools 0.15.0",
- "mail-parser",
+ "mail-parser 1.0.0",
  "mailboxd-blob",
  "mailboxd-core",
  "mailboxd-memdb",
