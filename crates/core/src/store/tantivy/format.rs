@@ -200,4 +200,24 @@ mod tests {
         assert_eq!(read_index_format_version(legacy.path()), None);
         drop(index);
     }
+
+    #[test]
+    fn a_directory_that_is_no_index_is_not_healed() {
+        let tmp = TempDir::new().unwrap();
+        fs::write(tmp.path().join("random.txt"), b"hello").unwrap();
+        assert!(!heal_index_format_marker(tmp.path()));
+        assert!(!tmp.path().join(INDEX_FORMAT_FILE).exists());
+    }
+
+    #[test]
+    fn an_unwritable_marker_is_not_healed() {
+        let tmp = TempDir::new().unwrap();
+        let index = tantivy::Index::create_in_dir(tmp.path(), SchemaTools::email_schema()).unwrap();
+        // A directory in place of the marker can be neither read nor written.
+        fs::create_dir(tmp.path().join(INDEX_FORMAT_FILE)).unwrap();
+
+        assert!(!heal_index_format_marker(tmp.path()));
+        assert!(tmp.path().join(INDEX_FORMAT_FILE).is_dir());
+        drop(index);
+    }
 }

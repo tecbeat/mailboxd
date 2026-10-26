@@ -1335,4 +1335,627 @@ mod tests {
         assert!(reindex(&paths, false).is_err());
         assert!(reindex_required(&paths));
     }
+
+    // ─── log capture ──────────────────────────────────────────────────────────
+
+    /// Records the fields of every event logged on this thread.
+    struct Capture(std::sync::Arc<std::sync::Mutex<Vec<String>>>);
+
+    struct Fields(String);
+
+    impl tracing::field::Visit for Fields {
+        fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
+            use std::fmt::Write as _;
+            let _ = write!(self.0, "{}={:?} ", field.name(), value);
+        }
+    }
+
+    impl tracing::Subscriber for Capture {
+        fn enabled(&self, _: &tracing::Metadata<'_>) -> bool {
+            true
+        }
+        fn new_span(&self, _: &tracing::span::Attributes<'_>) -> tracing::span::Id {
+            tracing::span::Id::from_u64(1)
+        }
+        fn record(&self, _: &tracing::span::Id, _: &tracing::span::Record<'_>) {}
+        fn record_follows_from(&self, _: &tracing::span::Id, _: &tracing::span::Id) {}
+        fn event(&self, event: &tracing::Event<'_>) {
+            let mut fields = Fields(String::new());
+            event.record(&mut fields);
+            self.0.lock().unwrap().push(fields.0);
+        }
+        fn enter(&self, _: &tracing::span::Id) {}
+        fn exit(&self, _: &tracing::span::Id) {}
+    }
+
+    /// Run `f` inside a span, as a caller would, and return its result with
+    /// the events it logged.
+    fn logged<T>(f: impl FnOnce() -> T) -> (T, Vec<String>) {
+        let events = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let result = tracing::subscriber::with_default(Capture(events.clone()), || {
+            tracing::info_span!("test").in_scope(f)
+        });
+        let events = events.lock().unwrap().clone();
+        (result, events)
+    }
+
+    fn assert_logged(events: &[String], fragment: &str) {
+        assert!(
+            events.iter().any(|event| event.contains(fragment)),
+            "no event contains {fragment:?}: {events:#?}"
+        );
+    }
+
+    // ─── fixtures ─────────────────────────────────────────────────────────────
+
+    /// A migrated v2 data root without any index.
+    fn v2_root() -> (TempDir, AutoMigratePaths, ResolvedDirs) {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().to_path_buf();
+        write_storage_version(&root, CURRENT_STORAGE_VERSION).unwrap();
+        let dirs = resolve_dirs(&root, None, None);
+        let paths = AutoMigratePaths {
+            root_dir: root,
+            index_dir: None,
+            data_dir: None,
+        };
+        (tmp, paths, dirs)
+    }
+
+    fn legacy_email(values: &[(&str, OwnedValue)]) -> TantivyDocument {
+        legacy_doc(&legacy_schema(SchemaTools::email_schema()), values)
+    }
+
+    fn legacy_attachment(values: &[(&str, OwnedValue)]) -> TantivyDocument {
+        legacy_doc(&legacy_schema(SchemaTools::attachment_schema()), values)
+    }
+
+    fn report_lines(path: &Path) -> Vec<serde_json::Value> {
+        std::fs::read_to_string(path)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect()
+    }
+
+    fn stored_ids(dir: &Path, id_field: Field) -> BTreeSet<String> {
+        let (_, s) = searcher(dir);
+        let top = s
+            .search(&AllQuery, &TopDocs::with_limit(100).order_by_score())
+            .unwrap();
+        top.iter()
+            .map(|(_, address)| {
+                let doc: TantivyDocument = s.doc(*address).unwrap();
+                doc.get_first(id_field)
+                    .and_then(|v| v.as_str())
+                    .unwrap()
+                    .to_string()
+            })
+            .collect()
+    }
+
+    fn location() -> Location {
+        Location {
+            kind: "email",
+            segment: "seg-1".to_string(),
+            doc_id: 7,
+        }
+    }
+
+    // ─── reindex ──────────────────────────────────────────────────────────────
+
+    #[test]
+    fn an_email_only_index_keeps_emails_without_a_readable_blob() {
+        let (_tmp, paths, dirs) = v2_root();
+        let docs = vec![
+            legacy_email(&[("id", text("eid-1")), ("subject", text("No hash"))]),
+            legacy_email(&[
+                ("id", text("eid-2")),
+                ("subject", text("Bad hash")),
+                ("content_hash", text("not-hex")),
+            ]),
+        ];
+        write_legacy_index(
+            &dirs.envelope_dir,
+            legacy_schema(SchemaTools::email_schema()),
+            docs,
+        );
+
+        let (outcome, events) = logged(|| reindex(&paths, false));
+        let outcome = outcome.unwrap().expect("legacy index is rebuilt");
+
+        assert_eq!(outcome.emails, 2);
+        assert_eq!(outcome.attachments, 0);
+        assert_eq!(outcome.missing_bodies, 2);
+        assert_logged(&events, "Invalid content hash \"not-hex\"");
+        assert_eq!(
+            check_index_format(&dirs.envelope_dir),
+            IndexFormatStatus::Current
+        );
+        assert!(!dirs.attachment_dir.exists());
+        let f = SchemaTools::email_fields();
+        let (index, s) = searcher(&dirs.envelope_dir);
+        assert_eq!(hits(&index, &s, f.f_subject, "hash"), 2);
+        assert_eq!(hits(&index, &s, f.f_body, "hash"), 0);
+    }
+
+    #[test]
+    fn an_attachment_only_index_is_rebuilt_without_texts() {
+        let (_tmp, paths, dirs) = v2_root();
+        let docs = vec![legacy_attachment(&[
+            ("id", text("aid-1")),
+            ("eid", text("eid-1")),
+            ("content_hash", text(&hash("cd"))),
+            ("name_exact", text("inv9921.pdf")),
+            ("has_text", OwnedValue::Bool(true)),
+        ])];
+        write_legacy_index(
+            &dirs.attachment_dir,
+            legacy_schema(SchemaTools::attachment_schema()),
+            docs,
+        );
+
+        let outcome = reindex(&paths, false).unwrap().expect("rebuilt");
+
+        assert_eq!(outcome.emails, 0);
+        assert_eq!(outcome.attachments, 1);
+        assert_eq!(outcome.missing_texts, 1);
+        assert!(!dirs.envelope_dir.exists());
+        let af = SchemaTools::attachment_fields();
+        let (index, s) = searcher(&dirs.attachment_dir);
+        assert_eq!(hits(&index, &s, af.f_name_text, "inv9921"), 1);
+        let doc = stored_doc(&s, af.f_id, "aid-1");
+        assert_eq!(
+            doc.get_first(af.f_has_text).and_then(|v| v.as_bool()),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn attachments_of_one_envelope_get_their_texts_from_its_metadata() {
+        let (_tmp, paths, dirs) = v2_root();
+        let metadata = serde_json::json!([
+            {"filename": "a.pdf", "file_type": "application/pdf", "inline": false,
+             "size": 5, "content_id": null, "content_hash": hash("cd"), "is_message": false,
+             "extracted_text": "alpha kw1111", "extracted_page_count": 1},
+            {"filename": "b.pdf", "file_type": "application/pdf", "inline": false,
+             "size": 5, "content_id": null, "content_hash": hash("ce"), "is_message": false,
+             "extracted_text": "beta kw2222", "extracted_page_count": 1}
+        ]);
+        write_legacy_index(
+            &dirs.envelope_dir,
+            legacy_schema(SchemaTools::email_schema()),
+            vec![legacy_email(&[
+                ("id", text("eid-1")),
+                ("attachments", text(&metadata.to_string())),
+            ])],
+        );
+        let attachment = |id: &str, content_hash: &str| {
+            legacy_attachment(&[
+                ("id", text(id)),
+                ("eid", text("eid-1")),
+                ("content_hash", text(&hash(content_hash))),
+                ("has_text", OwnedValue::Bool(true)),
+            ])
+        };
+        write_legacy_index(
+            &dirs.attachment_dir,
+            legacy_schema(SchemaTools::attachment_schema()),
+            vec![attachment("aid-1", "cd"), attachment("aid-2", "ce")],
+        );
+
+        let outcome = reindex(&paths, false).unwrap().expect("rebuilt");
+
+        assert_eq!(outcome.attachments, 2);
+        assert_eq!(outcome.missing_texts, 0);
+        let af = SchemaTools::attachment_fields();
+        let (index, s) = searcher(&dirs.attachment_dir);
+        assert_eq!(hits(&index, &s, af.f_text, "kw1111"), 1);
+        assert_eq!(hits(&index, &s, af.f_text, "kw2222"), 1);
+    }
+
+    #[test]
+    fn the_skip_report_carries_every_stored_value_and_obsolete_fields_are_dropped() {
+        let (_tmp, paths, dirs) = v2_root();
+        let mut builder = Schema::builder();
+        for (_, entry) in legacy_schema(SchemaTools::email_schema()).fields() {
+            builder.add_field(entry.clone());
+        }
+        builder.add_text_field("language", tantivy::schema::STORED);
+        let schema = builder.build();
+        let doc = legacy_doc(
+            &schema,
+            &[
+                ("id", text("eid-1")),
+                ("content_hash", text(&hash("ab"))),
+                ("date", OwnedValue::I64(-5)),
+                ("to", text("u1@example.com")),
+                ("to", text("u2@example.com")),
+                ("to", text("u3@example.com")),
+                ("tags", facet("/inbox")),
+                ("language", text("de")),
+            ],
+        );
+        write_legacy_index(&dirs.envelope_dir, schema, vec![doc]);
+
+        let (outcome, events) = logged(|| reindex(&paths, false));
+        let outcome = outcome.unwrap().expect("rebuilt");
+
+        assert_eq!(outcome.missing_bodies, 1);
+        assert_logged(&events, "\"language\"");
+        let lines = report_lines(&outcome.report.expect("missing body is reported"));
+        assert_eq!(lines.len(), 1);
+        let fields = &lines[0]["fields"];
+        assert_eq!(lines[0]["reason"], "missing_body");
+        assert_eq!(fields["date"], -5);
+        assert_eq!(
+            fields["to"],
+            serde_json::json!(["u1@example.com", "u2@example.com", "u3@example.com"])
+        );
+        assert_eq!(fields["tags"], serde_json::Value::Null);
+        assert_eq!(fields["language"], "de");
+        let (index, _) = searcher(&dirs.envelope_dir);
+        assert!(index.schema().get_field("language").is_err());
+    }
+
+    #[test]
+    fn deleted_documents_are_not_carried_over() {
+        let (_tmp, paths, dirs) = v2_root();
+        let schema = legacy_schema(SchemaTools::email_schema());
+        let id = schema.get_field("id").unwrap();
+        std::fs::create_dir_all(&dirs.envelope_dir).unwrap();
+        let index = Index::create_in_dir(&dirs.envelope_dir, schema).unwrap();
+        register_tokenizers(&index);
+        let mut writer: IndexWriter = index.writer_with_num_threads(1, 15_000_000).unwrap();
+        writer.set_merge_policy(Box::new(NoMergePolicy));
+        for eid in ["eid-1", "eid-2"] {
+            let mut doc = TantivyDocument::new();
+            doc.add_text(id, eid);
+            writer.add_document(doc).unwrap();
+        }
+        writer.commit().unwrap();
+        writer.delete_term(Term::from_field_text(id, "eid-2"));
+        writer.commit().unwrap();
+        drop(writer);
+
+        let outcome = reindex(&paths, false).unwrap().expect("rebuilt");
+
+        assert_eq!(outcome.emails, 1);
+        assert_eq!(
+            stored_ids(&dirs.envelope_dir, SchemaTools::email_fields().f_id),
+            BTreeSet::from(["eid-1".to_string()])
+        );
+    }
+
+    #[test]
+    fn progress_is_logged_every_ten_thousand_documents() {
+        let (_tmp, paths, dirs) = v2_root();
+        let schema = legacy_schema(SchemaTools::attachment_schema());
+        let id = schema.get_field("id").unwrap();
+        let docs = (0..COMMIT_EVERY)
+            .map(|n| {
+                let mut doc = TantivyDocument::new();
+                doc.add_text(id, format!("aid-{n}"));
+                doc
+            })
+            .collect();
+        write_legacy_index(&dirs.attachment_dir, schema, docs);
+
+        let (outcome, events) = logged(|| reindex(&paths, false));
+
+        assert_eq!(outcome.unwrap().expect("rebuilt").attachments, 10_000);
+        assert_logged(
+            &events,
+            "Rebuilding the attachment index: 10000/10000 documents",
+        );
+    }
+
+    #[test]
+    fn a_leftover_of_an_interrupted_rebuild_is_replaced() {
+        let (_tmp, paths) = seed_legacy_root();
+        let dirs = resolve(&paths);
+        let leftover = sibling(&dirs.index_root, NEW_SUFFIX);
+        std::fs::create_dir_all(leftover.join("stale")).unwrap();
+
+        let (outcome, events) = logged(|| reindex(&paths, false));
+
+        assert_eq!(outcome.unwrap().expect("rebuilt").emails, 2);
+        assert_logged(&events, "Removing leftover");
+        assert!(!leftover.exists());
+        assert!(!dirs.index_root.join("stale").exists());
+    }
+
+    #[test]
+    fn an_unremovable_leftover_fails_before_touching_the_index() {
+        let (_tmp, paths) = seed_legacy_root();
+        let dirs = resolve(&paths);
+        // A file where the leftover directory is expected cannot be removed
+        // as a directory.
+        std::fs::write(sibling(&dirs.index_root, NEW_SUFFIX), b"x").unwrap();
+
+        let error = reindex(&paths, false).unwrap_err();
+
+        assert!(format!("{error:?}").contains("cannot remove"), "{error:?}");
+        assert!(reindex_required(&paths));
+    }
+
+    #[test]
+    fn a_corrupt_index_fails_and_removes_the_partial_rebuild() {
+        let (_tmp, paths, dirs) = v2_root();
+        std::fs::create_dir_all(&dirs.envelope_dir).unwrap();
+        std::fs::write(dirs.envelope_dir.join("meta.json"), "not json").unwrap();
+        for ext in ["store", "term", "idx"] {
+            std::fs::write(dirs.envelope_dir.join(format!("seg.{ext}")), b"x").unwrap();
+        }
+
+        let error = reindex(&paths, false).unwrap_err();
+
+        assert!(
+            format!("{error:?}").contains("cannot open index"),
+            "{error:?}"
+        );
+        assert!(!sibling(&dirs.index_root, NEW_SUFFIX).exists());
+        assert_eq!(
+            std::fs::read_to_string(dirs.envelope_dir.join("meta.json")).unwrap(),
+            "not json"
+        );
+    }
+
+    #[test]
+    fn too_little_disk_space_is_refused() {
+        let (_tmp, paths) = seed_legacy_root();
+        let dirs = resolve(&paths);
+        // A sparse file larger than any test volume's free space.
+        let huge = std::fs::File::create(dirs.index_root.join("huge")).unwrap();
+        huge.set_len(15 << 40).unwrap();
+        drop(huge);
+
+        let error = reindex(&paths, false).unwrap_err();
+
+        let message = format!("{error:?}");
+        assert!(message.contains("not enough disk space"), "{message}");
+        assert!(message.contains(" TiB"), "{message}");
+        assert!(reindex_required(&paths));
+        assert!(!sibling(&dirs.index_root, NEW_SUFFIX).exists());
+    }
+
+    #[test]
+    fn an_unopenable_blob_store_is_refused() {
+        let (_tmp, paths) = seed_legacy_root();
+        let dirs = resolve(&paths);
+        let segments = dirs.blobs_dir.join("segments");
+        std::fs::remove_dir_all(&segments).unwrap();
+        std::fs::write(&segments, b"x").unwrap();
+
+        let error = reindex(&paths, false).unwrap_err();
+
+        assert!(
+            format!("{error:?}").contains("cannot open the blob store"),
+            "{error:?}"
+        );
+        assert!(reindex_required(&paths));
+    }
+
+    #[test]
+    fn an_unwritable_skip_report_does_not_fail_the_rebuild() {
+        let (_tmp, paths) = seed_legacy_root();
+        std::fs::create_dir(paths.root_dir.join(SKIP_REPORT_FILE)).unwrap();
+
+        let (outcome, events) = logged(|| reindex(&paths, false));
+        let outcome = outcome.unwrap().expect("rebuilt");
+
+        assert_eq!(outcome.missing_bodies, 1);
+        assert_eq!(outcome.report, None);
+        assert_logged(&events, "Cannot remove the old reindex report");
+        assert_logged(&events, "Cannot create the reindex report");
+        assert!(!reindex_required(&paths));
+    }
+
+    // ─── building blocks ──────────────────────────────────────────────────────
+
+    /// A new email index with documents `ids`, closed again.
+    fn new_email_index(dir: &Path, ids: &[&str]) {
+        let target = NewIndex::create(dir, SchemaTools::email_schema()).unwrap();
+        for id in ids {
+            let mut doc = TantivyDocument::new();
+            doc.add_text(SchemaTools::email_fields().f_id, *id);
+            target.writer.add_document(doc).unwrap();
+        }
+        target.finish().unwrap();
+    }
+
+    fn validate_email(dir: &Path, expected: u64, sample_id: Option<&str>) -> MailboxdResult<()> {
+        validate(
+            dir,
+            expected,
+            sample_id,
+            SchemaTools::email_fields().f_id,
+            "email",
+        )
+    }
+
+    #[test]
+    fn validation_accepts_a_complete_index() {
+        let tmp = TempDir::new().unwrap();
+        new_email_index(tmp.path(), &["eid-1", "eid-2"]);
+        assert!(validate_email(tmp.path(), 2, Some("eid-1")).is_ok());
+        assert!(validate_email(tmp.path(), 2, None).is_ok());
+    }
+
+    #[test]
+    fn validation_rejects_an_index_without_the_format_marker() {
+        let tmp = TempDir::new().unwrap();
+        new_email_index(tmp.path(), &["eid-1"]);
+        std::fs::remove_file(tmp.path().join("INDEX_FORMAT")).unwrap();
+
+        let error = validate_email(tmp.path(), 1, Some("eid-1")).unwrap_err();
+
+        let message = format!("{error:?}");
+        assert!(message.contains("validation of the rebuilt email index"));
+        assert!(message.contains("not marked as format v2"), "{message}");
+    }
+
+    #[test]
+    fn validation_rejects_a_wrong_document_count() {
+        let tmp = TempDir::new().unwrap();
+        new_email_index(tmp.path(), &["eid-1"]);
+
+        let error = validate_email(tmp.path(), 2, Some("eid-1")).unwrap_err();
+
+        assert!(
+            format!("{error:?}").contains("1 documents, expected 2"),
+            "{error:?}"
+        );
+    }
+
+    #[test]
+    fn validation_rejects_a_missing_sample_document() {
+        let tmp = TempDir::new().unwrap();
+        new_email_index(tmp.path(), &["eid-1"]);
+
+        let error = validate_email(tmp.path(), 1, Some("eid-9")).unwrap_err();
+
+        assert!(
+            format!("{error:?}").contains("eid-9") && format!("{error:?}").contains("not found"),
+            "{error:?}"
+        );
+    }
+
+    #[test]
+    fn a_new_index_cannot_be_created_over_a_file_or_an_index() {
+        let tmp = TempDir::new().unwrap();
+        let file = tmp.path().join("file");
+        std::fs::write(&file, b"x").unwrap();
+        let error = NewIndex::create(&file.join("index"), SchemaTools::email_schema())
+            .err()
+            .unwrap();
+        assert!(format!("{error:?}").contains("cannot create"), "{error:?}");
+
+        let existing = tmp.path().join("existing");
+        new_email_index(&existing, &[]);
+        let error = NewIndex::create(&existing, SchemaTools::email_schema())
+            .err()
+            .unwrap();
+        assert!(
+            format!("{error:?}").contains("cannot create index"),
+            "{error:?}"
+        );
+    }
+
+    #[test]
+    fn a_blob_store_cannot_be_opened_below_a_file() {
+        let tmp = TempDir::new().unwrap();
+        let file = tmp.path().join("file");
+        std::fs::write(&file, b"x").unwrap();
+
+        let error = BlobGuard::open(&file.join("blobs")).err().unwrap();
+
+        assert!(format!("{error:?}").contains("cannot create"), "{error:?}");
+    }
+
+    #[test]
+    fn a_failed_first_rename_leaves_the_live_index_and_drops_the_new_one() {
+        let tmp = TempDir::new().unwrap();
+        let (live, new, backup) = (
+            tmp.path().join("idx"),
+            tmp.path().join("idx.new"),
+            tmp.path().join("idx.old"),
+        );
+        std::fs::create_dir(&new).unwrap();
+
+        let error = swap(&live, &new, &backup).unwrap_err();
+
+        assert!(format!("{error:?}").contains("cannot move"), "{error:?}");
+        assert!(!new.exists());
+        assert!(!backup.exists());
+    }
+
+    #[test]
+    fn a_failed_second_rename_puts_the_previous_index_back() {
+        let tmp = TempDir::new().unwrap();
+        let (live, new, backup) = (
+            tmp.path().join("idx"),
+            tmp.path().join("idx.new"),
+            tmp.path().join("idx.old"),
+        );
+        std::fs::create_dir(&live).unwrap();
+        std::fs::write(live.join("marker"), b"live").unwrap();
+
+        let error = swap(&live, &new, &backup).unwrap_err();
+
+        assert!(
+            format!("{error:?}").contains("the previous index was put back"),
+            "{error:?}"
+        );
+        assert_eq!(std::fs::read(live.join("marker")).unwrap(), b"live");
+        assert!(!backup.exists());
+    }
+
+    #[test]
+    fn a_taken_backup_name_gets_a_counter() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join("idx");
+        // Take this second's name and the next one's, in case the clock
+        // ticks before `backup_path` reads it.
+        let now = chrono::Utc::now();
+        for stamp in [now, now + chrono::Duration::seconds(1)] {
+            let name = format!(".old-{}", stamp.format("%Y%m%d-%H%M%S"));
+            std::fs::create_dir(sibling(&root, &name)).unwrap();
+        }
+
+        let backup = backup_path(&root);
+
+        let name = backup.file_name().unwrap().to_str().unwrap();
+        assert!(name.starts_with("idx.old-"), "{name}");
+        assert!(name.ends_with("-1"), "{name}");
+        assert!(!backup.exists());
+    }
+
+    #[test]
+    fn a_path_without_a_final_component_has_no_leaf() {
+        assert!(leaf(Path::new("/")).is_err());
+        assert_eq!(leaf(Path::new("/a/b")).unwrap(), "b");
+    }
+
+    #[test]
+    fn dir_size_sums_nested_files_and_ignores_a_missing_dir() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::create_dir(tmp.path().join("sub")).unwrap();
+        std::fs::write(tmp.path().join("a"), [0u8; 10]).unwrap();
+        std::fs::write(tmp.path().join("sub").join("b"), [0u8; 5]).unwrap();
+
+        assert_eq!(dir_size(tmp.path()), 15);
+        assert_eq!(dir_size(&tmp.path().join("missing")), 0);
+    }
+
+    #[test]
+    fn human_bytes_picks_the_largest_fitting_unit() {
+        assert_eq!(human_bytes(0), "0.0 B");
+        assert_eq!(human_bytes(1023), "1023.0 B");
+        assert_eq!(human_bytes(1536), "1.5 KiB");
+        assert_eq!(human_bytes(3 << 30), "3.0 GiB");
+        assert_eq!(human_bytes(1 << 50), "1024.0 TiB");
+    }
+
+    #[test]
+    fn a_skip_record_carries_its_error() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join(SKIP_REPORT_FILE);
+        let mut report = SkipReport::new(path.clone());
+
+        report.record(&location(), "skipped_document", Some("boom".into()), None);
+
+        assert_eq!(report.count, 1);
+        let lines = report_lines(&path);
+        assert_eq!(
+            lines,
+            [serde_json::json!({
+                "reason": "skipped_document",
+                "index": "email",
+                "segment": "seg-1",
+                "doc_id": 7,
+                "error": "boom",
+            })]
+        );
+    }
 }

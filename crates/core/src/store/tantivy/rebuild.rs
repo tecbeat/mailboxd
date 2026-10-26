@@ -457,6 +457,32 @@ mod tests {
     }
 
     #[test]
+    fn a_message_with_only_an_attachment_has_no_body_text() {
+        let eml = b"Content-Type: multipart/mixed; boundary=\"b\"\r\n\r\n\
+            --b\r\n\
+            Content-Type: application/pdf\r\n\
+            Content-Disposition: attachment; filename=\"a.pdf\"\r\n\r\n\
+            JVBERi0=\r\n\
+            --b--\r\n";
+        let message = MessageParser::new().parse(&eml[..]).unwrap();
+        assert_eq!(message_body_text(&message), "");
+    }
+
+    #[test]
+    fn unreadable_attachment_metadata_counts_as_none() {
+        let f = SchemaTools::email_fields();
+        let mut indexed = TantivyDocument::new();
+        indexed.add_text(f.f_id, "eid-1");
+        indexed.add_text(f.f_attachments, "not json");
+        let old = stored(SchemaTools::email_schema(), indexed);
+
+        assert!(stored_attachments(&old).is_none());
+        let doc = rebuild_envelope_document(&old, &HashSet::new(), None);
+        assert_eq!(doc.get_all(f.f_attachment_name_text).count(), 0);
+        assert_eq!(doc.get_all(f.f_id).count(), 1);
+    }
+
+    #[test]
     fn stored_tags_can_be_added_again() {
         for (schema, f_tags) in [
             (
