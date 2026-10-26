@@ -17,9 +17,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { fileOfSize } from '@/test/files';
 import { renderWithProviders } from '@/test/utils';
@@ -27,6 +28,8 @@ import { makeSysConfig, server } from '@/test/server';
 
 // The shared page header pulls in router/profile chrome unrelated to import logic.
 vi.mock('@/components/layout/fixed-header', () => ({ FixedHeader: () => null }));
+const { toast } = vi.hoisted(() => ({ toast: vi.fn() }));
+vi.mock('@/hooks/use-toast', () => ({ toast }));
 
 import ImportPage from '../index';
 
@@ -67,5 +70,102 @@ describe('ImportPage PST selection', () => {
 
     expect(await screen.findByText(/PST folder structure will be preserved/)).toBeInTheDocument();
     expect(screen.queryByText('Invalid type')).not.toBeInTheDocument();
+  });
+});
+
+describe('ImportPage import run', () => {
+  beforeAll(() => {
+    // jsdom lacks the layout APIs the account picker (cmdk) uses.
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    Element.prototype.scrollIntoView ??= () => {};
+  });
+
+  function serveAccount() {
+    server.use(
+      http.get(`${BASE}/api/v1/accounts`, () =>
+        HttpResponse.json({
+          items: [
+            {
+              id: 7,
+              account_type: 'NoSync',
+              enabled: true,
+              account_name: 'Archive',
+              email: 'archive@example.com',
+              download_folders: [],
+              created_by: 1,
+              created_user_name: 'admin',
+              created_user_email: 'admin@example.com',
+              created_at: 0,
+              updated_at: 0,
+              use_dangerous: false,
+            },
+          ],
+        }),
+      ),
+      http.get(`${BASE}/api/v1/list-mailboxes/7`, () => HttpResponse.json([])),
+    );
+  }
+
+  async function importOneEml() {
+    renderWithProviders(<ImportPage />);
+    await userEvent.click(await screen.findByRole('combobox'));
+    await userEvent.click(await screen.findByRole('option', { name: /Archive/ }));
+
+    const dropzone = (await screen.findByText(/Drop .* files here/i)).closest('div')!;
+    const eml = new File(['Subject: hi\r\n\r\nbody'], 'mail.eml', { type: 'message/rfc822' });
+    fireEvent.drop(dropzone, { dataTransfer: { files: [eml] } });
+
+    const start = await screen.findByRole('button', { name: 'Import' });
+    await waitFor(() => expect(start).toBeEnabled());
+    await userEvent.click(start);
+  }
+
+  it('uploads into the chosen account and reports skipped duplicates', async () => {
+    serveAccount();
+    let uploaded: URLSearchParams | undefined;
+    server.use(
+      http.post(`${BASE}/api/v1/upload-import`, ({ request }) => {
+        uploaded = new URL(request.url).searchParams;
+        return HttpResponse.json({
+          import_id: 'imp-1',
+          status: 'Completed',
+          format: 'eml',
+          total: 1,
+          success: 0,
+          duplicates: 1,
+          failed: 0,
+          failed_details: [],
+        });
+      }),
+    );
+    await importOneEml();
+
+    expect(await screen.findByText(/1 duplicate/i)).toBeInTheDocument();
+    expect(uploaded?.get('account_id')).toBe('7');
+    expect(uploaded?.get('file_name')).toBe('mail.eml');
+  });
+
+  it('resets and explains when the upload fails', async () => {
+    serveAccount();
+    server.use(
+      http.post(`${BASE}/api/v1/upload-import`, () =>
+        HttpResponse.json({ message: 'disk full' }, { status: 507 }),
+      ),
+    );
+    await importOneEml();
+
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ variant: 'destructive', description: 'mail.eml: disk full' }),
+      ),
+    );
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Import' })).toBeEnabled());
   });
 });

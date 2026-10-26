@@ -136,6 +136,18 @@ describe('importFiles', () => {
     expect(result.status).toBe('Completed')
   })
 
+  it('falls back to the thrown value when an error carries no message', async () => {
+    const files = [makeFile('bad.eml', 10), makeFile('good.eml', 10)]
+    const upload = vi.fn(async (file: File) => {
+      if (file.name === 'bad.eml') throw 'connection reset'
+      return prog({ import_id: 'good' })
+    })
+
+    const result = await importFiles(files, makeDeps({ upload }))
+
+    expect(result.failed_details[0].error_message).toContain('connection reset')
+  })
+
   it('throws when every upload fails, so the caller can toast and reset', async () => {
     const files = [makeFile('a.eml', 10), makeFile('b.eml', 10)]
     const deps = makeDeps({

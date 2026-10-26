@@ -47,6 +47,18 @@ describe('extractFolderHint', () => {
     expect(hint?.name).toBe('Envoyé')
   })
 
+  it('decodes underscores in a Q-encoded label as spaces', async () => {
+    const eml = [
+      'From: a@example.com',
+      'X-Gmail-Labels: =?UTF-8?Q?Alte_Rechnungen?=',
+      '',
+      'body',
+    ].join('\n')
+
+    const hint = await extractFolderHint(new File([eml], 'label.eml'))
+    expect(hint?.name).toBe('Alte Rechnungen')
+  })
+
   it('files French Inbox + custom label under the custom label', async () => {
     // Mirrors the CLI regression test: prefer the business label over the
     // localized generic "Boîte de réception".
