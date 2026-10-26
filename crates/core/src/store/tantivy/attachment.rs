@@ -47,7 +47,7 @@ use crate::{
         model::{extract_senders, AttachmentModel},
         rebuild::{document_tags, extracted_text_of, rebuild_attachment_document},
         schema::SchemaTools,
-        tokenizers::EuroTokenizer,
+        tokenizers::{register_tokenizers, word_or_tri},
     },
 };
 
@@ -94,7 +94,7 @@ impl IndexManager {
     }
     pub fn new() -> Self {
         let index = Self::open_or_create_index(&DATA_DIR_MANAGER.attachment_dir);
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
         let mut merge_policy = LogMergePolicy::default();
         merge_policy.set_min_num_segments(25);
         merge_policy.set_min_layer_size(10_000);
@@ -340,18 +340,22 @@ impl IndexManager {
             let query_parser =
                 QueryParser::for_index(&self.index, SchemaTools::attachment_default_fields());
 
-            let query = query_parser
+            let word = query_parser
                 .parse_query(text)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, Box::new(query)));
+            let tri_fields = [f.f_subject_tri, f.f_from_text_tri, f.f_name_text_tri];
+            subqueries.push((Occur::Must, word_or_tri(word, &tri_fields, text)));
         }
 
         if let Some(ref subject_val) = filter.subject {
             let query_parser = QueryParser::for_index(&self.index, vec![f.f_subject]);
-            let q = query_parser
+            let word = query_parser
                 .parse_query(subject_val)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, q));
+            subqueries.push((
+                Occur::Must,
+                word_or_tri(word, &[f.f_subject_tri], subject_val),
+            ));
         }
 
         if let Some(ref tags) = filter.tags {
@@ -376,10 +380,13 @@ impl IndexManager {
 
         if let Some(from_query) = &filter.from {
             let query_parser = QueryParser::for_index(&self.index, vec![f.f_from_text]);
-            let q = query_parser
+            let word = query_parser
                 .parse_query(from_query)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, q))
+            subqueries.push((
+                Occur::Must,
+                word_or_tri(word, &[f.f_from_text_tri], from_query),
+            ))
         }
 
         if let Some(content_hash) = &filter.content_hash {
@@ -398,10 +405,10 @@ impl IndexManager {
             let query_parser =
                 QueryParser::for_index(&self.index, vec![f.f_name_text, f.f_name_exact]);
 
-            let q = query_parser
+            let word = query_parser
                 .parse_query(name)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, q));
+            subqueries.push((Occur::Must, word_or_tri(word, &[f.f_name_text_tri], name)));
         }
 
         if let Some(ref extension) = filter.attachment_extension {

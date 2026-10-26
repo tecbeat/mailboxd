@@ -2,12 +2,10 @@ use std::{path::PathBuf, time::Instant};
 
 use bytes::Bytes;
 use mailboxd_core::{
-    envelope::{
-        extractor::extract_references,
-        utils::attachment_parts,
-    },
+    envelope::{extractor::extract_references, utils::attachment_parts},
     message::content::AttachmentInfo,
-    store::tantivy::tokenizers::EuroTokenizer, utils::compute_content_hash,
+    store::tantivy::tokenizers::register_tokenizers,
+    utils::compute_content_hash,
 };
 
 use mail_parser::MessageParser;
@@ -120,9 +118,7 @@ impl NewIndexWriterV2 {
                 .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
         };
 
-        envelope_index
-            .tokenizers()
-            .register("euro", EuroTokenizer::new());
+        register_tokenizers(&envelope_index);
 
         let envelope_writer = envelope_index
             .writer_with_num_threads(3, 256 * 1024 * 1024)
@@ -145,9 +141,7 @@ impl NewIndexWriterV2 {
                 .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
         };
 
-        attachment_index
-            .tokenizers()
-            .register("euro", EuroTokenizer::new());
+        register_tokenizers(&attachment_index);
         let attachment_writer = attachment_index
             .writer_with_num_threads(3, 256 * 1024 * 1024)
             .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;

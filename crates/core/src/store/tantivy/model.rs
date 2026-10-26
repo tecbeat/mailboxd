@@ -95,23 +95,28 @@ impl EnvelopeWithAttachments {
         doc.add_u64(fields.f_mailbox_id, self.envelope.mailbox_id);
         doc.add_u64(fields.f_uid, self.envelope.uid as u64);
         doc.add_text(fields.f_subject, &self.envelope.subject);
+        doc.add_text(fields.f_subject_tri, &self.envelope.subject);
         doc.add_text(fields.f_preview, &self.envelope.preview);
         doc.add_text(fields.f_content_hash, &self.envelope.content_hash);
         doc.add_text(fields.f_from, &self.envelope.from);
         doc.add_text(fields.f_from_text, &self.envelope.from);
+        doc.add_text(fields.f_from_text_tri, &self.envelope.from);
         doc.add_text(fields.f_body, body_text);
 
         for to in &self.envelope.to {
             doc.add_text(fields.f_to, to);
             doc.add_text(fields.f_to_text, to);
+            doc.add_text(fields.f_to_text_tri, to);
         }
         for cc in &self.envelope.cc {
             doc.add_text(fields.f_cc, cc);
             doc.add_text(fields.f_cc_text, cc);
+            doc.add_text(fields.f_cc_text_tri, cc);
         }
         for bcc in &self.envelope.bcc {
             doc.add_text(fields.f_bcc, bcc);
             doc.add_text(fields.f_bcc_text, bcc);
+            doc.add_text(fields.f_bcc_text_tri, bcc);
         }
 
         doc.add_i64(fields.f_date, self.envelope.date);
@@ -127,6 +132,7 @@ impl EnvelopeWithAttachments {
                 if !att.is_inline() {
                     if let Some(ref filename) = att.filename {
                         doc.add_text(fields.f_attachment_name_text, filename);
+                        doc.add_text(fields.f_attachment_name_text_tri, filename);
                         doc.add_text(fields.f_attachment_name_exact, filename);
                     }
                     if let Some(ext) = att.get_extension() {
@@ -392,9 +398,11 @@ impl AttachmentModel {
         doc.add_u64(f.f_account_id, self.account_id);
         doc.add_u64(f.f_mailbox_id, self.mailbox_id);
         doc.add_text(f.f_subject, &self.subject);
+        doc.add_text(f.f_subject_tri, &self.subject);
         doc.add_text(f.f_content_hash, self.content_hash);
         doc.add_text(f.f_from, &self.from);
         doc.add_text(f.f_from_text, &self.from);
+        doc.add_text(f.f_from_text_tri, &self.from);
         doc.add_i64(f.f_date, self.date);
         doc.add_i64(f.f_ingest_at, self.ingest_at);
         doc.add_u64(f.f_size, self.size);
@@ -421,6 +429,7 @@ impl AttachmentModel {
 
         if let Some(name) = self.name {
             doc.add_text(f.f_name_text, name.clone());
+            doc.add_text(f.f_name_text_tri, name.clone());
             doc.add_text(f.f_name_exact, name);
         }
 

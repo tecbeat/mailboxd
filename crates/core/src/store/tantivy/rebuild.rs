@@ -18,8 +18,8 @@
 
 //! Rebuild index documents from their stored fields.
 //!
-//! Body, address, attachment-name and attachment text are indexed but not
-//! stored. Rewriting a document (tag updates) copies the stored fields and
+//! Body, address, attachment-name and attachment text, and the trigram
+//! siblings of subject, addresses and names, are indexed but not stored. Rewriting a document (tag updates) copies the stored fields and
 //! must re-derive these, otherwise the rewritten document drops out of
 //! full-text search.
 
@@ -74,15 +74,19 @@ pub fn rebuild_envelope_document(
     let f = SchemaTools::email_fields();
     let mut doc = copy_stored_fields(old, f.f_tags);
 
-    for (stored, text) in [
-        (f.f_from, f.f_from_text),
-        (f.f_to, f.f_to_text),
-        (f.f_cc, f.f_cc_text),
-        (f.f_bcc, f.f_bcc_text),
+    if let Some(subject) = old.get_first(f.f_subject).and_then(|v| v.as_str()) {
+        doc.add_text(f.f_subject_tri, subject);
+    }
+    for (stored, text, tri) in [
+        (f.f_from, f.f_from_text, f.f_from_text_tri),
+        (f.f_to, f.f_to_text, f.f_to_text_tri),
+        (f.f_cc, f.f_cc_text, f.f_cc_text_tri),
+        (f.f_bcc, f.f_bcc_text, f.f_bcc_text_tri),
     ] {
         for value in old.get_all(stored) {
             if let Some(address) = value.as_str() {
                 doc.add_text(text, address);
+                doc.add_text(tri, address);
             }
         }
     }
@@ -94,6 +98,7 @@ pub fn rebuild_envelope_document(
         }
         if let Some(filename) = &att.filename {
             doc.add_text(f.f_attachment_name_text, filename);
+            doc.add_text(f.f_attachment_name_text_tri, filename);
             doc.add_text(f.f_attachment_name_exact, filename);
         }
     }
@@ -119,11 +124,16 @@ pub fn rebuild_attachment_document(
     let f = SchemaTools::attachment_fields();
     let mut doc = copy_stored_fields(old, f.f_tags);
 
+    if let Some(subject) = old.get_first(f.f_subject).and_then(|v| v.as_str()) {
+        doc.add_text(f.f_subject_tri, subject);
+    }
     if let Some(from) = old.get_first(f.f_from).and_then(|v| v.as_str()) {
         doc.add_text(f.f_from_text, from);
+        doc.add_text(f.f_from_text_tri, from);
     }
     if let Some(name) = old.get_first(f.f_name_exact).and_then(|v| v.as_str()) {
         doc.add_text(f.f_name_text, name);
+        doc.add_text(f.f_name_text_tri, name);
     }
     if let Some(text) = extracted_text {
         doc.add_text(f.f_text, text);
@@ -172,7 +182,10 @@ pub fn document_tags(doc: &TantivyDocument, tags_field: Field) -> HashSet<String
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::store::tantivy::{schema::SchemaTools, tokenizers::EuroTokenizer};
+    use crate::store::tantivy::{
+        schema::SchemaTools,
+        tokenizers::{register_tokenizers, tri_query},
+    };
     use serde_json::json;
     use tantivy::{
         collector::{Count, TopDocs},
@@ -190,7 +203,7 @@ mod tests {
 
     fn index_one(schema: Schema, doc: TantivyDocument) -> (Index, Searcher) {
         let index = Index::create_in_ram(schema);
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
         let mut writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
         writer.add_document(doc).unwrap();
         writer.commit().unwrap();
@@ -212,6 +225,10 @@ mod tests {
         searcher
             .search(&parser.parse_query(query).unwrap(), &Count)
             .unwrap()
+    }
+
+    fn tri_hits(searcher: &Searcher, field: Field, term: &str) -> usize {
+        searcher.search(&tri_query(&[field], term), &Count).unwrap()
     }
 
     fn term_hits(searcher: &Searcher, term: Term) -> usize {
@@ -294,6 +311,13 @@ mod tests {
         assert_eq!(hits(&index, &searcher, f.f_name_text, "inv9921"), 1);
         assert_eq!(hits(&index, &searcher, f.f_from_text, "u1"), 1);
         assert_eq!(hits(&index, &searcher, f.f_subject, "rv1234"), 1);
+        for (field, fragment) in [
+            (f.f_subject_tri, "rv123"),
+            (f.f_from_text_tri, "u1@exa"),
+            (f.f_name_text_tri, "inv992"),
+        ] {
+            assert_eq!(tri_hits(&searcher, field, fragment), 1, "{fragment}");
+        }
         assert_eq!(term_hits(&searcher, tag_term(f.f_tags, "/new")), 1);
         assert_eq!(term_hits(&searcher, tag_term(f.f_tags, "/old")), 0);
     }
@@ -321,6 +345,16 @@ mod tests {
             (f.f_bcc_text, "u4"),
         ] {
             assert_eq!(hits(&index, &searcher, field, address), 1, "{address}");
+        }
+        for (field, fragment) in [
+            (f.f_subject_tri, "rv123"),
+            (f.f_from_text_tri, "u1@exa"),
+            (f.f_to_text_tri, "u2@exa"),
+            (f.f_cc_text_tri, "u3@exa"),
+            (f.f_bcc_text_tri, "u4@exa"),
+            (f.f_attachment_name_text_tri, "inv992"),
+        ] {
+            assert_eq!(tri_hits(&searcher, field, fragment), 1, "{fragment}");
         }
         assert_eq!(
             hits(&index, &searcher, f.f_attachment_name_text, "inv9921"),
