@@ -24,3 +24,4 @@ pub mod oauth2;
 pub mod oidc;
 pub mod oidc_config;
 pub mod status;
+pub mod ui_redirect;
