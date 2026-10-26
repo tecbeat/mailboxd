@@ -467,17 +467,7 @@ impl MailboxdUserV2 {
     /// [`DEFAULT_ADMIN_PASSWORD`]. Only verifies the stored value: no login,
     /// no password upgrade, no audit event.
     pub fn default_admin_password_in_use() -> bool {
-        match Self::find(DEFAULT_ADMIN_USER_ID) {
-            Ok(Some(admin)) => admin
-                .password
-                .as_deref()
-                .is_some_and(|stored| accepts_default_password(stored)),
-            Ok(None) => false,
-            Err(e) => {
-                warn!("Failed to load the default administrator: {:#?}", e);
-                false
-            }
-        }
+        admin_accepts_default_password(Self::find(DEFAULT_ADMIN_USER_ID))
     }
 
     pub fn find(user_id: u64) -> MailboxdResult<Option<UserModel>> {
@@ -837,6 +827,23 @@ fn check_stored_password(stored: &str, password: &str) -> MailboxdResult<Passwor
     )
 }
 
+/// Whether the looked-up default administrator still accepts
+/// [`DEFAULT_ADMIN_PASSWORD`]; a missing admin or a failed lookup counts as
+/// "not in use".
+fn admin_accepts_default_password(admin: MailboxdResult<Option<UserModel>>) -> bool {
+    match admin {
+        Ok(Some(admin)) => admin
+            .password
+            .as_deref()
+            .is_some_and(accepts_default_password),
+        Ok(None) => false,
+        Err(e) => {
+            warn!("Failed to load the default administrator: {:#?}", e);
+            false
+        }
+    }
+}
+
 fn accepts_default_password(stored: &str) -> bool {
     match check_stored_password(stored, DEFAULT_ADMIN_PASSWORD) {
         Ok(check) => matches!(check, PasswordCheck::Match { .. }),
@@ -1015,5 +1022,156 @@ mod tests {
             .expect("non-password update should be allowed for an SSO user");
         assert_eq!(updated.username, "new");
         assert!(updated.password.is_none());
+    }
+
+    #[test]
+    fn undecryptable_legacy_password_does_not_count_as_default() {
+        assert!(!accepts_default_password("not-an-encrypted-value"));
+    }
+
+    #[test]
+    fn default_password_check_treats_missing_or_unreadable_admin_as_not_in_use() {
+        assert!(!admin_accepts_default_password(Ok(None)));
+        assert!(!admin_accepts_default_password(Err(raise_error!(
+            "database unavailable".into(),
+            ErrorCode::InternalError
+        ))));
+        let sso_admin = UserModel {
+            password: None,
+            ..Default::default()
+        };
+        assert!(!admin_accepts_default_password(Ok(Some(sso_admin))));
+        let changed = UserModel {
+            password: Some(hash_login_password("changed-password").unwrap()),
+            ..Default::default()
+        };
+        assert!(!admin_accepts_default_password(Ok(Some(changed))));
+    }
+
+    /// Roles and the default administrator, as created at startup.
+    async fn init_users() {
+        use crate::context::Initialize;
+        static INIT: tokio::sync::OnceCell<()> = tokio::sync::OnceCell::const_new();
+        INIT.get_or_init(|| async { manager::UserManager::initialize().await.unwrap() })
+            .await;
+    }
+
+    fn stored_password(user_id: u64) -> String {
+        UserModel::find(user_id)
+            .unwrap()
+            .expect("user exists")
+            .password
+            .expect("user has a password")
+    }
+
+    /// The only test in this crate that touches the default administrator.
+    #[tokio::test]
+    async fn default_admin_is_created_with_the_default_password() {
+        init_users().await;
+        assert!(stored_password(DEFAULT_ADMIN_USER_ID).starts_with(ARGON2ID_PREFIX));
+        assert!(UserModel::default_admin_password_in_use());
+    }
+
+    #[tokio::test]
+    async fn login_with_legacy_encrypted_password_upgrades_it_to_argon2id() {
+        init_users().await;
+        // Id and names used by no other test.
+        let user = UserModel {
+            id: 71_400_000_000_001,
+            username: "legacy-login".into(),
+            email: "legacy-login@example.com".into(),
+            password: Some(crate::encrypt!("legacy-s3cret").unwrap()),
+            global_roles: vec![DEFAULT_ADMIN_ROLE_ID],
+            ..Default::default()
+        };
+        // Upsert: the database survives between runs.
+        crate::database::upsert_impl(DB_MANAGER.db(), user.clone()).unwrap();
+
+        let login =
+            UserModel::authenticate_user("legacy-login".into(), "legacy-s3cret".into()).unwrap();
+        assert!(login.success);
+        assert!(login.access_token.is_some());
+
+        let upgraded = stored_password(user.id);
+        assert!(upgraded.starts_with(ARGON2ID_PREFIX));
+        assert_eq!(
+            check_stored_password(&upgraded, "legacy-s3cret").unwrap(),
+            PasswordCheck::Match {
+                needs_upgrade: false
+            }
+        );
+
+        // The upgraded hash keeps accepting the password, and only it.
+        let again =
+            UserModel::authenticate_user("legacy-login".into(), "legacy-s3cret".into()).unwrap();
+        assert!(again.success);
+        let wrong =
+            UserModel::authenticate_user("legacy-login".into(), "legacy-s3cre".into()).unwrap();
+        assert!(!wrong.success);
+    }
+
+    #[tokio::test]
+    async fn password_upgrade_for_a_vanished_user_creates_nothing() {
+        // Id used by no other test.
+        let user = UserModel {
+            id: 71_400_000_000_002,
+            username: "vanished".into(),
+            ..Default::default()
+        };
+        upgrade_password_storage(&user, "whatever");
+        assert!(UserModel::find(user.id).unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn created_users_get_an_argon2id_password_and_can_log_in() {
+        init_users().await;
+        // Unique per run: the database survives between runs.
+        let username = format!("hashed-{}", id!(64));
+        let created = UserModel::create(UserCreateRequest {
+            username: username.clone(),
+            email: format!("{username}@example.com"),
+            password: "create-s3cret".into(),
+            global_roles: vec![DEFAULT_ADMIN_ROLE_ID],
+            ..Default::default()
+        })
+        .unwrap();
+
+        let stored = stored_password(created.id);
+        assert!(stored.starts_with(ARGON2ID_PREFIX));
+        assert!(!stored.contains("create-s3cret"));
+        let login = UserModel::authenticate_user(username, "create-s3cret".into()).unwrap();
+        assert!(login.success);
+    }
+
+    #[tokio::test]
+    async fn sso_login_links_an_existing_user_with_the_same_email() {
+        init_users().await;
+        // Unique per run: the database survives between runs.
+        let username = format!("sso-{}", id!(64));
+        let email = format!("{username}@example.com");
+        let subject = format!("subject-{username}");
+        let existing = UserModel::create(UserCreateRequest {
+            username: username.clone(),
+            email: email.clone(),
+            password: "link-s3cret".into(),
+            global_roles: vec![DEFAULT_ADMIN_ROLE_ID],
+            ..Default::default()
+        })
+        .unwrap();
+
+        let linked = UserModel::find_or_provision_sso_user(
+            "oidc",
+            &subject,
+            &email,
+            None,
+            DEFAULT_ADMIN_ROLE_ID,
+        )
+        .unwrap();
+
+        assert_eq!(linked.id, existing.id);
+        let stored = UserModel::find(existing.id).unwrap().unwrap();
+        assert_eq!(stored.sso_id.as_deref(), Some(subject.as_str()));
+        assert_eq!(stored.sso_provider.as_deref(), Some("oidc"));
+        assert_eq!(stored.username, username);
     }
 }

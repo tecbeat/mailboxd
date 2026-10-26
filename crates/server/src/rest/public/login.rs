@@ -18,6 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use mailboxd_core::error::MailboxdResult;
 use mailboxd_core::ext::event_bus::{emit, Event};
 use mailboxd_core::users::{LoginResult, UserModel};
 use mailboxd_core::utils::rate_limit::{LoginRateLimiter, LOGIN_RATE_LIMITER};
@@ -52,18 +53,13 @@ pub async fn login(payload: Json<LoginPayload>, req: &Request) -> Response {
         password,
     } = payload.0;
     // argon2 verification is CPU-bound; keep it off the async workers.
-    let outcome =
-        tokio::task::spawn_blocking(move || UserModel::authenticate_user(login_name, password))
-            .await;
-    let outcome = match outcome {
+    let outcome = match run_authentication(move || {
+        UserModel::authenticate_user(login_name, password)
+    })
+    .await
+    {
         Ok(outcome) => outcome,
-        Err(e) => {
-            error!("Authentication task failed: {:?}", e);
-            return Response::builder()
-                .status(http::StatusCode::INTERNAL_SERVER_ERROR)
-                .body("Authentication system failed.".to_string())
-                .into_response();
-        }
+        Err(failure) => return *failure,
     };
     match outcome {
         Ok(result) => {
@@ -97,6 +93,25 @@ pub async fn login(payload: Json<LoginPayload>, req: &Request) -> Response {
                 .into_response()
         }
     }
+}
+
+/// Run `authenticate` on the blocking pool. A task that fails to complete
+/// (e.g. panics) becomes a 500 response.
+async fn run_authentication<F>(authenticate: F) -> Result<MailboxdResult<LoginResult>, Box<Response>>
+where
+    F: FnOnce() -> MailboxdResult<LoginResult> + Send + 'static,
+{
+    tokio::task::spawn_blocking(authenticate)
+        .await
+        .map_err(|e| {
+            error!("Authentication task failed: {:?}", e);
+            Box::new(
+                Response::builder()
+                    .status(http::StatusCode::INTERNAL_SERVER_ERROR)
+                    .body("Authentication system failed.".to_string())
+                    .into_response(),
+            )
+        })
 }
 
 /// Reject the request with 429 when `ip` has used up its login attempts.
@@ -148,6 +163,69 @@ mod tests {
         let result: serde_json::Value = serde_json::from_str(&body).unwrap();
         assert_eq!(result["success"], false);
         assert!(result["access_token"].is_null());
+    }
+
+    #[tokio::test]
+    async fn panicking_authentication_becomes_a_500() {
+        let failure = run_authentication(|| panic!("authentication blew up"))
+            .await
+            .expect_err("a panicked task must not yield a login result");
+        assert_eq!(failure.status(), http::StatusCode::INTERNAL_SERVER_ERROR);
+        let body = failure.into_body().into_string().await.unwrap();
+        assert_eq!(body, "Authentication system failed.");
+    }
+
+    #[tokio::test]
+    async fn completed_authentication_is_passed_through() {
+        let outcome = run_authentication(|| {
+            Ok(LoginResult {
+                success: true,
+                error_message: None,
+                access_token: Some("token".into()),
+                theme: None,
+                language: None,
+            })
+        })
+        .await
+        .expect("the task completed");
+        assert_eq!(outcome.unwrap().access_token.as_deref(), Some("token"));
+    }
+
+    #[tokio::test]
+    async fn login_endpoint_rejects_a_client_after_too_many_attempts() {
+        crate::tests::setup().await;
+        let route = poem::Route::new().at("/api/login", poem::post(login));
+        // Client address used by no other test.
+        let cli =
+            poem::test::TestClient::new(route).default_header("X-Forwarded-For", "198.51.100.7");
+        let attempt = || {
+            cli.post("/api/login").body_json(&serde_json::json!({
+                "username": "rate-limited",
+                "password": "wrong-password",
+            }))
+        };
+
+        // The production quota allows 10 attempts per client.
+        for _ in 0..10 {
+            let resp = attempt().send().await;
+            resp.assert_status_is_ok();
+            resp.assert_json(serde_json::json!({
+                "success": false,
+                "error_message": "User or email not found.",
+                "access_token": null,
+                "theme": null,
+                "language": null,
+            }))
+            .await;
+        }
+        let resp = attempt().send().await;
+        resp.assert_status(http::StatusCode::TOO_MANY_REQUESTS);
+        let body: serde_json::Value = resp.json().await.value().deserialize();
+        assert_eq!(body["success"], false);
+        assert_eq!(
+            body["error_message"],
+            "Too many login attempts. Please try again later."
+        );
     }
 
     #[test]

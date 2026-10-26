@@ -163,4 +163,25 @@ mod tests {
         assert!(!limiter.check(CLIENT_A));
         assert!(limiter.check(CLIENT_B));
     }
+
+    #[test]
+    fn login_limiter_evicts_idle_clients_beyond_the_threshold() {
+        let limiter = LoginRateLimiter::with_quota(1, Duration::from_millis(1));
+        let clients = (0..=LOGIN_LIMITER_EVICT_THRESHOLD as u32)
+            .map(|n| IpAddr::V4(Ipv4Addr::from(0x0a00_0000 + n)))
+            .collect::<Vec<_>>();
+        for client in &clients {
+            assert!(limiter.check(*client));
+        }
+        assert_eq!(limiter.limiter.len(), LOGIN_LIMITER_EVICT_THRESHOLD + 1);
+
+        // Every attempt is replenished, so all tracked clients are idle.
+        std::thread::sleep(Duration::from_millis(20));
+        assert!(limiter.check(CLIENT_A));
+        assert!(
+            limiter.limiter.len() <= 1,
+            "idle clients must be evicted, {} still tracked",
+            limiter.limiter.len()
+        );
+    }
 }
