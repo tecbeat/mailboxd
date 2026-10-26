@@ -29,6 +29,7 @@ use crate::{
     token::{AccessTokenModel, TokenType},
     users::{
         acl::AccessControl,
+        mfa::{MfaChallenge, MfaState},
         payload::{UserCreateRequest, UserUpdateRequest},
         permissions::Permission,
         role::{UserRole, DEFAULT_ADMIN_ROLE_ID},
@@ -47,6 +48,7 @@ use tracing::warn;
 
 pub mod acl;
 pub mod manager;
+pub mod mfa;
 pub mod minimal;
 pub mod payload;
 pub mod permissions;
@@ -116,6 +118,16 @@ pub struct LoginResult {
     pub access_token: Option<String>,
     pub theme: Option<String>,
     pub language: Option<String>,
+    /// The password was right; the login continues with a second factor
+    /// against `mfa_challenge`.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub mfa_required: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mfa_challenge: Option<String>,
+    /// Machine-readable reason a second login step failed, one of the
+    /// `MFA_ERROR_*` constants in [`mfa`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error_code: Option<String>,
 }
 
 pub const DEFAULT_ADMIN_USER_ID: u64 = 100000000000000;
@@ -157,6 +169,10 @@ pub struct MailboxdUserV2 {
     pub sso_id: Option<String>,
     /// SSO provider identifier: `"oidc"` or future `"saml"` / `"ldap"`.
     pub sso_provider: Option<String>,
+
+    /// Two-factor authentication; absent in records from before #76.
+    #[serde(default)]
+    pub mfa: MfaState,
 }
 
 impl MemDbModel for MailboxdUserV2 {
@@ -322,6 +338,7 @@ impl MailboxdUserV2 {
             language: self.language,
             sso_id: self.sso_id,
             sso_provider: self.sso_provider,
+            totp_enabled: self.mfa.totp_enabled,
         }
     }
 
@@ -358,6 +375,7 @@ impl MailboxdUserV2 {
                 language: None,
                 sso_id: None,
                 sso_provider: None,
+                mfa: MfaState::default(),
             };
 
             // 3. Generate and insert an initial access token for the first-time setup
@@ -406,6 +424,7 @@ impl MailboxdUserV2 {
                             access_token: None,
                             theme: None,
                             language: None,
+                            ..Default::default()
                         });
                     }
                 }
@@ -420,6 +439,14 @@ impl MailboxdUserV2 {
                     if needs_upgrade {
                         upgrade_password_storage(&user, &password);
                     }
+                    if user.mfa.totp_enabled {
+                        return Ok(LoginResult {
+                            success: true,
+                            mfa_required: true,
+                            mfa_challenge: Some(MfaChallenge::issue(user.id)?),
+                            ..Default::default()
+                        });
+                    }
                     let new_token = AccessTokenModel::reset_webui_token(user.id)?;
                     Ok(LoginResult {
                         success: true,
@@ -427,6 +454,7 @@ impl MailboxdUserV2 {
                         access_token: Some(new_token),
                         theme: user.theme,
                         language: user.language,
+                        ..Default::default()
                     })
                 } else {
                     warn!(
@@ -439,6 +467,7 @@ impl MailboxdUserV2 {
                         access_token: None,
                         theme: None,
                         language: None,
+                        ..Default::default()
                     })
                 }
             }
@@ -458,6 +487,7 @@ impl MailboxdUserV2 {
                     access_token: None,
                     theme: None,
                     language: None,
+                    ..Default::default()
                 })
             }
         }
@@ -537,6 +567,7 @@ impl MailboxdUserV2 {
             language: None,
             sso_id: Some(subject.to_string()),
             sso_provider: Some(provider.to_string()),
+            mfa: MfaState::default(),
         };
 
         let user_clone = new_user.clone();
@@ -600,6 +631,7 @@ impl MailboxdUserV2 {
             language: request.language,
             sso_id: None,
             sso_provider: None,
+            mfa: MfaState::default(),
         };
 
         let user_clone = user.clone();

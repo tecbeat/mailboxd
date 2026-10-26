@@ -26,6 +26,7 @@ use backup::BackupApi;
 use mailboxd_core::mailboxd_version;
 use mailbox::MailBoxApi;
 use message::MessageApi;
+use mfa::MfaApi;
 use oauth2::OAuth2Api;
 use poem_openapi::{OpenApiService, Tags};
 use crate::rest::api::{attachment::AttachmentApi, import::ImportApi, users::UsersApi};
@@ -40,6 +41,7 @@ pub mod backup;
 pub mod import;
 pub mod mailbox;
 pub mod message;
+pub mod mfa;
 pub mod oauth2;
 pub mod system;
 pub mod users;
@@ -55,6 +57,7 @@ pub enum ApiTags {
     Mailbox,
     OAuth2,
     Message,
+    Mfa,
     System,
     Import,
     Users,
@@ -73,6 +76,7 @@ type RustMailOpenApi = (
     MessageApi,
     ImportApi,
     UsersApi,
+    MfaApi,
 );
 
 pub fn create_openapi_service() -> OpenApiService<RustMailOpenApi, ()> {
@@ -90,6 +94,7 @@ pub fn create_openapi_service() -> OpenApiService<RustMailOpenApi, ()> {
             MessageApi,
             ImportApi,
             UsersApi,
+            MfaApi,
         ),
         "MailboxdApi",
         mailboxd_version!(),

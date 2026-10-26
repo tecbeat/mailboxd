@@ -108,6 +108,47 @@ impl AuditEntry {
                 None,
                 success,
             ),
+            Event::MfaLogin {
+                user,
+                ip,
+                success,
+                method,
+            } => Self::build(
+                "user.login",
+                user,
+                None,
+                ip.map(|ip| ip.to_string()),
+                Some(method.unwrap_or("mfa").to_string()),
+                success,
+            ),
+            Event::MfaEnabled { user, ip, success } => Self::build(
+                "mfa.enabled",
+                user,
+                None,
+                ip.map(|ip| ip.to_string()),
+                None,
+                success,
+            ),
+            Event::MfaDisabled { user, ip, success } => Self::build(
+                "mfa.disabled",
+                user,
+                None,
+                ip.map(|ip| ip.to_string()),
+                None,
+                success,
+            ),
+            Event::MfaReset {
+                reset_by,
+                target_user,
+                ip,
+            } => Self::build(
+                "mfa.reset",
+                reset_by,
+                Some(target_user),
+                ip.map(|ip| ip.to_string()),
+                None,
+                true,
+            ),
             Event::UserCreated {
                 created_by,
                 new_user,
@@ -304,6 +345,71 @@ mod tests {
             assert_eq!(entry.detail.as_deref(), Some(status));
             assert!(!entry.success, "{status} must not be recorded as a success");
         }
+    }
+
+    #[test]
+    fn maps_the_second_login_step_to_a_login_with_its_method() {
+        let ip = IpAddr::V4(Ipv4Addr::new(10, 0, 0, 5));
+        let ok = AuditEntry::from_event(Event::MfaLogin {
+            user: "erin".into(),
+            ip: Some(ip),
+            success: true,
+            method: Some("recovery_code"),
+        });
+        assert_eq!(ok.event_type, "user.login");
+        assert_eq!(ok.actor, "erin");
+        assert_eq!(ok.target, None);
+        assert_eq!(ok.ip.as_deref(), Some("10.0.0.5"));
+        assert_eq!(ok.detail.as_deref(), Some("recovery_code"));
+        assert!(ok.success);
+
+        let malformed = AuditEntry::from_event(Event::MfaLogin {
+            user: "erin".into(),
+            ip: None,
+            success: false,
+            method: None,
+        });
+        assert_eq!(malformed.detail.as_deref(), Some("mfa"));
+        assert_eq!(malformed.ip, None);
+        assert!(!malformed.success);
+    }
+
+    #[test]
+    fn maps_enabling_and_disabling_with_their_outcome() {
+        let ip = IpAddr::V4(Ipv4Addr::new(10, 0, 0, 6));
+        let enabled = AuditEntry::from_event(Event::MfaEnabled {
+            user: "frank".into(),
+            ip: Some(ip),
+            success: true,
+        });
+        assert_eq!(enabled.event_type, "mfa.enabled");
+        assert_eq!(enabled.actor, "frank");
+        assert_eq!(enabled.ip.as_deref(), Some("10.0.0.6"));
+        assert!(enabled.success);
+
+        let rejected = AuditEntry::from_event(Event::MfaDisabled {
+            user: "frank".into(),
+            ip: Some(ip),
+            success: false,
+        });
+        assert_eq!(rejected.event_type, "mfa.disabled");
+        assert_eq!(rejected.actor, "frank");
+        assert_eq!(rejected.ip.as_deref(), Some("10.0.0.6"));
+        assert!(!rejected.success);
+    }
+
+    #[test]
+    fn maps_an_admin_reset_with_its_target() {
+        let entry = AuditEntry::from_event(Event::MfaReset {
+            reset_by: "admin".into(),
+            target_user: "grace".into(),
+            ip: Some(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 7))),
+        });
+        assert_eq!(entry.event_type, "mfa.reset");
+        assert_eq!(entry.actor, "admin");
+        assert_eq!(entry.target.as_deref(), Some("grace"));
+        assert_eq!(entry.ip.as_deref(), Some("10.0.0.7"));
+        assert!(entry.success);
     }
 
     #[test]

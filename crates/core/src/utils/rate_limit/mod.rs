@@ -114,6 +114,12 @@ const LOGIN_LIMITER_EVICT_THRESHOLD: usize = 1024;
 pub static LOGIN_RATE_LIMITER: LazyLock<LoginRateLimiter> =
     LazyLock::new(|| LoginRateLimiter::with_quota(LOGIN_BURST, LOGIN_REPLENISH_PERIOD));
 
+/// Per-client-IP limiter for second-factor codes: the second login step,
+/// confirming an enrolment and disabling 2FA. Kept apart from
+/// [`LOGIN_RATE_LIMITER`] so password attempts do not use up code attempts.
+pub static MFA_RATE_LIMITER: LazyLock<LoginRateLimiter> =
+    LazyLock::new(|| LoginRateLimiter::with_quota(LOGIN_BURST, LOGIN_REPLENISH_PERIOD));
+
 /// Per-client-IP limiter for password login attempts.
 pub struct LoginRateLimiter {
     limiter: DefaultKeyedRateLimiter<IpAddr>,

@@ -22,7 +22,7 @@ use crate::common::paginated::Paginated;
 use crate::error::code::ErrorCode;
 use crate::error::MailboxdResult;
 use crate::raise_error;
-use mailboxd_memdb::{MemDb, Transaction};
+use mailboxd_memdb::{DbError, MemDb, Transaction};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -112,6 +112,28 @@ pub fn update_impl<M: MemDbModel>(
     coll.upsert(key, &updated)
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
     Ok(updated)
+}
+
+/// Read-modify-write under the database lock, so no other write can slip in
+/// between reading and writing the record. `update_fn` returns the record to
+/// store and a value handed back to the caller. A missing record is
+/// `Ok(None)`.
+pub fn update_atomic_impl<M: MemDbModel, R>(
+    db: &MemDb,
+    key: &str,
+    update_fn: impl FnOnce(M) -> (M, R),
+) -> MailboxdResult<Option<R>> {
+    let mut result = None;
+    let outcome = db.collection(M::collection()).update(key, |current: M| {
+        let (updated, value) = update_fn(current);
+        result = Some(value);
+        updated
+    });
+    match outcome {
+        Ok(_) => Ok(result),
+        Err(DbError::NotFound(..)) => Ok(None),
+        Err(e) => Err(raise_error!(format!("{:#?}", e), ErrorCode::InternalError)),
+    }
 }
 
 // ─── Delete ────────────────────────────────────────────────────────────────
@@ -224,4 +246,70 @@ pub fn with_transaction(
     let txn = f(txn)?;
     txn.commit()
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde::Deserialize;
+
+    #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+    struct Counter {
+        id: String,
+        value: u32,
+    }
+
+    impl MemDbModel for Counter {
+        fn collection() -> &'static str {
+            "counters"
+        }
+        fn key(&self) -> String {
+            self.id.clone()
+        }
+    }
+
+    #[test]
+    fn update_atomic_stores_the_record_and_returns_the_value() {
+        let db = MemDb::in_memory();
+        insert_impl(
+            &db,
+            Counter {
+                id: "c".into(),
+                value: 1,
+            },
+        )
+        .unwrap();
+
+        let seen = update_atomic_impl(&db, "c", |mut current: Counter| {
+            let before = current.value;
+            current.value += 1;
+            (current, before)
+        })
+        .unwrap();
+
+        assert_eq!(seen, Some(1));
+        let stored: Counter = find_impl(&db, "c").unwrap().unwrap();
+        assert_eq!(stored.value, 2);
+    }
+
+    #[test]
+    fn update_atomic_reports_a_record_of_another_shape_as_an_error() {
+        let db = MemDb::in_memory();
+        db.collection(Counter::collection())
+            .insert(
+                "odd",
+                &serde_json::json!({ "id": "odd", "value": "not a number" }),
+            )
+            .unwrap();
+        let err = update_atomic_impl(&db, "odd", |current: Counter| (current, ())).unwrap_err();
+        assert_eq!(err.code(), ErrorCode::InternalError);
+    }
+
+    #[test]
+    fn update_atomic_on_a_missing_record_creates_nothing() {
+        let db = MemDb::in_memory();
+        let seen = update_atomic_impl(&db, "missing", |current: Counter| (current, ())).unwrap();
+        assert_eq!(seen, None);
+        assert_eq!(find_impl::<Counter>(&db, "missing").unwrap(), None);
+    }
 }

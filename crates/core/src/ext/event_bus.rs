@@ -41,6 +41,33 @@ pub enum Event {
         ip: Option<IpAddr>,
         success: bool,
     },
+    /// The second step of a password login. `method` is the kind of code
+    /// that was tried (`totp` or `recovery_code`), `None` for a malformed
+    /// code.
+    MfaLogin {
+        user: String,
+        ip: Option<IpAddr>,
+        success: bool,
+        method: Option<&'static str>,
+    },
+    /// A user confirmed TOTP enrolment; `success` is false for a wrong code.
+    MfaEnabled {
+        user: String,
+        ip: Option<IpAddr>,
+        success: bool,
+    },
+    /// A user turned TOTP off; `success` is false for a wrong code.
+    MfaDisabled {
+        user: String,
+        ip: Option<IpAddr>,
+        success: bool,
+    },
+    /// An administrator removed a user's two-factor authentication.
+    MfaReset {
+        reset_by: String,
+        target_user: String,
+        ip: Option<IpAddr>,
+    },
     UserCreated {
         created_by: String,
         new_user: String,

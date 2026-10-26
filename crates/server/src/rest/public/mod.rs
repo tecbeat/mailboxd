@@ -20,6 +20,7 @@
 
 
 pub mod login;
+pub mod mfa;
 pub mod oauth2;
 pub mod oidc;
 pub mod oidc_config;

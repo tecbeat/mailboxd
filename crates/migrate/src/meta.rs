@@ -577,6 +577,7 @@ impl From<MailboxdUserV2> for mailboxd_core::users::MailboxdUserV2 {
             language: value.language,
             sso_id: None,
             sso_provider: None,
+            mfa: Default::default(),
         }
     }
 }
@@ -913,4 +914,28 @@ pub fn migrate_metadata(root_path: &PathBuf) -> Result<(), Box<dyn std::error::E
     );
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_migrated_user_starts_without_sso_and_two_factor() {
+        let legacy = MailboxdUserV2 {
+            id: 7,
+            username: "ann".into(),
+            email: "ann@example.com".into(),
+            password: Some("hash".into()),
+            ..Default::default()
+        };
+        let user: mailboxd_core::users::MailboxdUserV2 = legacy.into();
+        assert_eq!(
+            (user.id, user.username.as_str(), user.password.as_deref()),
+            (7, "ann", Some("hash"))
+        );
+        assert_eq!(user.sso_id, None);
+        assert_eq!(user.sso_provider, None);
+        assert_eq!(user.mfa, Default::default());
+    }
 }

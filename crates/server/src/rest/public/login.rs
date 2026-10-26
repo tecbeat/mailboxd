@@ -63,11 +63,14 @@ pub async fn login(payload: Json<LoginPayload>, req: &Request) -> Response {
     };
     match outcome {
         Ok(result) => {
-            emit(Event::UserLoggedIn {
-                user: username,
-                ip,
-                success: result.success,
-            });
+            // With 2FA pending, the second step records the login.
+            if !result.mfa_required {
+                emit(Event::UserLoggedIn {
+                    user: username,
+                    ip,
+                    success: result.success,
+                });
+            }
             match serde_json::to_string(&result) {
                 Ok(json_string) => Response::builder()
                     .status(http::StatusCode::OK)
@@ -97,11 +100,12 @@ pub async fn login(payload: Json<LoginPayload>, req: &Request) -> Response {
 
 /// Run `authenticate` on the blocking pool. A task that fails to complete
 /// (e.g. panics) becomes a 500 response.
-async fn run_authentication<F>(
+pub(super) async fn run_authentication<F, T>(
     authenticate: F,
-) -> Result<MailboxdResult<LoginResult>, Box<Response>>
+) -> Result<MailboxdResult<T>, Box<Response>>
 where
-    F: FnOnce() -> MailboxdResult<LoginResult> + Send + 'static,
+    F: FnOnce() -> MailboxdResult<T> + Send + 'static,
+    T: Send + 'static,
 {
     tokio::task::spawn_blocking(authenticate)
         .await
@@ -119,7 +123,10 @@ where
 /// Reject the request with 429 when `ip` has used up its login attempts.
 ///
 /// Requests without a known client IP are not limited.
-fn rate_limit_rejection(limiter: &LoginRateLimiter, ip: Option<IpAddr>) -> Option<Response> {
+pub(super) fn rate_limit_rejection(
+    limiter: &LoginRateLimiter,
+    ip: Option<IpAddr>,
+) -> Option<Response> {
     let ip = ip?;
     if limiter.check(ip) {
         return None;
@@ -131,6 +138,7 @@ fn rate_limit_rejection(limiter: &LoginRateLimiter, ip: Option<IpAddr>) -> Optio
         access_token: None,
         theme: None,
         language: None,
+        ..Default::default()
     };
     Some(
         Response::builder()
@@ -169,7 +177,7 @@ mod tests {
 
     #[tokio::test]
     async fn panicking_authentication_becomes_a_500() {
-        let failure = run_authentication(|| panic!("authentication blew up"))
+        let failure = run_authentication::<_, LoginResult>(|| panic!("authentication blew up"))
             .await
             .expect_err("a panicked task must not yield a login result");
         assert_eq!(failure.status(), http::StatusCode::INTERNAL_SERVER_ERROR);
@@ -186,6 +194,7 @@ mod tests {
                 access_token: Some("token".into()),
                 theme: None,
                 language: None,
+                ..Default::default()
             })
         })
         .await
