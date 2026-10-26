@@ -32,6 +32,7 @@ use crate::{
     dashboard::{DashboardStats, Group, LargestEmail, TimeBucket},
     error::{code::ErrorCode, MailboxdResult},
     message::{
+        content::AttachmentInfo,
         search::{EmailSearchFilter, SortBy},
         tags::{TagAction, TagCount, TagsRequest},
     },
@@ -49,17 +50,15 @@ use crate::{
                 F_REGULAR_ATTACHMENT_COUNT, F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
             },
             model::{extract_contacts, EnvelopeWithAttachments},
-            rebuild::document_tags,
+            rebuild::{document_tags, rebuild_envelope_document, stored_attachments},
             schema::SchemaTools,
             tokenizers::EuroTokenizer,
         },
     },
     utc_now,
-    utils::html::extract_text,
 };
 
 use chrono::Utc;
-use mail_parser::MessageParser;
 use serde_json::json;
 use tantivy::{
     aggregation::{
@@ -791,6 +790,29 @@ impl IndexManager {
         }
     }
 
+    /// Attachment metadata stored with an envelope, or `None` if the
+    /// envelope doesn't exist.
+    pub fn stored_attachments_of(
+        &self,
+        account_id: u64,
+        envelope_id: &str,
+    ) -> MailboxdResult<Option<Vec<AttachmentInfo>>> {
+        let searcher = self.create_searcher()?;
+        let docs = searcher
+            .search(
+                self.envelope_query(account_id, envelope_id).as_ref(),
+                &TopDocs::with_limit(1).order_by_score(),
+            )
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        let Some((_, doc_address)) = docs.first() else {
+            return Ok(None);
+        };
+        let doc: TantivyDocument = searcher
+            .doc(*doc_address)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        Ok(Some(stored_attachments(&doc).unwrap_or_default()))
+    }
+
     pub fn top_10_largest_emails(
         &self,
         accounts: &Option<HashSet<u64>>,
@@ -1312,116 +1334,30 @@ impl IndexManager {
                         }
                     }
 
-                    let mut new_doc = TantivyDocument::new();
-
-                    // Copy stored fields, excluding f_tags (handled separately).
-                    for (field, value) in old_doc.field_values() {
-                        if field != f_tags {
-                            new_doc.add_field_value(field, value);
-                        }
-                    }
-
-                    // Reconstruct non-stored text-search fields from their
-                    // stored counterparts. f_from_text / f_to_text / f_cc_text /
-                    // f_bcc_text carry the same content as f_from / f_to / f_cc / f_bcc.
-                    for val in old_doc.get_all(f.f_from) {
-                        if let Some(s) = val.as_str() {
-                            new_doc.add_text(f.f_from_text, s);
-                        }
-                    }
-                    for val in old_doc.get_all(f.f_to) {
-                        if let Some(s) = val.as_str() {
-                            new_doc.add_text(f.f_to_text, s);
-                        }
-                    }
-                    for val in old_doc.get_all(f.f_cc) {
-                        if let Some(s) = val.as_str() {
-                            new_doc.add_text(f.f_cc_text, s);
-                        }
-                    }
-                    for val in old_doc.get_all(f.f_bcc) {
-                        if let Some(s) = val.as_str() {
-                            new_doc.add_text(f.f_bcc_text, s);
-                        }
-                    }
-
-                    // Reconstruct attachment-name fields from the stored
-                    // f_attachments JSON blob.
-                    if let Some(attrs_val) = old_doc.get_first(f.f_attachments) {
-                        if let Some(json_str) = attrs_val.as_str() {
-                            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_str)
-                            {
-                                if let Some(arr) = parsed.as_array() {
-                                    for att in arr {
-                                        let is_inline = att
-                                            .get("inline")
-                                            .and_then(|v| v.as_bool())
-                                            .unwrap_or(false);
-                                        let has_cid = att
-                                            .get("content_id")
-                                            .and_then(|v| v.as_str())
-                                            .map(|s| !s.is_empty())
-                                            .unwrap_or(false);
-                                        if is_inline && has_cid {
-                                            continue;
-                                        }
-                                        if let Some(filename) = att
-                                            .get("filename")
-                                            .and_then(|v| v.as_str())
-                                            .filter(|s| !s.is_empty())
-                                        {
-                                            new_doc.add_text(f.f_attachment_name_text, filename);
-                                            new_doc.add_text(f.f_attachment_name_exact, filename);
-                                        }
-                                    }
-                                }
+                    // f_body is not stored; take it from the EML in the blob store.
+                    let eml = match old_doc.get_first(f.f_content_hash).and_then(|v| v.as_str()) {
+                        Some(content_hash) => match BLOB_MANAGER.get_email(content_hash) {
+                            Ok(Some(eml)) => Some(eml),
+                            Ok(None) => {
+                                tracing::warn!(
+                                    content_hash,
+                                    "EML not found in blob store during tag update"
+                                );
+                                None
                             }
-                        }
-                    }
-
-                    // Reconstruct body text from the original EML stored in the
-                    // blob store, referenced by f_content_hash.
-                    if let Some(hash_val) = old_doc.get_first(f.f_content_hash) {
-                        if let Some(content_hash) = hash_val.as_str() {
-                            match BLOB_MANAGER.get_email(content_hash) {
-                                Ok(Some(eml_bytes)) => {
-                                    if let Some(message) = MessageParser::new().parse(&eml_bytes) {
-                                        let text = message
-                                            .body_text(0)
-                                            .map(|cow| cow.into_owned())
-                                            .or_else(|| {
-                                                message
-                                                    .body_html(0)
-                                                    .map(|cow| extract_text(cow.into_owned()))
-                                            })
-                                            .unwrap_or_default();
-                                        let body_text =
-                                            text.split_whitespace().collect::<Vec<_>>().join(" ");
-                                        if !body_text.is_empty() {
-                                            new_doc.add_text(f.f_body, &body_text);
-                                        }
-                                    }
-                                }
-                                Ok(None) => {
-                                    tracing::warn!(
-                                        content_hash,
-                                        "EML not found in blob store during tag update"
-                                    );
-                                }
-                                Err(e) => {
-                                    tracing::warn!(
-                                        content_hash,
-                                        error = %e,
-                                        "Failed to fetch EML during tag update"
-                                    );
-                                }
+                            Err(e) => {
+                                tracing::warn!(
+                                    content_hash,
+                                    error = %e,
+                                    "Failed to fetch EML during tag update"
+                                );
+                                None
                             }
-                        }
-                    }
-
-                    for tag in &current_tags {
-                        new_doc.add_facet(f_tags, tag);
-                    }
+                        },
+                        None => None,
+                    };
+                    let new_doc =
+                        rebuild_envelope_document(&old_doc, &current_tags, eml.as_deref());
 
                     let delete_term = Term::from_field_text(f_id, eid);
                     operations.push(UserOperation::Delete(delete_term));
@@ -2004,107 +1940,19 @@ mod tests {
         doc
     }
 
-    /// Reconstruct a new tantivy document from `old_doc`, preserving all
-    /// fields (including non-stored ones) and replacing tags with
-    /// `new_tags`.  Body text is reconstructed from the supplied `eml_cache`
-    /// (a stand-in for the blob store) rather than from
-    /// `old_doc.field_values()` because `f_body` is not STORED.
+    /// `rebuild_envelope_document` with the EML looked up in `eml_cache`,
+    /// a stand-in for the blob store.
     fn reconstruct_for_test(
         old_doc: &TantivyDocument,
         new_tags: &HashSet<String>,
         eml_cache: &HashMap<String, Vec<u8>>,
     ) -> TantivyDocument {
         let f = SchemaTools::email_fields();
-        let mut new_doc = TantivyDocument::new();
-
-        // ── stored fields (except f_tags) ──────────────────────────
-        for (field, value) in old_doc.field_values() {
-            if field != f.f_tags {
-                new_doc.add_field_value(field, value);
-            }
-        }
-
-        // ── non-stored text-search fields ──────────────────────────
-        for val in old_doc.get_all(f.f_from) {
-            if let Some(s) = val.as_str() {
-                new_doc.add_text(f.f_from_text, s);
-            }
-        }
-        for val in old_doc.get_all(f.f_to) {
-            if let Some(s) = val.as_str() {
-                new_doc.add_text(f.f_to_text, s);
-            }
-        }
-        for val in old_doc.get_all(f.f_cc) {
-            if let Some(s) = val.as_str() {
-                new_doc.add_text(f.f_cc_text, s);
-            }
-        }
-        for val in old_doc.get_all(f.f_bcc) {
-            if let Some(s) = val.as_str() {
-                new_doc.add_text(f.f_bcc_text, s);
-            }
-        }
-
-        // ── attachment-name fields ─────────────────────────────────
-        if let Some(attrs_val) = old_doc.get_first(f.f_attachments) {
-            if let Some(json_str) = attrs_val.as_str() {
-                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_str) {
-                    if let Some(arr) = parsed.as_array() {
-                        for att in arr {
-                            let is_inline =
-                                att.get("inline").and_then(|v| v.as_bool()).unwrap_or(false);
-                            let has_cid = att
-                                .get("content_id")
-                                .and_then(|v| v.as_str())
-                                .map(|s| !s.is_empty())
-                                .unwrap_or(false);
-                            if is_inline && has_cid {
-                                continue;
-                            }
-                            if let Some(filename) = att
-                                .get("filename")
-                                .and_then(|v| v.as_str())
-                                .filter(|s| !s.is_empty())
-                            {
-                                new_doc.add_text(f.f_attachment_name_text, filename);
-                                new_doc.add_text(f.f_attachment_name_exact, filename);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── body text (from eml cache – stands in for BLOB_MANAGER) ──
-        if let Some(hash_val) = old_doc.get_first(f.f_content_hash) {
-            if let Some(content_hash) = hash_val.as_str() {
-                if let Some(eml_bytes) = eml_cache.get(content_hash) {
-                    if let Some(message) = MessageParser::new().parse(eml_bytes) {
-                        let text = message
-                            .body_text(0)
-                            .map(|cow| cow.into_owned())
-                            .or_else(|| {
-                                message
-                                    .body_html(0)
-                                    .map(|cow| extract_text(cow.into_owned()))
-                            })
-                            .unwrap_or_default();
-                        let body_text = text.split_whitespace().collect::<Vec<_>>().join(" ");
-                        if !body_text.is_empty() {
-                            new_doc.add_text(f.f_body, &body_text);
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── updated tags ───────────────────────────────────────────
-        for tag in new_tags {
-            new_doc.add_facet(f.f_tags, tag);
-        }
-
-        new_doc
+        let eml = old_doc
+            .get_first(f.f_content_hash)
+            .and_then(|v| v.as_str())
+            .and_then(|hash| eml_cache.get(hash));
+        rebuild_envelope_document(old_doc, new_tags, eml.map(Vec::as_slice))
     }
 
     #[test]
@@ -2234,8 +2082,7 @@ mod tests {
 
     #[test]
     fn body_reconstruction_from_eml_cache() {
-        // Verify the EML → body_text extraction used inside
-        // reconstruct_for_test (and therefore update_envelope_tags).
+        // Verify the EML → body_text extraction used by update_envelope_tags.
         let eml = b"From: x@y\r\n\
                          Subject: testing\r\n\
                          Date: Thu, 01 Jan 2023 00:00:00 +0000\r\n\

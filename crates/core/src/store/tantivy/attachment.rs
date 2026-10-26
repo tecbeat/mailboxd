@@ -38,13 +38,14 @@ use crate::{
     raise_error,
     settings::dir::DATA_DIR_MANAGER,
     store::tantivy::{
+        envelope::ENVELOPE_MANAGER,
         fatal_commit,
         fields::{
             F_ATTACHMENT_CATEGORY, F_ATTACHMENT_CONTENT_TYPE, F_ATTACHMENT_EXT, F_DATE,
             F_INGEST_AT, F_SIZE, F_TAGS,
         },
         model::{extract_senders, AttachmentModel},
-        rebuild::document_tags,
+        rebuild::{document_tags, extracted_text_of, rebuild_attachment_document},
         schema::SchemaTools,
         tokenizers::EuroTokenizer,
     },
@@ -60,7 +61,7 @@ use tantivy::{
     collector::{Count, FacetCollector, TopDocs},
     indexer::{LogMergePolicy, UserOperation},
     query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
-    schema::{Field, IndexRecordOption},
+    schema::{Field, IndexRecordOption, Value},
     DocAddress, Index, IndexReader, IndexWriter, Order, TantivyDocument, Term,
 };
 use tantivy::{schema::Facet, Searcher};
@@ -775,16 +776,33 @@ impl IndexManager {
                         }
                     }
 
-                    let mut new_doc = TantivyDocument::new();
-
-                    for (field, value) in old_doc.field_values() {
-                        if field != f_tags {
-                            new_doc.add_field_value(field, value);
+                    // f_text is not stored; take it from the attachment
+                    // metadata of the owning envelope.
+                    let f = SchemaTools::attachment_fields();
+                    let envelope_id = old_doc.get_first(f.f_envelope_id).and_then(|v| v.as_str());
+                    let content_hash = old_doc.get_first(f.f_content_hash).and_then(|v| v.as_str());
+                    let extracted_text = match (envelope_id, content_hash) {
+                        (Some(envelope_id), Some(content_hash)) => {
+                            match ENVELOPE_MANAGER
+                                .stored_attachments_of(*account_id, envelope_id)?
+                            {
+                                Some(attachments) => extracted_text_of(&attachments, content_hash),
+                                None => {
+                                    tracing::warn!(
+                                        envelope_id,
+                                        "Envelope of attachment not found during tag update"
+                                    );
+                                    None
+                                }
+                            }
                         }
-                    }
-                    for tag in current_tags {
-                        new_doc.add_facet(f_tags, &tag);
-                    }
+                        _ => None,
+                    };
+                    let new_doc = rebuild_attachment_document(
+                        &old_doc,
+                        &current_tags,
+                        extracted_text.as_deref(),
+                    );
 
                     let delete_term = Term::from_field_text(f_id, aid);
                     operations.push(UserOperation::Delete(delete_term));

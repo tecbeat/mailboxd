@@ -45,6 +45,7 @@ use crate::{
             dedup_cache::DEDUP_CACHE,
             envelope::ENVELOPE_MANAGER,
             model::{AttachmentModel, EnvelopeWithAttachments},
+            rebuild::message_body_text,
         },
     },
     utc_now,
@@ -174,15 +175,7 @@ async fn extract_envelope_core(
     }
 
     let preview_limit = 100;
-    let text = if let Some(text) = message.body_text(0).map(|cow| cow.into_owned()) {
-        text
-    } else if let Some(html) = message.body_html(0).map(|cow| cow.into_owned()) {
-        extract_text(html)
-    } else {
-        String::new()
-    };
-
-    let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    let text = message_body_text(&message);
 
     let preview = if text.chars().count() > preview_limit {
         text.chars().take(preview_limit).collect::<String>() + "..."
