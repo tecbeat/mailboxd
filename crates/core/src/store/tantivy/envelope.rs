@@ -56,7 +56,7 @@ use crate::{
             model::{extract_contacts, EnvelopeWithAttachments},
             rebuild::{document_tags, rebuild_envelope_document, stored_attachments},
             schema::SchemaTools,
-            tokenizers::{register_tokenizers, word_or_tri},
+            tokenizers::{register_tokenizers, text_parser, word_or_tri},
         },
     },
     utc_now,
@@ -74,7 +74,7 @@ use tantivy::{
     },
     collector::{Count, DocSetCollector, FacetCollector, TopDocs},
     indexer::{LogMergePolicy, UserOperation},
-    query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
+    query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, RangeQuery, TermQuery},
     schema::{IndexRecordOption, Value},
     DocAddress, Index, IndexReader, IndexWriter, Order, TantivyDocument, Term,
 };
@@ -489,8 +489,7 @@ impl IndexManager {
         }
 
         if let Some(ref text) = filter.text {
-            let query_parser =
-                QueryParser::for_index(&self.index, SchemaTools::email_default_fields());
+            let query_parser = text_parser(&self.index, SchemaTools::email_default_fields());
 
             let word = query_parser
                 .parse_query(text)
@@ -507,7 +506,7 @@ impl IndexManager {
         }
 
         if let Some(ref subject_val) = filter.subject {
-            let query_parser = QueryParser::for_index(&self.index, vec![f.f_subject]);
+            let query_parser = text_parser(&self.index, vec![f.f_subject]);
             let word = query_parser
                 .parse_query(subject_val)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
@@ -518,7 +517,7 @@ impl IndexManager {
         }
 
         if let Some(ref body_val) = filter.body {
-            let query_parser = QueryParser::for_index(&self.index, vec![f.f_body]);
+            let query_parser = text_parser(&self.index, vec![f.f_body]);
 
             let q = query_parser
                 .parse_query(body_val)
@@ -553,7 +552,7 @@ impl IndexManager {
             (f.f_bcc_text, f.f_bcc_text_tri, &filter.bcc),
         ] {
             if let Some(ref v) = opt_value {
-                let query_parser = QueryParser::for_index(&self.index, vec![field]);
+                let query_parser = text_parser(&self.index, vec![field]);
                 let word = query_parser
                     .parse_query(v)
                     .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
@@ -569,7 +568,7 @@ impl IndexManager {
                 (f.f_cc_text, f.f_cc_text_tri),
                 (f.f_bcc_text, f.f_bcc_text_tri),
             ] {
-                let query_parser = QueryParser::for_index(&self.index, vec![field]);
+                let query_parser = text_parser(&self.index, vec![field]);
                 if let Ok(word) = query_parser.parse_query(v) {
                     recipient_queries.push((Occur::Should, word_or_tri(word, &[tri_field], v)));
                 }
@@ -588,7 +587,7 @@ impl IndexManager {
                 (f.f_cc_text, f.f_cc_text_tri),
                 (f.f_bcc_text, f.f_bcc_text_tri),
             ] {
-                let query_parser = QueryParser::for_index(&self.index, vec![field]);
+                let query_parser = text_parser(&self.index, vec![field]);
                 if let Ok(word) = query_parser.parse_query(v) {
                     participant_queries.push((Occur::Should, word_or_tri(word, &[tri_field], v)));
                 }
@@ -622,8 +621,7 @@ impl IndexManager {
                 let term = Term::from_field_text(f.f_attachment_name_exact, name);
                 let exact_query = TermQuery::new(term, IndexRecordOption::Basic);
 
-                let query_parser =
-                    QueryParser::for_index(&self.index, vec![f.f_attachment_name_text]);
+                let query_parser = text_parser(&self.index, vec![f.f_attachment_name_text]);
                 let word: Box<dyn Query> = query_parser
                     .parse_query(name)
                     .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
@@ -636,8 +634,7 @@ impl IndexManager {
                 ]);
                 subqueries.push((Occur::Must, Box::new(query)));
             } else {
-                let query_parser =
-                    QueryParser::for_index(&self.index, vec![f.f_attachment_name_text]);
+                let query_parser = text_parser(&self.index, vec![f.f_attachment_name_text]);
                 let word = query_parser
                     .parse_query(name)
                     .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
@@ -2762,7 +2759,7 @@ mod tests {
 #[cfg(test)]
 mod search_fix_tests {
     use super::*;
-    use crate::store::tantivy::tokenizers::tri_query;
+    use crate::store::tantivy::tokenizers::{text_parser, tri_query};
     use tantivy::{collector::Count, query::QueryParser, Index};
 
     /// Build an in-memory index with trigram fields and write (subject, body)
@@ -3003,5 +3000,45 @@ mod search_fix_tests {
                 "{term}"
             );
         }
+    }
+
+    /// Space-separated terms are AND-ed, as in email clients: another word
+    /// narrows the result. Explicit `OR`, phrases and exclusion still work.
+    #[test]
+    fn multiword_query_is_and() {
+        let index = build_index(&[
+            ("both", "alert for rustmailer git"),
+            ("only alert", "alert only"),
+        ]);
+        let f = SchemaTools::email_fields();
+        let word = |query: &str| {
+            matching_ids(
+                &index,
+                text_parser(&index, vec![f.f_body])
+                    .parse_query(query)
+                    .unwrap()
+                    .as_ref(),
+            )
+        };
+
+        assert_eq!(word("alert"), ["both", "only alert"]);
+        assert_eq!(word("alert rustmailer"), ["both"]);
+        assert_eq!(word("rustmailer OR alert"), ["both", "only alert"]);
+        assert_eq!(word("\"alert for\""), ["both"]);
+        assert_eq!(word("alert -rustmailer"), ["only alert"]);
+    }
+
+    /// The trigram layer ANDs terms as well, and steps aside for a term too
+    /// short for grams instead of making the conjunction false.
+    #[test]
+    fn trigram_terms_are_and() {
+        let index = build_index(&[("Quarterly report", ""), ("Annual report", "")]);
+        let f = SchemaTools::email_fields();
+        let tri = |query: &str| matching_ids(&index, tri_query(&[f.f_subject_tri], query).as_ref());
+
+        assert_eq!(tri("report"), ["Annual report", "Quarterly report"]);
+        assert_eq!(tri("quarterly report"), ["Quarterly report"]);
+        assert!(tri("quarterly annual").is_empty());
+        assert!(tri("quarterly q4").is_empty(), "q4 has no grams");
     }
 }

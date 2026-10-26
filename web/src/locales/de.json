@@ -1310,6 +1310,7 @@
     "body": "Inhalt",
     "button": "Suchen",
     "clear_history": "Verlauf löschen",
+    "hint": "Alle Wörter müssen vorkommen. OR erweitert die Suche, \"Anführungszeichen\" suchen eine Phrase, -Wort schließt aus.",
     "no_history": "Kein Suchverlauf",
     "placeholder": "E-Mails durchsuchen (verwenden Sie \" \" für die Phrasensuche)",
     "recent_title": "Letzte Suchanfragen",

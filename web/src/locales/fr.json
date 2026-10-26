@@ -1310,6 +1310,7 @@
     "body": "Corps du message",
     "button": "Rechercher",
     "clear_history": "Effacer l’historique",
+    "hint": "Tous les mots doivent correspondre. Utilisez OR pour élargir, des \"guillemets\" pour une expression, -mot pour exclure.",
     "no_history": "Aucun historique de recherche",
     "placeholder": "Rechercher des e-mails (utilisez \" \" pour la recherche par expression)",
     "recent_title": "Recherches récentes",

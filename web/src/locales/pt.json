@@ -1310,6 +1310,7 @@
     "body": "Corpo da mensagem",
     "button": "Pesquisar",
     "clear_history": "Limpar histórico",
+    "hint": "Todas as palavras devem corresponder. Use OR para ampliar, \"aspas\" para uma frase, -palavra para excluir.",
     "no_history": "Nenhum histórico de pesquisa",
     "placeholder": "Pesquisar e-mails (use \" \" para pesquisa de frases)",
     "recent_title": "Pesquisas recentes",

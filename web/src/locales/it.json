@@ -1310,6 +1310,7 @@
     "body": "Corpo del messaggio",
     "button": "Cerca",
     "clear_history": "Cancella cronologia",
+    "hint": "Tutte le parole devono corrispondere. Usa OR per ampliare, le \"virgolette\" per una frase, -parola per escludere.",
     "no_history": "Nessuna cronologia di ricerca",
     "placeholder": "Cerca email (usa \" \" per la ricerca di frasi)",
     "recent_title": "Ricerche recenti",

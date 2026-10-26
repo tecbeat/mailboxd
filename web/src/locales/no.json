@@ -1310,6 +1310,7 @@
     "body": "Innhold",
     "button": "Søk",
     "clear_history": "Tøm historikk",
+    "hint": "Alle ord må samsvare. Bruk OR for å utvide, \"anførselstegn\" for en frase, -ord for å utelate.",
     "no_history": "Ingen søkehistorikk",
     "placeholder": "Søk etter e-poster (bruk \" \" for frasesøk)",
     "recent_title": "Nylige søk",

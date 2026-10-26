@@ -1310,6 +1310,7 @@
     "body": "Treść",
     "button": "Szukaj",
     "clear_history": "Wyczyść historię",
+    "hint": "Wszystkie słowa muszą pasować. Użyj OR, aby poszerzyć, \"cudzysłowu\" dla frazy, -słowo, aby wykluczyć.",
     "no_history": "Brak historii wyszukiwania",
     "placeholder": "Wyszukaj e-maile (użyj \" \" do wyszukiwania fraz)",
     "recent_title": "Ostatnie wyszukiwania",

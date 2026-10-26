@@ -1310,6 +1310,7 @@
     "body": "Indhold",
     "button": "Søg",
     "clear_history": "Ryd historik",
+    "hint": "Alle ord skal matche. Brug OR for at udvide, \"anførselstegn\" for en frase, -ord for at udelukke.",
     "no_history": "Ingen søgehistorik",
     "placeholder": "Søg efter e-mails (brug \" \" til frasesøgning)",
     "recent_title": "Seneste søgninger",

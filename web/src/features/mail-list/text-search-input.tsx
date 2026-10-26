@@ -237,6 +237,9 @@ export function TextSearchInput({ config }: { config: TextSearchConfig }) {
             </div>
             {showHistory && (
                 <div className="absolute top-full left-0 w-full mt-1 bg-popover border rounded-md shadow-lg z-50 max-h-[300px] overflow-hidden flex flex-col">
+                    <p className="px-3 py-2 text-[11px] leading-relaxed text-muted-foreground border-b">
+                        {t("search_input.hint")}
+                    </p>
                     <div className="py-2 px-3 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b flex items-center justify-between bg-muted/30">
                         <div className="flex items-center gap-1.5">
                             <Clock className="h-3 w-3" />

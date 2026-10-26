@@ -51,7 +51,7 @@ use crate::{
         model::{extract_senders, AttachmentModel},
         rebuild::{document_tags, extracted_text_of, rebuild_attachment_document},
         schema::SchemaTools,
-        tokenizers::{register_tokenizers, word_or_tri},
+        tokenizers::{register_tokenizers, text_parser, word_or_tri},
     },
 };
 
@@ -64,7 +64,7 @@ use tantivy::{
     },
     collector::{Count, FacetCollector, TopDocs},
     indexer::{LogMergePolicy, UserOperation},
-    query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
+    query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, RangeQuery, TermQuery},
     schema::{Field, IndexRecordOption, Value},
     DocAddress, Index, IndexReader, IndexWriter, Order, TantivyDocument, Term,
 };
@@ -356,8 +356,7 @@ impl IndexManager {
         }
 
         if let Some(ref text) = filter.text {
-            let query_parser =
-                QueryParser::for_index(&self.index, SchemaTools::attachment_default_fields());
+            let query_parser = text_parser(&self.index, SchemaTools::attachment_default_fields());
 
             let word = query_parser
                 .parse_query(text)
@@ -367,7 +366,7 @@ impl IndexManager {
         }
 
         if let Some(ref subject_val) = filter.subject {
-            let query_parser = QueryParser::for_index(&self.index, vec![f.f_subject]);
+            let query_parser = text_parser(&self.index, vec![f.f_subject]);
             let word = query_parser
                 .parse_query(subject_val)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
@@ -398,7 +397,7 @@ impl IndexManager {
         }
 
         if let Some(from_query) = &filter.from {
-            let query_parser = QueryParser::for_index(&self.index, vec![f.f_from_text]);
+            let query_parser = text_parser(&self.index, vec![f.f_from_text]);
             let word = query_parser
                 .parse_query(from_query)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
@@ -421,8 +420,7 @@ impl IndexManager {
         }
 
         if let Some(ref name) = filter.attachment_name {
-            let query_parser =
-                QueryParser::for_index(&self.index, vec![f.f_name_text, f.f_name_exact]);
+            let query_parser = text_parser(&self.index, vec![f.f_name_text, f.f_name_exact]);
 
             let word = query_parser
                 .parse_query(name)

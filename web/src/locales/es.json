@@ -1310,6 +1310,7 @@
     "body": "Cuerpo del mensaje",
     "button": "Buscar",
     "clear_history": "Borrar historial",
+    "hint": "Deben coincidir todas las palabras. Usa OR para ampliar, \"comillas\" para una frase, -palabra para excluir.",
     "no_history": "Sin historial de búsqueda",
     "placeholder": "Buscar correos (use \" \" para búsqueda de frases)",
     "recent_title": "Búsquedas recientes",

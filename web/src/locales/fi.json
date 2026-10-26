@@ -1310,6 +1310,7 @@
     "body": "Viestiosa",
     "button": "Hae",
     "clear_history": "Tyhjennä historia",
+    "hint": "Kaikkien sanojen on täsmättävä. OR laajentaa hakua, \"lainausmerkit\" hakevat fraasia, -sana sulkee pois.",
     "no_history": "Ei hakuhistoriaa",
     "placeholder": "Hae sähköposteja (käytä \" \" lausehakuun)",
     "recent_title": "Viimeisimmät haut",

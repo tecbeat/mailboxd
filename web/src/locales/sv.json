@@ -1310,6 +1310,7 @@
     "body": "Innehåll",
     "button": "Sök",
     "clear_history": "Rensa historik",
+    "hint": "Alla ord måste matcha. Använd OR för att bredda, \"citattecken\" för en fras, -ord för att utesluta.",
     "no_history": "Ingen sökhistorik",
     "placeholder": "Sök efter e-post (använd \" \" för frassökning)",
     "recent_title": "Senaste sökningar",

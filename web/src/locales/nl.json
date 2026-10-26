@@ -1310,6 +1310,7 @@
     "body": "Inhoud",
     "button": "Zoeken",
     "clear_history": "Geschiedenis wissen",
+    "hint": "Alle woorden moeten overeenkomen. Gebruik OR om te verbreden, \"aanhalingstekens\" voor een zin, -woord om uit te sluiten.",
     "no_history": "Geen zoekgeschiedenis",
     "placeholder": "Zoek e-mails (gebruik \" \" voor woordgroepen)",
     "recent_title": "Recente zoekopdrachten",
