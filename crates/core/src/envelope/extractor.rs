@@ -1137,16 +1137,20 @@ mod test {
         let raw_hash = "r".repeat(64);
         let info = crate::message::content::AttachmentInfo {
             content_hash: decoded_hash.clone(),
-            raw_content_hash: Some(raw_hash),
+            raw_content_hash: Some(raw_hash.clone()),
             ..Default::default()
         };
         let stripped = format!("head\r\n<<MAILBOXD_DETACH_HASH:{decoded_hash}>>\r\ntail");
+        // Both blobs exist; the legacy one must win for a legacy placeholder.
+        let store = std::collections::HashMap::from([
+            (
+                decoded_hash.clone(),
+                bytes::Bytes::from_static(b"legacy body"),
+            ),
+            (raw_hash.clone(), bytes::Bytes::from_static(b"raw body")),
+        ]);
         let restored = super::reattach_parts(stripped.into_bytes(), vec![info], |hash| {
-            Ok(Some(if hash == decoded_hash {
-                bytes::Bytes::from_static(b"legacy body")
-            } else {
-                bytes::Bytes::from_static(b"raw body")
-            }))
+            Ok(store.get(hash).cloned())
         })
         .expect("reattach mixed-format record");
         assert_eq!(restored.as_ref(), b"head\r\nlegacy body\r\ntail".as_slice());
@@ -1175,6 +1179,194 @@ mod test {
         })
         .expect("reattach via raw-key alternate");
         assert_eq!(restored.as_ref(), b"raw body".as_slice());
+    }
+
+    #[test]
+    fn legacy_record_with_missing_blob_keeps_its_placeholder() {
+        // A legacy record has no raw key, so there is no alternate load target:
+        // a missing blob leaves the placeholder in place instead of failing.
+        let decoded_hash = "d".repeat(64);
+        let info = crate::message::content::AttachmentInfo {
+            content_hash: decoded_hash.clone(),
+            raw_content_hash: None,
+            ..Default::default()
+        };
+        let stripped = format!("head\r\n<<MAILBOXD_DETACH_HASH:{decoded_hash}>>\r\ntail");
+        let restored =
+            super::reattach_parts(stripped.clone().into_bytes(), vec![info], |_| Ok(None))
+                .expect("a missing blob is not an error");
+        assert_eq!(restored.as_ref(), stripped.as_bytes());
+    }
+
+    /// A valid message with a unique Message-ID, so the on-disk dedup state of
+    /// earlier test runs never marks it as already archived.
+    fn unique_eml(extra_headers: &str) -> Vec<u8> {
+        format!(
+            "From: sender@example.com\r\nTo: rcpt@example.com\r\nSubject: unique\r\n\
+             Message-ID: <{}@extractor.test>\r\n{extra_headers}\r\nbody text\r\n",
+            uuid::Uuid::new_v4()
+        )
+        .into_bytes()
+    }
+
+    #[test]
+    fn valid_body_is_imported_once_then_reported_as_duplicate() {
+        STORAGE_RUNTIME.block_on(async {
+            let eml = unique_eml("Date: Wed, 3 Jan 2024 10:00:00 +0000\r\n");
+            let first = super::extract_envelope_from_eml(&eml, 59_342_201, 201)
+                .await
+                .expect("valid body is archived");
+            assert_eq!(first, super::ExtractOutcome::Imported);
+            let second = super::extract_envelope_from_eml(&eml, 59_342_201, 201)
+                .await
+                .expect("re-import is not an error");
+            assert_eq!(second, super::ExtractOutcome::Duplicate);
+        });
+    }
+
+    #[test]
+    fn nested_message_date_falls_back_to_newest_received_header() {
+        let with_date = unique_eml("Date: Wed, 3 Jan 2024 10:00:00 +0000\r\n");
+        let message = mail_parser::MessageParser::new().parse(&with_date).unwrap();
+        let envelope = super::extract_envelope_from_nested_message(message, 7).unwrap();
+        // Wed, 3 Jan 2024 10:00:00 UTC
+        assert_eq!(envelope.date, 1_704_276_000_000);
+        assert_eq!(envelope.account_id, 7);
+
+        let without_date = unique_eml(
+            "Received: from a by b; Tue, 2 Jan 2024 10:00:00 +0000\r\n\
+             Received: from c by a; Mon, 1 Jan 2024 10:00:00 +0000\r\n",
+        );
+        let message = mail_parser::MessageParser::new()
+            .parse(&without_date)
+            .unwrap();
+        let envelope = super::extract_envelope_from_nested_message(message, 7).unwrap();
+        // Tue, 2 Jan 2024 10:00:00 UTC
+        assert_eq!(envelope.date, 1_704_189_600_000);
+    }
+
+    /// Two text attachments, `notes.txt` and `report.txt`, plus a body part.
+    fn two_attachment_eml(content_type: &str, ext: &str) -> Vec<u8> {
+        format!(
+            "From: sender@example.com\r\nSubject: att\r\nMIME-Version: 1.0\r\n\
+             Content-Type: multipart/mixed; boundary=\"bnd\"\r\n\r\n\
+             --bnd\r\nContent-Type: text/plain\r\n\r\nHello\r\n\
+             --bnd\r\nContent-Type: {content_type}\r\n\
+             Content-Disposition: attachment; filename=\"notes.{ext}\"\r\n\r\nnotes text\r\n\
+             --bnd\r\nContent-Type: {content_type}\r\n\
+             Content-Disposition: attachment; filename=\"report.{ext}\"\r\n\r\nreport text\r\n\
+             --bnd--\r\n"
+        )
+        .into_bytes()
+    }
+
+    #[test]
+    fn extraction_rules_select_the_text_candidates() {
+        let raw = two_attachment_eml("text/plain", "txt");
+        let message = mail_parser::MessageParser::new().parse(&raw).unwrap();
+        let rules = crate::account::migration::ExtractionRules {
+            enabled: true,
+            attachment_names: crate::account::migration::FilterRule {
+                include: vec!["^notes".into()],
+                exclude: vec![],
+            },
+            ..Default::default()
+        };
+        let filter = super::ExtractionFilter {
+            rules: Some(&rules),
+            mailbox_name: Some("INBOX"),
+            sender: Some("sender@example.com"),
+        };
+        let detached = super::strip_attachment_bodies(&raw, &message, Some(&filter));
+        assert_eq!(detached.infos.len(), 2);
+        let candidates: Vec<&[u8]> = detached
+            .text_candidates
+            .iter()
+            .map(|c| c.bytes.as_slice())
+            .collect();
+        assert_eq!(candidates, vec![b"notes text".as_slice()]);
+
+        let disabled = crate::account::migration::ExtractionRules::default();
+        let filter = super::ExtractionFilter {
+            rules: Some(&disabled),
+            mailbox_name: None,
+            sender: None,
+        };
+        let detached = super::strip_attachment_bodies(&raw, &message, Some(&filter));
+        assert!(detached.text_candidates.is_empty());
+    }
+
+    /// Extracts text only from a content type no real mail uses, and defers
+    /// to "no text" for everything else, like the default no-op extractor.
+    struct ProbeExtractor;
+    impl crate::ext::text_extractor::AttachmentTextExtractor for ProbeExtractor {
+        fn extract(
+            &self,
+            content_type: &str,
+            _ext: &str,
+            bytes: &[u8],
+        ) -> Option<crate::ext::text_extractor::ExtractedText> {
+            (content_type == "text/x-mailboxd-probe").then(|| {
+                crate::ext::text_extractor::ExtractedText {
+                    text: String::from_utf8_lossy(bytes).into_owned(),
+                    page_count: None,
+                    is_ocr: false,
+                }
+            })
+        }
+    }
+
+    #[test]
+    fn folder_rules_limit_text_extraction_to_matching_mailboxes() {
+        STORAGE_RUNTIME.block_on(async {
+            use crate::database::{manager::DB_MANAGER, upsert_impl};
+            crate::ext::text_extractor::set_extractor(Box::new(ProbeExtractor));
+            let account_id = 59_342_202;
+            let account = super::AccountModel {
+                id: account_id,
+                extraction_rules: Some(crate::account::migration::ExtractionRules {
+                    enabled: true,
+                    folders: crate::account::migration::FilterRule {
+                        include: vec!["^Invoices$".into()],
+                        exclude: vec![],
+                    },
+                    ..Default::default()
+                }),
+                ..Default::default()
+            };
+            upsert_impl(DB_MANAGER.db(), account).unwrap();
+            let mailbox = |id: u64, name: &str| super::MailBox {
+                id,
+                account_id,
+                name: name.into(),
+                ..Default::default()
+            };
+            super::MailBox::batch_upsert(&[mailbox(202_001, "Invoices"), mailbox(202_002, "Spam")])
+                .unwrap();
+
+            let raw = two_attachment_eml("text/x-mailboxd-probe", "txt");
+            let message = mail_parser::MessageParser::new().parse(&raw).unwrap();
+            let hash = crate::utils::compute_content_hash(&raw);
+            let texts = |infos: Vec<super::AttachmentInfo>| {
+                let mut texts: Vec<Option<String>> =
+                    infos.into_iter().map(|i| i.extracted_text).collect();
+                texts.sort();
+                texts
+            };
+
+            let infos =
+                super::detach_and_store_attachments(&raw, &message, &hash, account_id, 202_001)
+                    .await;
+            assert_eq!(
+                texts(infos),
+                vec![Some("notes text".into()), Some("report text".into())]
+            );
+
+            let infos =
+                super::detach_and_store_attachments(&raw, &message, &hash, account_id, 202_002)
+                    .await;
+            assert_eq!(texts(infos), vec![None, None]);
+        });
     }
 
     #[test]

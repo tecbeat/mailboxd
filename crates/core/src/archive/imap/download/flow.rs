@@ -1775,4 +1775,235 @@ mod tests {
 
         session.logout().await.ok();
     }
+
+    // ============================================================
+    // Download flows against a scripted IMAP server
+    // ============================================================
+
+    use crate::account::state::FolderProgress;
+    use crate::imap::mock_server::{malformed_response, mock_mails, register_mock_account};
+
+    /// A run-unique mailbox id, so no envelope indexed by an earlier test
+    /// run belongs to the mailbox.
+    fn fresh_mailbox(account_id: u64, name: &str) -> MailBox {
+        MailBox {
+            id: 1_000_000 + (uuid::Uuid::new_v4().as_u128() % 1_000_000_000) as u64,
+            account_id,
+            name: name.into(),
+            uid_validity: Some(42),
+            ..Default::default()
+        }
+    }
+
+    /// Registers an account on `server` with a fresh active download session.
+    async fn account_on(
+        account_id: u64,
+        server: MockImapServer,
+    ) -> (AccountModel, MockImapServerHandle) {
+        let handle = server.start().await;
+        let account = register_mock_account(&handle, account_id);
+        DownloadState::init(account_id).await.unwrap();
+        (account, handle)
+    }
+
+    fn folder(account_id: u64, name: &str) -> FolderProgress {
+        DownloadState::get(account_id)
+            .unwrap()
+            .and_then(|state| state.active_session)
+            .and_then(|session| session.folder_details.get(name).cloned())
+            .expect("folder progress recorded")
+    }
+
+    fn session_errors(account_id: u64) -> Vec<String> {
+        DownloadState::get(account_id)
+            .unwrap()
+            .and_then(|state| state.active_session)
+            .map(|session| session.errors.into_iter().map(|e| e.error).collect())
+            .unwrap_or_default()
+    }
+
+    fn has_error_starting_with(account_id: u64, prefix: &str) -> bool {
+        session_errors(account_id)
+            .iter()
+            .any(|e| e.starts_with(prefix))
+    }
+
+    const PARSE_SKIP_SUMMARY: &str = "Mailbox 'INBOX': 1 email(s) could not be parsed";
+
+    #[tokio::test]
+    async fn date_download_warns_about_parse_skips_and_returns_the_watermark() {
+        let account_id = 59_342_401;
+        let mut mails = mock_mails(&[1, 2]);
+        mails[1].body = Vec::new(); // mail-parser refuses an empty body
+        let (account, _server) =
+            account_on(account_id, MockImapServer::new().serving(&mails)).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_by_date(
+            &account,
+            "01-Jan-2020",
+            &mailbox,
+            FetchDirection::Since,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(watermark, Some(2));
+        let progress = folder(account_id, "INBOX");
+        assert_eq!(progress.status, FolderStatus::Success);
+        assert_eq!((progress.planned, progress.current), (2, 1));
+        assert!(has_error_starting_with(account_id, PARSE_SKIP_SUMMARY));
+    }
+
+    #[tokio::test]
+    async fn date_download_with_a_failed_batch_returns_no_watermark() {
+        let account_id = 59_342_402;
+        let mails = mock_mails(&[1, 2]);
+        let server = MockImapServer::new().respond("BODY.PEEK[]", malformed_response());
+        let (account, _server) = account_on(account_id, server.serving(&mails)).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_by_date(
+            &account,
+            "01-Jan-2020",
+            &mailbox,
+            FetchDirection::Before,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(watermark, None);
+        assert_eq!(folder(account_id, "INBOX").status, FolderStatus::Failed);
+        assert!(has_error_starting_with(account_id, "Batch 0 failed"));
+    }
+
+    #[tokio::test]
+    async fn full_download_warns_about_parse_skips_and_returns_the_watermark() {
+        let account_id = 59_342_403;
+        let mut mails = mock_mails(&[1, 2, 3]);
+        mails[0].body = Vec::new();
+        let (account, _server) =
+            account_on(account_id, MockImapServer::new().serving(&mails)).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_full_mailbox(&account, &mailbox, CancellationToken::new())
+            .await
+            .unwrap();
+
+        assert_eq!(watermark, Some(3));
+        let progress = folder(account_id, "INBOX");
+        assert_eq!(progress.status, FolderStatus::Success);
+        assert_eq!((progress.planned, progress.current), (3, 2));
+        assert!(has_error_starting_with(account_id, PARSE_SKIP_SUMMARY));
+    }
+
+    #[tokio::test]
+    async fn full_download_with_a_failed_batch_returns_no_watermark() {
+        let account_id = 59_342_404;
+        let mails = mock_mails(&[1, 2]);
+        let server = MockImapServer::new().respond("BODY.PEEK[]", malformed_response());
+        let (account, _server) = account_on(account_id, server.serving(&mails)).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_full_mailbox(&account, &mailbox, CancellationToken::new())
+            .await
+            .unwrap();
+
+        assert_eq!(watermark, None);
+        assert_eq!(folder(account_id, "INBOX").status, FolderStatus::Failed);
+        assert!(has_error_starting_with(account_id, "Batch 0 failed"));
+    }
+
+    #[tokio::test]
+    async fn changed_uid_validity_downloads_missing_mail_and_warns_about_parse_skips() {
+        let account_id = 59_342_405;
+        let mut mails = mock_mails(&[1, 2]);
+        mails[1].body = Vec::new();
+        let (account, _server) =
+            account_on(account_id, MockImapServer::new().serving(&mails)).await;
+        let local = MailBox {
+            uid_validity: Some(1),
+            ..fresh_mailbox(account_id, "INBOX")
+        };
+        let remote = MailBox {
+            uid_validity: Some(42),
+            exists: 2,
+            ..local.clone()
+        };
+        MailBox::batch_upsert(std::slice::from_ref(&local)).unwrap();
+
+        reconcile_mailboxes(
+            &account,
+            &[remote],
+            std::slice::from_ref(&local),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        let stored = MailBox::get(local.id).unwrap();
+        assert_eq!(stored.uid_validity, Some(42));
+        assert_eq!(stored.highest_uid, Some(2));
+        let progress = folder(account_id, "INBOX");
+        assert_eq!(progress.status, FolderStatus::Success);
+        assert_eq!((progress.planned, progress.current), (2, 1));
+        assert!(has_error_starting_with(account_id, PARSE_SKIP_SUMMARY));
+    }
+
+    #[tokio::test]
+    async fn failed_folder_fails_the_sync_but_the_other_folders_still_sync() {
+        let account_id = 59_342_406;
+        let server = MockImapServer::new().respond("Broken-Folder", "{TAG} NO no such mailbox\r\n");
+        let (account, _server) = account_on(account_id, server.serving(&[])).await;
+        let broken_local = MailBox {
+            highest_uid: Some(5),
+            uid_next: Some(6),
+            ..fresh_mailbox(account_id, "Broken-Folder")
+        };
+        let broken_remote = MailBox {
+            exists: 3,
+            uid_next: Some(9),
+            ..broken_local.clone()
+        };
+        let inbox_local = MailBox {
+            highest_uid: Some(7),
+            uid_next: Some(8),
+            ..fresh_mailbox(account_id, "INBOX")
+        };
+        // The remote INBOX is empty now, and the fresh listing carries no
+        // watermark of its own.
+        let inbox_remote = MailBox {
+            exists: 0,
+            uid_next: Some(99),
+            highest_uid: None,
+            ..inbox_local.clone()
+        };
+        MailBox::batch_upsert(&[broken_local.clone(), inbox_local.clone()]).unwrap();
+
+        let err = reconcile_mailboxes(
+            &account,
+            &[broken_remote, inbox_remote],
+            &[broken_local.clone(), inbox_local.clone()],
+            CancellationToken::new(),
+        )
+        .await
+        .expect_err("a failed folder fails the sync");
+
+        assert!(
+            format!("{err:?}").contains("1 folder(s) failed to sync"),
+            "{err:?}"
+        );
+        assert!(has_error_starting_with(
+            account_id,
+            "Folder 'Broken-Folder' sync failed"
+        ));
+        // INBOX was still synced: it takes the fresh listing but keeps its
+        // stored watermark.
+        let inbox = MailBox::get(inbox_local.id).unwrap();
+        assert_eq!((inbox.uid_next, inbox.highest_uid), (Some(99), Some(7)));
+        // The failed folder's stored state is left untouched.
+        assert_eq!(MailBox::get(broken_local.id).unwrap(), broken_local);
+    }
 }

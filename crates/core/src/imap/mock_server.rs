@@ -40,15 +40,36 @@
 //! ```
 
 use std::net::SocketAddr;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{TcpListener, TcpStream};
 
 type Response = Vec<u8>;
 
+/// What the server does when a script step matches.
+enum Action {
+    /// Write the response (after an optional delay).
+    Reply(Option<Duration>, Response),
+    /// Write the start of an untagged response, then drop the connection,
+    /// like a server that went away mid-response. Clients see an unexpected
+    /// EOF (a network error), not a clean end of stream.
+    Close,
+}
+
+/// One scripted step. `remaining` limits how often the step matches (counted
+/// across all connections); an exhausted step is skipped so a later step for
+/// the same command takes over.
+struct Step {
+    pattern: String,
+    action: Action,
+    remaining: Option<AtomicUsize>,
+}
+
 pub struct MockImapServer {
     greeting: Vec<u8>,
-    script: Vec<(String, Response)>,
+    script: Vec<Step>,
 }
 
 impl MockImapServer {
@@ -67,8 +88,55 @@ impl MockImapServer {
 
     /// Add a script step: when a client command *contains* `pattern` (case-insensitive),
     /// respond with `response`. Steps are checked in insertion order.
-    pub fn respond(mut self, pattern: impl Into<String>, response: impl Into<Vec<u8>>) -> Self {
-        self.script.push((pattern.into(), response.into()));
+    pub fn respond(self, pattern: impl Into<String>, response: impl Into<Vec<u8>>) -> Self {
+        self.step(pattern, Action::Reply(None, response.into()), None)
+    }
+
+    /// Like [`respond`](Self::respond), but the step only matches the first
+    /// `times` matching commands; afterwards later steps are consulted.
+    pub fn respond_times(
+        self,
+        pattern: impl Into<String>,
+        response: impl Into<Vec<u8>>,
+        times: usize,
+    ) -> Self {
+        self.step(pattern, Action::Reply(None, response.into()), Some(times))
+    }
+
+    /// Like [`respond`](Self::respond), but the response is written only
+    /// after `delay`, simulating a slow server.
+    pub fn respond_delayed(
+        self,
+        pattern: impl Into<String>,
+        delay: Duration,
+        response: impl Into<Vec<u8>>,
+    ) -> Self {
+        self.step(pattern, Action::Reply(Some(delay), response.into()), None)
+    }
+
+    /// Drop the connection mid-response the first `times` times a command
+    /// matches `pattern`, simulating a network failure.
+    pub fn close_on(self, pattern: impl Into<String>, times: usize) -> Self {
+        self.step(pattern, Action::Close, Some(times))
+    }
+
+    /// Add the steps every authenticated session needs: `CAPABILITY`
+    /// (advertising IMAP4rev1), `LOGIN` and `LOGOUT`.
+    pub fn with_login(self) -> Self {
+        self.respond(
+            "CAPABILITY",
+            "* CAPABILITY IMAP4rev1\r\n{TAG} OK CAPABILITY completed\r\n",
+        )
+        .respond("LOGIN", "{TAG} OK LOGIN completed\r\n")
+        .respond("LOGOUT", "* BYE logging out\r\n{TAG} OK LOGOUT completed\r\n")
+    }
+
+    fn step(mut self, pattern: impl Into<String>, action: Action, times: Option<usize>) -> Self {
+        self.script.push(Step {
+            pattern: pattern.into(),
+            action,
+            remaining: times.map(AtomicUsize::new),
+        });
         self
     }
 
@@ -117,7 +185,17 @@ impl MockImapServer {
 
             let tag = extract_tag(&line).unwrap_or("A0");
             let matched = self.find_match(&line);
-            if let Some(response) = matched {
+            if let Some(action) = matched {
+                let (delay, response) = match action {
+                    Action::Reply(delay, response) => (delay, response),
+                    Action::Close => {
+                        let _ = writer.write_all(b"* 1 FETCH (UID 1").await;
+                        break;
+                    }
+                };
+                if let Some(delay) = delay {
+                    tokio::time::sleep(*delay).await;
+                }
                 let substituted = substitute_tag(response, tag);
                 if writer.write_all(&substituted).await.is_err() {
                     break;
@@ -132,12 +210,18 @@ impl MockImapServer {
         }
     }
 
-    fn find_match(&self, line: &str) -> Option<&[u8]> {
+    fn find_match(&self, line: &str) -> Option<&Action> {
         let line_lower = line.to_lowercase();
-        for (pattern, response) in &self.script {
-            if line_lower.contains(&pattern.to_lowercase()) {
-                return Some(response);
+        for step in &self.script {
+            if !line_lower.contains(&step.pattern.to_lowercase()) {
+                continue;
             }
+            if let Some(remaining) = &step.remaining {
+                if !claim(remaining) {
+                    continue;
+                }
+            }
+            return Some(&step.action);
         }
         None
     }
@@ -163,6 +247,23 @@ impl MockImapServerHandle {
     pub fn port(&self) -> u16 {
         self.addr.port()
     }
+}
+
+/// Atomically take one use from `remaining`; false once it is exhausted.
+fn claim(remaining: &AtomicUsize) -> bool {
+    let mut current = remaining.load(Ordering::SeqCst);
+    while current > 0 {
+        match remaining.compare_exchange(
+            current,
+            current - 1,
+            Ordering::SeqCst,
+            Ordering::SeqCst,
+        ) {
+            Ok(_) => return true,
+            Err(actual) => current = actual,
+        }
+    }
+    false
 }
 
 fn extract_tag(line: &str) -> Option<&str> {
@@ -322,6 +423,151 @@ pub fn minimal_eml(subject: &str, message_id: &str) -> Vec<u8> {
          This is a test email: {subject}.\r\n"
     )
     .into_bytes()
+}
+
+/// Build a UID FETCH response carrying full bodies, as answered to
+/// `(UID INTERNALDATE RFC822.SIZE BODY.PEEK[])`. Each entry: (uid, eml).
+pub fn uid_fetch_body_response(entries: &[(u32, &[u8])]) -> Vec<u8> {
+    let mut out = Vec::new();
+    for (uid, eml) in entries {
+        let len = eml.len();
+        out.extend_from_slice(
+            format!(
+                "* {uid} FETCH (UID {uid} INTERNALDATE \"01-Jan-2025 00:00:00 +0000\" \
+                 RFC822.SIZE {len} BODY[] {{{len}}}\r\n"
+            )
+            .as_bytes(),
+        );
+        out.extend_from_slice(eml);
+        out.extend_from_slice(b")\r\n");
+    }
+    out.extend_from_slice(b"{TAG} OK FETCH completed\r\n");
+    out
+}
+
+/// Build the answer to gap-fill's header enumeration
+/// `(UID RFC822.SIZE INTERNALDATE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)])`.
+/// Each entry: (uid, size, message_id).
+pub fn uid_fetch_message_id_response(entries: &[(u32, u32, &str)]) -> Vec<u8> {
+    let mut out = Vec::new();
+    for (uid, size, msg_id) in entries {
+        let header = format!("Message-ID: <{msg_id}>\r\n\r\n");
+        let len = header.len();
+        out.extend_from_slice(
+            format!(
+                "* {uid} FETCH (UID {uid} RFC822.SIZE {size} INTERNALDATE \
+                 \"01-Jan-2025 00:00:00 +0000\" BODY[HEADER.FIELDS (MESSAGE-ID)] {{{len}}}\r\n\
+                 {header})\r\n"
+            )
+            .as_bytes(),
+        );
+    }
+    out.extend_from_slice(b"{TAG} OK FETCH completed\r\n");
+    out
+}
+
+/// One message of a scripted INBOX (see [`MockImapServer::serving`]).
+pub struct MockMail {
+    pub uid: u32,
+    /// Without angle brackets.
+    pub message_id: String,
+    pub body: Vec<u8>,
+}
+
+/// Valid messages with the given UIDs. Message-IDs and bodies are unique per
+/// call, so state persisted by earlier test runs (dedup cache, index) never
+/// recognises them.
+pub fn mock_mails(uids: &[u32]) -> Vec<MockMail> {
+    let run = uuid::Uuid::new_v4();
+    uids.iter()
+        .map(|&uid| {
+            let message_id = format!("{uid}-{run}@mock.test");
+            MockMail {
+                uid,
+                body: minimal_eml(&format!("mail {uid}"), &message_id),
+                message_id,
+            }
+        })
+        .collect()
+}
+
+impl MockImapServer {
+    /// Appends a script that serves `mails` as the only mailbox, INBOX
+    /// (UIDVALIDITY 42), to every command the download paths send: login,
+    /// LIST, STATUS, EXAMINE, UID SEARCH, the header fetches of gap-fill and
+    /// UIDVALIDITY reconciliation, the size pre-check, the `{start}:*`
+    /// enumeration and the body fetch. Steps added before this call take
+    /// precedence, which is how a test injects a failure.
+    pub fn serving(self, mails: &[MockMail]) -> Self {
+        let uids: Vec<u32> = mails.iter().map(|m| m.uid).collect();
+        let sizes: Vec<(u32, u32)> = mails.iter().map(|m| (m.uid, m.body.len() as u32)).collect();
+        let message_ids: Vec<(u32, u32, &str)> = mails
+            .iter()
+            .map(|m| (m.uid, m.body.len() as u32, m.message_id.as_str()))
+            .collect();
+        let headers: Vec<(u32, String)> = mails
+            .iter()
+            .map(|m| (m.uid, format!("<{}>", m.message_id)))
+            .collect();
+        let headers: Vec<(u32, &str)> = headers.iter().map(|(uid, id)| (*uid, id.as_str())).collect();
+        let bodies: Vec<(u32, &[u8])> = mails.iter().map(|m| (m.uid, m.body.as_slice())).collect();
+        let exists = mails.len() as u32;
+        let uid_next = uids.iter().max().copied().unwrap_or(0) + 1;
+        self.with_login()
+            .respond(
+                "LIST",
+                "* LIST (\\HasNoChildren) \"/\" INBOX\r\n{TAG} OK LIST completed\r\n",
+            )
+            .respond("STATUS", status_response("INBOX", exists, 0, uid_next, Some(42)))
+            .respond("EXAMINE", examine_response("INBOX", exists, 42, uid_next))
+            .respond("SEARCH", uid_search_response(&uids))
+            .respond("HEADER.FIELDS", uid_fetch_message_id_response(&message_ids))
+            .respond("BODY.PEEK[HEADER]", uid_fetch_metadata_response(&headers))
+            .respond("BODY.PEEK[]", uid_fetch_body_response(&bodies))
+            .respond("(UID RFC822.SIZE)", uid_fetch_size_response(&sizes))
+            .respond("RFC822.SIZE INTERNALDATE)", uid_fetch_size_response(&sizes))
+    }
+}
+
+/// A line no IMAP parser accepts. Clients fail the running command with a
+/// protocol (non-network) error. A tagged `NO` is no substitute for FETCH:
+/// async-imap ends the FETCH stream on any tagged completion, so the caller
+/// just sees an empty result.
+pub fn malformed_response() -> Vec<u8> {
+    b") this is not an IMAP response\r\n".to_vec()
+}
+
+/// Store an IMAP account pointing at the mock server (plain TCP, password
+/// auth), so code that opens its own connection via
+/// `ImapExecutor::create_connection(account_id)` talks to the mock. The
+/// server must be built [`with_login`](MockImapServer::with_login).
+pub fn register_mock_account(
+    handle: &MockImapServerHandle,
+    account_id: u64,
+) -> crate::account::migration::AccountModel {
+    use crate::account::entity::{AuthConfig, AuthType, Encryption, ImapConfig};
+    use crate::account::migration::{AccountModel, AccountType};
+    use crate::database::{manager::DB_MANAGER, upsert_impl};
+
+    let account = AccountModel {
+        id: account_id,
+        email: format!("mock-{account_id}@example.com"),
+        account_type: AccountType::IMAP,
+        enabled: true,
+        imap: Some(ImapConfig {
+            host: handle.host(),
+            port: handle.port(),
+            encryption: Encryption::None,
+            auth: AuthConfig {
+                auth_type: AuthType::Password,
+                password: Some(crate::encrypt!("pass").expect("encrypt mock password")),
+            },
+            use_proxy: None,
+        }),
+        ..Default::default()
+    };
+    upsert_impl(DB_MANAGER.db(), account.clone()).expect("store mock account");
+    account
 }
 
 // ============================================================

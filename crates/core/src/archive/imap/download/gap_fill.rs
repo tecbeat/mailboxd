@@ -560,4 +560,289 @@ mod test {
         let missing = compute_missing_uids(&remote, &local);
         assert_eq!(missing, vec![2]);
     }
+
+    // ------------------------------------------------------------------
+    // gap_fill_mailbox against a scripted IMAP server
+    // ------------------------------------------------------------------
+
+    use crate::imap::mock_server::{
+        examine_response, malformed_response, mock_mails as mails, register_mock_account,
+        uid_fetch_message_id_response, uid_search_response, MockImapServer, MockImapServerHandle,
+    };
+    use std::time::Duration;
+    use tokio_util::sync::CancellationToken;
+
+    struct Fixture {
+        account: AccountModel,
+        mailbox: MailBox,
+        _server: MockImapServerHandle,
+    }
+
+    /// Registers an account on `server` with an empty, run-unique INBOX (so no
+    /// local envelope of an earlier run can match) and an active download
+    /// session plus gap-fill run to record into.
+    async fn fixture(account_id: u64, server: MockImapServer) -> Fixture {
+        let handle = server.start().await;
+        let account = register_mock_account(&handle, account_id);
+        DownloadState::init(account_id).await.unwrap();
+        GapFillState::start_run(account_id).unwrap();
+        let mailbox = MailBox {
+            id: 1_000_000 + (uuid::Uuid::new_v4().as_u128() % 1_000_000_000) as u64,
+            account_id,
+            name: "INBOX".into(),
+            ..Default::default()
+        };
+        MailBox::batch_upsert(std::slice::from_ref(&mailbox)).unwrap();
+        Fixture {
+            account,
+            mailbox,
+            _server: handle,
+        }
+    }
+
+    impl Fixture {
+        async fn run(&self, token: CancellationToken) -> MailboxdResult<GapFillFolderStats> {
+            gap_fill_mailbox(&self.account, &self.mailbox, &self.mailbox, token).await
+        }
+
+        fn stored_highest_uid(&self) -> Option<u32> {
+            MailBox::get(self.mailbox.id).unwrap().highest_uid
+        }
+
+        fn live_message(&self) -> Option<String> {
+            GapFillState::get(self.account.id)
+                .unwrap()
+                .and_then(|state| state.active)
+                .and_then(|run| run.folders.get("INBOX").cloned())
+                .and_then(|folder| folder.message)
+        }
+
+        fn session_errors(&self) -> Vec<String> {
+            DownloadState::get(self.account.id)
+                .unwrap()
+                .and_then(|state| state.active_session)
+                .map(|session| session.errors.into_iter().map(|e| e.error).collect())
+                .unwrap_or_default()
+        }
+    }
+
+    #[tokio::test]
+    async fn gap_fill_downloads_missing_mail_and_advances_highest_uid() {
+        let mails = mails(&[1, 2]);
+        let f = fixture(59_342_301, MockImapServer::new().serving(&mails)).await;
+
+        let stats = f.run(CancellationToken::new()).await.unwrap();
+
+        assert_eq!(
+            stats,
+            GapFillFolderStats {
+                downloaded: 2,
+                failed: 0,
+                candidate_count: 2,
+                message: None,
+            }
+        );
+        assert_eq!(f.stored_highest_uid(), Some(2));
+    }
+
+    #[tokio::test]
+    async fn unparseable_mail_counts_as_failed_and_keeps_the_watermark() {
+        let mut mails = mails(&[1, 2]);
+        mails[1].body = Vec::new(); // mail-parser refuses an empty body
+        let f = fixture(59_342_302, MockImapServer::new().serving(&mails)).await;
+
+        let stats = f.run(CancellationToken::new()).await.unwrap();
+
+        assert_eq!((stats.downloaded, stats.failed), (1, 1));
+        assert_eq!(stats.candidate_count, 2);
+        let message = stats.message.expect("parse skips are reported");
+        assert!(
+            message.starts_with("1 email(s) could not be parsed"),
+            "{message}"
+        );
+        assert_eq!(f.stored_highest_uid(), None);
+    }
+
+    #[tokio::test]
+    async fn failed_body_batch_is_reported_for_a_retry() {
+        let mails = mails(&[1, 2]);
+        let server = MockImapServer::new().respond("BODY.PEEK[]", malformed_response());
+        let f = fixture(59_342_303, server.serving(&mails)).await;
+
+        let stats = f.run(CancellationToken::new()).await.unwrap();
+
+        assert_eq!((stats.downloaded, stats.failed), (0, 2));
+        assert_eq!(
+            stats.message.as_deref(),
+            Some("2 email(s) could not be compared or downloaded; re-run gap-fill to retry them")
+        );
+        assert_eq!(f.stored_highest_uid(), None);
+        assert!(f
+            .session_errors()
+            .iter()
+            .any(|e| e.starts_with("Gap-fill batch 0 failed after 0 processed")));
+    }
+
+    #[tokio::test]
+    async fn broken_header_batch_counts_its_uids_as_failed() {
+        let mails = mails(&[1, 2, 3]);
+        let server = MockImapServer::new().respond("HEADER.FIELDS", malformed_response());
+        let f = fixture(59_342_304, server.serving(&mails)).await;
+
+        let stats = f.run(CancellationToken::new()).await.unwrap();
+
+        // Nothing could be compared, so nothing is a download candidate.
+        assert_eq!(stats.failed, 3);
+        assert_eq!((stats.downloaded, stats.candidate_count), (0, 0));
+        assert!(f
+            .session_errors()
+            .iter()
+            .any(|e| e.starts_with("Gap-fill header batch failed")));
+    }
+
+    #[tokio::test]
+    async fn dropped_connection_during_header_fetch_is_retried_on_a_new_session() {
+        let mails = mails(&[1, 2]);
+        let server = MockImapServer::new().close_on("HEADER.FIELDS", 1);
+        let f = fixture(59_342_305, server.serving(&mails)).await;
+
+        // Includes the first 5 s reconnect backoff.
+        let stats = f.run(CancellationToken::new()).await.unwrap();
+
+        assert_eq!(
+            (stats.downloaded, stats.failed, stats.candidate_count),
+            (2, 0, 2)
+        );
+        assert_eq!(f.stored_highest_uid(), Some(2));
+    }
+
+    #[tokio::test]
+    async fn header_batch_fails_when_the_reconnect_is_refused() {
+        let mails = mails(&[1, 2]);
+        let server = MockImapServer::new()
+            .close_on("HEADER.FIELDS", 1)
+            .respond_times("LOGIN", "{TAG} OK LOGIN completed\r\n", 1)
+            .respond("LOGIN", "{TAG} NO [AUTHENTICATIONFAILED] denied\r\n");
+        let f = fixture(59_342_306, server.serving(&mails)).await;
+
+        let stats = f.run(CancellationToken::new()).await.unwrap();
+
+        assert_eq!((stats.failed, stats.downloaded), (2, 0));
+        assert!(f
+            .session_errors()
+            .iter()
+            .any(|e| e.starts_with("Gap-fill header batch failed")));
+    }
+
+    #[tokio::test]
+    async fn header_batch_fails_when_the_mailbox_cannot_be_reopened() {
+        let mails = mails(&[1, 2]);
+        let server = MockImapServer::new()
+            .close_on("HEADER.FIELDS", 1)
+            .respond_times("EXAMINE", examine_response("INBOX", 2, 42, 3), 1)
+            .respond("EXAMINE", "{TAG} NO mailbox gone\r\n");
+        let f = fixture(59_342_307, server.serving(&mails)).await;
+
+        let stats = f.run(CancellationToken::new()).await.unwrap();
+
+        assert_eq!((stats.failed, stats.downloaded), (2, 0));
+        let errors = f.session_errors();
+        assert!(errors
+            .iter()
+            .any(|e| e.starts_with("Gap-fill: re-examine failed after reconnect")));
+        assert!(errors
+            .iter()
+            .any(|e| e.starts_with("Gap-fill header batch failed")));
+    }
+
+    #[tokio::test]
+    async fn slow_header_fetch_shows_a_live_hint_and_still_completes() {
+        let mails = mails(&[1, 2]);
+        let headers: Vec<(u32, u32, &str)> = mails
+            .iter()
+            .map(|m| (m.uid, m.body.len() as u32, m.message_id.as_str()))
+            .collect();
+        let server = MockImapServer::new().respond_delayed(
+            "HEADER.FIELDS",
+            Duration::from_secs(6),
+            uid_fetch_message_id_response(&headers),
+        );
+        let f = fixture(59_342_308, server.serving(&mails)).await;
+
+        let (stats, hint) = tokio::join!(f.run(CancellationToken::new()), async {
+            tokio::time::sleep(Duration::from_millis(5_500)).await;
+            f.live_message()
+        });
+
+        let hint = hint.expect("a stalled header fetch is reported");
+        assert!(hint.starts_with("IMAP server is slow"), "{hint}");
+        let stats = stats.unwrap();
+        assert_eq!((stats.downloaded, stats.failed), (2, 0));
+    }
+
+    #[tokio::test]
+    async fn cancelling_a_stalled_search_stops_without_results() {
+        let mails = mails(&[1, 2]);
+        let server = MockImapServer::new().respond_delayed(
+            "SEARCH",
+            Duration::from_millis(10_500),
+            uid_search_response(&[1, 2]),
+        );
+        let f = fixture(59_342_309, server.serving(&mails)).await;
+        let token = CancellationToken::new();
+        let logs = CapturedLogs::default();
+        let _subscriber = tracing::subscriber::set_default(
+            tracing_subscriber::fmt()
+                .with_writer(logs.clone())
+                .with_ansi(false)
+                .finish(),
+        );
+
+        let (stats, hint) = tokio::join!(f.run(token.clone()), async {
+            tokio::time::sleep(Duration::from_millis(5_500)).await;
+            let hint = f.live_message();
+            token.cancel();
+            hint
+        });
+
+        let hint = hint.expect("a stalled search is reported");
+        assert!(hint.starts_with("IMAP server is slow"), "{hint}");
+        assert_eq!(stats.unwrap(), GapFillFolderStats::default());
+        assert_eq!(f.stored_highest_uid(), None);
+        assert!(
+            logs.contents()
+                .contains("gap-fill: UID SEARCH ALL taking long, still waiting"),
+            "operators are warned about the slow search"
+        );
+    }
+
+    /// Collects the formatted log output of a thread-local subscriber.
+    #[derive(Clone, Default)]
+    struct CapturedLogs(std::sync::Arc<std::sync::Mutex<Vec<u8>>>);
+
+    impl CapturedLogs {
+        fn contents(&self) -> String {
+            std::io::Write::flush(&mut self.clone()).unwrap();
+            String::from_utf8_lossy(&self.0.lock().unwrap()).into_owned()
+        }
+    }
+
+    impl std::io::Write for CapturedLogs {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.0.lock().unwrap().extend_from_slice(buf);
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for CapturedLogs {
+        type Writer = CapturedLogs;
+
+        fn make_writer(&'a self) -> Self::Writer {
+            self.clone()
+        }
+    }
 }

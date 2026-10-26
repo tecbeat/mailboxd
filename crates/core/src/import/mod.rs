@@ -928,3 +928,16 @@ fn fail_progress(
     update_progress(import_id, progress.clone());
     history::save_import_history(user_id, account_id, folder, &progress);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn temp_disk_space_check_reports_free_space() {
+        // The temp dir always lives on some file system; when it cannot be
+        // identified the check reports plenty of space rather than failing.
+        let free = check_temp_disk_space().expect("disk space check never errors");
+        assert!(free > 0, "temp file system must report free space");
+    }
+}

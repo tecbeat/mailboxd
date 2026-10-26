@@ -1642,4 +1642,239 @@ To: recipient@example.com\r\n\r\n";
         assert_eq!(skipped, 1);
         session.logout().await.ok();
     }
+
+    // ── batched body download and incremental fetch via mock server ──
+
+    use crate::imap::mock_server::{minimal_eml, uid_fetch_body_response};
+
+    fn mailbox_named(id: u64, name: &str) -> MailBox {
+        MailBox {
+            id,
+            name: name.into(),
+            ..Default::default()
+        }
+    }
+
+    fn account_with_id(id: u64) -> AccountModel {
+        AccountModel {
+            id,
+            ..Default::default()
+        }
+    }
+
+    fn active_session(account_id: u64) -> crate::account::state::DownloadSession {
+        DownloadState::get(account_id)
+            .unwrap()
+            .and_then(|state| state.active_session)
+            .expect("session stays active")
+    }
+
+    /// Script answering the three FETCH shapes of an incremental download:
+    /// the `{start}:*` enumeration, the per-batch SIZE pre-check and the
+    /// body fetch. `bodies` lists every message the server holds.
+    fn download_server(examine: Vec<u8>, bodies: &[(u32, &[u8])]) -> MockImapServer {
+        let sizes: Vec<(u32, u32)> = bodies
+            .iter()
+            .map(|(uid, eml)| (*uid, eml.len() as u32))
+            .collect();
+        MockImapServer::new()
+            .respond("LOGIN", "{TAG} OK LOGIN done\r\n")
+            .respond("EXAMINE", examine)
+            .respond("BODY.PEEK[]", uid_fetch_body_response(bodies))
+            .respond("RFC822.SIZE INTERNALDATE)", uid_fetch_size_response(&sizes))
+            .respond("(UID RFC822.SIZE)", uid_fetch_size_response(&sizes))
+    }
+
+    #[tokio::test]
+    async fn batch_download_skips_unparseable_email_and_stores_the_rest() {
+        let account_id = 59_342_101;
+        DownloadState::init(account_id).await.unwrap();
+        let first = minimal_eml("first", "first@batch.test");
+        let third = minimal_eml("third", "third@batch.test");
+        // An empty body is the input mail-parser refuses to parse.
+        let bodies: [(u32, &[u8]); 3] = [(1, &first), (2, b""), (3, &third)];
+        let handle = download_server(examine_response("INBOX", 3, 42, 4), &bodies)
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let outcome = ImapExecutor::uid_batch_retrieve_emails(
+            &mut session,
+            account_id,
+            7_101,
+            "1:3",
+            None,
+            CancellationToken::new(),
+            None,
+        )
+        .await
+        .expect("one broken message must not fail the batch");
+
+        assert_eq!(
+            outcome,
+            BatchFetchOutcome {
+                stored: 2,
+                throttled: false,
+                parse_skipped: 1,
+            }
+        );
+        let errors = active_session(account_id).errors;
+        assert_eq!(errors.len(), 1);
+        assert!(errors[0].error.contains("uid 2"), "{:?}", errors[0].error);
+        assert!(errors[0].error.contains("not archived"));
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn batch_download_with_only_oversized_messages_stores_nothing() {
+        let handle = MockImapServer::new()
+            .respond("LOGIN", "{TAG} OK LOGIN done\r\n")
+            .respond("EXAMINE", examine_response("INBOX", 2, 42, 3))
+            .respond("(UID RFC822.SIZE)", uid_fetch_size_response(&[(1, 5_000), (2, 9_000)]))
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let outcome = ImapExecutor::uid_batch_retrieve_emails(
+            &mut session,
+            59_342_102,
+            7_102,
+            "1:2",
+            Some(1_000),
+            CancellationToken::new(),
+            None,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(outcome, BatchFetchOutcome::default());
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn empty_tail_fetch_is_recorded_as_purged_mail() {
+        // UIDNEXT 10 claims mail at or above start_uid 5, but the ranged
+        // enumeration returns nothing: the newest messages were purged.
+        let account_id = 59_342_103;
+        DownloadState::init(account_id).await.unwrap();
+        let handle = download_server(examine_response("INBOX", 4, 42, 10), &[])
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let result = ImapExecutor::fetch_new_mail(
+            &mut session,
+            &account_with_id(account_id),
+            &mailbox_named(7_103, "INBOX"),
+            5,
+            None,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(result, None, "the watermark must not move");
+        let session_state = active_session(account_id);
+        assert!(session_state.errors.is_empty());
+        let folder = &session_state.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert!(folder.message.as_deref().unwrap().contains("purged"));
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn empty_tail_fetch_with_date_filter_is_recorded_as_purged_mail() {
+        let account_id = 59_342_104;
+        DownloadState::init(account_id).await.unwrap();
+        let handle = download_server(examine_response("INBOX", 4, 42, 10), &[])
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let result = ImapExecutor::fetch_new_mail(
+            &mut session,
+            &account_with_id(account_id),
+            &mailbox_named(7_104, "INBOX"),
+            5,
+            Some("01-Feb-2025"),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(result, None);
+        let session_state = active_session(account_id);
+        assert!(session_state.errors.is_empty());
+        let folder = &session_state.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert!(folder.message.as_deref().unwrap().contains("purged"));
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn incremental_fetch_counts_only_stored_messages() {
+        let account_id = 59_342_105;
+        DownloadState::init(account_id).await.unwrap();
+        let five = minimal_eml("five", "five@range.test");
+        let seven = minimal_eml("seven", "seven@range.test");
+        let bodies: [(u32, &[u8]); 3] = [(5, &five), (6, b""), (7, &seven)];
+        let handle = download_server(examine_response("INBOX", 3, 42, 8), &bodies)
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let result = ImapExecutor::fetch_new_mail(
+            &mut session,
+            &account_with_id(account_id),
+            &mailbox_named(7_105, "INBOX"),
+            5,
+            None,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        // The unparseable UID 6 is skipped, but the folder completes, so the
+        // watermark moves past it.
+        assert_eq!(result, Some(7));
+        let session_state = active_session(account_id);
+        let folder = &session_state.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert_eq!((folder.planned, folder.current), (2, 2));
+        assert_eq!(session_state.errors.len(), 1, "one per-message warning");
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn date_filtered_incremental_fetch_counts_only_stored_messages() {
+        let account_id = 59_342_106;
+        DownloadState::init(account_id).await.unwrap();
+        let five = minimal_eml("five", "five@before.test");
+        let seven = minimal_eml("seven", "seven@before.test");
+        let bodies: [(u32, &[u8]); 3] = [(5, &five), (6, b""), (7, &seven)];
+        let handle = download_server(examine_response("INBOX", 3, 42, 8), &bodies)
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        // Every message has INTERNALDATE 01-Jan-2025, before the cutoff.
+        let result = ImapExecutor::fetch_new_mail(
+            &mut session,
+            &account_with_id(account_id),
+            &mailbox_named(7_106, "INBOX"),
+            5,
+            Some("01-Feb-2025"),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(result, Some(7));
+        let session_state = active_session(account_id);
+        let folder = &session_state.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert_eq!((folder.planned, folder.current), (2, 2));
+        assert_eq!(session_state.errors.len(), 1, "one per-message warning");
+        session.logout().await.ok();
+    }
 }
