@@ -60,3 +60,42 @@ pub fn update_admin_password(db: &MemDb, password: String) -> MailboxdResult<()>
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use argon2::{
+        password_hash::{phc::PasswordHash, PasswordVerifier},
+        Argon2,
+    };
+    use tempfile::TempDir;
+
+    #[test]
+    fn a_reset_admin_password_is_stored_as_an_argon2id_hash() {
+        let tmp = TempDir::new().unwrap();
+        let db = open_database(tmp.path().join("meta.db")).unwrap();
+        let admin = UserModel {
+            id: DEFAULT_ADMIN_USER_ID,
+            username: "admin".into(),
+            password: Some("legacy-encrypted-value".into()),
+            ..Default::default()
+        };
+        db.collection(UserModel::collection())
+            .upsert(DEFAULT_ADMIN_USER_ID.to_string(), &admin)
+            .unwrap();
+
+        update_admin_password(&db, "n3w-secret".into()).unwrap();
+
+        let stored = find_admin(&db).unwrap().unwrap();
+        assert_eq!(stored.username, "admin");
+        let hash = stored.password.unwrap();
+        assert!(hash.starts_with("$argon2id$"), "{hash}");
+        let parsed = PasswordHash::new(&hash).unwrap();
+        assert!(Argon2::default()
+            .verify_password(b"n3w-secret", &parsed)
+            .is_ok());
+        assert!(Argon2::default()
+            .verify_password(b"legacy-encrypted-value", &parsed)
+            .is_err());
+    }
+}

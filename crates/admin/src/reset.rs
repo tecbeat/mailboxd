@@ -135,35 +135,23 @@ pub fn handle_reset_password(theme: &ColorfulTheme) {
             println!("{:<12} : {}", "Username", style(&user.username).cyan());
             println!("{:<12} : {}", "Email", style(&user.email).cyan());
 
-            let pwd_display = match &user.password {
-                Some(p) if p.starts_with("$argon2id$") => {
-                    style("(argon2id hash - cannot be displayed)")
-                        .dim()
-                        .italic()
-                        .to_string()
+            let pwd_display = match password_display(user.password.as_deref(), &encryption_key) {
+                Ok(display) => display,
+                Err(e) => {
+                    println!("\n{}", style("ERROR: Decryption Failed").red().bold());
+                    println!(
+                        "{}",
+                        style("The provided encryption key is incorrect or invalid for this database.").yellow()
+                    );
+                    println!(
+                        "{} Please verify your {} or the {} you provided.",
+                        style("➔").cyan(),
+                        style("encryption password").bold(),
+                        style("key file").bold()
+                    );
+                    eprintln!("\nTechnical details: {e}");
+                    std::process::exit(1);
                 }
-                Some(p) => {
-                    let password = match internal_decrypt_string(&encryption_key, p) {
-                        Ok(p) => p,
-                        Err(e) => {
-                            println!("\n{}", style("ERROR: Decryption Failed").red().bold());
-                            println!(
-                                "{}",
-                                style("The provided encryption key is incorrect or invalid for this database.").yellow()
-                            );
-                            println!(
-                                "{} Please verify your {} or the {} you provided.",
-                                style("➔").cyan(),
-                                style("encryption password").bold(),
-                                style("key file").bold()
-                            );
-                            eprintln!("\nTechnical details: {:?}", e);
-                            std::process::exit(1);
-                        }
-                    };
-                    style(password).yellow().to_string()
-                }
-                None => style("None (No password set)").dim().italic().to_string(),
             };
 
             println!("{:<12} : {}", "Password", pwd_display);
@@ -250,5 +238,60 @@ pub fn handle_reset_password(theme: &ColorfulTheme) {
             eprintln!("\nDetails: {:?}", e);
             std::process::exit(1);
         }
+    }
+}
+
+/// How a stored admin password is shown: argon2id hashes cannot be shown,
+/// legacy values are decrypted with `encryption_key`. `Err` carries the
+/// details of a failed decryption.
+fn password_display(password: Option<&str>, encryption_key: &str) -> Result<String, String> {
+    match password {
+        Some(p) if p.starts_with("$argon2id$") => {
+            Ok(style("(argon2id hash - cannot be displayed)")
+                .dim()
+                .italic()
+                .to_string())
+        }
+        Some(p) => internal_decrypt_string(encryption_key, p)
+            .map(|password| style(password).yellow().to_string())
+            .map_err(|e| format!("{e:?}")),
+        None => Ok(style("None (No password set)").dim().italic().to_string()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::password_display;
+    use mailboxd_core::utils::encrypt::internal_encrypt_string;
+
+    fn plain(styled: String) -> String {
+        console::strip_ansi_codes(&styled).into_owned()
+    }
+
+    #[test]
+    fn an_argon2id_hash_is_not_displayed() {
+        let display = password_display(Some("$argon2id$v=19$m=19456,t=2,p=1$c2FsdA$aGFzaA"), "key");
+        assert_eq!(
+            plain(display.unwrap()),
+            "(argon2id hash - cannot be displayed)"
+        );
+    }
+
+    #[test]
+    fn a_legacy_password_is_decrypted_with_the_key() {
+        let encrypted = internal_encrypt_string("key", "s3cret").unwrap();
+        assert_eq!(
+            plain(password_display(Some(&encrypted), "key").unwrap()),
+            "s3cret"
+        );
+        assert!(password_display(Some(&encrypted), "wrong-key").is_err());
+    }
+
+    #[test]
+    fn a_missing_password_is_shown_as_none() {
+        assert_eq!(
+            plain(password_display(None, "key").unwrap()),
+            "None (No password set)"
+        );
     }
 }
