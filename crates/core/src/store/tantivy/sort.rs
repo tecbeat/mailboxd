@@ -215,4 +215,60 @@ mod tests {
         .unwrap();
         assert_eq!(second.into_iter().map(id).collect::<Vec<_>>(), ["passing"]);
     }
+
+    /// Each sort key orders by its own field; `internal_date_field` decides
+    /// which field the internal-date sort uses.
+    #[test]
+    fn fast_field_sorts_use_their_own_field() {
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        register_tokenizers(&index);
+        let f = SchemaTools::email_fields();
+        let mut writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
+        // (id, date, size, internal date, ingest at): every key puts the
+        // three documents in a different order.
+        for (id, date, size, internal_date, ingest_at) in
+            [("a", 1, 30, 2, 3), ("b", 2, 10, 3, 1), ("c", 3, 20, 1, 2)]
+        {
+            let mut doc = TantivyDocument::new();
+            doc.add_text(f.f_id, id);
+            doc.add_i64(f.f_date, date);
+            doc.add_u64(f.f_size, size);
+            doc.add_i64(f.f_internal_date, internal_date);
+            doc.add_i64(f.f_ingest_at, ingest_at);
+            writer.add_document(doc).unwrap();
+        }
+        writer.commit().unwrap();
+        let searcher = index.reader().unwrap().searcher();
+        let ids = |sort_by: SortBy, desc: bool, internal_date_field: &str| -> Vec<String> {
+            top_docs_page(
+                &searcher,
+                &tantivy::query::AllQuery,
+                sort_by,
+                desc,
+                0,
+                10,
+                internal_date_field,
+            )
+            .unwrap()
+            .into_iter()
+            .map(|addr| {
+                let doc: TantivyDocument = searcher.doc(addr).unwrap();
+                doc.get_first(f.f_id).unwrap().as_str().unwrap().to_string()
+            })
+            .collect()
+        };
+
+        assert_eq!(ids(SortBy::DATE, true, F_INTERNAL_DATE), ["c", "b", "a"]);
+        assert_eq!(ids(SortBy::SIZE, true, F_INTERNAL_DATE), ["a", "c", "b"]);
+        assert_eq!(ids(SortBy::SIZE, false, F_INTERNAL_DATE), ["b", "c", "a"]);
+        assert_eq!(
+            ids(SortBy::InternalDate, true, F_INTERNAL_DATE),
+            ["b", "a", "c"]
+        );
+        assert_eq!(ids(SortBy::InternalDate, true, F_DATE), ["c", "b", "a"]);
+        assert_eq!(
+            ids(SortBy::IngestAt, true, F_INTERNAL_DATE),
+            ["a", "c", "b"]
+        );
+    }
 }

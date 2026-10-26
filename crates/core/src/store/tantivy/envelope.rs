@@ -3001,3 +3001,489 @@ mod search_fix_tests {
         assert!(tri("quarterly q4").is_empty(), "q4 has no grams");
     }
 }
+
+#[cfg(test)]
+#[path = "test_support.rs"]
+pub(crate) mod test_support;
+
+/// `IndexManager` behaviour on its own index directory: opening, the search
+/// filters, attachment lookup, deletion, tag updates and dashboard stats.
+#[cfg(test)]
+mod manager_tests {
+    use super::test_support::{
+        attachment, blob_key, commit_documents, envelope, envelope_document, envelope_manager_at,
+        init_globals, register_mailbox, store_email_blob, unique_id,
+    };
+    use super::*;
+    use crate::store::tantivy::format::{read_index_format_version, CURRENT_INDEX_FORMAT_VERSION};
+
+    struct Fixture {
+        _dir: tempfile::TempDir,
+        manager: IndexManager,
+        account_id: u64,
+        mailbox_id: u64,
+    }
+
+    impl Fixture {
+        fn new() -> Self {
+            let dir = tempfile::tempdir().unwrap();
+            let manager = envelope_manager_at(dir.path());
+            let account_id = unique_id();
+            let mailbox_id = unique_id();
+            register_mailbox(account_id, mailbox_id, "owner@example.com");
+            Self {
+                _dir: dir,
+                manager,
+                account_id,
+                mailbox_id,
+            }
+        }
+
+        fn envelope(&self, id: &str) -> Envelope {
+            envelope(self.account_id, self.mailbox_id, id)
+        }
+
+        async fn add(&self, envelopes: Vec<(Envelope, Option<Vec<AttachmentInfo>>, &str)>) {
+            let docs = envelopes
+                .into_iter()
+                .map(|(envelope, attachments, body)| envelope_document(envelope, attachments, body))
+                .collect();
+            commit_documents(&self.manager, docs).await;
+        }
+
+        fn search_page(&self, filter: EmailSearchFilter, sort_by: SortBy) -> Vec<Envelope> {
+            self.manager
+                .search(
+                    Some(HashSet::from([self.account_id])),
+                    filter,
+                    1,
+                    50,
+                    true,
+                    sort_by,
+                )
+                .unwrap()
+                .items
+        }
+
+        /// Ids of the matches, sorted.
+        fn ids(&self, filter: EmailSearchFilter) -> Vec<String> {
+            let mut ids: Vec<String> = self
+                .search_page(filter, SortBy::DATE)
+                .into_iter()
+                .map(|e| e.id)
+                .collect();
+            ids.sort();
+            ids
+        }
+
+        async fn tag(&self, ids: &[&str], tag: &str) {
+            self.manager
+                .update_envelope_tags(TagsRequest {
+                    updates: HashMap::from([(
+                        self.account_id,
+                        ids.iter().map(|id| id.to_string()).collect(),
+                    )]),
+                    tags: vec![tag.to_string()],
+                    action: TagAction::Add,
+                })
+                .await
+                .unwrap();
+        }
+    }
+
+    fn text(value: &str) -> EmailSearchFilter {
+        EmailSearchFilter {
+            text: Some(value.into()),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn reopening_an_index_heals_a_lost_format_marker() {
+        let dir = tempfile::tempdir().unwrap();
+        drop(envelope_manager_at(dir.path()));
+        std::fs::remove_file(dir.path().join("INDEX_FORMAT")).unwrap();
+
+        drop(envelope_manager_at(dir.path()));
+
+        assert_eq!(
+            read_index_format_version(dir.path()),
+            Some(CURRENT_INDEX_FORMAT_VERSION)
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "has an outdated format and must be rebuilt")]
+    fn reopening_an_outdated_index_panics() {
+        let dir = tempfile::tempdir().unwrap();
+        drop(envelope_manager_at(dir.path()));
+        std::fs::write(dir.path().join("INDEX_FORMAT"), "1\n").unwrap();
+
+        envelope_manager_at(dir.path());
+    }
+
+    #[tokio::test]
+    async fn text_search_requires_every_word() {
+        let fx = Fixture::new();
+        let mut a = fx.envelope("a");
+        a.subject = "Quarterly report".into();
+        let mut b = fx.envelope("b");
+        b.subject = "Quarterly plan".into();
+        fx.add(vec![
+            (a, None, "the numbers are attached"),
+            (b, None, "nothing to see"),
+        ])
+        .await;
+
+        assert_eq!(fx.ids(text("quarterly")), ["a", "b"]);
+        assert_eq!(fx.ids(text("quarterly numbers")), ["a"]);
+        assert!(fx.ids(text("quarterly budget")).is_empty());
+    }
+
+    /// Words are not stemmed; the trigram fields find fragments and
+    /// inflections in subjects, addresses and attachment names.
+    #[tokio::test]
+    async fn text_search_finds_fragments_through_trigram_fields() {
+        let fx = Fixture::new();
+        let mut a = fx.envelope("a");
+        a.subject = "Sejlerferie i Kroatien".into();
+        let mut b = fx.envelope("b");
+        b.subject = "Hello".into();
+        b.to = vec!["zelda@wonderland.test".into()];
+        let mut c = fx.envelope("c");
+        c.subject = "Scan".into();
+        fx.add(vec![
+            (a, None, ""),
+            (b, None, ""),
+            (c, Some(vec![attachment("blueprint.pdf", &blob_key(1))]), ""),
+        ])
+        .await;
+
+        assert_eq!(fx.ids(text("kroatiens")), ["a"]);
+        assert_eq!(fx.ids(text("wonderla")), ["b"]);
+        assert_eq!(fx.ids(text("bluepri")), ["c"]);
+    }
+
+    #[tokio::test]
+    async fn subject_and_body_filters_look_only_at_their_field() {
+        let fx = Fixture::new();
+        let mut s = fx.envelope("in-subject");
+        s.subject = "Newsletter September".into();
+        let mut b = fx.envelope("in-body");
+        b.subject = "Hello".into();
+        fx.add(vec![
+            (s, None, "plain text"),
+            (b, None, "read our newsletter"),
+        ])
+        .await;
+
+        let subject = |v: &str| EmailSearchFilter {
+            subject: Some(v.into()),
+            ..Default::default()
+        };
+        let body = |v: &str| EmailSearchFilter {
+            body: Some(v.into()),
+            ..Default::default()
+        };
+        assert_eq!(fx.ids(subject("newsletter")), ["in-subject"]);
+        assert_eq!(fx.ids(subject("newslett")), ["in-subject"], "fragment");
+        assert_eq!(fx.ids(body("newsletter")), ["in-body"]);
+    }
+
+    #[tokio::test]
+    async fn address_filters_match_their_own_fields() {
+        let fx = Fixture::new();
+        let mut x = fx.envelope("x");
+        x.from = "alice@alpha.test".into();
+        x.to = vec!["bob@beta.test".into()];
+        x.cc = vec!["carol@gamma.test".into()];
+        x.bcc = vec!["dave@delta.test".into()];
+        let mut y = fx.envelope("y");
+        y.from = "dave@delta.test".into();
+        y.to = vec!["alice@alpha.test".into()];
+        y.bcc = vec!["carol@gamma.test".into()];
+        fx.add(vec![(x, None, ""), (y, None, "")]).await;
+
+        let filter = |f: fn(&mut EmailSearchFilter) -> &mut Option<String>, v: &str| {
+            let mut filter = EmailSearchFilter::default();
+            *f(&mut filter) = Some(v.into());
+            fx.ids(filter)
+        };
+        assert_eq!(filter(|f| &mut f.from, "alice"), ["x"]);
+        assert_eq!(filter(|f| &mut f.to, "alice"), ["y"]);
+        assert_eq!(filter(|f| &mut f.cc, "gamm"), ["x"], "cc fragment");
+        assert_eq!(filter(|f| &mut f.bcc, "carol"), ["y"]);
+        assert_eq!(filter(|f| &mut f.bcc, "dave"), ["x"]);
+        assert_eq!(filter(|f| &mut f.bcc, "delt"), ["x"], "bcc fragment");
+
+        assert_eq!(filter(|f| &mut f.any_recipient, "alice"), ["y"]);
+        assert_eq!(filter(|f| &mut f.any_recipient, "carol"), ["x", "y"]);
+        assert_eq!(filter(|f| &mut f.any_recipient, "bob"), ["x"]);
+        assert_eq!(filter(|f| &mut f.any_participant, "alice"), ["x", "y"]);
+        assert_eq!(filter(|f| &mut f.any_participant, "delt"), ["x", "y"]);
+        assert_eq!(filter(|f| &mut f.any_participant, "beta"), ["x"]);
+    }
+
+    #[tokio::test]
+    async fn attachment_name_filter_matches_whole_names_and_fragments() {
+        let fx = Fixture::new();
+        let x = fx.envelope("x");
+        let y = fx.envelope("y");
+        fx.add(vec![
+            (
+                x,
+                Some(vec![attachment("invoice-2024.pdf", &blob_key(1))]),
+                "",
+            ),
+            (y, Some(vec![attachment("holiday.png", &blob_key(2))]), ""),
+        ])
+        .await;
+
+        let name = |v: &str| EmailSearchFilter {
+            attachment_name: Some(v.into()),
+            ..Default::default()
+        };
+        assert_eq!(fx.ids(name("invoice-2024.pdf")), ["x"]);
+        assert_eq!(fx.ids(name("holiday.png")), ["y"]);
+        assert_eq!(fx.ids(name("invoic")), ["x"]);
+        assert_eq!(fx.ids(name("holidays")), ["y"], "inflection");
+    }
+
+    #[tokio::test]
+    async fn search_by_relevance_puts_the_best_match_first() {
+        let fx = Fixture::new();
+        let mut best = fx.envelope("best");
+        best.subject = "Welcome to Primagaz".into();
+        best.date = 1_000;
+        let mut passing = fx.envelope("passing");
+        passing.subject = "September newsletter".into();
+        passing.date = 2_000;
+        fx.add(vec![
+            (best, None, "Your Primagaz account is ready."),
+            (
+                passing,
+                None,
+                "News from our partners, offers, events, a note about Primagaz, \
+                 the weather, recipes, travel tips and much more for the season.",
+            ),
+        ])
+        .await;
+
+        let order = |sort_by| -> Vec<String> {
+            fx.search_page(text("primagaz"), sort_by)
+                .into_iter()
+                .map(|e| e.id)
+                .collect()
+        };
+        assert_eq!(order(SortBy::DATE), ["passing", "best"]);
+        assert_eq!(order(SortBy::Relevance), ["best", "passing"]);
+    }
+
+    #[tokio::test]
+    async fn stored_attachments_of_returns_the_envelope_attachments() {
+        let fx = Fixture::new();
+        fx.add(vec![
+            (
+                fx.envelope("with"),
+                Some(vec![attachment("report.pdf", &blob_key(1))]),
+                "",
+            ),
+            (fx.envelope("without"), None, ""),
+        ])
+        .await;
+
+        let with = fx
+            .manager
+            .stored_attachments_of(fx.account_id, "with")
+            .unwrap()
+            .expect("envelope exists");
+        assert_eq!(with.len(), 1);
+        assert_eq!(with[0].filename.as_deref(), Some("report.pdf"));
+        assert_eq!(
+            fx.manager
+                .stored_attachments_of(fx.account_id, "without")
+                .unwrap(),
+            Some(vec![])
+        );
+        assert_eq!(
+            fx.manager
+                .stored_attachments_of(fx.account_id, "missing")
+                .unwrap(),
+            None
+        );
+        assert_eq!(
+            fx.manager
+                .stored_attachments_of(fx.account_id + 1, "with")
+                .unwrap(),
+            None,
+            "other account"
+        );
+    }
+
+    #[tokio::test]
+    async fn deleting_nothing_reports_zero() {
+        let fx = Fixture::new();
+        assert_eq!(
+            fx.manager
+                .delete_envelopes_multi_account(HashMap::new())
+                .await
+                .unwrap(),
+            0
+        );
+    }
+
+    /// Deleting envelopes reports how many existed and drops the blobs no
+    /// remaining envelope references.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn deleting_envelopes_drops_only_unreferenced_blobs() {
+        init_globals();
+        let fx = Fixture::new();
+        let own = blob_key(unique_id());
+        let shared = blob_key(unique_id());
+        store_email_blob(&own, b"Subject: own\r\n\r\nown\r\n").await;
+        store_email_blob(&shared, b"Subject: shared\r\n\r\nshared\r\n").await;
+        let mut d1 = fx.envelope("d1");
+        d1.content_hash = own.clone();
+        let mut d2 = fx.envelope("d2");
+        d2.content_hash = shared.clone();
+        let mut d3 = fx.envelope("d3");
+        d3.content_hash = shared.clone();
+        fx.add(vec![(d1, None, ""), (d2, None, ""), (d3, None, "")])
+            .await;
+
+        let deleted = fx
+            .manager
+            .delete_envelopes_multi_account(HashMap::from([(
+                fx.account_id,
+                vec!["d1".to_string(), "d2".to_string(), "unknown".to_string()],
+            )]))
+            .await
+            .unwrap();
+
+        assert_eq!(deleted, 2);
+        assert_eq!(fx.ids(EmailSearchFilter::default()), ["d3"]);
+        assert!(BLOB_MANAGER.get_email(&own).unwrap().is_none());
+        assert!(BLOB_MANAGER.get_email(&shared).unwrap().is_some());
+    }
+
+    fn tags_of(fx: &Fixture, id: &str) -> Vec<String> {
+        let filter = EmailSearchFilter {
+            id: Some(id.into()),
+            ..Default::default()
+        };
+        fx.search_page(filter, SortBy::DATE)
+            .pop()
+            .expect("envelope exists")
+            .tags
+            .unwrap_or_default()
+    }
+
+    fn body_ids(fx: &Fixture, word: &str) -> Vec<String> {
+        fx.ids(EmailSearchFilter {
+            body: Some(word.into()),
+            ..Default::default()
+        })
+    }
+
+    /// The body is not stored; a tag update takes it from the EML so the
+    /// envelope stays findable by its body.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn tagging_keeps_the_body_searchable_from_the_stored_eml() {
+        init_globals();
+        let fx = Fixture::new();
+        let hash = blob_key(unique_id());
+        store_email_blob(&hash, b"Subject: x\r\n\r\nThe zebra crossing\r\n").await;
+        let mut e = fx.envelope("e");
+        e.content_hash = hash;
+        fx.add(vec![(e, None, "The zebra crossing")]).await;
+
+        fx.tag(&["e"], "/project").await;
+
+        assert_eq!(tags_of(&fx, "e"), ["/project"]);
+        assert_eq!(body_ids(&fx, "zebra"), ["e"]);
+    }
+
+    /// Without its EML, whether missing or under an unreadable key, the
+    /// envelope is still tagged; only the body can't be restored.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn tagging_without_the_eml_still_applies_the_tag() {
+        init_globals();
+        let fx = Fixture::new();
+        let mut missing = fx.envelope("missing");
+        missing.content_hash = blob_key(unique_id());
+        let mut unreadable = fx.envelope("unreadable");
+        unreadable.content_hash = "not-a-blob-key".into();
+        fx.add(vec![
+            (missing, None, "giraffe"),
+            (unreadable, None, "giraffe"),
+        ])
+        .await;
+        assert_eq!(body_ids(&fx, "giraffe"), ["missing", "unreadable"]);
+
+        fx.tag(&["missing", "unreadable"], "/project").await;
+
+        assert_eq!(tags_of(&fx, "missing"), ["/project"]);
+        assert_eq!(tags_of(&fx, "unreadable"), ["/project"]);
+        assert!(body_ids(&fx, "giraffe").is_empty());
+    }
+
+    /// A document without a content hash has no EML to look up; it is still
+    /// tagged.
+    #[tokio::test]
+    async fn tagging_an_envelope_without_content_hash_still_applies_the_tag() {
+        let fx = Fixture::new();
+        let f = SchemaTools::email_fields();
+        let mut doc = TantivyDocument::new();
+        doc.add_text(f.f_id, "no-hash");
+        doc.add_u64(f.f_account_id, fx.account_id);
+        commit_documents(&fx.manager, vec![doc]).await;
+
+        fx.tag(&["no-hash"], "/project").await;
+
+        let tagged = fx
+            .manager
+            .create_searcher()
+            .unwrap()
+            .search(
+                &TermQuery::new(
+                    Term::from_facet(f.f_tags, &Facet::from("/project")),
+                    IndexRecordOption::Basic,
+                ),
+                &Count,
+            )
+            .unwrap();
+        assert_eq!(tagged, 1);
+    }
+
+    /// Senders are grouped by address and carry no account id.
+    #[tokio::test]
+    async fn dashboard_groups_top_senders() {
+        let fx = Fixture::new();
+        let mut a1 = fx.envelope("a1");
+        a1.from = "news@shop.test".into();
+        let mut a2 = fx.envelope("a2");
+        a2.from = "news@shop.test".into();
+        let mut b1 = fx.envelope("b1");
+        b1.from = "friend@mail.test".into();
+        fx.add(vec![(a1, None, ""), (a2, None, ""), (b1, None, "")])
+            .await;
+
+        let stats = fx
+            .manager
+            .get_dashboard_stats(&Some(HashSet::from([fx.account_id])))
+            .unwrap();
+
+        let senders: Vec<(String, u64, Option<u64>)> = stats
+            .top_senders
+            .into_iter()
+            .map(|g| (g.key, g.count, g.account_id))
+            .collect();
+        assert_eq!(
+            senders,
+            [
+                ("news@shop.test".to_string(), 2, None),
+                ("friend@mail.test".to_string(), 1, None),
+            ]
+        );
+    }
+}

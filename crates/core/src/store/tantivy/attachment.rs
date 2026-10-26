@@ -1061,3 +1061,7 @@ impl IndexManager {
         })
     }
 }
+
+#[cfg(test)]
+#[path = "attachment_tests.rs"]
+mod tests;

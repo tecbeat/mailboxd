@@ -262,4 +262,42 @@ mod tests {
         );
         assert_eq!(trigrams("Été"), vec!["ete"]);
     }
+
+    #[test]
+    fn default_tokenizer_is_the_euro_tokenizer() {
+        let mut tokenizer = EuroTokenizer::default();
+        let mut stream = tokenizer.token_stream("Étoiles Filantes");
+        let mut out = Vec::new();
+        while stream.advance() {
+            out.push(stream.token().text.clone());
+        }
+        assert_eq!(out, tokens("Étoiles Filantes"));
+        assert_eq!(out, ["etoiles", "filantes"]);
+    }
+
+    /// A term too short for grams matches nothing on its own; `tri_query`
+    /// steps aside before that, but the field subquery must not match all.
+    #[test]
+    fn field_subquery_of_a_term_without_grams_matches_nothing() {
+        use crate::store::tantivy::schema::SchemaTools;
+        use tantivy::{collector::Count, TantivyDocument};
+
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        register_tokenizers(&index);
+        let f = SchemaTools::email_fields();
+        let mut writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
+        let mut doc = TantivyDocument::new();
+        doc.add_text(f.f_subject_tri, "ab abc");
+        writer.add_document(doc).unwrap();
+        writer.commit().unwrap();
+        let searcher = index.reader().unwrap().searcher();
+
+        let count = |term: &str| {
+            searcher
+                .search(tri_field_subquery(f.f_subject_tri, term).as_ref(), &Count)
+                .unwrap()
+        };
+        assert_eq!(count("ab"), 0);
+        assert_eq!(count("abc"), 1);
+    }
 }

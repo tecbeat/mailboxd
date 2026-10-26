@@ -191,6 +191,13 @@ impl BlobManager {
         }
     }
 
+    /// Writes `email` right away instead of through the background writer,
+    /// which dies with the test runtime that first touched the manager.
+    #[cfg(test)]
+    pub(crate) fn store_now(&self, email: DetachedEmail) {
+        Self::process_detached_email(email, &self.engine);
+    }
+
     pub async fn queue(&self, email: DetachedEmail) {
         if let Err(e) = self.sender.send(email).await {
             tracing::error!("BlobManager channel closed, email lost: {:#?}", e);
