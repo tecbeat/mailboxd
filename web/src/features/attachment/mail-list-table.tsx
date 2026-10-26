@@ -19,7 +19,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { formatBytes, formatDateTime, formatRelativeTime } from "@/lib/utils"
+import { formatBytes } from "@/lib/utils"
+import { DateCell } from "@/features/mail-list/table/date-cell"
 import { useAttachmentContext } from "./context"
 import { useTranslation } from 'react-i18next'
 import { ColumnDef } from "@tanstack/react-table"
@@ -28,7 +29,6 @@ import LongText from "@/components/long-text"
 import { DataTableColumnHeader } from "@/features/mail-list/table/data-table-column-header"
 import { MailListDataTable } from "@/features/mail-list/mail-list-data-table"
 import { DataTableRowActions } from "./table/data-table-row-actions"
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DataTableToolbar } from "./table/toolbar"
 import { AttachmentModel } from "@/api/attachment/api"
 import { useSearchAttachments } from "@/hooks/use-search-attachments"
@@ -200,20 +200,7 @@ export function AttachmentListTable({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('attachment.date')} />
       ),
-      cell: ({ row }) => {
-        const date = new Date(row.original.date)
-        const title = formatDateTime(date)
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className='text-xs whitespace-nowrap'>
-                {formatRelativeTime(date)}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{title}</TooltipContent>
-          </Tooltip>
-        )
-      },
+      cell: ({ row }) => <DateCell date={row.original.date} />,
       meta: { className: 'text-left text-xs' },
       minSize: 130,
       maxSize: 130,

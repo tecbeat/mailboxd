@@ -1355,8 +1355,11 @@
     "tooltip": "Wyczyść wszystkie filtry"
   },
   "search_view": {
+    "absolute": "Bezwzględna",
     "button_label": "Widok",
-    "menu_title": "Ustawienia kolumn"
+    "date_display": "Wyświetlanie daty",
+    "menu_title": "Ustawienia kolumn",
+    "relative": "Względna"
   },
   "settings": {
     "accounts": "Konta",

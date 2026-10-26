@@ -19,7 +19,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { formatBytes, formatDateTime, formatRelativeTime } from "@/lib/utils"
+import { formatBytes } from "@/lib/utils"
+import { DateCell } from "@/features/mail-list/table/date-cell"
 import { MessageSquareText, Paperclip } from "lucide-react"
 import { EmailEnvelope } from "@/api"
 import { MailBulkActions } from "./bulk-actions"
@@ -258,20 +259,7 @@ export function MailListTable({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('search.date')} />
       ),
-      cell: ({ row }) => {
-        const date = new Date(row.original.date)
-        const title = formatDateTime(date)
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className='text-xs whitespace-nowrap'>
-                {formatRelativeTime(date)}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{title}</TooltipContent>
-          </Tooltip>
-        )
-      },
+      cell: ({ row }) => <DateCell date={row.original.date} />,
       meta: { className: 'text-left text-xs' },
       minSize: 130,
       maxSize: 130,

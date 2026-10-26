@@ -1355,8 +1355,11 @@
     "tooltip": "Rensa alla filter"
   },
   "search_view": {
+    "absolute": "Absolut",
     "button_label": "Vy",
-    "menu_title": "Inställningar för kolumner"
+    "date_display": "Datumvisning",
+    "menu_title": "Inställningar för kolumner",
+    "relative": "Relativ"
   },
   "settings": {
     "accounts": "Konton",

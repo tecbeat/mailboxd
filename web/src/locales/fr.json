@@ -1355,8 +1355,11 @@
     "tooltip": "Effacer tous les filtres"
   },
   "search_view": {
+    "absolute": "Absolue",
     "button_label": "Affichage",
-    "menu_title": "Paramètres des colonnes"
+    "date_display": "Affichage de la date",
+    "menu_title": "Paramètres des colonnes",
+    "relative": "Relative"
   },
   "settings": {
     "accounts": "Comptes",
