@@ -114,7 +114,7 @@ async fn account_crud() {
     resp.assert_status_is_ok();
 
     let resp = cli
-        .get(&format!("/api/v1/account/{}", account_id))
+        .get(format!("/api/v1/account/{}", account_id))
         .header("Authorization", &format!("Bearer {}", token))
         .send()
         .await;
@@ -125,7 +125,7 @@ async fn account_crud() {
 
     // ── Delete ──────────────────────────────────────────────────────────
     let resp = cli
-        .delete(&format!("/api/v1/account/{}", account_id))
+        .delete(format!("/api/v1/account/{}", account_id))
         .header("Authorization", &format!("Bearer {}", token))
         .send()
         .await;
@@ -137,8 +137,8 @@ async fn account_crud() {
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
     loop {
         let resp = cli
-            .get(&format!("/api/v1/account/{}", account_id))
-            .header("Authorization", &format!("Bearer {}", token))
+            .get(format!("/api/v1/account/{}", account_id))
+            .header("Authorization", format!("Bearer {}", token))
             .send()
             .await;
         if resp.0.status().is_client_error() {

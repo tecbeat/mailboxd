@@ -191,7 +191,7 @@ async fn default_admin_password_is_only_reported_to_user_managers() {
         async move {
             let resp = cli
                 .get("/api/v1/notifications")
-                .header("Authorization", &format!("Bearer {}", token))
+                .header("Authorization", format!("Bearer {}", token))
                 .send()
                 .await;
             resp.assert_status_is_ok();
@@ -204,7 +204,7 @@ async fn default_admin_password_is_only_reported_to_user_managers() {
 
     let resp = cli
         .post("/api/v1/users")
-        .header("Authorization", &format!("Bearer {}", token))
+        .header("Authorization", format!("Bearer {}", token))
         .body_json(&CreateUserPayload {
             username: "member-notifications".into(),
             email: "member-notifications@example.com".into(),
@@ -220,8 +220,8 @@ async fn default_admin_password_is_only_reported_to_user_managers() {
     let member_token = login("member-notifications", "member-pass-123").await;
     assert!(!default_password(member_token).await);
 
-    cli.delete(&format!("/api/v1/users/{}", member.id))
-        .header("Authorization", &format!("Bearer {}", token))
+    cli.delete(format!("/api/v1/users/{}", member.id))
+        .header("Authorization", format!("Bearer {}", token))
         .send()
         .await
         .assert_status_is_ok();

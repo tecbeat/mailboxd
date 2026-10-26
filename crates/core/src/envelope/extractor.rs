@@ -599,7 +599,7 @@ pub fn strip_attachment_bodies(
         // Collect candidates for text extraction (non-inline, known document
         // types allowed by the filter).
         if let Some(filter) = filter {
-            let should_extract = filter.rules.map_or(true, |r| {
+            let should_extract = filter.rules.is_none_or(|r| {
                 r.should_extract(
                     &ext,
                     filter.mailbox_name,

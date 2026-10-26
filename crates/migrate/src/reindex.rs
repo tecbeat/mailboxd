@@ -493,7 +493,7 @@ fn for_each_document(
                 }
             }
             seen += 1;
-            if seen % COMMIT_EVERY == 0 {
+            if seen.is_multiple_of(COMMIT_EVERY) {
                 info!("Rebuilding the {kind} index: {seen}/{total} documents");
             }
         }
@@ -690,7 +690,7 @@ fn add(
             .and_then(|v| v.as_str())
             .map(String::from);
     }
-    if stats.docs % COMMIT_EVERY == 0 {
+    if stats.docs.is_multiple_of(COMMIT_EVERY) {
         target.commit()?;
     }
     Ok(())
@@ -898,11 +898,13 @@ impl BlobGuard {
                 ErrorCode::InternalError
             )
         })?;
-        let mut config = Config::default();
-        config.default_codec = Codec::Zstd;
-        config.compress_threshold = 1024;
-        config.flush_interval_secs = 0;
-        config.gc_interval_secs = 0;
+        let config = Config {
+            default_codec: Codec::Zstd,
+            compress_threshold: 1024,
+            flush_interval_secs: 0,
+            gc_interval_secs: 0,
+            ..Config::default()
+        };
         match Engine::open(dir, config) {
             Ok(engine) => Ok(Self(engine)),
             Err(BlobError::AlreadyOpen { .. }) => Err(raise_error!(

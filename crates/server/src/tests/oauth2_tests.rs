@@ -102,8 +102,8 @@ async fn oauth2_crud() {
     resp.assert_status_is_ok();
 
     let resp = cli
-        .get(&format!("/api/v1/oauth2/{}", id))
-        .header("Authorization", &format!("Bearer {}", token))
+        .get(format!("/api/v1/oauth2/{}", id))
+        .header("Authorization", format!("Bearer {}", token))
         .send()
         .await;
     resp.assert_status_is_ok();

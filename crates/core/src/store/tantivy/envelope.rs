@@ -268,7 +268,7 @@ impl IndexManager {
             std::fs::create_dir_all(&index_dir).unwrap_or_else(|e| {
                 panic!("Failed to create index directory {:?}: {}", index_dir, e)
             });
-            let index = Index::create_in_dir(&index_dir, SchemaTools::email_schema())
+            let index = Index::create_in_dir(index_dir, SchemaTools::email_schema())
                 .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e));
             if let Err(e) = write_index_format_version(index_dir) {
                 warn!(
