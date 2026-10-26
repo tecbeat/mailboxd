@@ -23,14 +23,14 @@ use std::path::PathBuf;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Select};
 use mailboxd_migrate::{
-    migrate_v037::handle_migration_v037,
-    migrate_v1::handle_migrate_v1,
-    reindex::{reindex, ReindexOutcome},
+    migrate_v037::handle_migration_v037, migrate_v1::handle_migrate_v1, reindex::reindex,
     run_auto_migrate, AutoMigrateOutcome, AutoMigratePaths,
 };
 
+use crate::reindex::{handle_reindex, print_reindex_outcome};
 use crate::reset::handle_reset_password;
 
+pub mod reindex;
 pub mod reset;
 
 fn main() {
@@ -87,7 +87,7 @@ fn auto_migrate_from_env() -> i32 {
 
     match reindex(&paths, false) {
         Ok(None) => {
-            println!("[auto-migrate] search index format already current; nothing to do");
+            println!("[auto-migrate] search index needs no rebuild");
             0
         }
         Ok(Some(outcome)) => {
@@ -98,29 +98,6 @@ fn auto_migrate_from_env() -> i32 {
             eprintln!("[auto-migrate] search index rebuild failed: {error:#?}");
             1
         }
-    }
-}
-
-fn print_reindex_outcome(prefix: &str, outcome: &ReindexOutcome) {
-    println!(
-        "{prefix}rebuilt the search index in {:.1}s: {} emails, {} attachments, {} skipped, \
-         {} without body text, {} attachments without text",
-        outcome.elapsed.as_secs_f64(),
-        outcome.emails,
-        outcome.attachments,
-        outcome.skipped,
-        outcome.missing_bodies,
-        outcome.missing_texts
-    );
-    println!(
-        "{prefix}the previous index is kept in {}; remove it once search works as expected",
-        outcome.backup_dir.display()
-    );
-    if let Some(report) = &outcome.report {
-        println!(
-            "{prefix}documents not carried over completely are listed in {}",
-            report.display()
-        );
     }
 }
 
@@ -136,6 +113,7 @@ async fn run_interactive() {
         "Reset Admin Password",
         "Migrate Legacy v0.3.7 Storage to v2.x (mailboxd-blob)",
         "Migrate v1.x Storage to v2.x (Fjall → mailboxd-blob)",
+        "Rebuild Search Index",
         "Exit",
     ];
 
@@ -150,6 +128,7 @@ async fn run_interactive() {
         0 => handle_reset_password(&theme),
         1 => handle_migration_v037(&theme),
         2 => handle_migrate_v1(&theme),
+        3 => handle_reindex(&theme),
         _ => {
             println!("{}", style("Exiting...").dim());
         }
