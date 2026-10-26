@@ -1354,6 +1354,11 @@
     "label": "リセット",
     "tooltip": "すべての条件をクリア"
   },
+  "search_sort": {
+    "relevance": "関連度",
+    "relevance_needs_text": "関連度で並べ替えるには検索語を入力してください",
+    "relevance_tooltip": "一致度の高い順に並べ替え"
+  },
   "search_view": {
     "absolute": "絶対",
     "button_label": "表示",

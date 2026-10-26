@@ -1354,6 +1354,11 @@
     "label": "重設",
     "tooltip": "清除所有篩選條件"
   },
+  "search_sort": {
+    "relevance": "相關性",
+    "relevance_needs_text": "輸入搜尋詞以依相關性排序",
+    "relevance_tooltip": "依最佳相符排序"
+  },
   "search_view": {
     "absolute": "絕對",
     "button_label": "檢視",

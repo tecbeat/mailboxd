@@ -1354,6 +1354,11 @@
     "label": "Zurücksetzen",
     "tooltip": "Alle Filter entfernen"
   },
+  "search_sort": {
+    "relevance": "Relevanz",
+    "relevance_needs_text": "Geben Sie einen Suchbegriff ein, um nach Relevanz zu sortieren",
+    "relevance_tooltip": "Nach bester Übereinstimmung sortieren"
+  },
   "search_view": {
     "absolute": "Absolut",
     "button_label": "Ansicht",

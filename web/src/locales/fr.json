@@ -1354,6 +1354,11 @@
     "label": "Réinitialiser",
     "tooltip": "Effacer tous les filtres"
   },
+  "search_sort": {
+    "relevance": "Pertinence",
+    "relevance_needs_text": "Saisissez un terme de recherche pour trier par pertinence",
+    "relevance_tooltip": "Trier par meilleure correspondance"
+  },
   "search_view": {
     "absolute": "Absolue",
     "button_label": "Affichage",

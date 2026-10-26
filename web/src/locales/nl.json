@@ -1354,6 +1354,11 @@
     "label": "Resetten",
     "tooltip": "Alle filters wissen"
   },
+  "search_sort": {
+    "relevance": "Relevantie",
+    "relevance_needs_text": "Voer een zoekterm in om op relevantie te sorteren",
+    "relevance_tooltip": "Sorteren op beste overeenkomst"
+  },
   "search_view": {
     "absolute": "Absoluut",
     "button_label": "Weergave",

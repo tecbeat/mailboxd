@@ -10,6 +10,7 @@ import { FilterResetButton } from '@/features/mail-list/filter-reset'
 import { MailboxPopover } from '@/features/mail-list/mailbox-popover'
 import { AccountPopover } from '@/features/mail-list/account-popover'
 import { FilterBar } from '@/features/mail-list/filter-bar'
+import { RelevanceSortButton } from '@/features/mail-list/relevance-sort'
 
 const SEARCH_TEXT_CONFIG: TextSearchConfig = {
   storageKey: 'mailboxd_mail_search_history',
@@ -39,6 +40,7 @@ export function DataTableToolbar<TData extends RowData>({
       <TagFilterPopover />
       <MoreFiltersPopover />
       <TimePopover />
+      <RelevanceSortButton textFields={SEARCH_TEXT_CONFIG.searchFields} />
       <DataTableViewOptions table={table} />
     </FilterBar>
   )

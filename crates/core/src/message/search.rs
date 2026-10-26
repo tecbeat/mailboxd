@@ -86,6 +86,33 @@ pub enum SortBy {
     #[serde(rename = "INGEST_AT")]
     #[cfg_attr(feature = "web-api", oai(rename = "INGEST_AT"))]
     IngestAt,
+    /// Sort by full-text relevance (tantivy's BM25 score), best match first;
+    /// `desc` is ignored. Falls back to `DATE` without a text query.
+    #[serde(rename = "RELEVANCE")]
+    #[cfg_attr(feature = "web-api", oai(rename = "RELEVANCE"))]
+    Relevance,
+}
+
+/// Date stays the default. Relevance needs a text query to score; without
+/// one, every match scores the same and the order would be arbitrary.
+fn resolve_sort_by(requested: Option<SortBy>, has_text: bool) -> SortBy {
+    match requested {
+        Some(SortBy::Relevance) if !has_text => SortBy::DATE,
+        Some(sort_by) => sort_by,
+        None => SortBy::DATE,
+    }
+}
+
+impl EmailSearchFilter {
+    fn has_text(&self) -> bool {
+        self.text.is_some() || self.subject.is_some() || self.body.is_some()
+    }
+}
+
+impl AttachmentSearchFilter {
+    fn has_text(&self) -> bool {
+        self.text.is_some() || self.subject.is_some()
+    }
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -121,13 +148,14 @@ pub fn search_messages_impl(
     request: EmailSearchRequest,
 ) -> MailboxdResult<DataPage<Envelope>> {
     request.validate()?;
+    let sort_by = resolve_sort_by(request.sort_by, request.filter.has_text());
     ENVELOPE_MANAGER.search(
         accounts,
         request.filter,
         request.page,
         request.page_size,
         request.desc.unwrap_or(true),
-        request.sort_by.unwrap_or(SortBy::DATE),
+        sort_by,
     )
 }
 
@@ -198,12 +226,86 @@ pub fn search_attachment_impl(
     request: AttachmentSearchRequest,
 ) -> MailboxdResult<DataPage<AttachmentModel>> {
     request.validate()?;
+    let sort_by = resolve_sort_by(request.sort_by, request.filter.has_text());
     ATTACHMENT_MANAGER.search(
         accounts,
         request.filter,
         request.page,
         request.page_size,
         request.desc.unwrap_or(true),
-        request.sort_by.unwrap_or(SortBy::DATE),
+        sort_by,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn date_stays_the_default_even_with_text() {
+        assert_eq!(resolve_sort_by(None, true), SortBy::DATE);
+        assert_eq!(resolve_sort_by(None, false), SortBy::DATE);
+    }
+
+    #[test]
+    fn relevance_is_kept_with_text_and_falls_back_to_date_without() {
+        assert_eq!(
+            resolve_sort_by(Some(SortBy::Relevance), true),
+            SortBy::Relevance
+        );
+        assert_eq!(
+            resolve_sort_by(Some(SortBy::Relevance), false),
+            SortBy::DATE
+        );
+    }
+
+    #[test]
+    fn other_explicit_sorts_are_kept() {
+        for sort_by in [
+            SortBy::DATE,
+            SortBy::SIZE,
+            SortBy::InternalDate,
+            SortBy::IngestAt,
+        ] {
+            assert_eq!(resolve_sort_by(Some(sort_by.clone()), true), sort_by);
+        }
+    }
+
+    #[test]
+    fn text_means_a_scored_query_field() {
+        assert!(!EmailSearchFilter::default().has_text());
+        for filter in [
+            EmailSearchFilter {
+                text: Some("x".into()),
+                ..Default::default()
+            },
+            EmailSearchFilter {
+                subject: Some("x".into()),
+                ..Default::default()
+            },
+            EmailSearchFilter {
+                body: Some("x".into()),
+                ..Default::default()
+            },
+        ] {
+            assert!(filter.has_text());
+        }
+        assert!(!EmailSearchFilter {
+            from: Some("x".into()),
+            ..Default::default()
+        }
+        .has_text());
+
+        assert!(!AttachmentSearchFilter::default().has_text());
+        assert!(AttachmentSearchFilter {
+            text: Some("x".into()),
+            ..Default::default()
+        }
+        .has_text());
+        assert!(AttachmentSearchFilter {
+            subject: Some("x".into()),
+            ..Default::default()
+        }
+        .has_text());
+    }
 }

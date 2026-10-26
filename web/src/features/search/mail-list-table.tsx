@@ -30,6 +30,7 @@ import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
 import { DataTableColumnHeader } from "@/features/mail-list/table/data-table-column-header"
 import { MailListDataTable } from "@/features/mail-list/mail-list-data-table"
+import { type ListSortBy } from "@/features/mail-list/sorting"
 import { DataTableRowActions } from "./table/data-table-row-actions"
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DataTableToolbar } from "./table/toolbar"
@@ -41,7 +42,7 @@ interface MailListProps {
   isLoading: boolean
   isFetching?: boolean
   onEnvelopeChanged: (envelope: EmailEnvelope) => void
-  setSortBy: (sortBy: "DATE" | "SIZE") => void
+  setSortBy: (sortBy: ListSortBy) => void
   setSortOrder: (value: "desc" | "asc") => void
 }
 

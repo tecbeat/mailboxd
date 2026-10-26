@@ -1364,6 +1364,11 @@
     "label": "重置",
     "tooltip": "清除所有筛选条件"
   },
+  "search_sort": {
+    "relevance": "相关性",
+    "relevance_needs_text": "输入搜索词以按相关性排序",
+    "relevance_tooltip": "按最佳匹配排序"
+  },
   "search_view": {
     "absolute": "绝对",
     "button_label": "视图",

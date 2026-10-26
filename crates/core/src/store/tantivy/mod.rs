@@ -35,6 +35,7 @@ pub mod format;
 pub mod model;
 pub mod rebuild;
 pub mod schema;
+pub mod sort;
 pub mod tokenizers;
 
 pub fn fatal_commit(writer: &mut IndexWriter) {

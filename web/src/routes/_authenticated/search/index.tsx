@@ -27,7 +27,7 @@ import { z } from 'zod'
 const searchSchema = z.object({
   page: z.number().catch(1),
   pageSize: z.number().optional(),
-  sortBy: z.enum(['DATE', 'SIZE']).catch('DATE'),
+  sortBy: z.enum(['DATE', 'SIZE', 'RELEVANCE']).catch('DATE'),
   sortOrder: z.enum(['asc', 'desc']).catch('desc'),
   q: z.string().optional(),
 })

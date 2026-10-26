@@ -1354,6 +1354,11 @@
     "label": "Palauta",
     "tooltip": "Poista kaikki suodattimet"
   },
+  "search_sort": {
+    "relevance": "Osuvuus",
+    "relevance_needs_text": "Kirjoita hakusana lajitellaksesi osuvuuden mukaan",
+    "relevance_tooltip": "Lajittele parhaan osuman mukaan"
+  },
   "search_view": {
     "absolute": "Absoluuttinen",
     "button_label": "Näkymä",

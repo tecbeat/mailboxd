@@ -1390,6 +1390,11 @@
     "label": "Reset",
     "tooltip": "Clear all filters"
   },
+  "search_sort": {
+    "relevance": "Relevance",
+    "relevance_needs_text": "Enter a search term to sort by relevance",
+    "relevance_tooltip": "Sort by best match"
+  },
   "search_view": {
     "absolute": "Absolute",
     "button_label": "View",

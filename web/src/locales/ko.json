@@ -1354,6 +1354,11 @@
     "label": "초기화",
     "tooltip": "모든 필터 조건 지우기"
   },
+  "search_sort": {
+    "relevance": "관련성",
+    "relevance_needs_text": "관련성으로 정렬하려면 검색어를 입력하세요",
+    "relevance_tooltip": "가장 일치하는 순으로 정렬"
+  },
   "search_view": {
     "absolute": "절대",
     "button_label": "보기",

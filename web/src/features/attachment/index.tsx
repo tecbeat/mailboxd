@@ -35,6 +35,7 @@ import useDialogState from '@/hooks/use-dialog-state';
 import { useTranslation } from 'react-i18next';
 import { AttachmentListTable } from './mail-list-table';
 import { SortingState } from '@tanstack/react-table';
+import { initialSorting } from '@/features/mail-list/sorting';
 import { useSearchAttachments } from '@/hooks/use-search-attachments';
 import { AttachmentModel } from '@/api/attachment/api';
 import { AttachmentDialogs } from './dialogs';
@@ -57,7 +58,6 @@ export default function AttachmentSearch() {
   const [toDelete, setToDelete] = React.useState<Map<number, Set<string>>>(new Map());
   const [selected, setSelected] = React.useState<Map<number, Set<string>>>(new Map());
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([{ id: "date", desc: true }]);
   const [deleteMailboxId, setDeleteMailboxId] = React.useState<string | undefined>(undefined);
   const [selectedAccountId, setSelectedAccountId] = React.useState<number | undefined>(undefined);
 
@@ -73,8 +73,13 @@ export default function AttachmentSearch() {
     setSortBy,
     setSortOrder,
     filter,
-    setFilter
+    setFilter,
+    sortBy,
+    sortOrder,
   } = useSearchAttachments();
+  const [sorting, setSorting] = React.useState<SortingState>(() =>
+    initialSorting(sortBy, sortOrder),
+  );
 
   const handleSetPageSize = (pageSize: number) => {
     setPage(1);

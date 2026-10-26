@@ -1354,6 +1354,11 @@
     "label": "إعادة تعيين",
     "tooltip": "مسح جميع شروط التصفية"
   },
+  "search_sort": {
+    "relevance": "الصلة",
+    "relevance_needs_text": "أدخل كلمة بحث للترتيب حسب الصلة",
+    "relevance_tooltip": "الترتيب حسب أفضل تطابق"
+  },
   "search_view": {
     "absolute": "مطلق",
     "button_label": "العرض",

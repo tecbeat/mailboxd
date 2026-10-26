@@ -45,6 +45,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useMailListConfig } from './config'
+import { type ListSortBy, sortParams } from '@/features/mail-list/sorting'
 
 // Row entity requirements: every mail-list row is keyed by a string id scoped
 // to a numeric account_id (the selection map is Map<account_id, Set<id>>).
@@ -63,7 +64,7 @@ interface MailListDataTableProps<TEntity extends MailListRow> {
   // Feature-specific columns. The selection checkbox column is prepended here,
   // so features supply only their own middle/actions columns.
   columns: ColumnDef<MailTableFeatures, TEntity>[]
-  setSortBy: (sortBy: 'DATE' | 'SIZE') => void
+  setSortBy: (sortBy: ListSortBy) => void
   setSortOrder: (value: 'desc' | 'asc') => void
   onRowClick: (
     e: ReactMouseEvent<HTMLTableRowElement, MouseEvent>,
@@ -174,9 +175,9 @@ export function MailListDataTable<TEntity extends MailListRow>({
   const allColumns = [selectionColumn, ...columns]
 
   useEffect(() => {
-    const [value] = sorting
-    setSortBy(value.id.toUpperCase() as 'DATE' | 'SIZE')
-    setSortOrder(value.desc ? 'desc' : 'asc')
+    const { sortBy, sortOrder } = sortParams(sorting)
+    setSortBy(sortBy)
+    if (sortOrder) setSortOrder(sortOrder)
   }, [sorting, setSortBy, setSortOrder])
 
   const table = useTable({

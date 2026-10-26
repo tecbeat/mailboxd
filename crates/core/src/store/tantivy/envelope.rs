@@ -46,8 +46,8 @@ use crate::{
             dedup_cache::DEDUP_CACHE,
             fatal_commit,
             fields::{
-                F_ACCOUNT_ID, F_DATE, F_FROM, F_ID, F_INGEST_AT, F_INTERNAL_DATE,
-                F_REGULAR_ATTACHMENT_COUNT, F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
+                F_ACCOUNT_ID, F_DATE, F_FROM, F_ID, F_INTERNAL_DATE, F_REGULAR_ATTACHMENT_COUNT,
+                F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
             },
             format::{
                 check_index_format, heal_index_format_marker, write_index_format_version,
@@ -56,6 +56,7 @@ use crate::{
             model::{extract_contacts, EnvelopeWithAttachments},
             rebuild::{document_tags, rebuild_envelope_document, stored_attachments},
             schema::SchemaTools,
+            sort::top_docs_page,
             tokenizers::{register_tokenizers, text_parser, word_or_tri},
         },
     },
@@ -1459,58 +1460,15 @@ impl IndexManager {
             });
         }
 
-        let order = if desc { Order::Desc } else { Order::Asc };
-        let mailbox_docs: Vec<DocAddress>;
-
-        match sort_by {
-            SortBy::DATE => {
-                let date_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_DATE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                mailbox_docs = date_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            SortBy::SIZE => {
-                let size_docs: Vec<(Option<u64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_SIZE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                mailbox_docs = size_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            SortBy::InternalDate => {
-                let internal_date_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_INTERNAL_DATE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                mailbox_docs = internal_date_docs
-                    .into_iter()
-                    .map(|(_, addr)| addr)
-                    .collect();
-            }
-            SortBy::IngestAt => {
-                let ingest_at_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_INGEST_AT, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                mailbox_docs = ingest_at_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-        }
+        let mailbox_docs = top_docs_page(
+            &searcher,
+            &query,
+            sort_by,
+            desc,
+            offset as usize,
+            page_size as usize,
+            F_INTERNAL_DATE,
+        )?;
 
         let mut result = Vec::new();
 
@@ -1915,6 +1873,7 @@ fn count_matching_envelopes(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::store::tantivy::fields::F_INGEST_AT;
     use serde_json::json;
     use tantivy::{
         collector::Count,

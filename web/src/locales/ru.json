@@ -1354,6 +1354,11 @@
     "label": "Сброс",
     "tooltip": "Очистить все фильтры"
   },
+  "search_sort": {
+    "relevance": "Релевантность",
+    "relevance_needs_text": "Введите поисковый запрос, чтобы сортировать по релевантности",
+    "relevance_tooltip": "Сортировать по лучшему совпадению"
+  },
   "search_view": {
     "absolute": "Абсолютная",
     "button_label": "Вид",

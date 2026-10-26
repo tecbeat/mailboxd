@@ -1354,6 +1354,11 @@
     "label": "Nulstil",
     "tooltip": "Ryd alle filtre"
   },
+  "search_sort": {
+    "relevance": "Relevans",
+    "relevance_needs_text": "Indtast et søgeord for at sortere efter relevans",
+    "relevance_tooltip": "Sortér efter bedste match"
+  },
   "search_view": {
     "absolute": "Absolut",
     "button_label": "Visning",

@@ -41,8 +41,8 @@ use crate::{
         envelope::ENVELOPE_MANAGER,
         fatal_commit,
         fields::{
-            F_ATTACHMENT_CATEGORY, F_ATTACHMENT_CONTENT_TYPE, F_ATTACHMENT_EXT, F_DATE,
-            F_INGEST_AT, F_SIZE, F_TAGS,
+            F_ATTACHMENT_CATEGORY, F_ATTACHMENT_CONTENT_TYPE, F_ATTACHMENT_EXT, F_DATE, F_SIZE,
+            F_TAGS,
         },
         format::{
             check_index_format, heal_index_format_marker, write_index_format_version,
@@ -51,6 +51,7 @@ use crate::{
         model::{extract_senders, AttachmentModel},
         rebuild::{document_tags, extracted_text_of, rebuild_attachment_document},
         schema::SchemaTools,
+        sort::top_docs_page,
         tokenizers::{register_tokenizers, text_parser, word_or_tri},
     },
 };
@@ -886,57 +887,17 @@ impl IndexManager {
             });
         }
 
-        let order = if desc { Order::Desc } else { Order::Asc };
-        let attachment_docs: Vec<DocAddress>;
-
-        match sort_by {
-            SortBy::DATE => {
-                let date_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_DATE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                attachment_docs = date_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            SortBy::SIZE => {
-                let size_docs: Vec<(Option<u64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_SIZE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                attachment_docs = size_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            // Attachments carry no IMAP INTERNALDATE; fall back to the
-            // attachment's own date field so the sort remains well defined.
-            SortBy::InternalDate => {
-                let date_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_DATE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                attachment_docs = date_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            SortBy::IngestAt => {
-                let ingest_at_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_INGEST_AT, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                attachment_docs = ingest_at_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-        }
+        // Attachments carry no IMAP INTERNALDATE; their own date keeps that
+        // sort well defined.
+        let attachment_docs = top_docs_page(
+            &searcher,
+            &query,
+            sort_by,
+            desc,
+            offset as usize,
+            page_size as usize,
+            F_DATE,
+        )?;
 
         let mut result = Vec::new();
 

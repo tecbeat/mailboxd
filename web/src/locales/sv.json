@@ -1354,6 +1354,11 @@
     "label": "Återställ",
     "tooltip": "Rensa alla filter"
   },
+  "search_sort": {
+    "relevance": "Relevans",
+    "relevance_needs_text": "Ange ett sökord för att sortera efter relevans",
+    "relevance_tooltip": "Sortera efter bästa träff"
+  },
   "search_view": {
     "absolute": "Absolut",
     "button_label": "Vy",

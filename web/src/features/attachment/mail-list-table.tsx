@@ -28,6 +28,7 @@ import { type MailTableFeatures } from "@/lib/data-table"
 import LongText from "@/components/long-text"
 import { DataTableColumnHeader } from "@/features/mail-list/table/data-table-column-header"
 import { MailListDataTable } from "@/features/mail-list/mail-list-data-table"
+import { type ListSortBy } from "@/features/mail-list/sorting"
 import { DataTableRowActions } from "./table/data-table-row-actions"
 import { DataTableToolbar } from "./table/toolbar"
 import { AttachmentModel } from "@/api/attachment/api"
@@ -37,7 +38,7 @@ import { AttachmentIcon } from "./attachment-icon"
 interface MailListProps {
   items: AttachmentModel[]
   isLoading: boolean
-  setSortBy: (sortBy: "DATE" | "SIZE") => void
+  setSortBy: (sortBy: ListSortBy) => void
   setSortOrder: (value: "desc" | "asc") => void
 }
 
