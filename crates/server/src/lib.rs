@@ -45,6 +45,9 @@ use mailboxd_core::{
     users::manager::UserManager,
 };
 use mailboxd_migrate::{reindex::reindex, run_auto_migrate, AutoMigrateOutcome, AutoMigratePaths};
+use rest::maintenance::{
+    serve_maintenance, LAYOUT_CHECK_FAILED, MIGRATION_FAILED, MIGRATION_REQUIRED, RESTORE_FAILED,
+};
 use mailboxd_smtp::server::{start_smtp_server, SmtpServer};
 use tracing::{error, info};
 
@@ -70,7 +73,8 @@ pub async fn run() -> MailboxdResult<()> {
     // is staged.
     if let Err(e) = mailboxd_core::backup::restore::apply_pending_restore() {
         error!("Failed to apply staged restore: {:#?}", e);
-        return Err(e);
+        serve_maintenance(&RESTORE_FAILED).await;
+        return Ok(());
     }
 
     // Migrate an existing data volume up to v2 on startup (no-op if current).
@@ -92,7 +96,8 @@ pub async fn run() -> MailboxdResult<()> {
         }
         Err(e) => {
             error!("Failed to migrate data layout: {:#?}", e);
-            return Err(e);
+            serve_maintenance(&MIGRATION_FAILED).await;
+            return Ok(());
         }
     }
 
@@ -100,14 +105,13 @@ pub async fn run() -> MailboxdResult<()> {
         Ok(false) => {
             error!("Incompatible data format detected.");
             error!("Please run: mailboxd-admin");
-            return Err(raise_error!(
-                "Legacy data layout detected".into(),
-                ErrorCode::InternalError
-            ));
+            serve_maintenance(&MIGRATION_REQUIRED).await;
+            return Ok(());
         }
         Err(e) => {
             error!("Failed to check data layout: {:#?}", e);
-            return Err(raise_error!(format!("{:#?}", e), ErrorCode::InternalError));
+            serve_maintenance(&LAYOUT_CHECK_FAILED).await;
+            return Ok(());
         }
         Ok(true) => {}
     }
