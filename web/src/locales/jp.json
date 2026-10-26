@@ -1521,6 +1521,12 @@
     "title": "サインアウト"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "パスワードを変更",
+      "badge": "セキュリティ",
+      "message": "組み込みの admin アカウントは初期パスワードのままです。admin でサインインしてプロフィールから、または「ユーザー」から変更してください。",
+      "title": "既定の管理者パスワードが使用中です"
+    },
     "notifications": "システム通知"
   },
   "systemConfig": {

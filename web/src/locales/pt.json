@@ -1521,6 +1521,12 @@
     "title": "Sair"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Alterar senha",
+      "badge": "Segurança",
+      "message": "A conta admin integrada ainda aceita a senha inicial. Altere-a no perfil com sessão iniciada como admin ou em Usuários.",
+      "title": "Senha de administrador padrão em uso"
+    },
     "notifications": "Notificações do sistema"
   },
   "systemConfig": {

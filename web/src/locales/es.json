@@ -1521,6 +1521,12 @@
     "title": "Cerrar sesión"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Cambiar contraseña",
+      "badge": "Seguridad",
+      "message": "La cuenta admin integrada aún acepta su contraseña inicial. Cámbiala en el perfil con la sesión iniciada como admin o en Usuarios.",
+      "title": "Contraseña de administrador predeterminada en uso"
+    },
     "notifications": "Notificaciones del sistema"
   },
   "systemConfig": {

@@ -1521,6 +1521,12 @@
     "title": "Wyloguj się"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Zmień hasło",
+      "badge": "Bezpieczeństwo",
+      "message": "Wbudowane konto admin nadal akceptuje hasło początkowe. Zmień je w profilu po zalogowaniu jako admin lub w sekcji Użytkownicy.",
+      "title": "Używane jest domyślne hasło administratora"
+    },
     "notifications": "Powiadomienia systemowe"
   },
   "systemConfig": {

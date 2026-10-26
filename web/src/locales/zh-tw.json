@@ -1521,6 +1521,12 @@
     "title": "登出"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "修改密碼",
+      "badge": "安全",
+      "message": "內建 admin 帳號仍接受初始密碼。請以 admin 登入後在個人資料中修改，或在「使用者」中修改。",
+      "title": "仍在使用預設管理員密碼"
+    },
     "notifications": "系統通知"
   },
   "systemConfig": {

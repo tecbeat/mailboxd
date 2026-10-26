@@ -1521,6 +1521,12 @@
     "title": "Disconnetti"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Cambia password",
+      "badge": "Sicurezza",
+      "message": "L’account admin integrato accetta ancora la password iniziale. Cambiala nel profilo con l’accesso come admin oppure in Utenti.",
+      "title": "Password amministratore predefinita in uso"
+    },
     "notifications": "Notifiche di sistema"
   },
   "systemConfig": {

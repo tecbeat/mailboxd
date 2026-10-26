@@ -102,6 +102,8 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['current-user'] })
+      // A new password can clear the default admin password reminder.
+      queryClient.invalidateQueries({ queryKey: ['system-notifications'] })
       toast({ title: t('settings.profile.toast.updated') })
     },
     onError: (err: AxiosError) => {

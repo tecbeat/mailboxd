@@ -120,6 +120,10 @@ pub struct LoginResult {
 
 pub const DEFAULT_ADMIN_USER_ID: u64 = 100000000000000;
 
+/// The password the default administrator is created with. Admins are
+/// reminded to change it for as long as it still works.
+pub const DEFAULT_ADMIN_PASSWORD: &str = "admin@mailboxd";
+
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct MailboxdUserV2 {
     pub id: u64,
@@ -337,7 +341,7 @@ impl MailboxdUserV2 {
                 id: DEFAULT_ADMIN_USER_ID,
                 username: "admin".into(),
                 email: "placeholder@example.com".into(),
-                password: Some(hash_login_password("admin@mailboxd")?),
+                password: Some(hash_login_password(DEFAULT_ADMIN_PASSWORD)?),
 
                 // Use global_roles as defined in our new schema
                 global_roles: vec![DEFAULT_ADMIN_ROLE_ID],
@@ -455,6 +459,23 @@ impl MailboxdUserV2 {
                     theme: None,
                     language: None,
                 })
+            }
+        }
+    }
+
+    /// Whether the default administrator still accepts
+    /// [`DEFAULT_ADMIN_PASSWORD`]. Only verifies the stored value: no login,
+    /// no password upgrade, no audit event.
+    pub fn default_admin_password_in_use() -> bool {
+        match Self::find(DEFAULT_ADMIN_USER_ID) {
+            Ok(Some(admin)) => admin
+                .password
+                .as_deref()
+                .is_some_and(|stored| accepts_default_password(stored)),
+            Ok(None) => false,
+            Err(e) => {
+                warn!("Failed to load the default administrator: {:#?}", e);
+                false
             }
         }
     }
@@ -816,6 +837,19 @@ fn check_stored_password(stored: &str, password: &str) -> MailboxdResult<Passwor
     )
 }
 
+fn accepts_default_password(stored: &str) -> bool {
+    match check_stored_password(stored, DEFAULT_ADMIN_PASSWORD) {
+        Ok(check) => matches!(check, PasswordCheck::Match { .. }),
+        Err(e) => {
+            warn!(
+                "Failed to check the default administrator password: {:#?}",
+                e
+            );
+            false
+        }
+    }
+}
+
 /// Replace a legacy encrypted password with an argon2id hash after a
 /// successful login. Failures are logged; the login itself still succeeds
 /// and the upgrade is retried on the next login.
@@ -848,6 +882,21 @@ fn upgrade_password_storage(user: &UserModel, password: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_the_initial_password_counts_as_default() {
+        let initial = hash_login_password(DEFAULT_ADMIN_PASSWORD).unwrap();
+        assert!(accepts_default_password(&initial));
+        let changed = hash_login_password("admin@mailboxd2").unwrap();
+        assert!(!accepts_default_password(&changed));
+        assert!(!accepts_default_password("$argon2id$mangled"));
+
+        // Not logged in since the switch to hashes: still encrypted.
+        let legacy = crate::encrypt!(DEFAULT_ADMIN_PASSWORD).unwrap();
+        assert!(accepts_default_password(&legacy));
+        let legacy_changed = crate::encrypt!("something else").unwrap();
+        assert!(!accepts_default_password(&legacy_changed));
+    }
 
     #[test]
     fn hash_login_password_produces_salted_argon2id_hashes() {

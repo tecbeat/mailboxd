@@ -1521,6 +1521,12 @@
     "title": "Kirjaudu ulos"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Vaihda salasana",
+      "badge": "Tietoturva",
+      "message": "Sisäänrakennettu admin-tili hyväksyy yhä alkuperäisen salasanansa. Vaihda se profiilissa admin-tunnuksella kirjautuneena tai kohdassa Käyttäjät.",
+      "title": "Oletusarvoinen ylläpitäjän salasana käytössä"
+    },
     "notifications": "Järjestelmäilmoitukset"
   },
   "systemConfig": {

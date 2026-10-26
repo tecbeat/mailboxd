@@ -1521,6 +1521,12 @@
     "title": "Uitloggen"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Wachtwoord wijzigen",
+      "badge": "Beveiliging",
+      "message": "Het ingebouwde admin-account accepteert nog het oorspronkelijke wachtwoord. Wijzig het in het profiel terwijl je als admin bent aangemeld, of onder Gebruikers.",
+      "title": "Standaard beheerderswachtwoord in gebruik"
+    },
     "notifications": "Systeemmeldingen"
   },
   "systemConfig": {

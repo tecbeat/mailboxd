@@ -1531,6 +1531,12 @@
     "title": "退出登录"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "修改密码",
+      "badge": "安全",
+      "message": "内置 admin 账号仍接受初始密码。请以 admin 登录后在个人资料中修改，或在“用户”中修改。",
+      "title": "仍在使用默认管理员密码"
+    },
     "notifications": "系统通知"
   },
   "systemConfig": {

@@ -42,14 +42,16 @@ impl SystemApi {
     ///
     /// This endpoint returns a consolidated view of all critical system notifications including:
     /// - Available version updates
-    /// - License expiration warnings
+    /// - Whether the default administrator password is still in use (only
+    ///   reported to users who may manage users)
     #[oai(
         method = "get",
         path = "/notifications",
         operation_id = "get_notifications"
     )]
-    async fn get_notifications(&self) -> ApiResult<Json<Notifications>> {
-        let notification = fetch_notifications()
+    async fn get_notifications(&self, context: WrappedContext) -> ApiResult<Json<Notifications>> {
+        let may_manage_users = context.has_permission(None, Permission::USER_MANAGE);
+        let notification = fetch_notifications(may_manage_users)
             .await
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         Ok(Json(notification))

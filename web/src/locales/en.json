@@ -1574,6 +1574,12 @@
     "title": "Sign out"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Change password",
+      "badge": "Security",
+      "message": "The built-in admin account still accepts its initial password. Change it in the profile while signed in as admin, or under Users.",
+      "title": "Default admin password in use"
+    },
     "newRelease": "New Release",
     "noNotifications": "No new notifications",
     "notifications": "System Notifications",

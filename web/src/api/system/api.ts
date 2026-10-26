@@ -36,6 +36,8 @@ export interface ReleaseNotification {
 
 interface Notifications {
     release: ReleaseNotification;
+    /** Only ever true for users who may manage users. */
+    default_admin_password: boolean;
 }
 
 export const get_notifications = async () => {

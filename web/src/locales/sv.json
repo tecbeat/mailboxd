@@ -1521,6 +1521,12 @@
     "title": "Logga ut"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Ändra lösenord",
+      "badge": "Säkerhet",
+      "message": "Det inbyggda admin-kontot accepterar fortfarande sitt ursprungliga lösenord. Ändra det i profilen när du är inloggad som admin, eller under Användare.",
+      "title": "Standardlösenord för admin används"
+    },
     "notifications": "Systemaviseringar"
   },
   "systemConfig": {

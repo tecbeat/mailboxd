@@ -1521,6 +1521,12 @@
     "title": "Log ud"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Skift adgangskode",
+      "badge": "Sikkerhed",
+      "message": "Den indbyggede admin-konto accepterer stadig sin oprindelige adgangskode. Skift den i profilen, mens du er logget ind som admin, eller under Brugere.",
+      "title": "Standard-adminadgangskode i brug"
+    },
     "notifications": "Systemmeddelelser"
   },
   "systemConfig": {

@@ -1521,6 +1521,12 @@
     "title": "Déconnexion"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Changer le mot de passe",
+      "badge": "Sécurité",
+      "message": "Le compte admin intégré accepte encore son mot de passe initial. Modifiez-le dans le profil en étant connecté en tant qu’admin, ou dans Utilisateurs.",
+      "title": "Mot de passe administrateur par défaut utilisé"
+    },
     "notifications": "Notifications système"
   },
   "systemConfig": {

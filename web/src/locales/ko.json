@@ -1521,6 +1521,12 @@
     "title": "로그아웃"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "비밀번호 변경",
+      "badge": "보안",
+      "message": "기본 제공 admin 계정이 아직 초기 비밀번호를 허용합니다. admin으로 로그인한 상태에서 프로필에서, 또는 사용자 메뉴에서 변경하세요.",
+      "title": "기본 관리자 비밀번호 사용 중"
+    },
     "notifications": "시스템 알림"
   },
   "systemConfig": {

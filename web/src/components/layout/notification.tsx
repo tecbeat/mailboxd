@@ -19,11 +19,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { Bell as BellIcon, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { Bell as BellIcon, ExternalLink as ExternalLinkIcon, ShieldAlert as ShieldAlertIcon } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { statusBadgeClass } from "@/lib/status-colors";
+import { statusBadgeClass, statusTextClass } from "@/lib/status-colors";
 import {
   Popover,
   PopoverContent,
@@ -53,7 +54,11 @@ interface ReleaseNotification extends BaseNotification {
   data: Release;
 }
 
-type ActiveNotification = ReleaseNotification;
+interface DefaultAdminPasswordNotification extends BaseNotification {
+  type: 'default-admin-password';
+}
+
+type ActiveNotification = DefaultAdminPasswordNotification | ReleaseNotification;
 
 
 export function NotificationPopover() {
@@ -61,6 +66,8 @@ export function NotificationPopover() {
     queryKey: ['system-notifications'],
     queryFn: get_notifications,
     staleTime: 1000 * 60 * 30, // 30 minutes
+    // The default password reminder can disappear between visits.
+    refetchOnMount: 'always',
   });
 
 
@@ -71,6 +78,9 @@ export function NotificationPopover() {
 
     const notifications: ActiveNotification[] = [];
 
+    if (data.default_admin_password) {
+      notifications.push({ type: 'default-admin-password' });
+    }
     if (data.release.is_newer && data.release.latest) {
       notifications.push({
         type: 'new-release',
@@ -136,7 +146,11 @@ export function NotificationPopover() {
             <div className="divide-y">
               {activeNotifications.map((notification, index) => (
                 <div key={index} className="p-4">
-                  <ReleaseNotificationView data={notification.data} />
+                  {notification.type === 'default-admin-password' ? (
+                    <DefaultAdminPasswordView />
+                  ) : (
+                    <ReleaseNotificationView data={notification.data} />
+                  )}
                 </div>
               ))}
             </div>
@@ -144,6 +158,32 @@ export function NotificationPopover() {
         </ScrollArea>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function DefaultAdminPasswordView() {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold inline-flex items-center gap-1.5">
+          <ShieldAlertIcon className={`h-4 w-4 ${statusTextClass.warning}`} />
+          {t('system.defaultAdminPassword.title')}
+        </h3>
+        <span className={`text-xs px-2 py-1 rounded-full border ${statusBadgeClass.warning}`}>
+          {t('system.defaultAdminPassword.badge')}
+        </span>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {t('system.defaultAdminPassword.message')}
+      </p>
+      <Link
+        to="/settings/profile"
+        className="text-xs text-primary hover:underline inline-flex items-center"
+      >
+        {t('system.defaultAdminPassword.action')}
+      </Link>
+    </div>
   );
 }
 

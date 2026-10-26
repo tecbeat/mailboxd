@@ -1527,6 +1527,12 @@
     "title": "Abmelden"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Passwort ändern",
+      "badge": "Sicherheit",
+      "message": "Das eingebaute Admin-Konto akzeptiert noch sein Initialpasswort. Ändere es als admin angemeldet im Profil oder unter Benutzer.",
+      "title": "Standard-Adminpasswort aktiv"
+    },
     "notifications": "Systembenachrichtigungen"
   },
   "systemConfig": {
