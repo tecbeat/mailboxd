@@ -85,17 +85,21 @@ impl OAuth2AccessToken {
         let current = Self::get(account_id)?;
         match current {
             Some(mut current) => {
-                // Update existing record
+                // `Self::get` returns the tokens decrypted, so apply the request as
+                // plaintext and encrypt both once; encrypting only the requested ones
+                // would persist an omitted token in plaintext.
                 if let Some(oauth2_id) = request.oauth2_id {
                     current.oauth2_id = oauth2_id;
                 }
                 if let Some(access_token) = request.access_token {
-                    current.access_token = Some(encrypt!(&access_token)?);
+                    current.access_token = Some(access_token);
                 }
                 if let Some(refresh_token) = request.refresh_token {
-                    current.refresh_token = Some(encrypt!(&refresh_token)?);
+                    current.refresh_token = Some(refresh_token);
                 }
 
+                current.access_token = current.access_token.map(|t| encrypt!(&t)).transpose()?;
+                current.refresh_token = current.refresh_token.map(|t| encrypt!(&t)).transpose()?;
                 current.updated_at = now;
                 upsert_impl(DB_MANAGER.db(), current)?;
             }
@@ -238,7 +242,10 @@ impl ExternalOAuth2Request {
 
 #[cfg(test)]
 mod tests {
-    use crate::oauth2::token::OAuth2AccessToken;
+    use crate::oauth2::{
+        entity::{OAuth2, OAuth2CreateRequest},
+        token::{ExternalOAuth2Request, OAuth2AccessToken},
+    };
 
     #[tokio::test]
     async fn test1() {
@@ -254,11 +261,50 @@ mod tests {
         assert_eq!(token2.access_token, Some("access_token".into()));
         assert_eq!(token2.refresh_token, Some("refresh_token".into()));
 
+        // The database is shared with the other tests in this module.
         let tokens = OAuth2AccessToken::list_all().unwrap();
-        assert_eq!(tokens.len(), 1);
-
-        let first = tokens.first().unwrap();
+        let first = tokens
+            .iter()
+            .find(|t| t.account_id == 1000u64)
+            .expect("token for account 1000 should exist");
         assert_eq!(first.access_token, Some("access_token".into()));
         assert_eq!(first.refresh_token, Some("refresh_token".into()));
+    }
+
+    /// Updating one token must leave the other one readable (encrypted).
+    #[tokio::test]
+    async fn partial_update_keeps_omitted_token_encrypted() {
+        let oauth2 = OAuth2::new(OAuth2CreateRequest {
+            client_id: "test-client".into(),
+            client_secret: "test-secret".into(),
+            auth_url: "https://example.com/auth".into(),
+            token_url: "https://example.com/token".into(),
+            redirect_uri: "http://localhost/callback".into(),
+            ..Default::default()
+        })
+        .unwrap();
+        oauth2.save().unwrap();
+
+        let account_id = 2001u64;
+        let import = |access_token: Option<&str>, refresh_token: &str| {
+            OAuth2AccessToken::upsert_external_oauth_token(
+                account_id,
+                ExternalOAuth2Request {
+                    oauth2_id: Some(oauth2.id),
+                    access_token: access_token.map(Into::into),
+                    refresh_token: Some(refresh_token.into()),
+                },
+            )
+        };
+
+        import(Some("access-1"), "refresh-1").unwrap();
+        let stored = OAuth2AccessToken::get(account_id).unwrap().unwrap();
+        assert_eq!(stored.access_token, Some("access-1".into()));
+        assert_eq!(stored.refresh_token, Some("refresh-1".into()));
+
+        import(None, "refresh-2").unwrap();
+        let stored = OAuth2AccessToken::get(account_id).unwrap().unwrap();
+        assert_eq!(stored.access_token, Some("access-1".into()));
+        assert_eq!(stored.refresh_token, Some("refresh-2".into()));
     }
 }
