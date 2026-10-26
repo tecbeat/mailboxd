@@ -68,9 +68,7 @@ function RouteComponent() {
           // clip and give the document a phantom, focus-scrollable height.
           'relative h-svh flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin',
           // Freeze background scrolling while a Radix dialog locks the body.
-          'group-data-[scroll-locked=1]/body:overflow-hidden',
-          'group-data-[scroll-locked=1]/body:h-full',
-          'group-data-[scroll-locked=1]/body:has-[main.fixed-main]:h-svh'
+          'group-data-[scroll-locked=1]/body:overflow-hidden'
         )}
       >
         <Outlet />
