@@ -1736,12 +1736,12 @@ impl IndexManager {
             top_account_values
         {
             for entry in buckets {
-                if let Key::U64(account_id) = &entry.key {
-                    match AccountModel::get(*account_id) {
+                if let Some(account_id) = account_id_of(&entry.key) {
+                    match AccountModel::get(account_id) {
                         Ok(account) => {
                             top_accounts.push(Group {
                                 key: account.email,
-                                account_id: Some(*account_id),
+                                account_id: Some(account_id),
                                 count: entry.doc_count,
                             });
                         }
@@ -1751,7 +1751,6 @@ impl IndexManager {
                                 error = %e,
                                 "orphaned account index detected, scheduling cleanup"
                             );
-                            let account_id = *account_id;
                             tokio::spawn(async move {
                                 if let Err(e) =
                                     ENVELOPE_MANAGER.delete_account_envelopes(account_id).await
@@ -1799,6 +1798,16 @@ impl IndexManager {
             }
         }
         Ok(stats)
+    }
+}
+
+/// The account id of a terms-aggregation bucket. tantivy reports a u64 key
+/// that fits into an i64 as `Key::I64`.
+fn account_id_of(key: &Key) -> Option<u64> {
+    match key {
+        Key::U64(id) => Some(*id),
+        Key::I64(id) => u64::try_from(*id).ok(),
+        _ => None,
     }
 }
 
@@ -3485,5 +3494,47 @@ mod manager_tests {
                 ("friend@mail.test".to_string(), 1, None),
             ]
         );
+    }
+
+    #[tokio::test]
+    async fn dashboard_lists_top_accounts_with_their_counts() {
+        // An unknown account schedules a cleanup on the global manager.
+        init_globals();
+        let fx = Fixture::new();
+        let second_account = unique_id();
+        let second_mailbox = unique_id();
+        register_mailbox(second_account, second_mailbox, "second@example.com");
+        let unknown_account = unique_id();
+
+        fx.add(vec![
+            (fx.envelope("o1"), None, ""),
+            (fx.envelope("o2"), None, ""),
+            (envelope(second_account, second_mailbox, "s1"), None, ""),
+            (envelope(unknown_account, unique_id(), "u1"), None, ""),
+        ])
+        .await;
+
+        let stats = fx.manager.get_dashboard_stats(&None).unwrap();
+
+        let accounts: Vec<(String, u64, Option<u64>)> = stats
+            .top_accounts
+            .into_iter()
+            .map(|g| (g.key, g.count, g.account_id))
+            .collect();
+        assert_eq!(
+            accounts,
+            [
+                ("owner@example.com".to_string(), 2, Some(fx.account_id)),
+                ("second@example.com".to_string(), 1, Some(second_account)),
+            ]
+        );
+    }
+
+    #[test]
+    fn account_ids_are_read_from_signed_and_unsigned_keys() {
+        assert_eq!(account_id_of(&Key::I64(42)), Some(42));
+        assert_eq!(account_id_of(&Key::U64(u64::MAX)), Some(u64::MAX));
+        assert_eq!(account_id_of(&Key::I64(-1)), None);
+        assert_eq!(account_id_of(&Key::Str("42".into())), None);
     }
 }
