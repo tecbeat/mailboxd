@@ -21,7 +21,7 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { FixedHeader } from "@/components/layout/fixed-header";
 import { Main } from "@/components/layout/main";
-import { useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { CircleAlert as AlertCircle, CircleCheckBig as CheckCircle2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -63,10 +63,10 @@ export default function OAuth2Result() {
                                 </div>
                                 <div className="flex justify-center gap-4 pt-2">
                                     <Button variant="outline" asChild>
-                                        <a href="/oauth2">{t('oauth2.tryAgain')}</a>
+                                        <Link to="/oauth2">{t('oauth2.tryAgain')}</Link>
                                     </Button>
                                     <Button variant="link" asChild>
-                                        <a href="/">{t('oauth2.goHome')}</a>
+                                        <Link to="/">{t('oauth2.goHome')}</Link>
                                     </Button>
                                 </div>
                             </CardContent>
@@ -92,7 +92,7 @@ export default function OAuth2Result() {
                                 </div>
                                 <div className="flex justify-center pt-2">
                                     <Button asChild>
-                                        <a href="/accounts">{t('oauth2.goToAccounts')}</a>
+                                        <Link to="/accounts">{t('oauth2.goToAccounts')}</Link>
                                     </Button>
                                 </div>
                             </CardContent>
@@ -118,7 +118,7 @@ export default function OAuth2Result() {
                                 </div>
                                 <div className="flex justify-center pt-2">
                                     <Button variant="outline" asChild>
-                                        <a href="/oauth2">{t('oauth2.backToLogin')}</a>
+                                        <Link to="/oauth2">{t('oauth2.backToLogin')}</Link>
                                     </Button>
                                 </div>
                             </CardContent>
