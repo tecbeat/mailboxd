@@ -23,8 +23,10 @@ use std::path::PathBuf;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Select};
 use mailboxd_migrate::{
-    migrate_v037::handle_migration_v037, migrate_v1::handle_migrate_v1, run_auto_migrate,
-    AutoMigrateOutcome, AutoMigratePaths,
+    migrate_v037::handle_migration_v037,
+    migrate_v1::handle_migrate_v1,
+    reindex::{reindex, ReindexOutcome},
+    run_auto_migrate, AutoMigrateOutcome, AutoMigratePaths,
 };
 
 use crate::reset::handle_reset_password;
@@ -40,8 +42,9 @@ fn main() {
     run_interactive();
 }
 
-/// Run the migration against the `MAILBOXD_*_DIR` environment, returning a
-/// process exit code (0 = success or nothing to do, 1 = migration failed).
+/// Run the migration and the search index rebuild against the
+/// `MAILBOXD_*_DIR` environment, returning a process exit code (0 = success
+/// or nothing to do, 1 = migration or rebuild failed).
 fn auto_migrate_from_env() -> i32 {
     let root_dir = match std::env::var("MAILBOXD_ROOT_DIR") {
         Ok(value) if !value.is_empty() => PathBuf::from(value),
@@ -67,26 +70,57 @@ fn auto_migrate_from_env() -> i32 {
         Ok(AutoMigrateOutcome::MigratedV1 {
             emails,
             attachments,
-        }) => {
-            println!(
-                "[auto-migrate] migrated v1.x storage to v2: {emails} email + {attachments} attachment blobs"
-            );
-            0
-        }
-        Ok(AutoMigrateOutcome::MigratedV037 { migrated, skipped }) => {
-            println!(
-                "[auto-migrate] migrated legacy v0.3.7 storage to v2: {migrated} messages migrated, {skipped} skipped"
-            );
-            0
-        }
+        }) => println!(
+            "[auto-migrate] migrated v1.x storage to v2: {emails} email + {attachments} attachment blobs"
+        ),
+        Ok(AutoMigrateOutcome::MigratedV037 { migrated, skipped }) => println!(
+            "[auto-migrate] migrated legacy v0.3.7 storage to v2: {migrated} messages migrated, {skipped} skipped"
+        ),
         Ok(AutoMigrateOutcome::AlreadyCurrent) => {
-            println!("[auto-migrate] storage layout already current; nothing to do");
-            0
+            println!("[auto-migrate] storage layout already current; nothing to do")
         }
         Err(error) => {
             eprintln!("[auto-migrate] storage migration failed: {error:#?}");
+            return 1;
+        }
+    }
+
+    match reindex(&paths, false) {
+        Ok(None) => {
+            println!("[auto-migrate] search index format already current; nothing to do");
+            0
+        }
+        Ok(Some(outcome)) => {
+            print_reindex_outcome("[auto-migrate] ", &outcome);
+            0
+        }
+        Err(error) => {
+            eprintln!("[auto-migrate] search index rebuild failed: {error:#?}");
             1
         }
+    }
+}
+
+fn print_reindex_outcome(prefix: &str, outcome: &ReindexOutcome) {
+    println!(
+        "{prefix}rebuilt the search index in {:.1}s: {} emails, {} attachments, {} skipped, \
+         {} without body text, {} attachments without text",
+        outcome.elapsed.as_secs_f64(),
+        outcome.emails,
+        outcome.attachments,
+        outcome.skipped,
+        outcome.missing_bodies,
+        outcome.missing_texts
+    );
+    println!(
+        "{prefix}the previous index is kept in {}; remove it once search works as expected",
+        outcome.backup_dir.display()
+    );
+    if let Some(report) = &outcome.report {
+        println!(
+            "{prefix}documents not carried over completely are listed in {}",
+            report.display()
+        );
     }
 }
 

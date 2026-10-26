@@ -49,6 +49,10 @@ use crate::{
                 F_ACCOUNT_ID, F_DATE, F_FROM, F_ID, F_INGEST_AT, F_INTERNAL_DATE,
                 F_REGULAR_ATTACHMENT_COUNT, F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
             },
+            format::{
+                check_index_format, heal_index_format_marker, write_index_format_version,
+                IndexFormatStatus,
+            },
             model::{extract_contacts, EnvelopeWithAttachments},
             rebuild::{document_tags, rebuild_envelope_document, stored_attachments},
             schema::SchemaTools,
@@ -263,10 +267,25 @@ impl IndexManager {
             std::fs::create_dir_all(&index_dir).unwrap_or_else(|e| {
                 panic!("Failed to create index directory {:?}: {}", index_dir, e)
             });
-            Index::create_in_dir(&index_dir, SchemaTools::email_schema())
-                .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e))
+            let index = Index::create_in_dir(&index_dir, SchemaTools::email_schema())
+                .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e));
+            if let Err(e) = write_index_format_version(index_dir) {
+                warn!(
+                    "Failed to write INDEX_FORMAT marker for {:?}: {}",
+                    index_dir, e
+                );
+            }
+            index
         } else {
             info!("Opening existing email index at {}", index_dir.display());
+            heal_index_format_marker(index_dir);
+            if check_index_format(index_dir) == IndexFormatStatus::NeedsUpgrade {
+                panic!(
+                    "The email index in {:?} has an outdated format and must be rebuilt; \
+                     restart mailboxd to rebuild it automatically",
+                    index_dir
+                );
+            }
             Self::open(&index_dir)
         }
     }

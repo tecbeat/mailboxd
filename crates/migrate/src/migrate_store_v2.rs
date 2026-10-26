@@ -20,6 +20,7 @@ use mailboxd_core::{
     raise_error,
     store::envelope::Envelope,
     store::tantivy::{
+        format::write_index_format_version,
         model::{AttachmentModel, EnvelopeWithAttachments},
         schema::SchemaTools,
     },
@@ -111,8 +112,11 @@ impl NewIndexWriterV2 {
             .map(|mut d| d.next().is_none())
             .unwrap_or(true)
         {
-            Index::create_in_dir(&dirs.envelope_dir, SchemaTools::email_schema())
-                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
+            let index = Index::create_in_dir(&dirs.envelope_dir, SchemaTools::email_schema())
+                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+            write_index_format_version(&dirs.envelope_dir)
+                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+            index
         } else {
             Index::open_in_dir(&dirs.envelope_dir)
                 .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
@@ -134,8 +138,12 @@ impl NewIndexWriterV2 {
             .map(|mut d| d.next().is_none())
             .unwrap_or(true)
         {
-            Index::create_in_dir(&dirs.attachment_dir, SchemaTools::attachment_schema())
-                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
+            let index =
+                Index::create_in_dir(&dirs.attachment_dir, SchemaTools::attachment_schema())
+                    .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+            write_index_format_version(&dirs.attachment_dir)
+                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+            index
         } else {
             Index::open_in_dir(&dirs.attachment_dir)
                 .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?

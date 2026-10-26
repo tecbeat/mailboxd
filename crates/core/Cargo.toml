@@ -96,3 +96,4 @@ zstd = "0.14"
 
 [dev-dependencies]
 aws-lc-rs = "=1.18.2"
+tempfile = "=3.27.0"

@@ -859,6 +859,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mailboxd_core::store::tantivy::format::{check_index_format, IndexFormatStatus};
 
     /// Fabricate a directory that `is_tantivy_index_dir` accepts as a Tantivy
     /// index: a `meta.json` plus at least three files with Tantivy extensions.
@@ -1054,6 +1055,14 @@ Body of a v0.3.7 archived message.\r\n";
         // … the v2 artifacts exist …
         assert!(root.join("memdb").is_dir());
         assert!(root.join("mailboxd-indices").join("mail_metadata").is_dir());
+        // … in the current index format, so no reindex follows …
+        for index in ["mail_metadata", "attachment_metadata"] {
+            assert_eq!(
+                check_index_format(&root.join("mailboxd-indices").join(index)),
+                IndexFormatStatus::Current,
+                "{index}"
+            );
+        }
 
         // … and the archived message survives byte-for-byte in the new engine.
         let mut config = Config::default();

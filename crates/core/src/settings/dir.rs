@@ -25,7 +25,7 @@ use crate::{
     error::{code::ErrorCode, MailboxdResult},
     raise_error,
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 const MEMDB_DIR: &str = "memdb";
@@ -77,19 +77,62 @@ impl Initialize for DataDirManager {
     }
 }
 
+/// Index and storage directories of a data root.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ResolvedDirs {
+    /// `<index parent>/mailboxd-indices`, holding both indexes.
+    pub index_root: PathBuf,
+    pub envelope_dir: PathBuf,
+    pub attachment_dir: PathBuf,
+    /// `<data parent>/mailboxd-storage`.
+    pub storage_dir: PathBuf,
+    pub blobs_dir: PathBuf,
+}
+
+/// Resolve the index and storage directories from the data root and the
+/// optional index and data parent directories, which default to the root.
+/// Shared by [`DataDirManager`] and the startup migrations, which run before
+/// the settings-based manager.
+pub fn resolve_dirs(
+    root: &Path,
+    index_parent: Option<&Path>,
+    data_parent: Option<&Path>,
+) -> ResolvedDirs {
+    let index_root = index_parent.unwrap_or(root).join(INDICES);
+    let storage_dir = data_parent.unwrap_or(root).join(STORAGE);
+    ResolvedDirs {
+        envelope_dir: index_root.join(MAIL_METADATA),
+        attachment_dir: index_root.join(ATTACHMENT_METADATA),
+        blobs_dir: storage_dir.join("blobs"),
+        index_root,
+        storage_dir,
+    }
+}
+
+/// Free bytes on the file system holding `dir`, or `u64::MAX` when it cannot
+/// be determined.
+pub fn available_space(dir: &Path) -> u64 {
+    use sysinfo::Disks;
+    let canonical = std::fs::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf());
+    let disks = Disks::new_with_refreshed_list();
+    // The longest mount point holding the path, not merely the first: `/`
+    // holds every path.
+    disks
+        .list()
+        .iter()
+        .filter(|disk| canonical.starts_with(disk.mount_point()))
+        .max_by_key(|disk| disk.mount_point().components().count())
+        .map(|disk| disk.available_space())
+        .unwrap_or(u64::MAX)
+}
+
 impl DataDirManager {
     pub fn new(root_dir: PathBuf) -> Self {
-        let index_dir = if let Some(ref index_dir) = SETTINGS.mailboxd_index_dir {
-            PathBuf::from(index_dir).join(INDICES)
-        } else {
-            root_dir.join(INDICES)
-        };
-
-        let storage_dir = if let Some(ref data_dir) = SETTINGS.mailboxd_data_dir {
-            PathBuf::from(data_dir).join(STORAGE)
-        } else {
-            root_dir.join(STORAGE)
-        };
+        let dirs = resolve_dirs(
+            &root_dir,
+            SETTINGS.mailboxd_index_dir.as_deref().map(Path::new),
+            SETTINGS.mailboxd_data_dir.as_deref().map(Path::new),
+        );
 
         Self {
             root_dir: root_dir.clone(),
@@ -97,10 +140,45 @@ impl DataDirManager {
             tls_key: root_dir.join(TLS_KEY),
             tls_cert: root_dir.join(TLS_CERT),
             log_dir: root_dir.join(LOG_DIR),
-            envelope_dir: index_dir.join(MAIL_METADATA),
-            attachment_dir: index_dir.join(ATTACHMENT_METADATA),
+            envelope_dir: dirs.envelope_dir,
+            attachment_dir: dirs.attachment_dir,
             temp_dir: root_dir.join(TMP_DIR),
-            storage_dir,
+            storage_dir: dirs.storage_dir,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dirs_default_to_the_root() {
+        let dirs = resolve_dirs(Path::new("/data"), None, None);
+        assert_eq!(dirs.index_root, Path::new("/data/mailboxd-indices"));
+        assert_eq!(
+            dirs.envelope_dir,
+            Path::new("/data/mailboxd-indices/mail_metadata")
+        );
+        assert_eq!(
+            dirs.attachment_dir,
+            Path::new("/data/mailboxd-indices/attachment_metadata")
+        );
+        assert_eq!(dirs.blobs_dir, Path::new("/data/mailboxd-storage/blobs"));
+    }
+
+    #[test]
+    fn index_and_data_parents_are_honoured() {
+        let dirs = resolve_dirs(
+            Path::new("/data"),
+            Some(Path::new("/fast")),
+            Some(Path::new("/bulk")),
+        );
+        assert_eq!(
+            dirs.envelope_dir,
+            Path::new("/fast/mailboxd-indices/mail_metadata")
+        );
+        assert_eq!(dirs.storage_dir, Path::new("/bulk/mailboxd-storage"));
+        assert_eq!(dirs.blobs_dir, Path::new("/bulk/mailboxd-storage/blobs"));
     }
 }

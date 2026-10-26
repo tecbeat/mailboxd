@@ -44,6 +44,10 @@ use crate::{
             F_ATTACHMENT_CATEGORY, F_ATTACHMENT_CONTENT_TYPE, F_ATTACHMENT_EXT, F_DATE,
             F_INGEST_AT, F_SIZE, F_TAGS,
         },
+        format::{
+            check_index_format, heal_index_format_marker, write_index_format_version,
+            IndexFormatStatus,
+        },
         model::{extract_senders, AttachmentModel},
         rebuild::{document_tags, extracted_text_of, rebuild_attachment_document},
         schema::SchemaTools,
@@ -69,7 +73,7 @@ use tokio::{
     sync::{mpsc, Mutex},
     task::{self, JoinHandle},
 };
-use tracing::info;
+use tracing::{info, warn};
 
 pub static ATTACHMENT_MANAGER: LazyLock<IndexManager> = LazyLock::new(IndexManager::new);
 
@@ -227,13 +231,28 @@ impl IndexManager {
             std::fs::create_dir_all(&index_dir).unwrap_or_else(|e| {
                 panic!("Failed to create index directory {:?}: {}", index_dir, e)
             });
-            Index::create_in_dir(&index_dir, SchemaTools::attachment_schema())
-                .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e))
+            let index = Index::create_in_dir(&index_dir, SchemaTools::attachment_schema())
+                .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e));
+            if let Err(e) = write_index_format_version(index_dir) {
+                warn!(
+                    "Failed to write INDEX_FORMAT marker for {:?}: {}",
+                    index_dir, e
+                );
+            }
+            index
         } else {
             info!(
                 "Opening existing attachment index at {}",
                 index_dir.display()
             );
+            heal_index_format_marker(index_dir);
+            if check_index_format(index_dir) == IndexFormatStatus::NeedsUpgrade {
+                panic!(
+                    "The attachment index in {:?} has an outdated format and must be rebuilt; \
+                     restart mailboxd to rebuild it automatically",
+                    index_dir
+                );
+            }
             Self::open(&index_dir)
         }
     }

@@ -44,7 +44,7 @@ use mailboxd_core::{
     tasks::PeriodicTasks,
     users::manager::UserManager,
 };
-use mailboxd_migrate::{run_auto_migrate, AutoMigrateOutcome, AutoMigratePaths};
+use mailboxd_migrate::{reindex::reindex, run_auto_migrate, AutoMigrateOutcome, AutoMigratePaths};
 use mailboxd_smtp::server::{start_smtp_server, SmtpServer};
 use tracing::{error, info};
 
@@ -110,6 +110,30 @@ pub async fn run() -> MailboxdResult<()> {
             return Err(raise_error!(format!("{:#?}", e), ErrorCode::InternalError));
         }
         Ok(true) => {}
+    }
+
+    // Rebuild search indexes of an older format before they are opened.
+    match reindex(&migrate_paths, false) {
+        Ok(None) => {}
+        Ok(Some(outcome)) => {
+            info!(
+                emails = outcome.emails,
+                attachments = outcome.attachments,
+                skipped = outcome.skipped,
+                "Rebuilt the search index; remove {:?} once search works as expected",
+                outcome.backup_dir
+            );
+            if let Some(report) = outcome.report {
+                info!(
+                    "Documents not carried over completely are listed in {:?}",
+                    report
+                );
+            }
+        }
+        Err(e) => {
+            error!("Failed to rebuild the search index: {:#?}", e);
+            return Err(e);
+        }
     }
 
     if let Err(error) = initialize().await {
