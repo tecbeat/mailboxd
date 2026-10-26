@@ -117,7 +117,7 @@ pub async fn oidc_callback(Query(params): Query<OidcCallbackParams>) -> Result<R
         Some(e) if !e.is_empty() => e,
         _ => {
             return Ok(redirect_login_error(
-                "OIDC provider did not return an email claim; cannot log in",
+                "OIDC provider did not return an email claim in the ID token or UserInfo; cannot log in",
             ));
         }
     };

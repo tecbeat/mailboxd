@@ -24,6 +24,7 @@ use crate::oidc::id_token::{
 };
 use crate::oidc::jwks::{get_jwks, resolve_decoding_key};
 use crate::oidc::pending::OidcPendingEntity;
+use crate::oidc::userinfo::{fetch_userinfo, merge_userinfo, needs_userinfo};
 use crate::raise_error;
 use crate::settings::cli::SETTINGS;
 use base64::Engine as _;
@@ -32,7 +33,7 @@ use oauth2::{
     AuthUrl, AuthorizationCode, Client, ClientId, ClientSecret, CsrfToken, EndpointNotSet,
     EndpointSet, ExtraTokenFields, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope,
     StandardErrorResponse, StandardRevocableToken, StandardTokenIntrospectionResponse,
-    StandardTokenResponse, TokenUrl,
+    StandardTokenResponse, TokenResponse, TokenUrl,
 };
 use rand::RngExt;
 use serde::{Deserialize, Serialize};
@@ -259,7 +260,7 @@ pub async fn complete_login(state: &str, code: &str) -> MailboxdResult<OidcCallb
     .await?;
 
     let now_secs = chrono::Utc::now().timestamp();
-    let claims = verify_and_parse(
+    let mut claims = verify_and_parse(
         id_token_str,
         &key,
         &VerifyParams {
@@ -270,6 +271,14 @@ pub async fn complete_login(state: &str, code: &str) -> MailboxdResult<OidcCallb
             now_secs,
         },
     )?;
+
+    if needs_userinfo(&claims) {
+        if let Some(endpoint) = discovery.userinfo_endpoint.as_deref() {
+            let info =
+                fetch_userinfo(&http, endpoint, token_response.access_token().secret()).await?;
+            merge_userinfo(&mut claims, info)?;
+        }
+    }
 
     // Best-effort cleanup; failure to delete the pending entry must not abort login.
     if let Err(e) = OidcPendingEntity::delete(state) {
