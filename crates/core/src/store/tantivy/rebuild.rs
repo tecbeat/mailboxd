@@ -72,7 +72,7 @@ pub fn rebuild_envelope_document(
     eml: Option<&[u8]>,
 ) -> TantivyDocument {
     let f = SchemaTools::email_fields();
-    let mut doc = copy_stored_fields(old, f.f_tags);
+    let mut doc = copy_stored_fields(old, &[f.f_tags]);
 
     if let Some(subject) = old.get_first(f.f_subject).and_then(|v| v.as_str()) {
         doc.add_text(f.f_subject_tri, subject);
@@ -115,14 +115,32 @@ pub fn rebuild_envelope_document(
 }
 
 /// Rebuild an attachment document with `tags`. `extracted_text` is the text
-/// stored for this attachment in its envelope's `f_attachments`.
+/// stored for this attachment in its envelope's `f_attachments`. Without it
+/// the text flags are reset, so the document never claims to be indexed
+/// while its text is empty.
 pub fn rebuild_attachment_document(
     old: &TantivyDocument,
     tags: &HashSet<String>,
     extracted_text: Option<&str>,
 ) -> TantivyDocument {
     let f = SchemaTools::attachment_fields();
-    let mut doc = copy_stored_fields(old, f.f_tags);
+    let mut doc = match extracted_text {
+        Some(_) => copy_stored_fields(old, &[f.f_tags]),
+        None => {
+            let skip = [
+                f.f_tags,
+                f.f_has_text,
+                f.f_is_indexed,
+                f.f_is_ocr,
+                f.f_page_count,
+            ];
+            let mut doc = copy_stored_fields(old, &skip);
+            doc.add_bool(f.f_has_text, false);
+            doc.add_bool(f.f_is_indexed, false);
+            doc.add_bool(f.f_is_ocr, false);
+            doc
+        }
+    };
 
     if let Some(subject) = old.get_first(f.f_subject).and_then(|v| v.as_str()) {
         doc.add_text(f.f_subject_tri, subject);
@@ -152,10 +170,10 @@ pub fn extracted_text_of(attachments: &[AttachmentInfo], content_hash: &str) -> 
         .and_then(|att| att.extracted_text.clone())
 }
 
-fn copy_stored_fields(old: &TantivyDocument, tags_field: Field) -> TantivyDocument {
+fn copy_stored_fields(old: &TantivyDocument, skip: &[Field]) -> TantivyDocument {
     let mut doc = TantivyDocument::new();
     for (field, value) in old.field_values() {
-        if field != tags_field {
+        if !skip.contains(&field) {
             doc.add_field_value(field, value);
         }
     }
@@ -320,6 +338,46 @@ mod tests {
         }
         assert_eq!(term_hits(&searcher, tag_term(f.f_tags, "/new")), 1);
         assert_eq!(term_hits(&searcher, tag_term(f.f_tags, "/old")), 0);
+    }
+
+    #[test]
+    fn attachment_rebuild_without_text_resets_text_flags() {
+        let f = SchemaTools::attachment_fields();
+        let mut indexed = indexed_attachment();
+        indexed.add_bool(f.f_is_indexed, true);
+        indexed.add_bool(f.f_is_ocr, true);
+        indexed.add_u64(f.f_page_count, 3);
+        let old = stored(SchemaTools::attachment_schema(), indexed);
+
+        let doc = rebuild_attachment_document(&old, &HashSet::new(), None);
+
+        for flag in [f.f_has_text, f.f_is_indexed, f.f_is_ocr] {
+            let values: Vec<_> = doc.get_all(flag).filter_map(|v| v.as_bool()).collect();
+            assert_eq!(values, [false]);
+        }
+        assert_eq!(doc.get_all(f.f_page_count).count(), 0);
+        assert_eq!(doc.get_all(f.f_text).count(), 0);
+    }
+
+    #[test]
+    fn attachment_rebuild_with_text_keeps_text_flags() {
+        let f = SchemaTools::attachment_fields();
+        let mut indexed = indexed_attachment();
+        indexed.add_bool(f.f_is_indexed, true);
+        indexed.add_u64(f.f_page_count, 3);
+        let old = stored(SchemaTools::attachment_schema(), indexed);
+
+        let doc = rebuild_attachment_document(&old, &HashSet::new(), Some("total"));
+
+        for flag in [f.f_has_text, f.f_is_indexed] {
+            let values: Vec<_> = doc.get_all(flag).filter_map(|v| v.as_bool()).collect();
+            assert_eq!(values, [true]);
+        }
+        let pages: Vec<_> = doc
+            .get_all(f.f_page_count)
+            .filter_map(|v| v.as_u64())
+            .collect();
+        assert_eq!(pages, [3]);
     }
 
     #[test]
