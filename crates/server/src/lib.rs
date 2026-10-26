@@ -18,22 +18,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 pub mod common;
 pub mod error;
 pub mod rest;
+pub mod startup;
 
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
 use mailboxd_core::{
-    mailboxd_version,
     archive::imap::task::SYNC_TASKS,
     common::{rustls::MailboxdTls, signal::SignalManager},
     context::{executors::MailboxdContext, Initialize},
     database::manager::DB_MANAGER,
     error::{code::ErrorCode, MailboxdResult},
-    logger,
+    logger, mailboxd_version,
     migrate::check_data_status,
     raise_error,
     settings::{cli::SETTINGS, dir::DataDirManager},
@@ -44,11 +43,10 @@ use mailboxd_core::{
     tasks::PeriodicTasks,
     users::manager::UserManager,
 };
-use mailboxd_migrate::{reindex::reindex, run_auto_migrate, AutoMigrateOutcome, AutoMigratePaths};
-use rest::maintenance::{
-    serve_maintenance, LAYOUT_CHECK_FAILED, MIGRATION_FAILED, MIGRATION_REQUIRED, RESTORE_FAILED,
-};
+use mailboxd_migrate::{reindex::reindex, run_auto_migrate, AutoMigratePaths};
 use mailboxd_smtp::server::{start_smtp_server, SmtpServer};
+use rest::maintenance::serve_maintenance;
+use startup::{prepare_storage, StorageSteps};
 use tracing::{error, info};
 
 pub async fn run() -> MailboxdResult<()> {
@@ -67,77 +65,22 @@ pub async fn run() -> MailboxdResult<()> {
     info!("Version:  {}", mailboxd_version!());
     info!("Git:      [{}]", env!("GIT_HASH"));
 
-    // Apply a staged restore before anything touches the data volume. This
-    // replaces the on-disk state wholesale, so it must run before migration and
-    // before any database, blob, or index handle is opened. No-op when nothing
-    // is staged.
-    if let Err(e) = mailboxd_core::backup::restore::apply_pending_restore() {
-        error!("Failed to apply staged restore: {:#?}", e);
-        serve_maintenance(&RESTORE_FAILED).await;
-        return Ok(());
-    }
-
-    // Migrate an existing data volume up to v2 on startup (no-op if current).
+    // Restore, migrate, check and reindex the data volume before any
+    // database, blob or index handle is opened. When a step fails, stay up
+    // with a maintenance page instead of exiting into a restart loop.
     let migrate_paths = AutoMigratePaths {
         root_dir: PathBuf::from(&SETTINGS.mailboxd_root_dir),
         index_dir: SETTINGS.mailboxd_index_dir.as_ref().map(PathBuf::from),
         data_dir: SETTINGS.mailboxd_data_dir.as_ref().map(PathBuf::from),
     };
-    match run_auto_migrate(&migrate_paths) {
-        Ok(AutoMigrateOutcome::AlreadyCurrent) => {
-            info!("Storage layout already current; nothing to migrate")
-        }
-        Ok(AutoMigrateOutcome::MigratedV1 {
-            emails,
-            attachments,
-        }) => info!(emails, attachments, "Migrated v1.x storage to v2"),
-        Ok(AutoMigrateOutcome::MigratedV037 { migrated, skipped }) => {
-            info!(migrated, skipped, "Migrated legacy v0.3.7 storage to v2")
-        }
-        Err(e) => {
-            error!("Failed to migrate data layout: {:#?}", e);
-            serve_maintenance(&MIGRATION_FAILED).await;
-            return Ok(());
-        }
-    }
-
-    match check_data_status() {
-        Ok(false) => {
-            error!("Incompatible data format detected.");
-            error!("Please run: mailboxd-admin");
-            serve_maintenance(&MIGRATION_REQUIRED).await;
-            return Ok(());
-        }
-        Err(e) => {
-            error!("Failed to check data layout: {:#?}", e);
-            serve_maintenance(&LAYOUT_CHECK_FAILED).await;
-            return Ok(());
-        }
-        Ok(true) => {}
-    }
-
-    // Rebuild search indexes of an older format before they are opened.
-    match reindex(&migrate_paths, false) {
-        Ok(None) => {}
-        Ok(Some(outcome)) => {
-            info!(
-                emails = outcome.emails,
-                attachments = outcome.attachments,
-                skipped = outcome.skipped,
-                "Rebuilt the search index; remove {:?} once search works as expected",
-                outcome.backup_dir
-            );
-            if let Some(report) = outcome.report {
-                info!(
-                    "Documents not carried over completely are listed in {:?}",
-                    report
-                );
-            }
-        }
-        Err(e) => {
-            error!("Failed to rebuild the search index: {:#?}", e);
-            return Err(e);
-        }
+    if let Some(maintenance) = prepare_storage(StorageSteps {
+        restore: mailboxd_core::backup::restore::apply_pending_restore,
+        migrate: || run_auto_migrate(&migrate_paths),
+        check_layout: check_data_status,
+        reindex: || reindex(&migrate_paths, false),
+    }) {
+        serve_maintenance(maintenance).await;
+        return Ok(());
     }
 
     if let Err(error) = initialize().await {

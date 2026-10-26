@@ -40,7 +40,11 @@ use mailboxd_core::{
     mailboxd_version,
     settings::cli::SETTINGS,
 };
-use poem::{listener::TcpListener, Endpoint, Request, Response, Route, Server};
+use poem::{
+    listener::{Listener, TcpListener},
+    Endpoint, Request, Response, Route, Server,
+};
+use tokio::sync::broadcast;
 use tracing::{error, info, warn};
 
 /// How often the "still in maintenance mode" reminder is logged, so
@@ -94,6 +98,16 @@ pub const LAYOUT_CHECK_FAILED: Maintenance = Maintenance {
     ],
 };
 
+pub const REINDEX_FAILED: Maintenance = Maintenance {
+    heading: "Rebuilding the search index failed",
+    steps: &[
+        "The search index is in an older format and could not be rebuilt automatically. The live index was left untouched.",
+        "Check the service logs (e.g. `docker logs <mailboxd-container>`) for the cause, e.g. too little free disk space.",
+        "Fix the underlying problem, or rebuild the index interactively with `docker exec -it <mailboxd-container> mailboxd-admin` (other installs: `./mailboxd-admin`) and choose \"Rebuild Search Index\".",
+        "Afterwards, restart the service (e.g. `docker restart <mailboxd-container>`).",
+    ],
+};
+
 /// Serve the maintenance page and block until SIGTERM/SIGINT.
 ///
 /// Callers reach this before `initialize()`, so nothing here may touch
@@ -122,17 +136,35 @@ pub async fn serve_maintenance(maintenance: &Maintenance) {
         );
     }
 
+    run_maintenance(
+        TcpListener::bind((bind_ip, port)),
+        maintenance,
+        REMINDER_INTERVAL,
+        || SIGNAL_MANAGER.subscribe(),
+    )
+    .await;
+}
+
+/// Serves the page on `listener` until a shutdown signal arrives. If the
+/// server fails, waits for the signal anyway.
+async fn run_maintenance<L: Listener + 'static>(
+    listener: L,
+    maintenance: &Maintenance,
+    reminder_interval: Duration,
+    subscribe: impl Fn() -> broadcast::Receiver<()>,
+) {
+    let heading = maintenance.heading;
     let reminder = tokio::spawn(async move {
-        let start = tokio::time::Instant::now() + REMINDER_INTERVAL;
-        let mut ticker = tokio::time::interval_at(start, REMINDER_INTERVAL);
+        let start = tokio::time::Instant::now() + reminder_interval;
+        let mut ticker = tokio::time::interval_at(start, reminder_interval);
         loop {
             ticker.tick().await;
             warn!("Maintenance mode still active: {heading}");
         }
     });
 
-    let mut shutdown_rx = SIGNAL_MANAGER.subscribe();
-    let server = Server::new(TcpListener::bind((bind_ip, port)))
+    let mut shutdown_rx = subscribe();
+    let server = Server::new(listener)
         .name("mailboxd maintenance")
         .idle_timeout(Duration::from_secs(60))
         .run_with_graceful_shutdown(
@@ -151,7 +183,7 @@ pub async fn serve_maintenance(maintenance: &Maintenance) {
                 "Staying alive so `docker exec -it <container> mailboxd-admin` keeps \
                  working; stop the process to exit."
             );
-            let mut rx = SIGNAL_MANAGER.subscribe();
+            let mut rx = subscribe();
             let _ = rx.recv().await;
         }
     }
@@ -286,6 +318,7 @@ mod tests {
             MIGRATION_FAILED,
             MIGRATION_REQUIRED,
             LAYOUT_CHECK_FAILED,
+            REINDEX_FAILED,
         ] {
             let html = render_page(&maintenance);
             assert!(html.contains(&format!("<h2>{}</h2>", maintenance.heading)));
@@ -305,5 +338,101 @@ mod tests {
             response.assert_content_type("text/html; charset=utf-8");
             response.assert_text(render_page(&MIGRATION_REQUIRED)).await;
         }
+    }
+
+    /// A free local port. The listener is dropped again, so the port is only
+    /// very likely still free when the server binds it.
+    fn free_port() -> u16 {
+        std::net::TcpListener::bind("127.0.0.1:0")
+            .unwrap()
+            .local_addr()
+            .unwrap()
+            .port()
+    }
+
+    async fn get_status_line(port: u16) -> String {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        for _ in 0..100 {
+            if let Ok(mut stream) = tokio::net::TcpStream::connect(("127.0.0.1", port)).await {
+                stream
+                    .write_all(b"GET /api/status HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n")
+                    .await
+                    .unwrap();
+                let mut response = String::new();
+                stream.read_to_string(&mut response).await.unwrap();
+                return response.lines().next().unwrap_or_default().to_string();
+            }
+            tokio::time::sleep(Duration::from_millis(20)).await;
+        }
+        panic!("maintenance server did not start on port {port}");
+    }
+
+    #[tokio::test]
+    async fn serves_over_tcp_until_the_shutdown_signal() {
+        let (signal, _) = broadcast::channel(1);
+        let port = free_port();
+        let subscribe = {
+            let signal = signal.clone();
+            move || signal.subscribe()
+        };
+        let server = tokio::spawn(async move {
+            run_maintenance(
+                TcpListener::bind(("127.0.0.1", port)),
+                &REINDEX_FAILED,
+                Duration::from_millis(10),
+                subscribe,
+            )
+            .await
+        });
+
+        assert_eq!(
+            get_status_line(port).await,
+            "HTTP/1.1 503 Service Unavailable"
+        );
+        // Reminders keep ticking while the page is served.
+        tokio::time::sleep(Duration::from_millis(30)).await;
+        assert!(!server.is_finished());
+
+        signal.send(()).unwrap();
+        tokio::time::timeout(Duration::from_secs(10), server)
+            .await
+            .expect("server stops on the signal")
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn stays_alive_when_the_port_is_taken() {
+        let taken = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = taken.local_addr().unwrap().port();
+        let (signal, _) = broadcast::channel(1);
+        let subscribe = {
+            let signal = signal.clone();
+            move || signal.subscribe()
+        };
+        let server = tokio::spawn(async move {
+            run_maintenance(
+                TcpListener::bind(("127.0.0.1", port)),
+                &REINDEX_FAILED,
+                REMINDER_INTERVAL,
+                subscribe,
+            )
+            .await
+        });
+
+        // The bind fails at once, but the process must not exit.
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        assert!(!server.is_finished());
+
+        // Only the shutdown signal ends it. The fallback subscribes after
+        // the failure, so keep signalling until it listens.
+        let stopped = tokio::time::timeout(Duration::from_secs(10), async {
+            while !server.is_finished() {
+                let _ = signal.send(());
+                tokio::time::sleep(Duration::from_millis(20)).await;
+            }
+        })
+        .await;
+        assert!(stopped.is_ok(), "server stops on the signal");
+        drop(taken);
     }
 }
