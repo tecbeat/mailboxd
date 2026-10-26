@@ -174,6 +174,30 @@ image_e2e:
     reports:
       junit: web/e2e-results/junit.xml
 
+# Same image served below a subpath (MAILBOXD_BASE_URL), as behind a reverse
+# proxy at https://host/mail/: redirects and links must keep the base path.
+image_e2e_subpath:
+  extends: image_e2e
+  services:
+    - name: ${CI_REGISTRY_IMAGE}:${VERSION}
+      alias: mailboxd
+      variables:
+        MAILBOXD_ROOT_DIR: /data
+        MAILBOXD_ENCRYPT_PASSWORD: ci-test-password
+        MAILBOXD_BASE_URL: /mail
+        MAILBOXD_PUBLIC_URL: http://mailboxd:15630/mail/
+  variables:
+    MAILBOXD_E2E_URL: http://mailboxd:15630/mail/
+    MAILBOXD_E2E_BASE_PATH: /mail
+  script:
+    - |
+      for _ in $(seq 1 60); do
+        curl -fsS "${MAILBOXD_E2E_URL}api/status" >/dev/null 2>&1 && break
+        sleep 2
+      done
+    - curl -fsS "${MAILBOXD_E2E_URL}api/status"
+    - pnpm test:e2e
+
 # End-to-end coverage against the actual release artifact: the built container
 # image. `cargo_test`/`migration_tests` exercise the Rust logic in isolation;
 # these jobs boot the real image the way an operator would, so a broken

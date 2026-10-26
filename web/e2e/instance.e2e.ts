@@ -91,6 +91,15 @@ async function expectNoErrorPage(page: Page): Promise<void> {
   await expect(page.getByText(/^Oops!/)).toHaveCount(0)
 }
 
+async function apiPost(page: Page, path: string, data: unknown): Promise<void> {
+  const token = await page.evaluate(() => {
+    const stored = Object.values(localStorage).find((value) => value.includes('accessToken'))
+    return stored ? (JSON.parse(stored) as { accessToken: string }).accessToken : ''
+  })
+  const response = await page.request.post(path, { data, headers: { Authorization: `Bearer ${token}` } })
+  expect(response.ok(), `${path}: ${response.status()}`).toBe(true)
+}
+
 test('the server serves the app for a deep link and asks to sign in', async ({ page }) => {
   const problems = watchForProblems(page)
 
@@ -140,4 +149,81 @@ test('the admin signs in and every page renders without errors', async ({ page }
   expect(problems.consoleErrors).toEqual([])
   expect(problems.serverErrors).toEqual([])
   expect(problems.failedRequests).toEqual([])
+})
+
+// GitHub #9: opening a dropdown locks the body scroll; that must not reset the
+// content scroll position or move the dropdown away from its trigger.
+test('opening a dropdown keeps the scroll position', async ({ page }) => {
+  await signIn(page)
+  await page.goto('/accounts/new')
+  await expect(page.getByRole('heading', { level: 1, name: 'Add Account' })).toBeVisible()
+
+  // CSS locator: Radix hides the page from the accessibility tree once open.
+  const triggerId = await page.locator('button[role=combobox]', { hasText: 'Password' }).getAttribute('id')
+  const trigger = page.locator(`[id="${triggerId}"]`)
+  await trigger.scrollIntoViewIfNeeded()
+  const content = page.locator('#content')
+  const scrollTop = () => content.evaluate((el) => el.scrollTop)
+  const before = await scrollTop()
+  expect(before).toBeGreaterThan(0)
+
+  await trigger.click()
+  const listbox = page.getByRole('listbox')
+  await expect(listbox).toBeVisible()
+
+  expect(await scrollTop()).toBe(before)
+  await expect(listbox).toBeInViewport()
+  const triggerBox = await trigger.boundingBox()
+  const listboxBox = await listbox.boundingBox()
+  expect(Math.abs(listboxBox!.y - (triggerBox!.y + triggerBox!.height))).toBeLessThan(20)
+  await page.getByRole('option', { name: 'OAuth2' }).click()
+  await expect(trigger).toHaveText('OAuth2')
+})
+
+// GitHub #10: the account select in the OAuth2 "Authorize" dialog must take
+// mouse and keyboard input.
+test('an account can be picked in the OAuth2 authorize dialog', async ({ page }) => {
+  await signIn(page)
+  const suffix = Date.now()
+  for (const name of ['first', 'second']) {
+    await apiPost(page, '/api/v1/account', {
+      email: `${name}-${suffix}@example.test`,
+      enabled: false,
+      account_type: 'NoSync',
+      use_dangerous: false,
+    })
+  }
+  await apiPost(page, '/api/v1/oauth2', {
+    description: `e2e-${suffix}`,
+    client_id: 'e2e-client',
+    client_secret: 'e2e-secret',
+    auth_url: 'https://idp.example.test/authorize',
+    token_url: 'https://idp.example.test/token',
+    redirect_uri: 'http://localhost/oauth2/callback',
+    scopes: ['email'],
+    enabled: true,
+  })
+
+  const openSelect = async () => {
+    await page.goto('/oauth2')
+    await page.getByRole('row', { name: new RegExp(`e2e-${suffix}`) }).getByRole('button', { name: 'Open menu' }).click()
+    await page.getByRole('menuitem', { name: 'Authorize' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Authorize Email Account' })
+    const trigger = dialog.locator('button[role=combobox]')
+    await trigger.click()
+    await expect(page.getByRole('option').first()).toBeVisible()
+    return { dialog, trigger }
+  }
+
+  const byMouse = await openSelect()
+  await page.getByRole('option', { name: `second-${suffix}@example.test` }).click()
+  await expect(byMouse.trigger).toHaveText(`second-${suffix}@example.test`)
+  await expect(byMouse.dialog.getByRole('button', { name: 'Authorize' })).toBeEnabled()
+
+  const byKeyboard = await openSelect()
+  await expect(page.getByPlaceholder('Select an account')).toBeFocused()
+  await page.keyboard.type(`first-${suffix}`)
+  await page.keyboard.press('Enter')
+  await expect(byKeyboard.trigger).toHaveText(`first-${suffix}@example.test`)
+  await expect(byKeyboard.dialog.getByRole('button', { name: 'Authorize' })).toBeEnabled()
 })

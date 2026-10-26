@@ -6,10 +6,13 @@ const PREVIEW_PORT = 4173
 // (e.g. the freshly built container image in CI). Without it, the build suite
 // runs against the production `dist/` served by `vite preview`.
 const instanceUrl = process.env.MAILBOXD_E2E_URL
+// Set MAILBOXD_E2E_BASE_PATH as well when that mailboxd runs below a subpath
+// (MAILBOXD_BASE_URL); MAILBOXD_E2E_URL must then end with it plus `/`.
+const instanceSuite = process.env.MAILBOXD_E2E_BASE_PATH ? '**/subpath.e2e.ts' : '**/instance.e2e.ts'
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: instanceUrl ? '**/instance.e2e.ts' : '**/build.e2e.ts',
+  testMatch: instanceUrl ? instanceSuite : '**/build.e2e.ts',
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: process.env.CI ? [['list'], ['junit', { outputFile: 'e2e-results/junit.xml' }]] : 'list',
