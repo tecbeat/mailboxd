@@ -583,6 +583,7 @@ impl Account {
                 id: account.id,
                 email: account.email,
                 name: account.account_name,
+                auth_type: account.imap.map(|imap| imap.auth.auth_type),
             })
             .collect::<Vec<MinimalAccount>>();
         Ok(result)

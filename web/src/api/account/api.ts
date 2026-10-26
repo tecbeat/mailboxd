@@ -26,6 +26,8 @@ export interface MinimalAccount {
     id: number;
     email: string;
     name?: string;
+    /** IMAP authentication method; absent for accounts without IMAP (e.g. NoSync). */
+    auth_type?: AuthType | null;
 }
 
 export const minimal_account_list = async () => {
@@ -90,7 +92,7 @@ export interface DownloadState {
 
 
 type Encryption = 'Ssl' | 'StartTls' | 'None';
-type AuthType = 'Password' | 'OAuth2';
+export type AuthType = 'Password' | 'OAuth2';
 type Unit = 'Days' | 'Months' | 'Years';
 type AccountType = 'IMAP' | 'NoSync';
 

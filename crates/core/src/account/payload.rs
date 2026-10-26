@@ -20,7 +20,7 @@
 
 use std::str::FromStr;
 
-use crate::account::entity::ImapConfig;
+use crate::account::entity::{AuthType, ImapConfig};
 use crate::account::migration::{
     AccountModel, AccountType, ArchiveRules, ExtractionRules, QuotaWindow,
 };
@@ -298,6 +298,10 @@ pub struct MinimalAccount {
     pub id: u64,
     pub email: String,
     pub name: Option<String>,
+    /// The IMAP authentication method, or `None` for accounts without an IMAP
+    /// configuration (e.g. `NoSync`). Defaults when talking to an older server.
+    #[serde(default)]
+    pub auth_type: Option<AuthType>,
 }
 
 pub fn filter_accessible_accounts<'a>(
@@ -313,7 +317,7 @@ pub fn filter_accessible_accounts<'a>(
 
 #[cfg(test)]
 mod test {
-    use super::validate_cron_expression;
+    use super::{validate_cron_expression, AuthType, MinimalAccount};
 
     #[test]
     fn valid_cron_expressions() {
@@ -339,5 +343,24 @@ mod test {
     #[test]
     fn invalid_cron_expression_garbage() {
         assert!(validate_cron_expression("not a cron").is_err());
+    }
+
+    /// The CLI may talk to a server that predates `auth_type`.
+    #[test]
+    fn minimal_account_parses_without_auth_type() {
+        let account: MinimalAccount =
+            serde_json::from_str(r#"{"id":7,"email":"a@example.com","name":"a"}"#).unwrap();
+        assert_eq!(account.id, 7);
+        assert_eq!(account.name.as_deref(), Some("a"));
+        assert_eq!(account.auth_type, None);
+    }
+
+    #[test]
+    fn minimal_account_parses_auth_type() {
+        let account: MinimalAccount = serde_json::from_str(
+            r#"{"id":7,"email":"a@example.com","name":null,"auth_type":"OAuth2"}"#,
+        )
+        .unwrap();
+        assert_eq!(account.auth_type, Some(AuthType::OAuth2));
     }
 }
