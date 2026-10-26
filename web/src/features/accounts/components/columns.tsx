@@ -102,7 +102,7 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
     {
       accessorKey: "sync_interval_sec",
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.incSync')} className="justify-center" />
+        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.scheduleMode')} className="justify-center" />
       ),
       cell: ({ row }) => {
         const account_type = row.original.account_type;

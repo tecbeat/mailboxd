@@ -378,7 +378,7 @@ export function MailMessageView({
                                 <MessageSquareMore className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>{t('mail.viewNestedEmail', 'View Embedded Email')}</TooltipContent>
+                            <TooltipContent>{t('attachment.viewEmbeddedEmail')}</TooltipContent>
                           </Tooltip>
                         )}
                         <span className="text-muted-foreground text-xs shrink-0">

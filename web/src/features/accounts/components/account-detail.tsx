@@ -52,7 +52,7 @@ export function AccountDetailDrawer({ open, onOpenChange, currentRow }: Props) {
       })}`;
     }
 
-    return t('accounts.syncAll');
+    return t('accounts.downloadAll');
   })();
 
   const hasSince = !!currentRow.date_since;
