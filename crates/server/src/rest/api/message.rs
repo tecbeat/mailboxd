@@ -425,3 +425,26 @@ impl MessageApi {
         Ok(Json(ENVELOPE_MANAGER.get_all_contacts(authorized_ids)?))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tests::{admin_token, build_api_route, setup};
+    use poem::test::TestClient;
+
+    #[tokio::test]
+    async fn deleting_unknown_messages_is_reported_as_not_found() {
+        setup().await;
+        let token = admin_token().await;
+        let cli = TestClient::new(build_api_route()).default_header("X-Forwarded-For", "127.0.0.1");
+
+        // Account id used by no other test.
+        let resp = cli
+            .post("/api/v1/delete-messages")
+            .header("Authorization", format!("Bearer {}", token))
+            .body_json(&serde_json::json!({ "61332002": ["no-such-envelope"] }))
+            .send()
+            .await;
+
+        resp.assert_status(http::StatusCode::NOT_FOUND);
+    }
+}
