@@ -29,6 +29,7 @@ import {
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { resetToken } from '@/stores/authStore'
+import { redirectToSignIn } from '@/lib/app-location'
 import { toast } from '@/hooks/use-toast'
 import { ThemeProvider } from './context/theme-provider'
 import './index.css'
@@ -43,15 +44,10 @@ const handleAxiosError = (error: unknown) => {
   if (!(error instanceof AxiosError)) return;
 
   switch (error.response?.status) {
-    case 401: {
+    case 401:
       resetToken();
-      const currentPath = router.history.location.pathname;
-      if (currentPath !== '/sign-in') {
-        const redirect = `${router.history.location.href}`;
-        router.navigate({ to: '/sign-in', search: { redirect } });
-      }
+      redirectToSignIn(router);
       break;
-    }
     case 403:
       toast({
         variant: 'destructive',

@@ -15,36 +15,55 @@ include:
       when: never
     - when: on_success
 
-cargo_test:
+# Shared setup for the Rust jobs. Everything fetched from the internet (apt
+# indexes and packages, crates) lives inside the project dir so the runner
+# cache can keep it: apt and the crate registry use stable keys and only
+# fetch what changed, while `target` is keyed by Cargo.lock.
+.rust_job:
   extends: .skip_on_default_branch
   stage: unittest
   image: rust:1.99.1-slim-bookworm@sha256:86234e857a413004348b471d11a4ebe1aa92d2eae2b6b143cac68fd1ac3c48be
+  variables:
+    CARGO_HOME: ${CI_PROJECT_DIR}/.cargo
+    CARGO_TERM_COLOR: always
+    CARGO_INCREMENTAL: "0"
+    APT_OPTS: -o Dir::State::Lists=${CI_PROJECT_DIR}/.apt/lists -o Dir::Cache::Archives=${CI_PROJECT_DIR}/.apt/archives
+  cache:
+    - key: apt-bookworm
+      paths:
+        - .apt
+    - key: cargo-registry
+      paths:
+        - .cargo/registry/cache
+        - .cargo/registry/index
+        - .cargo/git/db
+    - key:
+        files:
+          - Cargo.lock
+        prefix: cargo-target
+      paths:
+        - target
+  before_script:
+    - mkdir -p .apt/lists/partial .apt/archives/partial
+    - apt-get $APT_OPTS update
+    - apt-get $APT_OPTS install -y --no-install-recommends pkg-config libssl-dev ca-certificates git
+  tags:
+    - teccave
+
+cargo_test:
+  extends: .rust_job
   needs: []
   variables:
     MAILBOXD_ROOT_DIR: /tmp/mailboxd-test
     MAILBOXD_ENCRYPT_PASSWORD: ci-test-password
-    CARGO_TERM_COLOR: always
-    CARGO_INCREMENTAL: "0"
-  cache:
-    key:
-      files:
-        - Cargo.lock
-    paths:
-      - .cargo/registry/cache
-      - .cargo/registry/index
-      - target
   before_script:
-    - apt-get update
-    - apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates git
-    - rm -rf /var/lib/apt/lists/*
+    - !reference [.rust_job, before_script]
     - mkdir -p "$MAILBOXD_ROOT_DIR"
   script:
     # Disable the `embed-web` feature on the server crate so the frontend
     # (pnpm/node) is not required for unit tests. The feature is exercised
     # separately by `test_build_image`, which builds the full container.
     - cargo test --workspace --locked --no-default-features
-  tags:
-    - teccave
 
 # Storage-migration coverage as a first-class, visible gate. `cargo_test`
 # already runs these as part of the workspace, but a half-broken migration is
@@ -56,60 +75,84 @@ cargo_test:
 # reproducible. Reuses the build cache produced by `cargo_test` to avoid a
 # second full workspace compile.
 migration_tests:
-  extends: .skip_on_default_branch
-  stage: unittest
-  image: rust:1.99.1-slim-bookworm@sha256:86234e857a413004348b471d11a4ebe1aa92d2eae2b6b143cac68fd1ac3c48be
+  extends: .rust_job
   needs:
     - cargo_test
-  variables:
-    CARGO_TERM_COLOR: always
-    CARGO_INCREMENTAL: "0"
   cache:
-    key:
-      files:
-        - Cargo.lock
-    paths:
-      - .cargo/registry/cache
-      - .cargo/registry/index
-      - target
-    policy: pull
-  before_script:
-    - apt-get update
-    - apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates git
-    - rm -rf /var/lib/apt/lists/*
+    - key: apt-bookworm
+      paths:
+        - .apt
+      policy: pull
+    - key: cargo-registry
+      paths:
+        - .cargo/registry/cache
+        - .cargo/registry/index
+        - .cargo/git/db
+      policy: pull
+    - key:
+        files:
+          - Cargo.lock
+        prefix: cargo-target
+      paths:
+        - target
+      policy: pull
   script:
     # v1.x fjall -> v2, v0.3.7 Tantivy -> v2 (incl. a byte-identical
     # end-to-end fixture), and the guard/idempotency cases.
     - cargo test -p mailboxd-migrate --locked --no-default-features -- --test-threads=1 --nocapture
     # Bichon layout adoption (bichon-* -> mailboxd-*) and the shared core helpers.
     - cargo test -p mailboxd-core --locked --no-default-features migrate -- --test-threads=1
-  tags:
-    - teccave
 
 # Frontend (web/) checks. Node/pnpm are deliberately kept out of the Rust jobs
 # above (see the embed-web note in cargo_test); this is the dedicated frontend
 # gate. Mirrors the web-builder stage of the Dockerfile (same image, same pnpm,
 # same install invocation) so CI and the release build stay in lockstep.
+#
+# Package downloads are shared through one runner cache with a stable key:
+# the pnpm store, corepack's pnpm and the pnpm version pnpm switches to for
+# `packageManager` (kept under XDG_DATA_HOME). Only `web_deps` writes it; the
+# other jobs only read it, so a lockfile change downloads packages once
+# instead of once per job.
 .web_check:
   extends: .skip_on_default_branch
   stage: unittest
   image: node:24-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
-  needs: []
+  needs:
+    - web_deps
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    COREPACK_HOME: ${CI_PROJECT_DIR}/.corepack
+    XDG_DATA_HOME: ${CI_PROJECT_DIR}/.xdg-data
   cache:
-    key:
-      files:
-        - web/pnpm-lock.yaml
+    key: pnpm-store
     paths:
       - web/.pnpm-store
+      - .corepack
+      - .xdg-data
+    policy: pull
   before_script:
     - corepack enable
     - corepack prepare pnpm@12.3.4 --activate
     - cd web
-    - pnpm install --frozen-lockfile --config.strict-dep-builds=false --store-dir=.pnpm-store
+    - pnpm install --frozen-lockfile --prefer-offline --config.strict-dep-builds=false --store-dir=.pnpm-store
   tags:
     - teccave
+
+# Fills the shared pnpm cache once per pipeline (see .web_check). The
+# Playwright image is glibc-based, the node image musl-based; install for both
+# so the store holds the native packages of every web job.
+web_deps:
+  extends: .web_check
+  needs: []
+  cache:
+    key: pnpm-store
+    paths:
+      - web/.pnpm-store
+      - .corepack
+      - .xdg-data
+    policy: pull-push
+  script:
+    - pnpm install --frozen-lockfile --prefer-offline --config.strict-dep-builds=false --store-dir=.pnpm-store --libc=glibc --libc=musl
 
 # Hard gate: the frontend must type-check and its unit tests must pass.
 web_test:
@@ -173,6 +216,30 @@ image_e2e:
       - web/e2e-results/
     reports:
       junit: web/e2e-results/junit.xml
+
+# Same image served below a subpath (MAILBOXD_BASE_URL), as behind a reverse
+# proxy at https://host/mail/: redirects and links must keep the base path.
+image_e2e_subpath:
+  extends: image_e2e
+  services:
+    - name: ${CI_REGISTRY_IMAGE}:${VERSION}
+      alias: mailboxd
+      variables:
+        MAILBOXD_ROOT_DIR: /data
+        MAILBOXD_ENCRYPT_PASSWORD: ci-test-password
+        MAILBOXD_BASE_URL: /mail
+        MAILBOXD_PUBLIC_URL: http://mailboxd:15630/mail/
+  variables:
+    MAILBOXD_E2E_URL: http://mailboxd:15630/mail/
+    MAILBOXD_E2E_BASE_PATH: /mail
+  script:
+    - |
+      for _ in $(seq 1 60); do
+        curl -fsS "${MAILBOXD_E2E_URL}api/status" >/dev/null 2>&1 && break
+        sleep 2
+      done
+    - curl -fsS "${MAILBOXD_E2E_URL}api/status"
+    - pnpm test:e2e
 
 # End-to-end coverage against the actual release artifact: the built container
 # image. `cargo_test`/`migration_tests` exercise the Rust logic in isolation;

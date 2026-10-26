@@ -18,7 +18,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use mail_parser::parsers::MessageStream;
+use std::borrow::Cow;
+
+use mail_parser::{HeaderForm, HeaderName, Message, MessagePart, PartKind};
 use regex::{Captures, Regex};
 
 fn merge_contiguous_encoded_words(input: &str) -> String {
@@ -83,11 +85,53 @@ pub fn normalize_subject(raw_subject: Option<&str>) -> String {
         None => return String::new(),
     };
 
-    MessageStream::new(subject.as_bytes())
-        .parse_unstructured()
+    HeaderForm::Text
+        .parse(subject.as_bytes())
+        .value()
         .as_text()
         .map(String::from)
         .unwrap_or_default()
+}
+
+/// Returns the raw value of the first top-level header with the given name:
+/// the bytes after the colon up to and including the final line break.
+pub fn header_raw<'m>(
+    message: &'m Message<'_>,
+    name: impl Into<HeaderName<'m>>,
+) -> Option<&'m str> {
+    message
+        .headers()
+        .get(name)
+        .and_then(|header| std::str::from_utf8(header.raw_value()).ok())
+}
+
+/// Returns the attachments of the top-level message: every non-text leaf
+/// part, plus every text or HTML part that is not part of the body of its
+/// own type.
+pub fn attachment_parts<'m>(
+    message: &'m Message<'_>,
+) -> impl Iterator<Item = MessagePart<'m>> + 'm {
+    message.root().parts().filter(|part| match part.kind() {
+        PartKind::Text => !part.in_text_body(),
+        PartKind::Html => !part.in_html_body(),
+        PartKind::Binary | PartKind::InlineBinary | PartKind::Message(_) => true,
+        PartKind::Multipart => false,
+    })
+}
+
+/// Returns the contents of a part: the charset-decoded text of text parts,
+/// the transfer-decoded bytes of binary parts, the raw bytes of a nested
+/// message and nothing for multipart containers.
+pub fn part_contents<'m>(part: &MessagePart<'m>) -> Cow<'m, [u8]> {
+    match part.kind() {
+        PartKind::Text | PartKind::Html => match part.text().unwrap_or_default() {
+            Cow::Borrowed(text) => Cow::Borrowed(text.as_bytes()),
+            Cow::Owned(text) => Cow::Owned(text.into_bytes()),
+        },
+        PartKind::Binary | PartKind::InlineBinary => part.decoded(),
+        PartKind::Message(nested) => Cow::Borrowed(nested.raw()),
+        PartKind::Multipart => Cow::Borrowed(&[]),
+    }
 }
 
 #[cfg(test)]

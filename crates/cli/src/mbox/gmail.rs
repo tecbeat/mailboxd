@@ -65,22 +65,18 @@ pub fn determine_folder(labels_raw: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use mail_parser::{HeaderValue, MessageParser};
+    use mail_parser::{HeaderForm, MessageParser};
 
     use super::*;
 
     fn parse_x_gmail_labels(raw_message: &[u8]) -> Option<String> {
-        // MessageParser::new() has an empty header_map so the hardcoded match at
-        // parsers/header.rs:76 treats ALL unknown headers as raw (no RFC 2047
-        // decoding).  We need three things to get decoding:
-        // 1. A non-empty header_map (so the else branch runs)
-        // 2. default_header_text() so the fallback fn is parse_unstructured
-        // 3. OR register X-Gmail-Labels explicitly via header_text()
+        // MessageParser::new() keeps unknown headers raw (no RFC 2047
+        // decoding), so unknown headers must be parsed as text to decode
+        // X-Gmail-Labels.
         let message = MessageParser::new()
-            .with_minimal_headers()
-            .default_header_text()
+            .unknown_headers(HeaderForm::Text)
             .parse(raw_message)?;
-        let value: &HeaderValue<'_> = message.header("X-Gmail-Labels")?;
+        let value = message.headers().value("X-Gmail-Labels")?;
         value.as_text().map(|s| s.to_string())
     }
 
@@ -131,6 +127,6 @@ mod tests {
     fn missing_x_gmail_labels_header() {
         let raw = b"From: sender@example.com\r\nTo: r@example.com\r\n\r\nBody.\r\n";
         let message = MessageParser::new().parse(raw.as_slice()).unwrap();
-        assert!(message.header("X-Gmail-Labels").is_none());
+        assert!(message.headers().get("X-Gmail-Labels").is_none());
     }
 }

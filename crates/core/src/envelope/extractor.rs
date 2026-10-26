@@ -19,7 +19,7 @@
 
 use async_imap::types::Fetch;
 use bytes::Bytes;
-use mail_parser::{Address, HeaderName, Message, MessageParser, MimeHeaders};
+use mail_parser::{AddressList, HeaderName, Message, MessageParser};
 use tantivy::{schema::Facet, TantivyDocument};
 use tracing::error;
 use uuid::Uuid;
@@ -28,7 +28,10 @@ use crate::{
     account::migration::AccountModel,
     archive::imap::mailbox::MailBox,
     common::AddrVec,
-    envelope::{meta::parse_mailboxd_metadata, utils::normalize_subject},
+    envelope::{
+        meta::parse_mailboxd_metadata,
+        utils::{attachment_parts, header_raw, normalize_subject, part_contents},
+    },
     error::{code::ErrorCode, MailboxdResult},
     id,
     imap::executor::ImapExecutor,
@@ -141,12 +144,14 @@ async fn extract_envelope_core(
                     .next()
                     .and_then(|a| a.address)
             });
-            let subject = message.subject().map(|s| s.to_string());
+            let subject = message
+                .subject()
+                .filter(|s| !s.is_empty())
+                .map(|s| s.to_string());
 
             let is_spam = !rules.spam_headers.is_empty()
                 && rules.spam_headers.iter().any(|h| {
-                    message
-                        .header_raw(h.clone())
+                    header_raw(&message, h.clone())
                         .map(|v| matches!(v.trim().to_lowercase().as_str(), "yes" | "true"))
                         .unwrap_or(false)
                 });
@@ -188,13 +193,16 @@ async fn extract_envelope_core(
         .map(String::from)
         .unwrap_or_else(generate_message_id);
 
-    let in_reply_to = message.in_reply_to().as_text().map(String::from);
+    let in_reply_to = message
+        .in_reply_to()
+        .and_then(|ids| ids.last())
+        .map(String::from);
     let references = extract_references(&message);
     let thread_id = compute_thread_id(in_reply_to, references, &message_id);
 
     let mut subject = message.subject().map(String::from).unwrap_or_default();
     if subject.contains('\u{FFFD}') {
-        subject = normalize_subject(message.header_raw(HeaderName::Subject));
+        subject = normalize_subject(header_raw(&message, HeaderName::Subject));
     }
 
     let date = message.date().map(|d| d.to_timestamp() * 1000).unwrap_or(0);
@@ -203,7 +211,7 @@ async fn extract_envelope_core(
     } else {
         internal_date
     };
-    let parse_addrs = |addrs: Option<&Address<'_>>| {
+    let parse_addrs = |addrs: Option<AddressList<'_>>| {
         addrs
             .map(|addr| {
                 AddrVec::from(addr)
@@ -224,7 +232,7 @@ async fn extract_envelope_core(
         .and_then(|addr| AddrVec::from(addr).0.into_iter().next())
         .and_then(|add| add.address)
         .unwrap_or_else(|| "unknown".to_string());
-    let attachment_count = message.attachment_count();
+    let attachment_count = attachment_parts(&message).count();
     let attachments =
         detach_and_store_attachments(body, &message, &email_content_hash, account_id, mailbox_id)
             .await;
@@ -234,7 +242,7 @@ async fn extract_envelope_core(
 
     let mut final_tags = Vec::new();
 
-    if let Some(meta_header) = message.header_raw("X-Mailboxd-Metadata") {
+    if let Some(meta_header) = header_raw(&message, "X-Mailboxd-Metadata") {
         if let Some(bmd) = parse_mailboxd_metadata(meta_header) {
             if let Some(tags) = bmd.tags {
                 let validated_tags: Result<Vec<String>, _> = tags
@@ -354,18 +362,21 @@ pub fn extract_envelope_from_nested_message(
         .map(String::from)
         .unwrap_or_else(generate_message_id);
 
-    let in_reply_to = message.in_reply_to().as_text().map(String::from);
+    let in_reply_to = message
+        .in_reply_to()
+        .and_then(|ids| ids.last())
+        .map(String::from);
     let references = extract_references(&message);
     let thread_id = compute_thread_id(in_reply_to, references, &message_id);
 
     let mut subject = message.subject().map(String::from).unwrap_or_default();
     if subject.contains('\u{FFFD}') {
-        subject = normalize_subject(message.header_raw(HeaderName::Subject));
+        subject = normalize_subject(header_raw(&message, HeaderName::Subject));
     }
 
     let date = message.date().map(|d| d.to_timestamp() * 1000).unwrap_or(0);
 
-    let parse_addrs = |addrs: Option<&Address<'_>>| {
+    let parse_addrs = |addrs: Option<AddressList<'_>>| {
         addrs
             .map(|addr| {
                 AddrVec::from(addr)
@@ -434,13 +445,9 @@ pub fn generate_message_id() -> String {
 }
 
 pub fn extract_references(message: &Message<'_>) -> Option<Vec<String>> {
-    match message.references() {
-        mail_parser::HeaderValue::Text(cow) => Some(vec![cow.to_string()]),
-        mail_parser::HeaderValue::TextList(vec) => {
-            Some(vec.iter().map(|cow| cow.to_string()).collect())
-        }
-        _ => None,
-    }
+    message
+        .references()
+        .map(|ids| ids.iter().map(String::from).collect())
 }
 
 pub async fn detach_and_store_attachments(
@@ -472,15 +479,8 @@ pub async fn detach_and_store_attachments(
     let mut attachment_infos = Vec::new();
     // Step 1: Collect and sort attachment ranges in reverse to maintain offset
     // integrity
-    let mut ranges: Vec<_> = message
-        .attachments()
-        .map(|att| {
-            (
-                att.raw_body_offset() as usize,
-                att.raw_end_offset() as usize,
-                att,
-            )
-        })
+    let mut ranges: Vec<_> = attachment_parts(message)
+        .map(|att| (att.offset_body() as usize, att.offset_end() as usize, att))
         .collect();
 
     ranges.sort_by(|a, b| b.0.cmp(&a.0));
@@ -505,7 +505,8 @@ pub async fn detach_and_store_attachments(
 
         // content hash is computed from the decoded attachment contents,
         // which is always available regardless of raw offset validity.
-        let content_hash = compute_content_hash(att.contents());
+        let contents = part_contents(&att);
+        let content_hash = compute_content_hash(&contents);
 
         if range_valid {
             let raw_bytes = &original_body[raw_start..raw_end];
@@ -528,13 +529,7 @@ pub async fn detach_and_store_attachments(
             .unwrap_or_else(|| att.content_id().is_some());
         let file_type = att
             .content_type()
-            .map(|ct| {
-                format!(
-                    "{}/{}",
-                    ct.c_type.as_ref(),
-                    ct.c_subtype.as_deref().unwrap_or("")
-                )
-            })
+            .map(|ct| format!("{}/{}", ct.ctype(), ct.subtype().unwrap_or("")))
             .unwrap_or_else(|| "application/octet-stream".to_string());
         let has_cid = att.content_id().is_some();
         let att_name = att.attachment_name().map(|n| n.to_string());
@@ -558,7 +553,7 @@ pub async fn detach_and_store_attachments(
         });
 
         if !inline || !has_cid {
-            let decoded_len = att.contents().len();
+            let decoded_len = contents.len();
             if should_extract
                 && decoded_len <= crate::ext::text_extractor::MAX_EXTRACT_BYTES
                 && crate::ext::text_extractor::should_try_extract(&file_type, &ext)
@@ -567,14 +562,14 @@ pub async fn detach_and_store_attachments(
                     content_hash: content_hash.clone(),
                     file_type: file_type.clone(),
                     ext: ext.clone(),
-                    bytes: att.contents().to_vec(),
+                    bytes: contents.to_vec(),
                 });
             }
         }
 
         let info = AttachmentInfo {
             filename: att.attachment_name().map(|n| n.to_string()),
-            size: att.contents().len(),
+            size: contents.len(),
             inline,
             file_type,
             content_id: att.content_id().map(|id| id.to_string()),
@@ -900,7 +895,7 @@ mod test {
         let message = mail_parser::MessageParser::new()
             .parse(&raw)
             .expect("parse valid MIME message");
-        assert_eq!(message.attachment_count(), 1);
+        assert_eq!(super::attachment_parts(&message).count(), 1);
 
         // Truncate the raw body so the attachment's raw_end_offset lies
         // past the body end — exactly the scenario reported by users.

@@ -23,3 +23,4 @@ pub mod id_token;
 pub mod jwks;
 pub mod pending;
 pub mod task;
+pub mod userinfo;

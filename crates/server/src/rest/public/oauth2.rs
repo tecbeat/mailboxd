@@ -18,12 +18,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::rest::public::ui_redirect::redirect_to_ui;
 use mailboxd_core::oauth2::{flow::OAuth2Flow, pending::OAuth2PendingEntity};
-use poem::{
-    handler,
-    web::{Query, Redirect},
-    IntoResponse, Result,
-};
+use poem::{handler, web::Query, IntoResponse, Result};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
@@ -41,19 +38,17 @@ pub async fn oauth2_callback(
         (None, _) => {
             let message =
                 "The state parameter is missing. Please initiate the OAuth2 process again.";
-            return Ok(Redirect::temporary(format!(
+            return Ok(redirect_to_ui(&format!(
                 "/oauth2-result?error=missing_state&message={}",
                 urlencoding::encode(message)
-            ))
-            .into_response());
+            )));
         }
         (_, None) => {
             let message = "The authorization code is missing. Please try the OAuth2 login again.";
-            return Ok(Redirect::temporary(format!(
+            return Ok(redirect_to_ui(&format!(
                 "/oauth2-result?error=missing_code&message={}",
                 urlencoding::encode(message)
-            ))
-            .into_response());
+            )));
         }
     };
 
@@ -62,11 +57,10 @@ pub async fn oauth2_callback(
         _ => {
             let message =
                 "The provided state is invalid or expired. Please start the OAuth2 process again.";
-            return Ok(Redirect::temporary(format!(
+            return Ok(redirect_to_ui(&format!(
                 "/oauth2-result?error=invalid_state&message={}",
                 urlencoding::encode(message)
-            ))
-            .into_response());
+            )));
         }
     };
 
@@ -80,16 +74,15 @@ pub async fn oauth2_callback(
             "Failed to retrieve or save the access token. Error details: {:#?}",
             e
         );
-        return Ok(Redirect::temporary(format!(
+        return Ok(redirect_to_ui(&format!(
             "/oauth2-result?error=token_fetch_failed&message={}",
             urlencoding::encode(&message)
-        ))
-        .into_response());
+        )));
     }
 
     if let Err(e) = OAuth2PendingEntity::delete(state) {
         error!("Failed to delete pending OAuth2 entity: {}", e);
     }
 
-    Ok(Redirect::temporary("/oauth2-result?success=true").into_response())
+    Ok(redirect_to_ui("/oauth2-result?success=true"))
 }

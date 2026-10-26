@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::rest::public::ui_redirect::redirect_to_ui;
 use mailboxd_core::database::insert_impl;
 use mailboxd_core::database::manager::DB_MANAGER;
 use mailboxd_core::oidc::flow::{begin_login, complete_login};
@@ -117,7 +118,7 @@ pub async fn oidc_callback(Query(params): Query<OidcCallbackParams>) -> Result<R
         Some(e) if !e.is_empty() => e,
         _ => {
             return Ok(redirect_login_error(
-                "OIDC provider did not return an email claim; cannot log in",
+                "OIDC provider did not return an email claim in the ID token or UserInfo; cannot log in",
             ));
         }
     };
@@ -174,14 +175,10 @@ pub async fn oidc_callback(Query(params): Query<OidcCallbackParams>) -> Result<R
         }
     };
 
-    let base = SETTINGS.mailboxd_base_url.trim_end_matches('/');
-    let target = format!(
-        "{}/sso-callback?handoff={}",
-        base,
+    Ok(redirect_to_ui(&format!(
+        "/sso-callback?handoff={}",
         urlencoding::encode(&handoff.id),
-    );
-
-    Ok(Redirect::temporary(target).into_response())
+    )))
 }
 
 #[derive(Deserialize)]
@@ -256,11 +253,5 @@ fn sanitize_redirect(input: Option<String>) -> Option<String> {
 }
 
 fn redirect_login_error(message: &str) -> Response {
-    let base = SETTINGS.mailboxd_base_url.trim_end_matches('/');
-    let target = format!(
-        "{}/sign-in?sso_error={}",
-        base,
-        urlencoding::encode(message)
-    );
-    Redirect::temporary(target).into_response()
+    redirect_to_ui(&format!("/sign-in?sso_error={}", urlencoding::encode(message)))
 }

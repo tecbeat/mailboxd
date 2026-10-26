@@ -47,6 +47,7 @@ import { LoaderCircle, LogIn, Shield } from 'lucide-react'
 import { login } from '@/api/users/api'
 import { useTheme, Theme } from '@/context/theme-context'
 import { useOidcConfig } from '@/hooks/use-oidc-config'
+import { safeAppRedirect } from '@/lib/app-location'
 
 type UserAuthFormProps = HTMLAttributes<HTMLDivElement>
 
@@ -70,7 +71,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
   const { search } = useLocation();
   const searchParams = toSearchParams(search);
-  const redirect = searchParams.get('redirect') || '/';
+  const redirect = safeAppRedirect(searchParams.get('redirect'));
   const localOnly = searchParams.get('local') === '1';
   const ssoError = searchParams.get('sso_error');
 
@@ -120,7 +121,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             i18n.changeLanguage(result.language);
           }
 
-          navigate({ to: redirect });
+          navigate({ href: redirect });
         } else {
           toast({
             variant: "destructive",

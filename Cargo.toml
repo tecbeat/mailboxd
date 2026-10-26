@@ -46,7 +46,7 @@ regex = "1.12.4"
 email_address = "0.2.9"
 futures = "0.3.32"
 utf7-imap = "0.3.2"
-mail-parser = { version = '0.11.4', features = ["serde"] }
+mail-parser = { version = '1.0.0', features = ["serde"] }
 # mail-send = "0.5.2"
 tokio-rustls = { version = "0.26.4", default-features = false, features = [
     "ring",
