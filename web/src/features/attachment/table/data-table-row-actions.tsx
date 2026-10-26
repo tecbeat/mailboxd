@@ -32,13 +32,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useTranslation } from 'react-i18next'
-import { Copy, Download, Eye, EllipsisVertical as MoreVertical } from 'lucide-react'
+import { Copy, Download, Eye, EllipsisVertical as MoreVertical, Wrench } from 'lucide-react'
 import { AttachmentModel } from '@/api/attachment/api'
 import { useSearchAttachments } from '@/hooks/use-search-attachments'
 import { toast } from '@/hooks/use-toast'
 import { useMutation } from '@tanstack/react-query'
 import { download_attachment } from '@/api/mailbox/envelope/api'
 import AttachmentPreview from '@/features/mail-list/attachment-preview'
+import { useAttachmentContext } from '@/features/attachment/context'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { REPAIR_PERMISSIONS } from '@/features/repair/permissions'
 
 interface DataTableRowActionsProps {
   row: Row<MailTableFeatures, AttachmentModel>
@@ -48,6 +51,9 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setFilter } = useSearchAttachments();
   const { t } = useTranslation()
   const [previewOpen, setPreviewOpen] = useState(false);
+  const { setCurrentItem, setOpen } = useAttachmentContext()
+  const { require_any_permission } = useCurrentUser()
+  const canRepair = require_any_permission(REPAIR_PERMISSIONS, row.original.account_id)
 
   const downloadMutation = useMutation({
     mutationFn: (content_hash: string) =>
@@ -120,6 +126,24 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <Download />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+          {canRepair && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className='text-xs'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setCurrentItem(row.original)
+                  setOpen('repair')
+                }}
+              >
+                {t('repair_message.repairAction')}
+                <DropdownMenuShortcut>
+                  <Wrench />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       <AttachmentPreview

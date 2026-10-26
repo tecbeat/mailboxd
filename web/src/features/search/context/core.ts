@@ -21,7 +21,7 @@
 import { EmailEnvelope } from '@/api'
 import { createMailListContext, MailListContextBase } from '@/features/mail-list/context'
 
-export type SearchDialogType = 'mailbox' | 'display' | 'delete' | 'filters' | 'tags' | 'edit-tags' | 'update-tags' | 'restore' | 'delete-mailbox'
+export type SearchDialogType = 'mailbox' | 'display' | 'delete' | 'filters' | 'tags' | 'edit-tags' | 'update-tags' | 'restore' | 'repair' | 'delete-mailbox'
 
 export interface SearchContextType extends MailListContextBase<EmailEnvelope, SearchDialogType> {
   editTagsOpen: boolean

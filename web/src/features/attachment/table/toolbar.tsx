@@ -11,6 +11,7 @@ import { AccountPopover } from '@/features/mail-list/account-popover'
 import { MetadataFilter } from '../attachment-metadata-filter'
 import { FilterBar } from '@/features/mail-list/filter-bar'
 import { RelevanceSortButton } from '@/features/mail-list/relevance-sort'
+import { RepairHistoryButton } from '@/features/repair/repair-history-button'
 import { FileType, Laptop, Tag } from 'lucide-react'
 
 const ATTACHMENT_TEXT_CONFIG: TextSearchConfig = {
@@ -57,6 +58,7 @@ export function DataTableToolbar<TData extends RowData>({
       <TimePopover />
       <RelevanceSortButton textFields={ATTACHMENT_RELEVANCE_FIELDS} />
       <DataTableViewOptions table={table} />
+      <RepairHistoryButton />
     </FilterBar>
   )
 }

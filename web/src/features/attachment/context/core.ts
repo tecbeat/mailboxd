@@ -21,7 +21,7 @@
 import { AttachmentModel } from '@/api/attachment/api'
 import { createMailListContext, MailListContextBase } from '@/features/mail-list/context'
 
-export type AttachmentDialogType = 'mailbox' | 'display' | 'delete' | 'filters' | 'tags' | 'edit-tags' | 'update-tags' | 'restore' | 'delete-mailbox' | 'nested-eml'
+export type AttachmentDialogType = 'mailbox' | 'display' | 'delete' | 'filters' | 'tags' | 'edit-tags' | 'update-tags' | 'restore' | 'repair' | 'delete-mailbox' | 'nested-eml'
 
 export type AttachmentContextType = MailListContextBase<AttachmentModel, AttachmentDialogType>
 

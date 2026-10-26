@@ -23,6 +23,7 @@ import { EnvelopeDeleteDialog } from '@/features/mail-list/delete-dialog';
 import { RestoreMessageDialog } from '@/features/mail-list/restore-message-dialog';
 import { NestedEmailDialog } from '@/features/mail-list/nested-email-dialog';
 import { MailBoxDeleteDialog } from '@/features/mail-list/delete-mailbox-dialog';
+import { RepairMessageDialog } from '@/features/repair/repair-message-dialog';
 
 /**
  * All modal dialogs for the attachment view, keyed off the `open` value in
@@ -50,6 +51,15 @@ export function AttachmentDialogs() {
         key="attachment-restore-mail-dialog"
         open={open === 'restore'}
         onOpenChange={() => setOpen('restore')}
+      />
+
+      <RepairMessageDialog
+        key="attachment-repair-mail-dialog"
+        open={open === 'repair'}
+        onOpenChange={() => setOpen('repair')}
+        accountId={currentItem?.account_id}
+        envelopeId={currentItem?.envelope_id}
+        subject={currentItem?.subject}
       />
 
       <NestedEmailDialog
