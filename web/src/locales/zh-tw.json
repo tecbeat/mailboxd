@@ -541,6 +541,16 @@
     "login": "登入",
     "loginFailed": "登入失敗",
     "logout": "登出",
+    "mfa": {
+      "back": "返回登入",
+      "challengeExpired": "登入已過期，請重新登入。",
+      "code": "驗證碼",
+      "codeFormat": "請輸入驗證器應用程式中的 6 位數驗證碼或復原碼。",
+      "invalidCode": "驗證碼無效，請再試一次。",
+      "prompt": "請輸入驗證器應用程式中顯示的 6 位數驗證碼。若無法使用該應用程式，請改為輸入其中一組復原碼。",
+      "tooManyCodes": "無效驗證碼次數過多，請重新登入。",
+      "verify": "驗證"
+    },
     "password": "密碼",
     "sessionExpired": "連線逾時！",
     "sessionExpiredDesc": "由於閒置過久，您的連線已終止。請重新登入以繼續。",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "密碼無效",
     "lastAccess": "上次存取",
     "manageRootTokenAndPassword": "安全地管理根權杖和密碼。",
+    "mfa": {
+      "copied": "已複製到剪貼簿",
+      "description": "使用驗證器應用程式產生的一次性驗證碼保護密碼登入。",
+      "disabled": {
+        "description": "啟用後，使用密碼登入時還需要輸入驗證器應用程式（例如 Aegis、Google Authenticator 或 1Password）中的 6 位數驗證碼。",
+        "enable": "啟用雙重驗證",
+        "title": "雙重驗證未啟用"
+      },
+      "enabled": {
+        "codesLeft": "未使用的復原碼：{{remaining}}",
+        "codesLow": "復原碼即將用完。請停用後重新啟用雙重驗證以取得新的復原碼。",
+        "confirmDisable": "停用",
+        "description": "使用密碼登入時需要驗證器應用程式中的驗證碼。",
+        "disable": "停用雙重驗證",
+        "disableCode": "驗證器應用程式中的驗證碼或復原碼",
+        "disabledToast": "雙重驗證已停用",
+        "title": "雙重驗證已啟用"
+      },
+      "enrol": {
+        "code": "應用程式中的驗證碼",
+        "confirm": "確認並啟用",
+        "copySecret": "複製金鑰",
+        "description": "使用驗證器應用程式掃描 QR 碼，或手動輸入金鑰。接著輸入應用程式顯示的 6 位數驗證碼。",
+        "qrAlt": "驗證器應用程式的 QR 碼",
+        "qrFailed": "無法產生 QR 碼，請手動輸入金鑰。",
+        "secret": "手動輸入用的金鑰",
+        "title": "設定驗證器應用程式"
+      },
+      "errors": {
+        "enrolFailed": "無法開始設定",
+        "invalidCode": "驗證碼無效，請再試一次。",
+        "tooManyAttempts": "嘗試次數過多，請稍候幾分鐘再試一次。"
+      },
+      "loadError": "無法載入雙重驗證狀態。",
+      "recovery": {
+        "copy": "複製復原碼",
+        "description": "若無法使用驗證器應用程式，每組復原碼可用於登入一次。",
+        "done": "完成",
+        "download": "下載為 .txt",
+        "leaveWarning": "您尚未確認已儲存復原碼。復原碼不會再次顯示。仍要離開嗎？",
+        "onlyOnce": "這些復原碼只會顯示一次，請立即妥善保存。",
+        "saved": "我已將復原碼保存在安全的地方",
+        "title": "儲存復原碼"
+      },
+      "ssoNote": "您透過單一登入（SSO）登入。您帳戶的雙重驗證由身分識別提供者負責，因此無法在此設定。",
+      "title": "雙重驗證"
+    },
     "name": "名稱",
     "noProxies": "無代理設定",
     "noProxiesDesc": "您尚未新增任何代理設定。請新增設定以使用功能。",
@@ -1550,6 +1607,7 @@
       "apiTokens": "API 權杖",
       "backup": "備份",
       "configurations": "系統配置",
+      "mfa": "雙重驗證",
       "profile": "個人資料",
       "proxy": "網路代理"
     },
@@ -1740,6 +1798,15 @@
       "placeholder": {
         "filter": "搜尋使用者..."
       },
+      "reset_mfa": {
+        "button_confirm": "重設 2FA",
+        "confirm_msg": "將停用使用者 {{name}}（ID：{{id}}）的雙重驗證並刪除其復原碼。在重新設定之前，該使用者僅憑密碼即可登入。",
+        "failed_title": "重設失敗",
+        "menu": "重設 2FA",
+        "success_desc": "已停用「{{name}}」的雙重驗證。",
+        "success_title": "2FA 已重設",
+        "title": "重設雙重驗證"
+      },
       "schema": {
         "account_required": "請選擇一個帳戶",
         "description_max": "描述長度不能超過 256 個字元",
@@ -1833,6 +1900,7 @@
       "created_at": "建立時間",
       "email": "電子郵件地址",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "角色權限",
       "updated_at": "更新時間",
       "username": "使用者名稱"
@@ -1841,6 +1909,7 @@
       "description": "點擊下方按鈕開始新增第一個使用者。",
       "title": "未發現使用者"
     },
+    "mfa_enabled": "已啟用",
     "nav": {
       "api_tokens": "API 權杖",
       "roles": "角色",

@@ -64,6 +64,9 @@ const AuthenticatedSettingsBackupLazyRouteImport = createFileRoute(
 const AuthenticatedSettingsConfigurationsLazyRouteImport = createFileRoute(
   '/_authenticated/settings/configurations',
 )()
+const AuthenticatedSettingsMfaLazyRouteImport = createFileRoute(
+  '/_authenticated/settings/mfa',
+)()
 const AuthenticatedSettingsProfileLazyRouteImport = createFileRoute(
   '/_authenticated/settings/profile',
 )()
@@ -273,6 +276,14 @@ const AuthenticatedSettingsConfigurationsLazyRoute =
       (d) => d.Route,
     ),
   )
+const AuthenticatedSettingsMfaLazyRoute =
+  AuthenticatedSettingsMfaLazyRouteImport.update({
+    id: '/mfa',
+    path: '/mfa',
+    getParentRoute: () => AuthenticatedSettingsRouteLazyRoute,
+  } as any).lazy(() =>
+    import('./routes/_authenticated/settings/mfa.lazy').then((d) => d.Route),
+  )
 const AuthenticatedSettingsProfileLazyRoute =
   AuthenticatedSettingsProfileLazyRouteImport.update({
     id: '/profile',
@@ -345,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
   '/settings/backup': typeof AuthenticatedSettingsBackupLazyRoute
   '/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
+  '/settings/mfa': typeof AuthenticatedSettingsMfaLazyRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
   '/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
   '/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
@@ -376,6 +388,7 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
   '/settings/backup': typeof AuthenticatedSettingsBackupLazyRoute
   '/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
+  '/settings/mfa': typeof AuthenticatedSettingsMfaLazyRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
   '/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
   '/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
@@ -411,6 +424,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceLazyRoute
   '/_authenticated/settings/backup': typeof AuthenticatedSettingsBackupLazyRoute
   '/_authenticated/settings/configurations': typeof AuthenticatedSettingsConfigurationsLazyRoute
+  '/_authenticated/settings/mfa': typeof AuthenticatedSettingsMfaLazyRoute
   '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileLazyRoute
   '/_authenticated/settings/proxy': typeof AuthenticatedSettingsProxyLazyRoute
   '/_authenticated/users/api-tokens': typeof AuthenticatedUsersApiTokensLazyRoute
@@ -446,6 +460,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/backup'
     | '/settings/configurations'
+    | '/settings/mfa'
     | '/settings/profile'
     | '/settings/proxy'
     | '/users/api-tokens'
@@ -477,6 +492,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/backup'
     | '/settings/configurations'
+    | '/settings/mfa'
     | '/settings/profile'
     | '/settings/proxy'
     | '/users/api-tokens'
@@ -511,6 +527,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/backup'
     | '/_authenticated/settings/configurations'
+    | '/_authenticated/settings/mfa'
     | '/_authenticated/settings/profile'
     | '/_authenticated/settings/proxy'
     | '/_authenticated/users/api-tokens'
@@ -723,6 +740,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsConfigurationsLazyRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
     }
+    '/_authenticated/settings/mfa': {
+      id: '/_authenticated/settings/mfa'
+      path: '/mfa'
+      fullPath: '/settings/mfa'
+      preLoaderRoute: typeof AuthenticatedSettingsMfaLazyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteLazyRoute
+    }
     '/_authenticated/settings/profile': {
       id: '/_authenticated/settings/profile'
       path: '/profile'
@@ -774,6 +798,7 @@ interface AuthenticatedSettingsRouteLazyRouteChildren {
   AuthenticatedSettingsAppearanceLazyRoute: typeof AuthenticatedSettingsAppearanceLazyRoute
   AuthenticatedSettingsBackupLazyRoute: typeof AuthenticatedSettingsBackupLazyRoute
   AuthenticatedSettingsConfigurationsLazyRoute: typeof AuthenticatedSettingsConfigurationsLazyRoute
+  AuthenticatedSettingsMfaLazyRoute: typeof AuthenticatedSettingsMfaLazyRoute
   AuthenticatedSettingsProfileLazyRoute: typeof AuthenticatedSettingsProfileLazyRoute
   AuthenticatedSettingsProxyLazyRoute: typeof AuthenticatedSettingsProxyLazyRoute
   AuthenticatedSettingsIndexLazyRoute: typeof AuthenticatedSettingsIndexLazyRoute
@@ -789,6 +814,7 @@ const AuthenticatedSettingsRouteLazyRouteChildren: AuthenticatedSettingsRouteLaz
     AuthenticatedSettingsBackupLazyRoute: AuthenticatedSettingsBackupLazyRoute,
     AuthenticatedSettingsConfigurationsLazyRoute:
       AuthenticatedSettingsConfigurationsLazyRoute,
+    AuthenticatedSettingsMfaLazyRoute: AuthenticatedSettingsMfaLazyRoute,
     AuthenticatedSettingsProfileLazyRoute:
       AuthenticatedSettingsProfileLazyRoute,
     AuthenticatedSettingsProxyLazyRoute: AuthenticatedSettingsProxyLazyRoute,

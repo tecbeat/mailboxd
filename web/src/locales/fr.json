@@ -541,6 +541,16 @@
     "login": "Se connecter",
     "loginFailed": "Échec de la Connexion",
     "logout": "Se déconnecter",
+    "mfa": {
+      "back": "Retour à la connexion",
+      "challengeExpired": "La connexion a expiré. Veuillez vous reconnecter.",
+      "code": "Code de vérification",
+      "codeFormat": "Saisissez le code à 6 chiffres de votre application d'authentification ou un code de récupération.",
+      "invalidCode": "Code de vérification invalide. Veuillez réessayer.",
+      "prompt": "Saisissez le code à 6 chiffres affiché par votre application d'authentification. Si vous n'y avez plus accès, saisissez plutôt l'un de vos codes de récupération.",
+      "tooManyCodes": "Trop de codes invalides. Veuillez vous reconnecter.",
+      "verify": "Vérifier"
+    },
     "password": "Mot de passe",
     "sessionExpired": "Session expirée !",
     "sessionExpiredDesc": "Votre session a été fermée en raison de l'inactivité. Veuillez vous reconnecter pour continuer.",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "Mot de passe non valide",
     "lastAccess": "Dernier Accès",
     "manageRootTokenAndPassword": "Gérez en toute sécurité le jeton et le mot de passe root.",
+    "mfa": {
+      "copied": "Copié dans le presse-papiers",
+      "description": "Protégez la connexion par mot de passe avec un code à usage unique issu d'une application d'authentification.",
+      "disabled": {
+        "description": "Lorsqu'elle est activée, la connexion par mot de passe exige aussi un code à 6 chiffres issu d'une application d'authentification comme Aegis, Google Authenticator ou 1Password.",
+        "enable": "Activer l'authentification à deux facteurs",
+        "title": "L'authentification à deux facteurs est désactivée"
+      },
+      "enabled": {
+        "codesLeft": "Codes de récupération inutilisés : {{remaining}}",
+        "codesLow": "Il vous reste peu de codes de récupération. Désactivez puis réactivez l'authentification à deux facteurs pour en obtenir de nouveaux.",
+        "confirmDisable": "Désactiver",
+        "description": "La connexion par mot de passe exige un code de votre application d'authentification.",
+        "disable": "Désactiver l'authentification à deux facteurs",
+        "disableCode": "Code de votre application d'authentification ou code de récupération",
+        "disabledToast": "Authentification à deux facteurs désactivée",
+        "title": "L'authentification à deux facteurs est activée"
+      },
+      "enrol": {
+        "code": "Code de l'application",
+        "confirm": "Confirmer et activer",
+        "copySecret": "Copier la clé secrète",
+        "description": "Scannez le code QR avec votre application d'authentification ou saisissez la clé secrète manuellement. Saisissez ensuite le code à 6 chiffres affiché par l'application.",
+        "qrAlt": "Code QR pour votre application d'authentification",
+        "qrFailed": "Le code QR n'a pas pu être généré. Saisissez la clé secrète manuellement.",
+        "secret": "Clé secrète pour la saisie manuelle",
+        "title": "Configurer votre application d'authentification"
+      },
+      "errors": {
+        "enrolFailed": "Impossible de démarrer la configuration",
+        "invalidCode": "Code de vérification invalide. Veuillez réessayer.",
+        "tooManyAttempts": "Trop de tentatives. Veuillez patienter quelques minutes puis réessayer."
+      },
+      "loadError": "Impossible de charger l'état de l'authentification à deux facteurs.",
+      "recovery": {
+        "copy": "Copier les codes",
+        "description": "Chaque code permet de vous connecter une fois si vous perdez l'accès à votre application d'authentification.",
+        "done": "Terminé",
+        "download": "Télécharger en .txt",
+        "leaveWarning": "Vous n'avez pas confirmé avoir enregistré vos codes de récupération. Ils ne seront plus affichés. Quitter quand même ?",
+        "onlyOnce": "Ces codes ne sont affichés qu'une seule fois. Conservez-les dès maintenant en lieu sûr.",
+        "saved": "J'ai conservé mes codes de récupération en lieu sûr",
+        "title": "Enregistrez vos codes de récupération"
+      },
+      "ssoNote": "Vous vous connectez via l'authentification unique (SSO). L'authentification à deux facteurs de votre compte est gérée par votre fournisseur d'identité ; elle ne peut donc pas être configurée ici.",
+      "title": "Authentification à deux facteurs"
+    },
     "name": "Nom",
     "noProxies": "Aucun Proxy",
     "noProxiesDesc": "Vous n'avez pas encore ajouté de configuration de proxy. Veuillez en ajouter une pour utiliser les fonctionnalités de proxy.",
@@ -1550,6 +1607,7 @@
       "apiTokens": "Jetons API",
       "backup": "Sauvegarde",
       "configurations": "Configurations système",
+      "mfa": "Authentification à deux facteurs",
       "profile": "Profil",
       "proxy": "Proxy réseau"
     },
@@ -1740,6 +1798,15 @@
       "placeholder": {
         "filter": "Rechercher des utilisateurs..."
       },
+      "reset_mfa": {
+        "button_confirm": "Réinitialiser la 2FA",
+        "confirm_msg": "L'authentification à deux facteurs de l'utilisateur {{name}} (ID : {{id}}) sera désactivée et ses codes de récupération supprimés. Tant qu'il ne l'a pas reconfigurée, son mot de passe suffit pour se connecter.",
+        "failed_title": "Échec de la réinitialisation",
+        "menu": "Réinitialiser la 2FA",
+        "success_desc": "L'authentification à deux facteurs de « {{name}} » a été désactivée.",
+        "success_title": "2FA réinitialisée",
+        "title": "Réinitialiser l'authentification à deux facteurs"
+      },
       "schema": {
         "account_required": "Veuillez sélectionner un compte",
         "description_max": "La description ne peut pas dépasser 256 caractères",
@@ -1833,6 +1900,7 @@
       "created_at": "Créé le",
       "email": "Adresse e-mail",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Rôles et permissions",
       "updated_at": "Mis à jour le",
       "username": "Nom d'utilisateur"
@@ -1841,6 +1909,7 @@
       "description": "Cliquez sur le bouton ci-dessous pour ajouter votre premier utilisateur.",
       "title": "Aucun utilisateur trouvé"
     },
+    "mfa_enabled": "Activée",
     "nav": {
       "api_tokens": "Jetons API",
       "roles": "Rôles",

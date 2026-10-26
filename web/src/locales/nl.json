@@ -541,6 +541,16 @@
     "login": "Inloggen",
     "loginFailed": "Inloggen Mislukt",
     "logout": "Uitloggen",
+    "mfa": {
+      "back": "Terug naar inloggen",
+      "challengeExpired": "De aanmelding is verlopen. Log opnieuw in.",
+      "code": "Verificatiecode",
+      "codeFormat": "Voer de 6-cijferige code uit je authenticator-app of een herstelcode in.",
+      "invalidCode": "Ongeldige verificatiecode. Probeer het opnieuw.",
+      "prompt": "Voer de 6-cijferige code uit je authenticator-app in. Heb je er geen toegang meer toe, voer dan een van je herstelcodes in.",
+      "tooManyCodes": "Te veel ongeldige codes. Log opnieuw in.",
+      "verify": "Verifiëren"
+    },
     "password": "Wachtwoord",
     "sessionExpired": "Sessie verlopen!",
     "sessionExpiredDesc": "Uw sessie is beëindigd vanwege inactiviteit. Log opnieuw in om door te gaan.",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "Ongeldig wachtwoord",
     "lastAccess": "Laatste Toegang",
     "manageRootTokenAndPassword": "Beheer root-token en wachtwoord veilig.",
+    "mfa": {
+      "copied": "Gekopieerd naar klembord",
+      "description": "Beveilig het inloggen met wachtwoord met een eenmalige code uit een authenticator-app.",
+      "disabled": {
+        "description": "Als deze aan staat, is bij inloggen met wachtwoord ook een 6-cijferige code nodig uit een authenticator-app zoals Aegis, Google Authenticator of 1Password.",
+        "enable": "Tweestapsverificatie inschakelen",
+        "title": "Tweestapsverificatie staat uit"
+      },
+      "enabled": {
+        "codesLeft": "Ongebruikte herstelcodes: {{remaining}}",
+        "codesLow": "Je herstelcodes raken op. Schakel tweestapsverificatie uit en weer in om nieuwe te krijgen.",
+        "confirmDisable": "Uitschakelen",
+        "description": "Voor inloggen met wachtwoord is een code uit je authenticator-app nodig.",
+        "disable": "Tweestapsverificatie uitschakelen",
+        "disableCode": "Code uit je authenticator-app of een herstelcode",
+        "disabledToast": "Tweestapsverificatie uitgeschakeld",
+        "title": "Tweestapsverificatie staat aan"
+      },
+      "enrol": {
+        "code": "Code uit de app",
+        "confirm": "Bevestigen en inschakelen",
+        "copySecret": "Geheime sleutel kopiëren",
+        "description": "Scan de QR-code met je authenticator-app of voer de geheime sleutel handmatig in. Voer daarna de 6-cijferige code in die de app toont.",
+        "qrAlt": "QR-code voor je authenticator-app",
+        "qrFailed": "De QR-code kon niet worden gemaakt. Voer de geheime sleutel handmatig in.",
+        "secret": "Geheime sleutel voor handmatige invoer",
+        "title": "Je authenticator-app instellen"
+      },
+      "errors": {
+        "enrolFailed": "Het instellen kon niet worden gestart",
+        "invalidCode": "Ongeldige verificatiecode. Probeer het opnieuw.",
+        "tooManyAttempts": "Te veel pogingen. Wacht een paar minuten en probeer het opnieuw."
+      },
+      "loadError": "De status van tweestapsverificatie kon niet worden geladen.",
+      "recovery": {
+        "copy": "Codes kopiëren",
+        "description": "Met elke code kun je één keer inloggen als je geen toegang meer hebt tot je authenticator-app.",
+        "done": "Klaar",
+        "download": "Downloaden als .txt",
+        "leaveWarning": "Je hebt nog niet bevestigd dat je je herstelcodes hebt opgeslagen. Ze worden niet opnieuw getoond. Toch verlaten?",
+        "onlyOnce": "Deze codes worden maar één keer getoond. Bewaar ze nu op een veilige plek.",
+        "saved": "Ik heb mijn herstelcodes op een veilige plek bewaard",
+        "title": "Bewaar je herstelcodes"
+      },
+      "ssoNote": "Je logt in via single sign-on (SSO). Tweestapsverificatie voor je account wordt geregeld door je identiteitsprovider en kan hier dus niet worden ingesteld.",
+      "title": "Tweestapsverificatie"
+    },
     "name": "Naam",
     "noProxies": "Geen Proxy's",
     "noProxiesDesc": "U heeft nog geen proxy-configuraties toegevoegd. Voeg er een toe om proxy-functies te gebruiken.",
@@ -1550,6 +1607,7 @@
       "apiTokens": "API-tokens",
       "backup": "Back-up",
       "configurations": "Systeemconfiguraties",
+      "mfa": "Tweestapsverificatie",
       "profile": "Profiel",
       "proxy": "Netwerkproxy"
     },
@@ -1740,6 +1798,15 @@
       "placeholder": {
         "filter": "Zoek gebruikers..."
       },
+      "reset_mfa": {
+        "button_confirm": "2FA resetten",
+        "confirm_msg": "Tweestapsverificatie voor gebruiker {{name}} (ID: {{id}}) wordt uitgeschakeld en de herstelcodes worden verwijderd. Totdat de gebruiker het opnieuw instelt, is het wachtwoord voldoende om in te loggen.",
+        "failed_title": "Resetten mislukt",
+        "menu": "2FA resetten",
+        "success_desc": "Tweestapsverificatie voor \"{{name}}\" is uitgeschakeld.",
+        "success_title": "2FA gereset",
+        "title": "Tweestapsverificatie resetten"
+      },
       "schema": {
         "account_required": "Selecteer een account",
         "description_max": "Beschrijving max 256 tekens",
@@ -1833,6 +1900,7 @@
       "created_at": "Gemaakt op",
       "email": "E-mailadres",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Rollen & permissies",
       "updated_at": "Bijgewerkt op",
       "username": "Gebruikersnaam"
@@ -1841,6 +1909,7 @@
       "description": "Klik op de knop hieronder om uw eerste gebruiker toe te voegen.",
       "title": "Geen gebruikers gevonden"
     },
+    "mfa_enabled": "Aan",
     "nav": {
       "api_tokens": "API-tokens",
       "roles": "Rollen",

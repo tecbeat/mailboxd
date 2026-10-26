@@ -541,6 +541,16 @@
     "login": "Login",
     "loginFailed": "Błędny login",
     "logout": "Wyloguj",
+    "mfa": {
+      "back": "Powrót do logowania",
+      "challengeExpired": "Logowanie wygasło. Zaloguj się ponownie.",
+      "code": "Kod weryfikacyjny",
+      "codeFormat": "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej lub kod odzyskiwania.",
+      "invalidCode": "Nieprawidłowy kod weryfikacyjny. Spróbuj ponownie.",
+      "prompt": "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej. Jeśli nie masz już do niej dostępu, wpisz zamiast tego jeden z kodów odzyskiwania.",
+      "tooManyCodes": "Zbyt wiele nieprawidłowych kodów. Zaloguj się ponownie.",
+      "verify": "Zweryfikuj"
+    },
     "password": "Hasło",
     "sessionExpired": "Sesja wygasła",
     "sessionExpiredDesc": "Twoja sesja wygasła z powodu bezczynności. Zaloguj się ponownie",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "Błędne hasło",
     "lastAccess": "Ostatni dostęp",
     "manageRootTokenAndPassword": "Zarządzaj tokenem głównym i hasłem w sposób bezpieczny",
+    "mfa": {
+      "copied": "Skopiowano do schowka",
+      "description": "Chroń logowanie hasłem jednorazowym kodem z aplikacji uwierzytelniającej.",
+      "disabled": {
+        "description": "Gdy jest włączone, logowanie hasłem wymaga także 6-cyfrowego kodu z aplikacji uwierzytelniającej, takiej jak Aegis, Google Authenticator lub 1Password.",
+        "enable": "Włącz uwierzytelnianie dwuskładnikowe",
+        "title": "Uwierzytelnianie dwuskładnikowe jest wyłączone"
+      },
+      "enabled": {
+        "codesLeft": "Niewykorzystane kody odzyskiwania: {{remaining}}",
+        "codesLow": "Kończą Ci się kody odzyskiwania. Wyłącz i ponownie włącz uwierzytelnianie dwuskładnikowe, aby otrzymać nowe.",
+        "confirmDisable": "Wyłącz",
+        "description": "Logowanie hasłem wymaga kodu z aplikacji uwierzytelniającej.",
+        "disable": "Wyłącz uwierzytelnianie dwuskładnikowe",
+        "disableCode": "Kod z aplikacji uwierzytelniającej lub kod odzyskiwania",
+        "disabledToast": "Uwierzytelnianie dwuskładnikowe wyłączone",
+        "title": "Uwierzytelnianie dwuskładnikowe jest włączone"
+      },
+      "enrol": {
+        "code": "Kod z aplikacji",
+        "confirm": "Potwierdź i włącz",
+        "copySecret": "Kopiuj klucz tajny",
+        "description": "Zeskanuj kod QR aplikacją uwierzytelniającą lub wpisz klucz tajny ręcznie. Następnie wpisz 6-cyfrowy kod wyświetlony przez aplikację.",
+        "qrAlt": "Kod QR dla aplikacji uwierzytelniającej",
+        "qrFailed": "Nie udało się wygenerować kodu QR. Wpisz klucz tajny ręcznie.",
+        "secret": "Klucz tajny do ręcznego wpisania",
+        "title": "Skonfiguruj aplikację uwierzytelniającą"
+      },
+      "errors": {
+        "enrolFailed": "Nie udało się rozpocząć konfiguracji",
+        "invalidCode": "Nieprawidłowy kod weryfikacyjny. Spróbuj ponownie.",
+        "tooManyAttempts": "Zbyt wiele prób. Odczekaj kilka minut i spróbuj ponownie."
+      },
+      "loadError": "Nie udało się wczytać stanu uwierzytelniania dwuskładnikowego.",
+      "recovery": {
+        "copy": "Kopiuj kody",
+        "description": "Każdy kod pozwala zalogować się jeden raz, jeśli utracisz dostęp do aplikacji uwierzytelniającej.",
+        "done": "Gotowe",
+        "download": "Pobierz jako .txt",
+        "leaveWarning": "Nie potwierdzono zapisania kodów odzyskiwania. Nie zostaną one ponownie wyświetlone. Czy mimo to opuścić stronę?",
+        "onlyOnce": "Te kody są wyświetlane tylko raz. Przechowaj je teraz w bezpiecznym miejscu.",
+        "saved": "Zapisałem kody odzyskiwania w bezpiecznym miejscu",
+        "title": "Zapisz kody odzyskiwania"
+      },
+      "ssoNote": "Logujesz się przez jednokrotne logowanie (SSO). Uwierzytelnianiem dwuskładnikowym Twojego konta zarządza dostawca tożsamości, dlatego nie można go tu skonfigurować.",
+      "title": "Uwierzytelnianie dwuskładnikowe"
+    },
     "name": "Nazwa",
     "noProxies": "Brak Proxy",
     "noProxiesDesc": "Nie dodano jeszcze żadnych konfiguracji proxy. Dodaj jedną, aby zacząć korzystać z funkcji proxy.",
@@ -1550,6 +1607,7 @@
       "apiTokens": "Tokeny API",
       "backup": "Kopia zapasowa",
       "configurations": "Konfiguracja systemu",
+      "mfa": "Uwierzytelnianie dwuskładnikowe",
       "profile": "Profil",
       "proxy": "Proxy sieciowe"
     },
@@ -1740,6 +1798,15 @@
       "placeholder": {
         "filter": "Szukaj użytkowników..."
       },
+      "reset_mfa": {
+        "button_confirm": "Resetuj 2FA",
+        "confirm_msg": "Uwierzytelnianie dwuskładnikowe użytkownika {{name}} (ID: {{id}}) zostanie wyłączone, a jego kody odzyskiwania usunięte. Dopóki nie skonfiguruje go ponownie, do zalogowania wystarczy samo hasło.",
+        "failed_title": "Resetowanie nie powiodło się",
+        "menu": "Resetuj 2FA",
+        "success_desc": "Uwierzytelnianie dwuskładnikowe użytkownika „{{name}}” zostało wyłączone.",
+        "success_title": "Zresetowano 2FA",
+        "title": "Resetuj uwierzytelnianie dwuskładnikowe"
+      },
       "schema": {
         "account_required": "Wybierz konto",
         "description_max": "Opis maks. 256 znaków",
@@ -1833,6 +1900,7 @@
       "created_at": "Utworzono",
       "email": "Adres e-mail",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Role i uprawnienia",
       "updated_at": "Zaktualizowano",
       "username": "Nazwa użytkownika"
@@ -1841,6 +1909,7 @@
       "description": "Kliknij przycisk poniżej, aby dodać pierwszego użytkownika.",
       "title": "Nie znaleziono użytkowników"
     },
+    "mfa_enabled": "Włączone",
     "nav": {
       "api_tokens": "Tokeny API",
       "roles": "Role",

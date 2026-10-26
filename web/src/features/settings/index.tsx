@@ -22,7 +22,7 @@
 import { Outlet } from '@tanstack/react-router'
 import { Main } from '@/components/layout/main'
 import { SidebarNav } from '@/components/layout/sidebar-nav'
-import { DatabaseBackup, KeyRound, Palette, Settings as SettingsIcon, ShieldCheck, UserCog, Waypoints } from 'lucide-react'
+import { DatabaseBackup, KeyRound, LockKeyhole, Palette, Settings as SettingsIcon, ShieldCheck, UserCog, Waypoints } from 'lucide-react'
 import { FixedHeader } from '@/components/layout/fixed-header'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useTranslation } from 'react-i18next'
@@ -42,6 +42,11 @@ export default function Settings() {
       title: t('settings.sidebar.access'),
       href: '/settings/access',
       icon: <ShieldCheck size={18} />
+    },
+    {
+      title: t('settings.sidebar.mfa'),
+      href: '/settings/mfa',
+      icon: <LockKeyhole size={18} />,
     },
     {
       title: t('settings.appearance.title'),

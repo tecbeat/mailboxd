@@ -541,6 +541,16 @@
     "login": "Logga in",
     "loginFailed": "Inloggning misslyckades",
     "logout": "Logga ut",
+    "mfa": {
+      "back": "Tillbaka till inloggningen",
+      "challengeExpired": "Inloggningen har gått ut. Logga in igen.",
+      "code": "Verifieringskod",
+      "codeFormat": "Ange den 6-siffriga koden från din autentiseringsapp eller en återställningskod.",
+      "invalidCode": "Ogiltig verifieringskod. Försök igen.",
+      "prompt": "Ange den 6-siffriga koden från din autentiseringsapp. Om du inte längre har tillgång till den kan du ange en av dina återställningskoder i stället.",
+      "tooManyCodes": "För många ogiltiga koder. Logga in igen.",
+      "verify": "Verifiera"
+    },
     "password": "Lösenord",
     "sessionExpired": "Sessionen har löpt ut!",
     "sessionExpiredDesc": "Din session har avslutas på grund av inaktivitet. Vänligen logga in igen för att fortsätta.",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "Ogiltigt lösenord",
     "lastAccess": "Senaste åtkomst",
     "manageRootTokenAndPassword": "Hantera root-token och lösenord säkert.",
+    "mfa": {
+      "copied": "Kopierat till urklipp",
+      "description": "Skydda inloggningen med lösenord med en engångskod från en autentiseringsapp.",
+      "disabled": {
+        "description": "När den är på kräver inloggning med lösenord även en 6-siffrig kod från en autentiseringsapp som Aegis, Google Authenticator eller 1Password.",
+        "enable": "Aktivera tvåfaktorsautentisering",
+        "title": "Tvåfaktorsautentisering är av"
+      },
+      "enabled": {
+        "codesLeft": "Oanvända återställningskoder: {{remaining}}",
+        "codesLow": "Dina återställningskoder håller på att ta slut. Inaktivera och aktivera tvåfaktorsautentisering igen för att få nya.",
+        "confirmDisable": "Inaktivera",
+        "description": "Inloggning med lösenord kräver en kod från din autentiseringsapp.",
+        "disable": "Inaktivera tvåfaktorsautentisering",
+        "disableCode": "Kod från din autentiseringsapp eller en återställningskod",
+        "disabledToast": "Tvåfaktorsautentisering inaktiverad",
+        "title": "Tvåfaktorsautentisering är på"
+      },
+      "enrol": {
+        "code": "Kod från appen",
+        "confirm": "Bekräfta och aktivera",
+        "copySecret": "Kopiera hemlig nyckel",
+        "description": "Skanna QR-koden med din autentiseringsapp eller ange den hemliga nyckeln manuellt. Ange sedan den 6-siffriga kod som appen visar.",
+        "qrAlt": "QR-kod för din autentiseringsapp",
+        "qrFailed": "QR-koden kunde inte skapas. Ange den hemliga nyckeln manuellt.",
+        "secret": "Hemlig nyckel för manuell inmatning",
+        "title": "Konfigurera din autentiseringsapp"
+      },
+      "errors": {
+        "enrolFailed": "Det gick inte att starta konfigurationen",
+        "invalidCode": "Ogiltig verifieringskod. Försök igen.",
+        "tooManyAttempts": "För många försök. Vänta några minuter och försök igen."
+      },
+      "loadError": "Det gick inte att läsa in status för tvåfaktorsautentisering.",
+      "recovery": {
+        "copy": "Kopiera koder",
+        "description": "Varje kod låter dig logga in en gång om du förlorar åtkomsten till din autentiseringsapp.",
+        "done": "Klar",
+        "download": "Ladda ner som .txt",
+        "leaveWarning": "Du har inte bekräftat att du har sparat dina återställningskoder. De visas inte igen. Vill du lämna ändå?",
+        "onlyOnce": "Dessa koder visas bara en gång. Förvara dem på ett säkert ställe nu.",
+        "saved": "Jag har sparat mina återställningskoder på ett säkert ställe",
+        "title": "Spara dina återställningskoder"
+      },
+      "ssoNote": "Du loggar in med enkel inloggning (SSO). Tvåfaktorsautentisering för ditt konto hanteras av din identitetsleverantör och kan därför inte konfigureras här.",
+      "title": "Tvåfaktorsautentisering"
+    },
     "name": "Namn",
     "noProxies": "Inga proxys",
     "noProxiesDesc": "Du har inte lagt till några proxy-konfigurationer ännu. Lägg till en för att börja använda proxy-funktioner.",
@@ -1550,6 +1607,7 @@
       "apiTokens": "API-tokens",
       "backup": "Säkerhetskopiering",
       "configurations": "Systemkonfigurationer",
+      "mfa": "Tvåfaktorsautentisering",
       "profile": "Profil",
       "proxy": "Nätverksproxy"
     },
@@ -1740,6 +1798,15 @@
       "placeholder": {
         "filter": "Sök användare..."
       },
+      "reset_mfa": {
+        "button_confirm": "Återställ 2FA",
+        "confirm_msg": "Tvåfaktorsautentisering för användaren {{name}} (ID: {{id}}) stängs av och användarens återställningskoder raderas. Tills den konfigureras igen räcker lösenordet för att logga in.",
+        "failed_title": "Återställningen misslyckades",
+        "menu": "Återställ 2FA",
+        "success_desc": "Tvåfaktorsautentisering för \"{{name}}\" har stängts av.",
+        "success_title": "2FA återställd",
+        "title": "Återställ tvåfaktorsautentisering"
+      },
       "schema": {
         "account_required": "Välj ett konto",
         "description_max": "Beskrivningen får vara max 256 tecken",
@@ -1833,6 +1900,7 @@
       "created_at": "Skapad",
       "email": "E-postadress",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roller och behörigheter",
       "updated_at": "Uppdaterad",
       "username": "Användarnamn"
@@ -1841,6 +1909,7 @@
       "description": "Klicka på knappen nedan för att lägga till din första användare.",
       "title": "Inga användare hittades"
     },
+    "mfa_enabled": "På",
     "nav": {
       "api_tokens": "API-nycklar",
       "roles": "Roller",

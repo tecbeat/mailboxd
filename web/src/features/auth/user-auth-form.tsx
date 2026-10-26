@@ -43,11 +43,12 @@ import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
 import { LoaderCircle, LogIn, Shield } from 'lucide-react'
-import { login } from '@/api/users/api'
+import { login, type LoginResult } from '@/api/users/api'
 import { useTheme, Theme } from '@/context/theme-context'
 import { useOidcConfig } from '@/hooks/use-oidc-config'
 import { safeAppRedirect } from '@/lib/app-location'
 import { describeLoginError } from './login-error'
+import { MfaCodeForm } from './mfa-code-form'
 
 type UserAuthFormProps = HTMLAttributes<HTMLDivElement>
 
@@ -64,6 +65,7 @@ function buildOidcLoginUrl(redirectTo: string): string {
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [mfaChallenge, setMfaChallenge] = useState<string | null>(null)
   const { setTheme } = useTheme();
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -105,23 +107,34 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     retry: 0,
   });
 
+  function completeLogin(result: LoginResult) {
+    setToken(result);
+
+    if (result.theme) {
+      setTheme(result.theme as Theme);
+    }
+
+    if (result.language) {
+      i18n.changeLanguage(result.language);
+    }
+
+    navigate({ href: redirect });
+  }
+
+  function restartLogin() {
+    setMfaChallenge(null)
+    form.resetField('password')
+  }
+
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true)
 
     mutation.mutate(data, {
       onSuccess: (result) => {
-        if (result.success) {
-          setToken(result);
-
-          if (result.theme) {
-            setTheme(result.theme as Theme);
-          }
-
-          if (result.language) {
-            i18n.changeLanguage(result.language);
-          }
-
-          navigate({ href: redirect });
+        if (result.success && result.mfa_required && result.mfa_challenge) {
+          setMfaChallenge(result.mfa_challenge)
+        } else if (result.success) {
+          completeLogin(result)
         } else {
           toast({
             variant: "destructive",
@@ -143,6 +156,18 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         setIsLoading(false)
       }
     });
+  }
+
+  if (mfaChallenge) {
+    return (
+      <div className={cn('grid gap-6', className)} {...props}>
+        <MfaCodeForm
+          challenge={mfaChallenge}
+          onVerified={completeLogin}
+          onRestart={restartLogin}
+        />
+      </div>
+    )
   }
 
   return (

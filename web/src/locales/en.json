@@ -556,6 +556,16 @@
     "login": "Login",
     "loginFailed": "Login Failed",
     "logout": "Log out",
+    "mfa": {
+      "back": "Back to sign-in",
+      "challengeExpired": "The sign-in has expired. Please sign in again.",
+      "code": "Verification code",
+      "codeFormat": "Enter the 6-digit code from your authenticator app or a recovery code.",
+      "invalidCode": "Invalid verification code. Please try again.",
+      "prompt": "Enter the 6-digit code from your authenticator app. If you have lost access to it, enter one of your recovery codes instead.",
+      "tooManyCodes": "Too many invalid codes. Please sign in again.",
+      "verify": "Verify"
+    },
     "password": "Password",
     "sessionExpired": "Session expired!",
     "sessionExpiredDesc": "Your session has ended due to inactivity. Please log in again to continue.",
@@ -1517,6 +1527,53 @@
     "invalidPassword": "Invalid password",
     "lastAccess": "Last Access",
     "manageRootTokenAndPassword": "Manage root token and password securely.",
+    "mfa": {
+      "copied": "Copied to clipboard",
+      "description": "Protect your password sign-in with a one-time code from an authenticator app.",
+      "disabled": {
+        "description": "When it is on, signing in with your password also requires a 6-digit code from an authenticator app such as Aegis, Google Authenticator or 1Password.",
+        "enable": "Enable two-factor authentication",
+        "title": "Two-factor authentication is off"
+      },
+      "enabled": {
+        "codesLeft": "Unused recovery codes: {{remaining}}",
+        "codesLow": "You are running out of recovery codes. Disable and re-enable two-factor authentication to get new ones.",
+        "confirmDisable": "Disable",
+        "description": "Signing in with your password requires a code from your authenticator app.",
+        "disable": "Disable two-factor authentication",
+        "disableCode": "Code from your authenticator app or a recovery code",
+        "disabledToast": "Two-factor authentication disabled",
+        "title": "Two-factor authentication is on"
+      },
+      "enrol": {
+        "code": "Code from the app",
+        "confirm": "Confirm and enable",
+        "copySecret": "Copy secret",
+        "description": "Scan the QR code with your authenticator app or enter the secret manually. Then enter the 6-digit code the app shows.",
+        "qrAlt": "QR code for your authenticator app",
+        "qrFailed": "The QR code could not be generated. Enter the secret manually.",
+        "secret": "Secret for manual entry",
+        "title": "Set up your authenticator app"
+      },
+      "errors": {
+        "enrolFailed": "Could not start the setup",
+        "invalidCode": "Invalid verification code. Please try again.",
+        "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again."
+      },
+      "loadError": "Failed to load the two-factor authentication status.",
+      "recovery": {
+        "copy": "Copy codes",
+        "description": "Each code signs you in once if you lose access to your authenticator app.",
+        "done": "Done",
+        "download": "Download as .txt",
+        "leaveWarning": "You have not confirmed that you saved your recovery codes. They will not be shown again. Leave anyway?",
+        "onlyOnce": "These codes are shown only once. Store them somewhere safe now.",
+        "saved": "I have saved my recovery codes in a safe place",
+        "title": "Save your recovery codes"
+      },
+      "ssoNote": "You sign in with single sign-on (SSO). Two-factor authentication for your account is handled by your identity provider, so it cannot be set up here.",
+      "title": "Two-Factor Authentication"
+    },
     "name": "Name",
     "noProxies": "No Proxies",
     "noProxiesDesc": "You haven't added any proxy configurations yet. Add one to start using proxy features.",
@@ -1595,6 +1652,7 @@
       "apiTokens": "API Tokens",
       "backup": "Backup",
       "configurations": "System Configurations",
+      "mfa": "Two-Factor Authentication",
       "profile": "Profile",
       "proxy": "Network Proxy"
     },
@@ -1800,6 +1858,15 @@
       "placeholder": {
         "filter": "Search users..."
       },
+      "reset_mfa": {
+        "button_confirm": "Reset 2FA",
+        "confirm_msg": "Two-factor authentication for user {{name}} (ID: {{id}}) will be turned off and their recovery codes deleted. Until they set it up again, their password alone is enough to sign in.",
+        "failed_title": "Reset Failed",
+        "menu": "Reset 2FA",
+        "success_desc": "Two-factor authentication for \"{{name}}\" has been turned off.",
+        "success_title": "2FA Reset",
+        "title": "Reset Two-Factor Authentication"
+      },
       "schema": {
         "account_required": "Please select an account",
         "description_max": "Description cannot exceed 256 characters",
@@ -1895,6 +1962,7 @@
       "created_at": "Created At",
       "email": "Email Address",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roles",
       "updated_at": "Updated At",
       "username": "Username"
@@ -1904,6 +1972,7 @@
       "description": "Click the button below to start adding your first user.",
       "title": "No users found"
     },
+    "mfa_enabled": "On",
     "nav": {
       "api_tokens": "API Tokens",
       "roles": "Roles",

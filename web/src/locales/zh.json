@@ -551,6 +551,16 @@
     "login": "登录",
     "loginFailed": "登录失败",
     "logout": "退出登录",
+    "mfa": {
+      "back": "返回登录",
+      "challengeExpired": "登录已过期，请重新登录。",
+      "code": "验证码",
+      "codeFormat": "请输入身份验证器应用中的 6 位验证码或恢复码。",
+      "invalidCode": "验证码无效，请重试。",
+      "prompt": "请输入身份验证器应用中显示的 6 位验证码。如果无法使用该应用，请改为输入一个恢复码。",
+      "tooManyCodes": "无效验证码次数过多，请重新登录。",
+      "verify": "验证"
+    },
     "password": "密码",
     "sessionExpired": "会话已过期！",
     "sessionExpiredDesc": "由于长时间未活动，您的会话已结束。请重新登录以继续。",
@@ -1490,6 +1500,53 @@
     "invalidPassword": "密码无效",
     "lastAccess": "最后访问",
     "manageRootTokenAndPassword": "安全地管理root账户令牌和密码。",
+    "mfa": {
+      "copied": "已复制到剪贴板",
+      "description": "使用身份验证器应用生成的一次性验证码保护密码登录。",
+      "disabled": {
+        "description": "启用后，使用密码登录时还需要输入身份验证器应用（如 Aegis、Google Authenticator 或 1Password）中的 6 位验证码。",
+        "enable": "启用双因素认证",
+        "title": "双因素认证未启用"
+      },
+      "enabled": {
+        "codesLeft": "未使用的恢复码：{{remaining}}",
+        "codesLow": "恢复码即将用完。请停用后重新启用双因素认证以获取新的恢复码。",
+        "confirmDisable": "停用",
+        "description": "使用密码登录时需要身份验证器应用中的验证码。",
+        "disable": "停用双因素认证",
+        "disableCode": "身份验证器应用中的验证码或恢复码",
+        "disabledToast": "双因素认证已停用",
+        "title": "双因素认证已启用"
+      },
+      "enrol": {
+        "code": "应用中的验证码",
+        "confirm": "确认并启用",
+        "copySecret": "复制密钥",
+        "description": "使用身份验证器应用扫描二维码，或手动输入密钥。然后输入应用显示的 6 位验证码。",
+        "qrAlt": "身份验证器应用的二维码",
+        "qrFailed": "无法生成二维码，请手动输入密钥。",
+        "secret": "用于手动输入的密钥",
+        "title": "设置身份验证器应用"
+      },
+      "errors": {
+        "enrolFailed": "无法开始设置",
+        "invalidCode": "验证码无效，请重试。",
+        "tooManyAttempts": "尝试次数过多，请等待几分钟后重试。"
+      },
+      "loadError": "无法加载双因素认证状态。",
+      "recovery": {
+        "copy": "复制恢复码",
+        "description": "如果无法使用身份验证器应用，每个恢复码可用于登录一次。",
+        "done": "完成",
+        "download": "下载为 .txt",
+        "leaveWarning": "您尚未确认已保存恢复码。恢复码不会再次显示。仍要离开吗？",
+        "onlyOnce": "这些恢复码只显示一次，请立即妥善保存。",
+        "saved": "我已将恢复码保存在安全的地方",
+        "title": "保存恢复码"
+      },
+      "ssoNote": "您通过单点登录（SSO）登录。您账户的双因素认证由身份提供商负责，因此无法在此设置。",
+      "title": "双因素认证"
+    },
     "name": "名称",
     "noProxies": "无代理",
     "noProxiesDesc": "您尚未添加任何代理配置。添加一个以开始使用代理功能。",
@@ -1560,6 +1617,7 @@
       "apiTokens": "API 令牌",
       "backup": "备份",
       "configurations": "系统配置",
+      "mfa": "双因素认证",
       "profile": "个人资料",
       "proxy": "网络代理"
     },
@@ -1750,6 +1808,15 @@
       "placeholder": {
         "filter": "搜索用户..."
       },
+      "reset_mfa": {
+        "button_confirm": "重置 2FA",
+        "confirm_msg": "将停用用户 {{name}}（ID：{{id}}）的双因素认证并删除其恢复码。在重新设置之前，该用户仅凭密码即可登录。",
+        "failed_title": "重置失败",
+        "menu": "重置 2FA",
+        "success_desc": "已停用“{{name}}”的双因素认证。",
+        "success_title": "2FA 已重置",
+        "title": "重置双因素认证"
+      },
       "schema": {
         "account_required": "请选择一个账户",
         "description_max": "描述长度不能超过 256 个字符",
@@ -1843,6 +1910,7 @@
       "created_at": "创建时间",
       "email": "邮箱地址",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "角色权限",
       "updated_at": "更新时间",
       "username": "用户名"
@@ -1851,6 +1919,7 @@
       "description": "点击下方按钮开始添加第一个用户。",
       "title": "未发现用户"
     },
+    "mfa_enabled": "已启用",
     "nav": {
       "api_tokens": "API 令牌",
       "roles": "角色",

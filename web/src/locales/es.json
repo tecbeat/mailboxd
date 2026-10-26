@@ -541,6 +541,16 @@
     "login": "Iniciar sesión",
     "loginFailed": "Error al iniciar sesión",
     "logout": "Cerrar sesión",
+    "mfa": {
+      "back": "Volver al inicio de sesión",
+      "challengeExpired": "El inicio de sesión ha caducado. Vuelva a iniciar sesión.",
+      "code": "Código de verificación",
+      "codeFormat": "Introduzca el código de 6 dígitos de su aplicación de autenticación o un código de recuperación.",
+      "invalidCode": "Código de verificación no válido. Inténtelo de nuevo.",
+      "prompt": "Introduzca el código de 6 dígitos de su aplicación de autenticación. Si ya no tiene acceso a ella, introduzca uno de sus códigos de recuperación.",
+      "tooManyCodes": "Demasiados códigos no válidos. Vuelva a iniciar sesión.",
+      "verify": "Verificar"
+    },
     "password": "Contraseña",
     "sessionExpired": "¡Sesión caducada!",
     "sessionExpiredDesc": "Tu sesión ha caducado debido a la inactividad. Inicia sesión para continuar.",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "Contraseña inválida",
     "lastAccess": "Último acceso",
     "manageRootTokenAndPassword": "Gestiona de forma segura el token y la contraseña del usuario raíz.",
+    "mfa": {
+      "copied": "Copiado al portapapeles",
+      "description": "Proteja el inicio de sesión con contraseña mediante un código de un solo uso de una aplicación de autenticación.",
+      "disabled": {
+        "description": "Cuando está activada, iniciar sesión con contraseña también requiere un código de 6 dígitos de una aplicación de autenticación como Aegis, Google Authenticator o 1Password.",
+        "enable": "Activar la autenticación de dos factores",
+        "title": "La autenticación de dos factores está desactivada"
+      },
+      "enabled": {
+        "codesLeft": "Códigos de recuperación sin usar: {{remaining}}",
+        "codesLow": "Le quedan pocos códigos de recuperación. Desactive y vuelva a activar la autenticación de dos factores para obtener otros nuevos.",
+        "confirmDisable": "Desactivar",
+        "description": "Iniciar sesión con contraseña requiere un código de su aplicación de autenticación.",
+        "disable": "Desactivar la autenticación de dos factores",
+        "disableCode": "Código de su aplicación de autenticación o código de recuperación",
+        "disabledToast": "Autenticación de dos factores desactivada",
+        "title": "La autenticación de dos factores está activada"
+      },
+      "enrol": {
+        "code": "Código de la aplicación",
+        "confirm": "Confirmar y activar",
+        "copySecret": "Copiar clave secreta",
+        "description": "Escanee el código QR con su aplicación de autenticación o introduzca la clave secreta manualmente. Después introduzca el código de 6 dígitos que muestra la aplicación.",
+        "qrAlt": "Código QR para su aplicación de autenticación",
+        "qrFailed": "No se pudo generar el código QR. Introduzca la clave secreta manualmente.",
+        "secret": "Clave secreta para introducción manual",
+        "title": "Configure su aplicación de autenticación"
+      },
+      "errors": {
+        "enrolFailed": "No se pudo iniciar la configuración",
+        "invalidCode": "Código de verificación no válido. Inténtelo de nuevo.",
+        "tooManyAttempts": "Demasiados intentos. Espere unos minutos e inténtelo de nuevo."
+      },
+      "loadError": "No se pudo cargar el estado de la autenticación de dos factores.",
+      "recovery": {
+        "copy": "Copiar códigos",
+        "description": "Cada código le permite iniciar sesión una vez si pierde el acceso a su aplicación de autenticación.",
+        "done": "Listo",
+        "download": "Descargar como .txt",
+        "leaveWarning": "No ha confirmado que guardó sus códigos de recuperación. No se volverán a mostrar. ¿Salir de todos modos?",
+        "onlyOnce": "Estos códigos solo se muestran una vez. Guárdelos ahora en un lugar seguro.",
+        "saved": "He guardado mis códigos de recuperación en un lugar seguro",
+        "title": "Guarde sus códigos de recuperación"
+      },
+      "ssoNote": "Usted inicia sesión mediante inicio de sesión único (SSO). La autenticación de dos factores de su cuenta la gestiona su proveedor de identidad, por lo que no se puede configurar aquí.",
+      "title": "Autenticación de dos factores"
+    },
     "name": "Nombre",
     "noProxies": "Sin proxies",
     "noProxiesDesc": "Aún no has añadido configuraciones de proxy. Añade una para usar las funcionalidades de proxy.",
@@ -1550,6 +1607,7 @@
       "apiTokens": "Tokens API",
       "backup": "Copia de seguridad",
       "configurations": "Configuraciones del sistema",
+      "mfa": "Autenticación de dos factores",
       "profile": "Perfil",
       "proxy": "Proxy de red"
     },
@@ -1740,6 +1798,15 @@
       "placeholder": {
         "filter": "Buscar usuarios..."
       },
+      "reset_mfa": {
+        "button_confirm": "Restablecer 2FA",
+        "confirm_msg": "Se desactivará la autenticación de dos factores del usuario {{name}} (ID: {{id}}) y se eliminarán sus códigos de recuperación. Hasta que vuelva a configurarla, bastará con su contraseña para iniciar sesión.",
+        "failed_title": "Error al restablecer",
+        "menu": "Restablecer 2FA",
+        "success_desc": "Se ha desactivado la autenticación de dos factores de \"{{name}}\".",
+        "success_title": "2FA restablecida",
+        "title": "Restablecer la autenticación de dos factores"
+      },
       "schema": {
         "account_required": "Seleccione una cuenta",
         "description_max": "Descripción máx 256 caracteres",
@@ -1833,6 +1900,7 @@
       "created_at": "Creado el",
       "email": "Correo electrónico",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roles y permisos",
       "updated_at": "Actualizado el",
       "username": "Nombre de usuario"
@@ -1841,6 +1909,7 @@
       "description": "Haga clic en el botón de abajo para añadir su primer usuario.",
       "title": "No se encontraron usuarios"
     },
+    "mfa_enabled": "Activada",
     "nav": {
       "api_tokens": "Tokens de API",
       "roles": "Roles",

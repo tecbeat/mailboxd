@@ -541,6 +541,16 @@
     "login": "Kirjaudu sisään",
     "loginFailed": "Kirjautuminen epäonnistui",
     "logout": "Kirjaudu ulos",
+    "mfa": {
+      "back": "Takaisin kirjautumiseen",
+      "challengeExpired": "Kirjautuminen on vanhentunut. Kirjaudu uudelleen.",
+      "code": "Vahvistuskoodi",
+      "codeFormat": "Anna todennussovelluksen 6-numeroinen koodi tai palautuskoodi.",
+      "invalidCode": "Virheellinen vahvistuskoodi. Yritä uudelleen.",
+      "prompt": "Anna todennussovelluksesi näyttämä 6-numeroinen koodi. Jos et enää pääse sovellukseen, anna sen sijaan jokin palautuskoodeistasi.",
+      "tooManyCodes": "Liian monta virheellistä koodia. Kirjaudu uudelleen.",
+      "verify": "Vahvista"
+    },
     "password": "Salasana",
     "sessionExpired": "Istunto vanhentunut!",
     "sessionExpiredDesc": "Istuntosi on päättynyt toimettomuuden vuoksi. Kirjaudu sisään jatkaaksesi.",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "Virheellinen salasana",
     "lastAccess": "Viimeisin pääsy",
     "manageRootTokenAndPassword": "Hallinnoi pääkäyttäjän tunnusta ja salasanaa turvallisesti.",
+    "mfa": {
+      "copied": "Kopioitu leikepöydälle",
+      "description": "Suojaa salasanalla kirjautuminen todennussovelluksen kertakäyttöisellä koodilla.",
+      "disabled": {
+        "description": "Kun se on käytössä, salasanalla kirjautuminen vaatii myös 6-numeroisen koodin todennussovelluksesta, kuten Aegis, Google Authenticator tai 1Password.",
+        "enable": "Ota kaksivaiheinen tunnistautuminen käyttöön",
+        "title": "Kaksivaiheinen tunnistautuminen ei ole käytössä"
+      },
+      "enabled": {
+        "codesLeft": "Käyttämättömiä palautuskoodeja: {{remaining}}",
+        "codesLow": "Palautuskoodisi ovat loppumassa. Poista kaksivaiheinen tunnistautuminen käytöstä ja ota se uudelleen käyttöön saadaksesi uudet koodit.",
+        "confirmDisable": "Poista käytöstä",
+        "description": "Salasanalla kirjautuminen vaatii koodin todennussovelluksestasi.",
+        "disable": "Poista kaksivaiheinen tunnistautuminen käytöstä",
+        "disableCode": "Todennussovelluksen koodi tai palautuskoodi",
+        "disabledToast": "Kaksivaiheinen tunnistautuminen poistettu käytöstä",
+        "title": "Kaksivaiheinen tunnistautuminen on käytössä"
+      },
+      "enrol": {
+        "code": "Sovelluksen koodi",
+        "confirm": "Vahvista ja ota käyttöön",
+        "copySecret": "Kopioi salainen avain",
+        "description": "Skannaa QR-koodi todennussovelluksellasi tai syötä salainen avain käsin. Anna sitten sovelluksen näyttämä 6-numeroinen koodi.",
+        "qrAlt": "QR-koodi todennussovellustasi varten",
+        "qrFailed": "QR-koodia ei voitu luoda. Syötä salainen avain käsin.",
+        "secret": "Salainen avain käsin syöttämistä varten",
+        "title": "Määritä todennussovelluksesi"
+      },
+      "errors": {
+        "enrolFailed": "Määrityksen aloittaminen epäonnistui",
+        "invalidCode": "Virheellinen vahvistuskoodi. Yritä uudelleen.",
+        "tooManyAttempts": "Liian monta yritystä. Odota muutama minuutti ja yritä uudelleen."
+      },
+      "loadError": "Kaksivaiheisen tunnistautumisen tilaa ei voitu ladata.",
+      "recovery": {
+        "copy": "Kopioi koodit",
+        "description": "Kullakin koodilla voit kirjautua kerran, jos menetät pääsyn todennussovellukseesi.",
+        "done": "Valmis",
+        "download": "Lataa .txt-tiedostona",
+        "leaveWarning": "Et ole vahvistanut tallentaneesi palautuskoodeja. Niitä ei näytetä uudelleen. Poistutaanko silti?",
+        "onlyOnce": "Nämä koodit näytetään vain kerran. Säilytä ne nyt turvallisessa paikassa.",
+        "saved": "Olen tallentanut palautuskoodini turvalliseen paikkaan",
+        "title": "Tallenna palautuskoodisi"
+      },
+      "ssoNote": "Kirjaudut kertakirjautumisella (SSO). Tilisi kaksivaiheisesta tunnistautumisesta huolehtii identiteetintarjoajasi, joten sitä ei voi määrittää täällä.",
+      "title": "Kaksivaiheinen tunnistautuminen"
+    },
     "name": "Nimi",
     "noProxies": "Ei välityspalvelimia",
     "noProxiesDesc": "Et ole vielä lisännyt välityspalvelinmäärityksiä. Lisää yksi käyttääksesi välityspalvelin-toimintoja.",
@@ -1550,6 +1607,7 @@
       "apiTokens": "API-tunnukset",
       "backup": "Varmuuskopiot",
       "configurations": "Järjestelmäasetukset",
+      "mfa": "Kaksivaiheinen tunnistautuminen",
       "profile": "Profiili",
       "proxy": "Verkkovälityspalvelin"
     },
@@ -1740,6 +1798,15 @@
       "placeholder": {
         "filter": "Hae käyttäjiä..."
       },
+      "reset_mfa": {
+        "button_confirm": "Nollaa 2FA",
+        "confirm_msg": "Käyttäjän {{name}} (ID: {{id}}) kaksivaiheinen tunnistautuminen poistetaan käytöstä ja hänen palautuskoodinsa poistetaan. Kunnes hän määrittää sen uudelleen, kirjautumiseen riittää salasana.",
+        "failed_title": "Nollaus epäonnistui",
+        "menu": "Nollaa 2FA",
+        "success_desc": "Käyttäjän \"{{name}}\" kaksivaiheinen tunnistautuminen on poistettu käytöstä.",
+        "success_title": "2FA nollattu",
+        "title": "Nollaa kaksivaiheinen tunnistautuminen"
+      },
       "schema": {
         "account_required": "Valitse tili",
         "description_max": "Kuvaus enintään 256 merkkiä",
@@ -1833,6 +1900,7 @@
       "created_at": "Luotu",
       "email": "Sähköposti",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roolit & käyttöoikeudet",
       "updated_at": "Päivitetty",
       "username": "Käyttäjänimi"
@@ -1841,6 +1909,7 @@
       "description": "Lisää ensimmäinen käyttäjä napsauttamalla alla olevaa painiketta.",
       "title": "Käyttäjiä ei löytynyt"
     },
+    "mfa_enabled": "Käytössä",
     "nav": {
       "api_tokens": "API-avaimet",
       "roles": "Roolit",

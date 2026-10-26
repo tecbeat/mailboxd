@@ -541,6 +541,16 @@
     "login": "Anmelden",
     "loginFailed": "Anmeldung fehlgeschlagen",
     "logout": "Abmelden",
+    "mfa": {
+      "back": "Zurück zur Anmeldung",
+      "challengeExpired": "Die Anmeldung ist abgelaufen. Bitte melden Sie sich erneut an.",
+      "code": "Bestätigungscode",
+      "codeFormat": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App oder einen Wiederherstellungscode ein.",
+      "invalidCode": "Ungültiger Bestätigungscode. Bitte versuchen Sie es erneut.",
+      "prompt": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein. Wenn Sie keinen Zugriff mehr darauf haben, geben Sie stattdessen einen Ihrer Wiederherstellungscodes ein.",
+      "tooManyCodes": "Zu viele ungültige Codes. Bitte melden Sie sich erneut an.",
+      "verify": "Bestätigen"
+    },
     "password": "Passwort",
     "sessionExpired": "Sitzung abgelaufen!",
     "sessionExpiredDesc": "Ihre Sitzung ist aufgrund von Inaktivität abgelaufen. Bitte melden Sie sich an, um fortzufahren.",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "Ungültiges Passwort",
     "lastAccess": "Letzter Zugriff",
     "manageRootTokenAndPassword": "Verwalten Sie das Root-Token und das Passwort sicher.",
+    "mfa": {
+      "copied": "In die Zwischenablage kopiert",
+      "description": "Schützen Sie die Anmeldung mit Passwort zusätzlich mit einem Einmalcode aus einer Authenticator-App.",
+      "disabled": {
+        "description": "Wenn sie aktiv ist, benötigen Sie bei der Anmeldung mit Passwort zusätzlich einen 6-stelligen Code aus einer Authenticator-App wie Aegis, Google Authenticator oder 1Password.",
+        "enable": "Zwei-Faktor-Authentifizierung aktivieren",
+        "title": "Zwei-Faktor-Authentifizierung ist deaktiviert"
+      },
+      "enabled": {
+        "codesLeft": "Unbenutzte Wiederherstellungscodes: {{remaining}}",
+        "codesLow": "Ihnen gehen die Wiederherstellungscodes aus. Deaktivieren Sie die Zwei-Faktor-Authentifizierung und aktivieren Sie sie erneut, um neue zu erhalten.",
+        "confirmDisable": "Deaktivieren",
+        "description": "Für die Anmeldung mit Passwort ist ein Code aus Ihrer Authenticator-App erforderlich.",
+        "disable": "Zwei-Faktor-Authentifizierung deaktivieren",
+        "disableCode": "Code aus Ihrer Authenticator-App oder ein Wiederherstellungscode",
+        "disabledToast": "Zwei-Faktor-Authentifizierung deaktiviert",
+        "title": "Zwei-Faktor-Authentifizierung ist aktiv"
+      },
+      "enrol": {
+        "code": "Code aus der App",
+        "confirm": "Bestätigen und aktivieren",
+        "copySecret": "Geheimschlüssel kopieren",
+        "description": "Scannen Sie den QR-Code mit Ihrer Authenticator-App oder geben Sie den Geheimschlüssel manuell ein. Geben Sie anschließend den 6-stelligen Code ein, den die App anzeigt.",
+        "qrAlt": "QR-Code für Ihre Authenticator-App",
+        "qrFailed": "Der QR-Code konnte nicht erzeugt werden. Geben Sie den Geheimschlüssel manuell ein.",
+        "secret": "Geheimschlüssel zur manuellen Eingabe",
+        "title": "Authenticator-App einrichten"
+      },
+      "errors": {
+        "enrolFailed": "Die Einrichtung konnte nicht gestartet werden",
+        "invalidCode": "Ungültiger Bestätigungscode. Bitte versuchen Sie es erneut.",
+        "tooManyAttempts": "Zu viele Versuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut."
+      },
+      "loadError": "Der Status der Zwei-Faktor-Authentifizierung konnte nicht geladen werden.",
+      "recovery": {
+        "copy": "Codes kopieren",
+        "description": "Mit jedem Code können Sie sich einmal anmelden, falls Sie keinen Zugriff mehr auf Ihre Authenticator-App haben.",
+        "done": "Fertig",
+        "download": "Als .txt herunterladen",
+        "leaveWarning": "Sie haben noch nicht bestätigt, dass Sie Ihre Wiederherstellungscodes gespeichert haben. Sie werden nicht erneut angezeigt. Trotzdem verlassen?",
+        "onlyOnce": "Diese Codes werden nur einmal angezeigt. Bewahren Sie sie jetzt an einem sicheren Ort auf.",
+        "saved": "Ich habe meine Wiederherstellungscodes sicher aufbewahrt",
+        "title": "Wiederherstellungscodes speichern"
+      },
+      "ssoNote": "Sie melden sich per Single Sign-On (SSO) an. Die Zwei-Faktor-Authentifizierung für Ihr Konto übernimmt Ihr Identitätsanbieter, daher kann sie hier nicht eingerichtet werden.",
+      "title": "Zwei-Faktor-Authentifizierung"
+    },
     "name": "Name",
     "noProxies": "Keine Proxys",
     "noProxiesDesc": "Sie haben noch keine Proxy-Konfigurationen hinzugefügt. Fügen Sie eine hinzu, um Proxy-Funktionen zu nutzen.",
@@ -1550,6 +1607,7 @@
       "apiTokens": "API-Token",
       "backup": "Sicherung",
       "configurations": "Systemkonfigurationen",
+      "mfa": "Zwei-Faktor-Authentifizierung",
       "profile": "Profil",
       "proxy": "Netzwerk-Proxy"
     },
@@ -1746,6 +1804,15 @@
       "placeholder": {
         "filter": "Benutzer suchen..."
       },
+      "reset_mfa": {
+        "button_confirm": "2FA zurücksetzen",
+        "confirm_msg": "Die Zwei-Faktor-Authentifizierung für den Benutzer {{name}} (ID: {{id}}) wird deaktiviert und seine Wiederherstellungscodes werden gelöscht. Bis er sie erneut einrichtet, genügt sein Passwort für die Anmeldung.",
+        "failed_title": "Zurücksetzen fehlgeschlagen",
+        "menu": "2FA zurücksetzen",
+        "success_desc": "Die Zwei-Faktor-Authentifizierung für \"{{name}}\" wurde deaktiviert.",
+        "success_title": "2FA zurückgesetzt",
+        "title": "Zwei-Faktor-Authentifizierung zurücksetzen"
+      },
       "schema": {
         "account_required": "Bitte wählen Sie ein Konto",
         "description_max": "Beschreibung darf maximal 256 Zeichen lang sein",
@@ -1839,6 +1906,7 @@
       "created_at": "Erstellt am",
       "email": "E-Mail-Adresse",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Rollen & Berechtigungen",
       "updated_at": "Aktualisiert am",
       "username": "Benutzername"
@@ -1847,6 +1915,7 @@
       "description": "Klicken Sie auf die Schaltfläche unten, um Ihren ersten Benutzer hinzuzufügen.",
       "title": "Keine Benutzer gefunden"
     },
+    "mfa_enabled": "Aktiv",
     "nav": {
       "api_tokens": "API-Token",
       "roles": "Rollen",

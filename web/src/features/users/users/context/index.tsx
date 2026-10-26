@@ -24,7 +24,7 @@
 import { User } from '@/api/users/api'
 import React from 'react'
 
-export type UserDialogType = 'add' | 'edit' | 'delete' | 'api-tokens'
+export type UserDialogType = 'add' | 'edit' | 'delete' | 'api-tokens' | 'mfa-reset'
 
 export interface UserContextType {
   open: UserDialogType | null

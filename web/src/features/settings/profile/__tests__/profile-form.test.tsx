@@ -43,6 +43,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     account_permissions: {},
     created_at: 0,
     updated_at: 0,
+    totp_enabled: false,
     ...overrides,
   }
 }

@@ -26,6 +26,9 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 import { formatDateTime } from '@/lib/utils'
 import { AuditEntry } from '@/api/audit/api'
 
+// Events that are also recorded when they fail, so their status is meaningful.
+const EVENTS_WITH_STATUS = new Set(['user.login', 'mfa.enabled', 'mfa.disabled'])
+
 export const getColumns = (
   t: TFunction,
 ): ColumnDef<DataTableFeatures, AuditEntry>[] => [
@@ -139,11 +142,11 @@ export const getColumns = (
         title={t('auditLog.columns.status', 'Status')}
       />
     ),
-    // `success` is only meaningful for login attempts; other events are always
-    // recorded on success, so a status badge there would be noise.
+    // Most events are only recorded on success, so a status badge there would
+    // be noise.
     cell: ({ row }) => {
       const { event_type, success } = row.original
-      if (event_type !== 'user.login') {
+      if (!EVENTS_WITH_STATUS.has(event_type)) {
         return <span className="text-muted-foreground">—</span>
       }
       return (

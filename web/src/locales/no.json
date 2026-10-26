@@ -541,6 +541,16 @@
     "login": "Logg inn",
     "loginFailed": "Innlogging mislyktes",
     "logout": "Logg ut",
+    "mfa": {
+      "back": "Tilbake til pålogging",
+      "challengeExpired": "Påloggingen har utløpt. Logg inn på nytt.",
+      "code": "Bekreftelseskode",
+      "codeFormat": "Skriv inn den 6-sifrede koden fra autentiseringsappen eller en gjenopprettingskode.",
+      "invalidCode": "Ugyldig bekreftelseskode. Prøv igjen.",
+      "prompt": "Skriv inn den 6-sifrede koden fra autentiseringsappen. Hvis du ikke lenger har tilgang til den, kan du i stedet skrive inn en av gjenopprettingskodene dine.",
+      "tooManyCodes": "For mange ugyldige koder. Logg inn på nytt.",
+      "verify": "Bekreft"
+    },
     "password": "Passord",
     "sessionExpired": "Sesjonen er utløpt!",
     "sessionExpiredDesc": "Sesjonen din er avsluttet på grunn av inaktivitet. Vennligst logg inn på nytt for å fortsette.",
@@ -1480,6 +1490,53 @@
     "invalidPassword": "Ugyldig passord",
     "lastAccess": "Siste tilgang",
     "manageRootTokenAndPassword": "Administrer root-token og passord sikkert.",
+    "mfa": {
+      "copied": "Kopiert til utklippstavlen",
+      "description": "Beskytt pålogging med passord med en engangskode fra en autentiseringsapp.",
+      "disabled": {
+        "description": "Når den er på, krever pålogging med passord også en 6-sifret kode fra en autentiseringsapp som Aegis, Google Authenticator eller 1Password.",
+        "enable": "Slå på tofaktorautentisering",
+        "title": "Tofaktorautentisering er av"
+      },
+      "enabled": {
+        "codesLeft": "Ubrukte gjenopprettingskoder: {{remaining}}",
+        "codesLow": "Du er i ferd med å gå tom for gjenopprettingskoder. Slå tofaktorautentisering av og på igjen for å få nye.",
+        "confirmDisable": "Slå av",
+        "description": "Pålogging med passord krever en kode fra autentiseringsappen din.",
+        "disable": "Slå av tofaktorautentisering",
+        "disableCode": "Kode fra autentiseringsappen eller en gjenopprettingskode",
+        "disabledToast": "Tofaktorautentisering slått av",
+        "title": "Tofaktorautentisering er på"
+      },
+      "enrol": {
+        "code": "Kode fra appen",
+        "confirm": "Bekreft og slå på",
+        "copySecret": "Kopier hemmelig nøkkel",
+        "description": "Skann QR-koden med autentiseringsappen, eller skriv inn den hemmelige nøkkelen manuelt. Skriv deretter inn den 6-sifrede koden appen viser.",
+        "qrAlt": "QR-kode for autentiseringsappen din",
+        "qrFailed": "QR-koden kunne ikke genereres. Skriv inn den hemmelige nøkkelen manuelt.",
+        "secret": "Hemmelig nøkkel for manuell inntasting",
+        "title": "Konfigurer autentiseringsappen din"
+      },
+      "errors": {
+        "enrolFailed": "Kunne ikke starte konfigurasjonen",
+        "invalidCode": "Ugyldig bekreftelseskode. Prøv igjen.",
+        "tooManyAttempts": "For mange forsøk. Vent noen minutter og prøv igjen."
+      },
+      "loadError": "Kunne ikke laste inn statusen for tofaktorautentisering.",
+      "recovery": {
+        "copy": "Kopier koder",
+        "description": "Hver kode lar deg logge inn én gang hvis du mister tilgangen til autentiseringsappen.",
+        "done": "Ferdig",
+        "download": "Last ned som .txt",
+        "leaveWarning": "Du har ikke bekreftet at du har lagret gjenopprettingskodene. De vises ikke igjen. Vil du forlate siden likevel?",
+        "onlyOnce": "Disse kodene vises bare én gang. Oppbevar dem på et trygt sted nå.",
+        "saved": "Jeg har lagret gjenopprettingskodene mine på et trygt sted",
+        "title": "Lagre gjenopprettingskodene dine"
+      },
+      "ssoNote": "Du logger inn med enkel pålogging (SSO). Tofaktorautentisering for kontoen din håndteres av identitetsleverandøren din, så den kan ikke konfigureres her.",
+      "title": "Tofaktorautentisering"
+    },
     "name": "Navn",
     "noProxies": "Ingen proxyer",
     "noProxiesDesc": "Du har ikke lagt til noen proxy-konfigurasjoner ennå. Legg til en for å begynne å bruke proxy-funksjoner.",
@@ -1550,6 +1607,7 @@
       "apiTokens": "API-tokener",
       "backup": "Sikkerhetskopi",
       "configurations": "Systemkonfigurasjoner",
+      "mfa": "Tofaktorautentisering",
       "profile": "Profil",
       "proxy": "Nettverksproxy"
     },
@@ -1740,6 +1798,15 @@
       "placeholder": {
         "filter": "Søk etter brukere..."
       },
+      "reset_mfa": {
+        "button_confirm": "Tilbakestill 2FA",
+        "confirm_msg": "Tofaktorautentisering for brukeren {{name}} (ID: {{id}}) slås av, og gjenopprettingskodene slettes. Inntil den konfigureres på nytt, holder passordet for å logge inn.",
+        "failed_title": "Tilbakestilling mislyktes",
+        "menu": "Tilbakestill 2FA",
+        "success_desc": "Tofaktorautentisering for «{{name}}» er slått av.",
+        "success_title": "2FA tilbakestilt",
+        "title": "Tilbakestill tofaktorautentisering"
+      },
       "schema": {
         "account_required": "Vennligst velg en konto",
         "description_max": "Beskrivelse maks 256 tegn",
@@ -1833,6 +1900,7 @@
       "created_at": "Opprettet",
       "email": "E-postadresse",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roller og tillatelser",
       "updated_at": "Oppdatert",
       "username": "Brukernavn"
@@ -1841,6 +1909,7 @@
       "description": "Klikk på knappen nedenfor for å legge til din første bruker.",
       "title": "Ingen brukere funnet"
     },
+    "mfa_enabled": "På",
     "nav": {
       "api_tokens": "API-tokens",
       "roles": "Roller",
