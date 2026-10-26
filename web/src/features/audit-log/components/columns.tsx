@@ -27,7 +27,12 @@ import { formatDateTime } from '@/lib/utils'
 import { AuditEntry } from '@/api/audit/api'
 
 // Events that are also recorded when they fail, so their status is meaningful.
-const EVENTS_WITH_STATUS = new Set(['user.login', 'mfa.enabled', 'mfa.disabled'])
+const EVENTS_WITH_STATUS = new Set([
+  'user.login',
+  'mfa.enabled',
+  'mfa.disabled',
+  'email.repaired',
+])
 
 export const getColumns = (
   t: TFunction,
