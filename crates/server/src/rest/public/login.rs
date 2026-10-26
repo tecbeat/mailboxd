@@ -97,7 +97,9 @@ pub async fn login(payload: Json<LoginPayload>, req: &Request) -> Response {
 
 /// Run `authenticate` on the blocking pool. A task that fails to complete
 /// (e.g. panics) becomes a 500 response.
-async fn run_authentication<F>(authenticate: F) -> Result<MailboxdResult<LoginResult>, Box<Response>>
+async fn run_authentication<F>(
+    authenticate: F,
+) -> Result<MailboxdResult<LoginResult>, Box<Response>>
 where
     F: FnOnce() -> MailboxdResult<LoginResult> + Send + 'static,
 {

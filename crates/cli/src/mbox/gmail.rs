@@ -34,6 +34,7 @@ use std::sync::LazyLock;
 /// confirmed `Archivés`/`Envoyé`. Extend or correct entries as real exports
 /// confirm — only ever add *system* labels here, never user-created ones
 /// (those are never localized).
+#[rustfmt::skip]
 static STATUS_LABELS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
     [
         // English (canonical Takeout tokens)
@@ -82,6 +83,7 @@ static STATUS_LABELS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
 /// Gmail's generic location folders: real folders, but never a "business"
 /// destination. Used only to prefer a custom label over them when several
 /// labels remain.
+#[rustfmt::skip]
 static GENERIC_LOCATION_LABELS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
     [
         // English

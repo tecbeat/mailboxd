@@ -1439,7 +1439,10 @@ To: recipient@example.com\r\n\r\n";
     #[test]
     fn parse_message_id_all_lowercase_header_name() {
         let header = b"message-id: <low@example.com>\r\n";
-        assert_eq!(parse_message_id_header(header), Some("low@example.com".into()));
+        assert_eq!(
+            parse_message_id_header(header),
+            Some("low@example.com".into())
+        );
     }
 
     #[test]
@@ -1730,7 +1733,10 @@ To: recipient@example.com\r\n\r\n";
         let handle = MockImapServer::new()
             .respond("LOGIN", "{TAG} OK LOGIN done\r\n")
             .respond("EXAMINE", examine_response("INBOX", 2, 42, 3))
-            .respond("(UID RFC822.SIZE)", uid_fetch_size_response(&[(1, 5_000), (2, 9_000)]))
+            .respond(
+                "(UID RFC822.SIZE)",
+                uid_fetch_size_response(&[(1, 5_000), (2, 9_000)]),
+            )
             .start()
             .await;
         let mut session = mock_session(&handle).await;

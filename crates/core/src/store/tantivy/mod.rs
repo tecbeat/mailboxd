@@ -129,7 +129,9 @@ mod commit_retry_tests {
     #[test]
     fn io_and_open_write_errors_are_retried() {
         let io = std::io::Error::other("locked");
-        assert!(is_retryable_commit_error(&TantivyError::IoError(Arc::new(io))));
+        assert!(is_retryable_commit_error(&TantivyError::IoError(Arc::new(
+            io
+        ))));
         assert!(is_retryable_commit_error(&TantivyError::OpenWriteError(
             OpenWriteError::FileAlreadyExists(PathBuf::from("meta.json"))
         )));

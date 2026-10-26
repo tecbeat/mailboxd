@@ -128,7 +128,10 @@ impl MockImapServer {
             "* CAPABILITY IMAP4rev1\r\n{TAG} OK CAPABILITY completed\r\n",
         )
         .respond("LOGIN", "{TAG} OK LOGIN completed\r\n")
-        .respond("LOGOUT", "* BYE logging out\r\n{TAG} OK LOGOUT completed\r\n")
+        .respond(
+            "LOGOUT",
+            "* BYE logging out\r\n{TAG} OK LOGOUT completed\r\n",
+        )
     }
 
     fn step(mut self, pattern: impl Into<String>, action: Action, times: Option<usize>) -> Self {
@@ -253,12 +256,7 @@ impl MockImapServerHandle {
 fn claim(remaining: &AtomicUsize) -> bool {
     let mut current = remaining.load(Ordering::SeqCst);
     while current > 0 {
-        match remaining.compare_exchange(
-            current,
-            current - 1,
-            Ordering::SeqCst,
-            Ordering::SeqCst,
-        ) {
+        match remaining.compare_exchange(current, current - 1, Ordering::SeqCst, Ordering::SeqCst) {
             Ok(_) => return true,
             Err(actual) => current = actual,
         }
@@ -509,7 +507,10 @@ impl MockImapServer {
             .iter()
             .map(|m| (m.uid, format!("<{}>", m.message_id)))
             .collect();
-        let headers: Vec<(u32, &str)> = headers.iter().map(|(uid, id)| (*uid, id.as_str())).collect();
+        let headers: Vec<(u32, &str)> = headers
+            .iter()
+            .map(|(uid, id)| (*uid, id.as_str()))
+            .collect();
         let bodies: Vec<(u32, &[u8])> = mails.iter().map(|m| (m.uid, m.body.as_slice())).collect();
         let exists = mails.len() as u32;
         let uid_next = uids.iter().max().copied().unwrap_or(0) + 1;
@@ -518,7 +519,10 @@ impl MockImapServer {
                 "LIST",
                 "* LIST (\\HasNoChildren) \"/\" INBOX\r\n{TAG} OK LIST completed\r\n",
             )
-            .respond("STATUS", status_response("INBOX", exists, 0, uid_next, Some(42)))
+            .respond(
+                "STATUS",
+                status_response("INBOX", exists, 0, uid_next, Some(42)),
+            )
             .respond("EXAMINE", examine_response("INBOX", exists, 42, uid_next))
             .respond("SEARCH", uid_search_response(&uids))
             .respond("HEADER.FIELDS", uid_fetch_message_id_response(&message_ids))
