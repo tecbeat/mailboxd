@@ -17,7 +17,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//! `POST /api/v1/delete-messages` against a stored message.
+//! `POST /api/v1/repair-message` and `POST /api/v1/delete-messages` against a
+//! stored message.
 //!
 //! Runs as its own test binary: the index writer is a background task bound
 //! to the runtime that first touches it, so storing a message and calling
@@ -148,6 +149,33 @@ fn delete_messages_reports_the_number_of_deleted_messages() {
             .with(ApiGuard)
             .with(ErrorCapture);
         let cli = TestClient::new(api).default_header("X-Forwarded-For", "127.0.0.1");
+        let auth = format!("Bearer {token}");
+
+        // An intact message has nothing to repair; such repairs are not
+        // recorded in the repair history.
+        let resp = cli
+            .post(format!("/api/v1/repair-message/{ACCOUNT_ID}/{envelope_id}"))
+            .header("Authorization", &auth)
+            .send()
+            .await;
+        resp.assert_status_is_ok();
+        let report: serde_json::Value = resp.json().await.value().deserialize();
+        assert_eq!(
+            (&report["status"], &report["envelope_id"]),
+            (
+                &serde_json::json!("complete"),
+                &serde_json::json!(envelope_id)
+            )
+        );
+        let resp = cli
+            .get("/api/v1/repair-reports")
+            .header("Authorization", &auth)
+            .query("account_id", &ACCOUNT_ID)
+            .send()
+            .await;
+        resp.assert_status_is_ok();
+        resp.assert_json(serde_json::json!([])).await;
+
         let delete = || {
             cli.post("/api/v1/delete-messages")
                 .header("Authorization", format!("Bearer {token}"))

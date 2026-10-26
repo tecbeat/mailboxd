@@ -216,3 +216,20 @@ async fn protected_endpoint_requires_auth() {
         .await;
     resp.assert_status_is_ok();
 }
+
+/// Log in as `username` and return the access token.
+pub async fn login(username: &str, password: &str) -> String {
+    let route = poem::Route::new().at("/api/login", poem::post(crate::rest::public::login::login));
+    let resp = poem::test::TestClient::new(route)
+        .post("/api/login")
+        .body_json(&LoginPayload {
+            username: username.into(),
+            password: password.into(),
+        })
+        .send()
+        .await;
+    resp.assert_status_is_ok();
+    let result: LoginResult = resp.json().await.value().deserialize();
+    assert!(result.success, "login as {username} failed");
+    result.access_token.unwrap()
+}

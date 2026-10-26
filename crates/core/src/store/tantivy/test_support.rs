@@ -76,6 +76,7 @@ pub(crate) fn init_globals() {
             .unwrap()
     });
     let _guard = runtime.enter();
+    LazyLock::force(&DB_MANAGER);
     LazyLock::force(&BLOB_MANAGER);
     LazyLock::force(&ENVELOPE_MANAGER);
     LazyLock::force(&ATTACHMENT_MANAGER);
@@ -172,10 +173,13 @@ pub(crate) async fn commit_documents(manager: &IndexManager, docs: Vec<TantivyDo
 /// Store an EML blob.
 pub(crate) async fn store_email_blob(content_hash: &str, eml: &[u8]) {
     init_globals();
-    BLOB_MANAGER.store_now(DetachedEmail {
-        email: (content_hash.to_string(), Bytes::copy_from_slice(eml)),
-        attachments: None,
-    });
+    BLOB_MANAGER
+        .store(DetachedEmail {
+            email: (content_hash.to_string(), Bytes::copy_from_slice(eml)),
+            attachments: None,
+        })
+        .await
+        .unwrap();
     assert!(
         BLOB_MANAGER.get_email(content_hash).unwrap().is_some(),
         "blob {content_hash} was not stored"

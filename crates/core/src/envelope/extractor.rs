@@ -911,12 +911,12 @@ pub async fn reattach_eml_content_self_healing(
 
 /// Fetches one message from IMAP and re-stores its detached blob.
 ///
-/// On success the freshly fetched raw RFC822 body is returned; it is also
-/// queued (in detached form) into the blob store so subsequent requests hit the
-/// cache. Fails if the message cannot be fetched, or if the fetched bytes do
-/// not match the archived `content_hash` (the server-side message no longer
-/// matches what Mailboxd archived, so it cannot be treated as a recovery of that
-/// blob).
+/// On success the freshly fetched raw RFC822 body is returned after its
+/// detached form (stripped EML + attachments) has been written to the blob
+/// store. Fails if the message cannot be fetched, or if no fetched message
+/// matches the archived `content_hash` (the server-side message no longer
+/// matches what mailboxd archived, so it cannot be treated as a recovery of
+/// that blob).
 async fn recover_message_blob(envelope: &Envelope) -> MailboxdResult<Bytes> {
     let mailbox =
         MailBox::find_mailbox(envelope.account_id, envelope.mailbox_id)?.ok_or_else(|| {
@@ -930,29 +930,10 @@ async fn recover_message_blob(envelope: &Envelope) -> MailboxdResult<Bytes> {
         })?;
 
     let mut session = ImapExecutor::create_connection(envelope.account_id).await?;
-    let result = ImapExecutor::fetch_single_message_body(
-        &mut session,
-        &mailbox.encoded_name(),
-        envelope.uid,
-    )
-    .await;
+    let result = fetch_archived_body(&mut session, &mailbox.encoded_name(), envelope).await;
     session.logout().await.ok();
     let raw_body = result?;
 
-    let fetched_hash = compute_content_hash(&raw_body);
-    if fetched_hash != envelope.content_hash {
-        return Err(raise_error!(
-            format!(
-                "Fetched message does not match archived content: expected content_hash={} got={}",
-                envelope.content_hash, fetched_hash
-            ),
-            ErrorCode::ImapUnexpectedResult
-        ));
-    }
-
-    // Re-create the detached blob (stripped EML + attachments) so the missing
-    // blob is repopulated for future requests. The detached EML is queued under
-    // `fetched_hash`, which equals `envelope.content_hash`.
     let message = MessageParser::new()
         .parse(raw_body.as_slice())
         .ok_or_else(|| {
@@ -961,17 +942,320 @@ async fn recover_message_blob(envelope: &Envelope) -> MailboxdResult<Bytes> {
                 ErrorCode::InternalError
             )
         })?;
-    detach_and_store_attachments(
-        &raw_body,
-        &message,
-        &fetched_hash,
-        envelope.account_id,
-        envelope.mailbox_id,
-    )
-    .await;
+    // The attachment metadata is still in the index, so no text extraction:
+    // only the blobs are written again. `fetch_archived_body` only returns
+    // bytes that hash to the archived content hash, so the detached EML is
+    // stored under the envelope's own hash.
+    let detached = strip_attachment_bodies(&raw_body, &message, None);
+    BLOB_MANAGER
+        .store(DetachedEmail {
+            email: (
+                envelope.content_hash.clone(),
+                Bytes::from(detached.stripped_eml),
+            ),
+            attachments: Some(detached.blobs),
+        })
+        .await?;
 
     Ok(Bytes::from(raw_body))
 }
+
+/// Fetches the archived message from IMAP and returns it only if its content
+/// hash equals the archived `content_hash`. Tries the stored UID first, then
+/// the UIDs returned by `UID SEARCH HEADER Message-ID` (the UID changed or the
+/// message moved within the folder).
+async fn fetch_archived_body(
+    session: &mut async_imap::Session<Box<dyn crate::imap::session::SessionStream>>,
+    encoded_mailbox: &str,
+    envelope: &Envelope,
+) -> MailboxdResult<Vec<u8>> {
+    let fetched =
+        ImapExecutor::fetch_single_message_body(session, encoded_mailbox, envelope.uid).await;
+    let mut last_err = match fetched {
+        Ok(body) if compute_content_hash(&body) == envelope.content_hash => return Ok(body),
+        Ok(body) => raise_error!(
+            format!(
+                "Fetched message does not match archived content: \
+                 expected content_hash={} got={}",
+                envelope.content_hash,
+                compute_content_hash(&body)
+            ),
+            ErrorCode::ImapUnexpectedResult
+        ),
+        Err(e) => e,
+    };
+
+    // `uid_search` runs against the mailbox the fetch above selected, so the
+    // search and the fetches below stay in the same folder.
+    let Some(message_id) = searchable_message_id(&envelope.message_id) else {
+        return Err(last_err);
+    };
+    let uids = session
+        .uid_search(format!("HEADER Message-ID \"{}\"", message_id))
+        .await
+        .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::ImapUnexpectedResult))?;
+    for uid in bounded_message_id_candidates(uids, envelope.uid) {
+        match ImapExecutor::fetch_single_message_body(session, encoded_mailbox, uid).await {
+            Ok(body) if recovered_body_matches(&body, envelope) => return Ok(body),
+            Ok(_) => {}
+            Err(e) => last_err = e,
+        }
+    }
+    Err(last_err)
+}
+
+/// Suffixes of the ids [`generate_message_id`] gives messages archived
+/// without a `Message-ID` header, including those archived by Bichon.
+const SYNTHETIC_MESSAGE_ID_SUFFIXES: [&str; 2] = ["@mailboxd>", "@bichon>"];
+
+/// The trimmed Message-ID to search for, or `None` when a `UID SEARCH HEADER
+/// Message-ID` cannot match: a synthetic id exists on no server, and an id
+/// with quotes, backslashes or line breaks would break out of the IMAP quoted
+/// string.
+fn searchable_message_id(message_id: &str) -> Option<&str> {
+    let message_id = message_id.trim();
+    if message_id.is_empty()
+        || SYNTHETIC_MESSAGE_ID_SUFFIXES
+            .iter()
+            .any(|suffix| message_id.ends_with(suffix))
+        || message_id.contains(['"', '\\', '\r', '\n'])
+    {
+        return None;
+    }
+    Some(message_id)
+}
+
+/// Upper bound on the Message-ID search hits that are fetched.
+const MAX_MESSAGE_ID_CANDIDATES: usize = 32;
+
+/// The search hits to try, without the stored UID (already tried), lowest
+/// first and at most [`MAX_MESSAGE_ID_CANDIDATES`].
+fn bounded_message_id_candidates<I>(uids: I, stored_uid: u32) -> Vec<u32>
+where
+    I: IntoIterator<Item = u32>,
+{
+    let mut candidates: Vec<u32> = uids.into_iter().filter(|&uid| uid != stored_uid).collect();
+    candidates.sort_unstable();
+    candidates.truncate(MAX_MESSAGE_ID_CANDIDATES);
+    candidates
+}
+
+/// Whether a message found by Message-ID is the archived one: same content
+/// hash and, when the archive has one, the same Message-ID.
+fn recovered_body_matches(body: &[u8], envelope: &Envelope) -> bool {
+    if compute_content_hash(body) != envelope.content_hash {
+        return false;
+    }
+    if envelope.message_id.is_empty() {
+        return true;
+    }
+    MessageParser::new()
+        .parse(body)
+        .and_then(|message| message.message_id().map(String::from))
+        .is_some_and(|message_id| message_id == envelope.message_id)
+}
+
+/// [`BlobRepairReport::status`] of a record that was already intact.
+pub const STATUS_COMPLETE: &str = "complete";
+/// [`BlobRepairReport::status`] of a record that is intact after the repair.
+pub const STATUS_REPAIRED: &str = "repaired";
+/// [`BlobRepairReport::status`] of a record that is still broken after a
+/// verified fetch.
+pub const STATUS_PARTIAL: &str = "partial";
+/// [`BlobRepairReport::status`] of a record that could not be repaired.
+pub const STATUS_FAILED: &str = "failed";
+
+/// Outcome of [`repair_envelope_blobs`].
+#[derive(Clone, Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
+pub struct BlobRepairReport {
+    pub envelope_id: String,
+    /// Account that owns the record.
+    pub account_id: u64,
+    /// Mailbox the record lives in.
+    pub mailbox_id: u64,
+    /// Subject of the record, for display.
+    pub subject: String,
+    /// RFC `Message-ID` of the record, for display.
+    pub message_id: String,
+    /// `complete` (nothing missing), `repaired`, `partial` or `failed`.
+    pub status: String,
+    /// Whether the email blob was missing before the repair.
+    pub email_missing_before: bool,
+    /// Whether the email blob is still missing after the repair.
+    pub email_missing_after: bool,
+    /// Attachment hashes to suspect before the repair. Best-effort naming
+    /// only: the verdict is [`Self::status`], so this can be empty while the
+    /// record is broken (see [`known_placeholder_hashes`]).
+    pub missing_before: Vec<String>,
+    /// Attachment hashes to suspect after the repair. Same caveat as
+    /// [`Self::missing_before`].
+    pub missing_after: Vec<String>,
+    pub error: Option<String>,
+}
+
+/// A record's blob store state, from [`diagnose_blobs`].
+struct BlobDiagnosis {
+    /// The email blob is absent from the store.
+    email_missing: bool,
+    /// The archived body cannot be rebuilt byte for byte. This, not
+    /// [`Self::unresolved`], decides whether a repair is attempted.
+    broken: bool,
+    /// Best-effort naming of the attachment hashes to suspect.
+    unresolved: Vec<String>,
+}
+
+/// Inspects a record's blob store state.
+///
+/// An integrity check, not a presence check: splicing every stored blob back
+/// into the detached EML must reproduce the exact body the envelope's
+/// `content_hash` was taken from. Any gap (a missing attachment blob, a
+/// placeholder the metadata cannot account for, a blob under an unexpected
+/// key) changes the hash. It reuses [`reattach_parts`] so it cannot drift
+/// from the read path.
+fn diagnose_blobs(
+    envelope: &Envelope,
+    attachments: Option<&[AttachmentInfo]>,
+) -> MailboxdResult<BlobDiagnosis> {
+    let Some(eml) = BLOB_MANAGER.get_email(&envelope.content_hash)? else {
+        return Ok(BlobDiagnosis {
+            email_missing: true,
+            broken: true,
+            unresolved: Vec::new(),
+        });
+    };
+
+    let attachments = attachments.unwrap_or_default();
+    let restored = reattach_parts(eml.to_vec(), attachments.to_vec(), |hash| {
+        BLOB_MANAGER.get_attachment(hash)
+    })?;
+    let intact = compute_content_hash(&restored) == envelope.content_hash;
+    Ok(BlobDiagnosis {
+        email_missing: false,
+        broken: !intact,
+        unresolved: if intact {
+            Vec::new()
+        } else {
+            known_placeholder_hashes(&eml, attachments)
+        },
+    })
+}
+
+/// Content hashes referenced by the placeholders in a detached EML, each
+/// once, in order of appearance.
+fn placeholder_hashes(detached_eml: &[u8]) -> Vec<String> {
+    let prefix = DETACH_PLACEHOLDER_PREFIX.as_bytes();
+    let mut hashes = Vec::new();
+    let mut rest = detached_eml;
+    while let Some(pos) = rest.windows(prefix.len()).position(|w| w == prefix) {
+        rest = &rest[pos + prefix.len()..];
+        let Some(end) = rest.windows(2).position(|w| w == b">>") else {
+            break;
+        };
+        if let Ok(h) = std::str::from_utf8(&rest[..end]) {
+            if !hashes.iter().any(|x| x == h) {
+                hashes.push(h.to_string());
+            }
+        }
+        rest = &rest[end + 2..];
+    }
+    hashes
+}
+
+/// The placeholders in a detached EML that the record's own attachment
+/// metadata accounts for. A placeholder carries the storage hash (the raw
+/// MIME key for current records, the decoded hash for legacy ones), so both
+/// are matched.
+///
+/// A naming aid, never a verdict: a placeholder the metadata does not list is
+/// left out, so a literal placeholder in a message body is never named as a
+/// missing attachment.
+fn known_placeholder_hashes(detached_eml: &[u8], attachments: &[AttachmentInfo]) -> Vec<String> {
+    let indexed = attachments
+        .iter()
+        .flat_map(|item| [item.storage_hash(), item.content_hash.as_str()])
+        .collect::<std::collections::HashSet<_>>();
+    placeholder_hashes(detached_eml)
+        .into_iter()
+        .filter(|hash| indexed.contains(hash.as_str()))
+        .collect()
+}
+
+/// Re-fetches one archived message from IMAP and restores its missing email
+/// or attachment blobs in place: the envelope, its id and its index entry are
+/// kept, so no duplicate is created. Nothing is written unless the fetched
+/// message hashes to the archived `content_hash`.
+///
+/// Only missing blobs can be healed. A blob that is present but corrupt stays
+/// `partial` however often the repair is retried, because the blob store
+/// keeps the first write for a key.
+pub async fn repair_envelope_blobs(
+    account_id: u64,
+    envelope_id: &str,
+) -> MailboxdResult<BlobRepairReport> {
+    let envelope_with_attachments = ENVELOPE_MANAGER
+        .get_envelope_by_id(account_id, envelope_id)?
+        .ok_or_else(|| {
+            raise_error!(
+                format!("Envelope not found: account_id={account_id} envelope_id={envelope_id}"),
+                ErrorCode::ResourceNotFound
+            )
+        })?;
+    let attachments = envelope_with_attachments.attachments;
+    let envelope = envelope_with_attachments.envelope;
+
+    let mut report = BlobRepairReport {
+        envelope_id: envelope_id.to_string(),
+        account_id: envelope.account_id,
+        mailbox_id: envelope.mailbox_id,
+        subject: envelope.subject.clone(),
+        message_id: envelope.message_id.clone(),
+        ..Default::default()
+    };
+
+    // Without readable attachment metadata the record's parts cannot be
+    // enumerated, so it can neither be verified nor healed. The read path
+    // rejects the same condition.
+    let actual_count = attachments.as_ref().map_or(0, Vec::len);
+    if envelope.attachment_count != actual_count {
+        report.status = STATUS_FAILED.into();
+        report.error = Some(format!(
+            "Consistency check failed: envelope.attachment_count ({}) does not match attachments.len ({})",
+            envelope.attachment_count, actual_count
+        ));
+        return Ok(report);
+    }
+
+    let before = diagnose_blobs(&envelope, attachments.as_deref())?;
+    report.email_missing_before = before.email_missing;
+    report.email_missing_after = before.email_missing;
+    report.missing_before = before.unresolved;
+    if !before.broken {
+        report.status = STATUS_COMPLETE.into();
+        return Ok(report);
+    }
+    if let Err(e) = recover_message_blob(&envelope).await {
+        report.status = STATUS_FAILED.into();
+        report.error = Some(e.to_string());
+        // Nothing was written, so the state after is the state before.
+        report.missing_after = report.missing_before.clone();
+        return Ok(report);
+    }
+    let after = diagnose_blobs(&envelope, attachments.as_deref())?;
+    report.email_missing_after = after.email_missing;
+    report.missing_after = after.unresolved;
+    report.status = if after.broken {
+        STATUS_PARTIAL
+    } else {
+        STATUS_REPAIRED
+    }
+    .into();
+    Ok(report)
+}
+
+#[cfg(test)]
+#[path = "extractor_repair_tests.rs"]
+mod repair_tests;
 
 #[cfg(test)]
 mod test {

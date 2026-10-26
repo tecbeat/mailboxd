@@ -8,7 +8,7 @@
 use poem::test::TestClient;
 use serde::{Deserialize, Serialize};
 
-use super::{admin_token, build_api_route, setup};
+use super::{admin_token, build_api_route, login, setup};
 
 fn api_client(route: impl poem::Endpoint) -> TestClient<impl poem::Endpoint> {
     TestClient::new(route).default_header("X-Forwarded-For", "127.0.0.1")
@@ -161,22 +161,6 @@ async fn cannot_delete_default_admin() {
 #[derive(Debug, Deserialize)]
 struct Notifications {
     default_admin_password: bool,
-}
-
-async fn login(username: &str, password: &str) -> String {
-    let route = poem::Route::new().at("/api/login", poem::post(crate::rest::public::login::login));
-    let resp = TestClient::new(route)
-        .post("/api/login")
-        .body_json(&super::LoginPayload {
-            username: username.into(),
-            password: password.into(),
-        })
-        .send()
-        .await;
-    resp.assert_status_is_ok();
-    let result: super::LoginResult = resp.json().await.value().deserialize();
-    assert!(result.success, "login as {username} failed");
-    result.access_token.unwrap()
 }
 
 /// The test admin keeps the initial password, so it is reminded; a regular

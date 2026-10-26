@@ -74,6 +74,13 @@ pub enum Event {
         email_id: String,
         user: String,
     },
+    /// A blob repair that found something to repair. `status` is the
+    /// repair report's verdict (`repaired`, `partial` or `failed`).
+    EmailRepaired {
+        email_id: String,
+        user: String,
+        status: String,
+    },
     AttachmentDownloaded {
         email_id: String,
         content_hash: String,

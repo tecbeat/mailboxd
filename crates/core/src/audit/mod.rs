@@ -161,6 +161,21 @@ impl AuditEntry {
             Event::EmailDeleted { email_id, user } => {
                 Self::build("email.deleted", user, Some(email_id), None, None, true)
             }
+            Event::EmailRepaired {
+                email_id,
+                user,
+                status,
+            } => {
+                let success = status == crate::envelope::extractor::STATUS_REPAIRED;
+                Self::build(
+                    "email.repaired",
+                    user,
+                    Some(email_id),
+                    None,
+                    Some(status),
+                    success,
+                )
+            }
             Event::AttachmentDownloaded {
                 email_id,
                 content_hash,
@@ -265,6 +280,30 @@ mod tests {
         assert_eq!(entry.event_type, "attachment.downloaded");
         assert_eq!(entry.target.as_deref(), Some("e1"));
         assert_eq!(entry.detail.as_deref(), Some("abc123"));
+    }
+
+    #[test]
+    fn maps_email_repair_status_and_success() {
+        let repaired = AuditEntry::from_event(Event::EmailRepaired {
+            email_id: "7/e1".into(),
+            user: "dave".into(),
+            status: "repaired".into(),
+        });
+        assert_eq!(repaired.event_type, "email.repaired");
+        assert_eq!(repaired.actor, "dave");
+        assert_eq!(repaired.target.as_deref(), Some("7/e1"));
+        assert_eq!(repaired.detail.as_deref(), Some("repaired"));
+        assert!(repaired.success);
+
+        for status in ["partial", "failed"] {
+            let entry = AuditEntry::from_event(Event::EmailRepaired {
+                email_id: "7/e1".into(),
+                user: "dave".into(),
+                status: status.into(),
+            });
+            assert_eq!(entry.detail.as_deref(), Some(status));
+            assert!(!entry.success, "{status} must not be recorded as a success");
+        }
     }
 
     #[test]

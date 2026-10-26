@@ -191,11 +191,19 @@ impl BlobManager {
         }
     }
 
-    /// Writes `email` right away instead of through the background writer,
-    /// which dies with the test runtime that first touched the manager.
-    #[cfg(test)]
-    pub(crate) fn store_now(&self, email: DetachedEmail) {
-        Self::process_detached_email(email, &self.engine);
+    /// Writes `email` and returns once it is stored, bypassing the background
+    /// writer. For a single write that must be readable right afterwards,
+    /// such as a repair. Like [`Self::queue`], existing blobs are kept.
+    pub async fn store(&self, email: DetachedEmail) -> MailboxdResult<()> {
+        let engine = Arc::clone(&self.engine);
+        task::spawn_blocking(move || Self::process_detached_email(email, &engine))
+            .await
+            .map_err(|e| {
+                raise_error!(
+                    format!("blob write task failed: {e:#?}"),
+                    ErrorCode::InternalError
+                )
+            })
     }
 
     pub async fn queue(&self, email: DetachedEmail) {
