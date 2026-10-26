@@ -33,7 +33,7 @@ use crate::{
     envelope::extractor::{extract_envelope_from_eml, ExtractOutcome},
     error::{code::ErrorCode, MailboxdResult},
     raise_error,
-    settings::dir::DATA_DIR_MANAGER,
+    settings::dir::{available_space, DATA_DIR_MANAGER},
     utils::create_hash,
 };
 
@@ -244,19 +244,9 @@ pub fn update_progress(import_id: &str, progress: ImportProgress) {
 }
 
 /// Check free disk space (in bytes) on the temp directory's filesystem.
+/// Reports plenty of space if the file system cannot be determined.
 pub fn check_temp_disk_space() -> MailboxdResult<u64> {
-    use sysinfo::Disks;
-    let disks = Disks::new_with_refreshed_list();
-    let temp_path = &DATA_DIR_MANAGER.temp_dir;
-    // Use the canonical path so we can match mount points
-    let canonical = std::fs::canonicalize(temp_path).unwrap_or_else(|_| temp_path.clone());
-    for disk in disks.list() {
-        if canonical.starts_with(disk.mount_point()) {
-            return Ok(disk.available_space());
-        }
-    }
-    // Fallback: if we can't find the mount point, report plenty of space
-    Ok(u64::MAX)
+    Ok(available_space(&DATA_DIR_MANAGER.temp_dir))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

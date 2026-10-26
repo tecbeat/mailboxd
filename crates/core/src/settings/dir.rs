@@ -115,15 +115,23 @@ pub fn available_space(dir: &Path) -> u64 {
     use sysinfo::Disks;
     let canonical = std::fs::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf());
     let disks = Disks::new_with_refreshed_list();
-    // The longest mount point holding the path, not merely the first: `/`
-    // holds every path.
-    disks
-        .list()
-        .iter()
-        .filter(|disk| canonical.starts_with(disk.mount_point()))
-        .max_by_key(|disk| disk.mount_point().components().count())
-        .map(|disk| disk.available_space())
-        .unwrap_or(u64::MAX)
+    space_on(
+        &canonical,
+        disks
+            .list()
+            .iter()
+            .map(|disk| (disk.mount_point(), disk.available_space())),
+    )
+    .unwrap_or(u64::MAX)
+}
+
+/// Free bytes of the most specific of `mounts` holding `path`, not merely
+/// the first: `/` holds every path.
+fn space_on<'a>(path: &Path, mounts: impl Iterator<Item = (&'a Path, u64)>) -> Option<u64> {
+    mounts
+        .filter(|(mount, _)| path.starts_with(mount))
+        .max_by_key(|(mount, _)| mount.components().count())
+        .map(|(_, space)| space)
 }
 
 impl DataDirManager {
@@ -165,6 +173,24 @@ mod tests {
             Path::new("/data/mailboxd-indices/attachment_metadata")
         );
         assert_eq!(dirs.blobs_dir, Path::new("/data/mailboxd-storage/blobs"));
+    }
+
+    #[test]
+    fn space_comes_from_the_most_specific_mount() {
+        let mounts = [
+            (Path::new("/"), 1),
+            (Path::new("/data"), 2),
+            (Path::new("/data/tmp"), 3),
+            (Path::new("/database"), 4),
+        ];
+        let space = |path: &str| space_on(Path::new(path), mounts.iter().copied());
+        assert_eq!(space("/data/tmp/import"), Some(3));
+        assert_eq!(space("/data/mailboxd"), Some(2));
+        assert_eq!(space("/srv"), Some(1));
+        assert_eq!(
+            space_on(Path::new("/srv"), mounts[1..].iter().copied()),
+            None
+        );
     }
 
     #[test]
