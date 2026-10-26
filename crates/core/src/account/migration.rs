@@ -990,4 +990,48 @@ mod tests {
         };
         assert!(rules.validate().is_err());
     }
+
+    // ── minimal_list ────────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn minimal_list_reports_the_imap_auth_type() {
+        use crate::account::entity::{AuthConfig, AuthType};
+        use crate::database::upsert_impl;
+
+        // Ids used by no other test.
+        let oauth_account = Account {
+            id: 52_700_000_000_001,
+            email: "minimal-oauth@example.com".into(),
+            imap: Some(ImapConfig {
+                auth: AuthConfig {
+                    auth_type: AuthType::OAuth2,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let nosync_account = Account {
+            id: 52_700_000_000_002,
+            email: "minimal-nosync@example.com".into(),
+            account_type: AccountType::NoSync,
+            imap: None,
+            ..Default::default()
+        };
+        // The database survives between runs.
+        upsert_impl(DB_MANAGER.db(), oauth_account).unwrap();
+        upsert_impl(DB_MANAGER.db(), nosync_account).unwrap();
+
+        let listed = Account::minimal_list(false).unwrap();
+        let auth_type_of = |id: u64| {
+            listed
+                .iter()
+                .find(|a| a.id == id)
+                .expect("account is listed")
+                .auth_type
+                .clone()
+        };
+        assert_eq!(auth_type_of(52_700_000_000_001), Some(AuthType::OAuth2));
+        assert_eq!(auth_type_of(52_700_000_000_002), None);
+    }
 }

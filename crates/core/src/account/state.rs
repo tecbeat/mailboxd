@@ -653,4 +653,52 @@ mod tests {
             )
         );
     }
+
+    fn progress(account_id: u64, folder: &str, status: FolderStatus) {
+        DownloadState::update_folder_progress(account_id, folder.into(), 1, 1, status, None)
+            .unwrap();
+    }
+
+    fn finished_session(account_id: u64) -> DownloadSession {
+        let state = DownloadState::get(account_id).unwrap().unwrap();
+        assert!(state.active_session.is_none(), "session must be closed");
+        state
+            .history
+            .last()
+            .cloned()
+            .expect("closed session in history")
+    }
+
+    #[tokio::test]
+    async fn finish_completed_session_records_failed_folders_as_failed() {
+        // Account id used by no other test.
+        let account_id = 74_201_001;
+        DownloadState::init(account_id).await.unwrap();
+        progress(account_id, "INBOX", FolderStatus::Success);
+        progress(account_id, "Junk", FolderStatus::Failed);
+
+        DownloadState::finish_completed_session(account_id).unwrap();
+
+        let session = finished_session(account_id);
+        assert_eq!(session.status, DownloadStatus::Failed);
+        assert_eq!(
+            session.message.as_deref(),
+            Some("Download finished, but 1 folder(s) failed: Junk")
+        );
+        assert!(session.end_time.is_some());
+    }
+
+    #[tokio::test]
+    async fn finish_completed_session_records_success_without_failed_folders() {
+        // Account id used by no other test.
+        let account_id = 74_201_002;
+        DownloadState::init(account_id).await.unwrap();
+        progress(account_id, "INBOX", FolderStatus::Success);
+
+        DownloadState::finish_completed_session(account_id).unwrap();
+
+        let session = finished_session(account_id);
+        assert_eq!(session.status, DownloadStatus::Success);
+        assert_eq!(session.message, None);
+    }
 }

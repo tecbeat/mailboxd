@@ -306,5 +306,10 @@ mod tests {
         let stored = OAuth2AccessToken::get(account_id).unwrap().unwrap();
         assert_eq!(stored.access_token, Some("access-1".into()));
         assert_eq!(stored.refresh_token, Some("refresh-2".into()));
+
+        import(Some("access-2"), "refresh-3").unwrap();
+        let stored = OAuth2AccessToken::get(account_id).unwrap().unwrap();
+        assert_eq!(stored.access_token, Some("access-2".into()));
+        assert_eq!(stored.refresh_token, Some("refresh-3".into()));
     }
 }
