@@ -22,6 +22,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { setToken } from '@/stores/authStore'
 import axiosInstance from '@/api/axiosInstance'
 import { Spinner } from '@/components/ui/spinner'
+import { safeAppRedirect } from '@/lib/app-location'
 
 interface HandoffResponse {
   access_token: string
@@ -69,8 +70,7 @@ function SsoCallback() {
           success: true,
           access_token,
         })
-        const target = redirect_to && redirect_to.startsWith('/') ? redirect_to : '/'
-        navigate({ to: target })
+        navigate({ href: safeAppRedirect(redirect_to), replace: true })
       })
       .catch((err) => {
         if (cancelled) return
