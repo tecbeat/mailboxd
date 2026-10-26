@@ -1,10 +1,12 @@
 use std::{path::PathBuf, time::Instant};
 
 use bytes::Bytes;
-use mail_parser::MimeHeaders;
-
 use mailboxd_core::{
-    envelope::extractor::extract_references, message::content::AttachmentInfo,
+    envelope::{
+        extractor::extract_references,
+        utils::{attachment_parts, part_contents},
+    },
+    message::content::AttachmentInfo,
     store::tantivy::tokenizers::EuroTokenizer, utils::compute_content_hash,
 };
 
@@ -80,20 +82,14 @@ pub fn detach_attachments_standalone(
     let mut infos = Vec::new();
     let mut blobs = Vec::new();
 
-    let mut ranges: Vec<_> = message
-        .attachments()
-        .map(|att| {
-            (
-                att.raw_body_offset() as usize,
-                att.raw_end_offset() as usize,
-                att,
-            )
-        })
+    let mut ranges: Vec<_> = attachment_parts(message)
+        .map(|att| (att.offset_body() as usize, att.offset_end() as usize, att))
         .collect();
     ranges.sort_by(|a, b| b.0.cmp(&a.0));
 
     for (raw_start, raw_end, att) in ranges {
-        let content_hash = compute_content_hash(att.contents());
+        let contents = part_contents(&att);
+        let content_hash = compute_content_hash(&contents);
         let body_len = original_body.len();
         let raw_start = raw_start.min(body_len);
         let raw_end = raw_end.min(body_len);
@@ -113,20 +109,14 @@ pub fn detach_attachments_standalone(
 
         infos.push(AttachmentInfo {
             filename: att.attachment_name().map(|n| n.to_string()),
-            size: att.contents().len(),
+            size: contents.len(),
             inline: att
                 .content_disposition()
                 .map(|d| d.is_inline())
                 .unwrap_or_else(|| att.content_id().is_some()),
             file_type: att
                 .content_type()
-                .map(|ct| {
-                    format!(
-                        "{}/{}",
-                        ct.c_type.as_ref(),
-                        ct.c_subtype.as_deref().unwrap_or("")
-                    )
-                })
+                .map(|ct| format!("{}/{}", ct.ctype(), ct.subtype().unwrap_or("")))
                 .unwrap_or_else(|| "application/octet-stream".to_string()),
             content_id: att.content_id().map(|id| id.to_string()),
             content_hash,
@@ -240,7 +230,7 @@ impl NewIndexWriterV2 {
             .parse(eml_bytes)
             .ok_or_else(|| raise_error!("failed to parse eml".into(), ErrorCode::InternalError))?;
 
-        if message.parts.is_empty() {
+        if message.parts().len() == 0 {
             return Err(raise_error!(
                 "Malformed or completely empty EML (no parts found)".into(),
                 ErrorCode::InternalError
@@ -269,7 +259,10 @@ impl NewIndexWriterV2 {
             .map(String::from)
             .unwrap_or_else(generate_message_id);
 
-        let in_reply_to = message.in_reply_to().as_text().map(String::from);
+        let in_reply_to = message
+            .in_reply_to()
+            .and_then(|ids| ids.last())
+            .map(String::from);
         let references = extract_references(&message);
         let thread_id = compute_thread_id(in_reply_to, references, &message_id);
 
@@ -281,7 +274,7 @@ impl NewIndexWriterV2 {
             internal_date
         };
 
-        let parse_addrs = |addrs: Option<&mail_parser::Address<'_>>| {
+        let parse_addrs = |addrs: Option<mail_parser::AddressList<'_>>| {
             addrs
                 .map(|addr| {
                     AddrVec::from(addr)
@@ -371,7 +364,7 @@ impl NewIndexWriterV2 {
             ingest_at: now,
             size: eml_bytes.len() as u32,
             thread_id,
-            attachment_count: message.attachment_count(),
+            attachment_count: attachment_parts(&message).count(),
             regular_attachment_count: attachment_docs.len(),
             tags: None,
             account_email: None,

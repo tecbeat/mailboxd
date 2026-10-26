@@ -4,7 +4,10 @@ use crate::{
     raise_error,
     {
         dashboard::Group,
-        envelope::extractor::reattach_eml_content,
+        envelope::{
+            extractor::reattach_eml_content,
+            utils::{attachment_parts, part_contents},
+        },
         error::{code::ErrorCode, MailboxdResult},
         utils::compute_content_hash,
     },
@@ -43,17 +46,16 @@ pub fn retrieve_attachment_content(
         .parse(&eml)
         .ok_or_else(|| raise_error!("Failed to parse EML".into(), ErrorCode::InternalError))?;
 
-    let attachment_content: &[u8] = message
-        .attachments()
-        .find(|att| compute_content_hash(att.contents()) == content_hash)
-        .map(|att| att.contents())
+    let attachment_content = attachment_parts(&message)
+        .map(|att| part_contents(&att))
+        .find(|contents| compute_content_hash(contents) == content_hash)
         .ok_or_else(|| {
             raise_error!(
                 "Target attachment not found".into(),
                 ErrorCode::ResourceNotFound
             )
         })?;
-    Ok(Cursor::new(Bytes::copy_from_slice(attachment_content)))
+    Ok(Cursor::new(Bytes::copy_from_slice(&attachment_content)))
 }
 
 pub fn retrieve_nested_attachment_content(
@@ -70,10 +72,9 @@ pub fn retrieve_nested_attachment_content(
         )
     })?;
 
-    let attachment_content = parent_message
-        .attachments()
-        .find(|att| compute_content_hash(att.contents()) == content_hash)
-        .map(|att| att.contents())
+    let attachment_content = attachment_parts(&parent_message)
+        .map(|att| part_contents(&att))
+        .find(|contents| compute_content_hash(contents) == content_hash)
         .ok_or_else(|| {
             raise_error!(
                 "Target nested EML not found".into(),
@@ -82,7 +83,7 @@ pub fn retrieve_nested_attachment_content(
         })?;
 
     let nested_message = MessageParser::default()
-        .parse(attachment_content)
+        .parse(attachment_content.as_ref())
         .ok_or_else(|| {
             raise_error!(
                 "Failed to parse nested EML".into(),
@@ -90,10 +91,9 @@ pub fn retrieve_nested_attachment_content(
             )
         })?;
 
-    let attachment_content = nested_message
-        .attachments()
-        .find(|att| compute_content_hash(att.contents()) == nested_content_hash)
-        .map(|att| att.contents())
+    let attachment_content = attachment_parts(&nested_message)
+        .map(|att| part_contents(&att))
+        .find(|contents| compute_content_hash(contents) == nested_content_hash)
         .ok_or_else(|| {
             raise_error!(
                 "Target nested EML not found".into(),
@@ -101,5 +101,5 @@ pub fn retrieve_nested_attachment_content(
             )
         })?;
 
-    Ok(Cursor::new(Bytes::copy_from_slice(attachment_content)))
+    Ok(Cursor::new(Bytes::copy_from_slice(&attachment_content)))
 }

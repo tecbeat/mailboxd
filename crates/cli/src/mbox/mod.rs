@@ -27,10 +27,11 @@ use mailboxd_core::import::reader::MboxFile;
 use crate::MailboxdCliConfig;
 use mailboxd_core::base64_encode_url_safe;
 use mailboxd_core::envelope::meta::{parse_mailboxd_metadata, MailboxdMetadata};
+use mailboxd_core::envelope::utils::header_raw;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
 use dialoguer::{Confirm, Select};
-use mail_parser::MessageParser;
+use mail_parser::{HeaderForm, MessageParser};
 use reqwest::Client;
 
 /// Skip emails larger than this with a warning (100 MB).
@@ -162,8 +163,7 @@ pub async fn run_import(
         }
 
         let message = match MessageParser::new()
-            .with_minimal_headers()
-            .default_header_text()
+            .unknown_headers(HeaderForm::Text)
             .parse(body)
         {
             Some(msg) => msg,
@@ -180,13 +180,14 @@ pub async fn run_import(
         };
 
         let mut metadata: Option<MailboxdMetadata> = None;
-        if let Some(meta_header) = message.header_raw("X-Mailboxd-Metadata") {
+        if let Some(meta_header) = header_raw(&message, "X-Mailboxd-Metadata") {
             metadata = parse_mailboxd_metadata(meta_header);
         }
 
         let get_default_folder = || {
             let labels = message
-                .header("X-Gmail-Labels")
+                .headers()
+                .value("X-Gmail-Labels")
                 .and_then(|h| h.as_text())
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| "INBOX".to_string());
