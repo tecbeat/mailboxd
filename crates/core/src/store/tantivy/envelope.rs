@@ -49,6 +49,7 @@ use crate::{
                 F_REGULAR_ATTACHMENT_COUNT, F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
             },
             model::{extract_contacts, EnvelopeWithAttachments},
+            rebuild::document_tags,
             schema::SchemaTools,
             tokenizers::EuroTokenizer,
         },
@@ -1293,11 +1294,7 @@ impl IndexManager {
                         .doc(*doc_address)
                         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
-                    let mut current_tags: HashSet<String> = old_doc
-                        .get_all(f_tags)
-                        .filter_map(|val| val.as_facet())
-                        .map(|facet| facet.to_string())
-                        .collect();
+                    let mut current_tags = document_tags(&old_doc, f_tags);
 
                     match request.action {
                         TagAction::Add => {

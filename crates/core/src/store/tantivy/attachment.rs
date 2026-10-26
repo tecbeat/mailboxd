@@ -44,6 +44,7 @@ use crate::{
             F_INGEST_AT, F_SIZE, F_TAGS,
         },
         model::{extract_senders, AttachmentModel},
+        rebuild::document_tags,
         schema::SchemaTools,
         tokenizers::EuroTokenizer,
     },
@@ -59,7 +60,7 @@ use tantivy::{
     collector::{Count, FacetCollector, TopDocs},
     indexer::{LogMergePolicy, UserOperation},
     query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
-    schema::{Field, IndexRecordOption, Value},
+    schema::{Field, IndexRecordOption},
     DocAddress, Index, IndexReader, IndexWriter, Order, TantivyDocument, Term,
 };
 use tantivy::{schema::Facet, Searcher};
@@ -756,11 +757,7 @@ impl IndexManager {
                         .doc(*doc_address)
                         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
-                    let mut current_tags: HashSet<String> = old_doc
-                        .get_all(f_tags)
-                        .filter_map(|val| val.as_facet())
-                        .map(|facet| facet.to_string())
-                        .collect();
+                    let mut current_tags = document_tags(&old_doc, f_tags);
 
                     match request.action {
                         TagAction::Add => {
