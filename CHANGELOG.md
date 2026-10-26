@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.14](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.14) - 2026-10-26
+
+### 🐛 Bug Fixes
+
+- *(deps)* Deduplicate radix-ui primitives so popovers work in dialogs (#10) - ([159e376](https://git.teccave.de/tecbeat/mailboxd/commit/159e376dc125eb0a00aa26b80b4a91a6ed5bf146))
+- *(deps)* Port to mail-parser 1.0 API - ([0ffefcd](https://git.teccave.de/tecbeat/mailboxd/commit/0ffefcd1afbf11ebae51df35d5748898f3ccb7db))
+- *(deps)* Update rust crate mail-parser to v1 - ([1ef5a5c](https://git.teccave.de/tecbeat/mailboxd/commit/1ef5a5c5caff01d0dbf5dbbe09c35686575233ab))
+- *(deps)* Update dependency knip to v6.43.0 - ([b5289e9](https://git.teccave.de/tecbeat/mailboxd/commit/b5289e98cc6b4558d968910a741cca31406b5a06))
+- *(oidc)* Fall back to userinfo for missing email claim (#7) - ([7b4f4ba](https://git.teccave.de/tecbeat/mailboxd/commit/7b4f4ba456cbc47728055938f82bec41a4f65dca))
+- *(server)* Keep base path in OAuth2 and OIDC redirects (#8, #11) - ([a0f2c80](https://git.teccave.de/tecbeat/mailboxd/commit/a0f2c808f5029e19b7be2f046b76c99c43a1d2ad))
+- *(web)* Keep content scroll position when a dropdown opens (#9) - ([4bdbcb2](https://git.teccave.de/tecbeat/mailboxd/commit/4bdbcb28f686c6ad7d55d4428338d738e2c01726))
+- *(web)* Keep base path on OAuth2 result links (#11) - ([f7c0d58](https://git.teccave.de/tecbeat/mailboxd/commit/f7c0d58564f9d6b5f01d1bdf6bf7157e0a557cc5))
+- *(web)* Keep redirect targets relative to base path (#8) - ([d9f17ab](https://git.teccave.de/tecbeat/mailboxd/commit/d9f17aba1b8b1ef2f9776c92bdefb538fd21e995))
+
+### 🧪 Testing
+
+- *(e2e)* Cover dropdown scroll, OAuth2 authorize and subpath deployments - ([6f40789](https://git.teccave.de/tecbeat/mailboxd/commit/6f40789a75ca93b8967051c31ec6a9e78db40f17))
+
+### ⚙️ Miscellaneous Tasks
+
+- Cache downloads across jobs and pipelines - ([9e5a3f9](https://git.teccave.de/tecbeat/mailboxd/commit/9e5a3f958e604ef1be4813a9201a49d1974716d5))
+
 ## [1.9.13](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.13) - 2026-10-23
 
 ### ⚙️ Miscellaneous Tasks
