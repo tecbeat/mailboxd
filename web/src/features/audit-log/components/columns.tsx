@@ -32,6 +32,7 @@ const EVENTS_WITH_STATUS = new Set([
   'mfa.enabled',
   'mfa.disabled',
   'email.repaired',
+  'email.retention_purged',
 ])
 
 export const getColumns = (

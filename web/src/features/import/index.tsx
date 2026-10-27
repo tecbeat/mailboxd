@@ -9,7 +9,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight, Copy } from 'lucide-react';
+import { Upload, FileText, X, CircleCheckBig as CheckCircle2, TriangleAlert as AlertTriangle, Sparkles, PenLine, ListTree, ChevronsUpDown, Check, Clock, ChevronRight, Copy, CalendarX } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,7 +87,9 @@ export default function ImportPage() {
 
   const abortRef = useRef<AbortController | null>(null);
 
-  const processedCount = progress ? progress.success + progress.failed + progress.duplicates : 0;
+  const processedCount = progress
+    ? progress.success + progress.failed + progress.duplicates + progress.outside_retention
+    : 0;
   const processedPct = progress && progress.total > 0 ? (processedCount / progress.total) * 100 : 0;
 
   useEffect(() => {
@@ -631,6 +633,12 @@ export default function ImportPage() {
                         {t('import.duplicateCount', { count: progress.duplicates })}
                       </span>
                     )}
+                    {progress.outside_retention > 0 && (
+                      <span className="flex items-center gap-1">
+                        <CalendarX className="h-3.5 w-3.5 text-muted-foreground" />
+                        {t('import.outsideRetentionCount', { count: progress.outside_retention })}
+                      </span>
+                    )}
                   </div>
                 )}
 
@@ -766,6 +774,9 @@ function CollapsibleHistory({
                   <span>{h.format.toUpperCase()}</span>
                   <span className="text-success">{t('import.summarySuccess', { count: h.success })}</span>
                   {h.duplicates > 0 && <span>{t('import.summaryDuplicates', { count: h.duplicates })}</span>}
+                  {h.outside_retention > 0 && (
+                    <span>{t('import.summaryOutsideRetention', { count: h.outside_retention })}</span>
+                  )}
                   {h.failed > 0 && <span className="text-destructive">{t('import.summaryFailed', { count: h.failed })}</span>}
                   <span>{t('import.summaryTotal', { count: h.total })}</span>
                 </div>

@@ -16,6 +16,8 @@ export interface ImportProgress {
   total: number;
   success: number;
   duplicates: number;
+  /** Mail older than the account's retention period, skipped. */
+  outside_retention: number;
   failed: number;
   failed_details: { index: number; error_message: string }[];
 }
@@ -68,6 +70,8 @@ export interface ImportHistory {
   total: number;
   success: number;
   duplicates: number;
+  /** Mail older than the account's retention period, skipped. */
+  outside_retention: number;
   failed: number;
   failed_details: { index: number; error_message: string }[];
   created_at: number;

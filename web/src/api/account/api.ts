@@ -164,6 +164,8 @@ export interface AccountModel {
     download_schedule?: string;
     archive_rules?: ArchiveRules;
     deleting?: boolean;
+    /** Days archived mail is kept; unset keeps everything. */
+    retention_days?: number | null;
 }
 
 export const download_state = async (account_id: number) => {

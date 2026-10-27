@@ -32,6 +32,7 @@ function emptyProgress(): ImportProgress {
     total: 0,
     success: 0,
     duplicates: 0,
+    outside_retention: 0,
     failed: 0,
     failed_details: [],
   }
@@ -62,6 +63,7 @@ function mergeProgress(
     total: aggregate.total + fileProgress.total,
     success: aggregate.success + fileProgress.success,
     duplicates: aggregate.duplicates + fileProgress.duplicates,
+    outside_retention: aggregate.outside_retention + fileProgress.outside_retention,
     failed: aggregate.failed + fileProgress.failed,
     failed_details: [
       ...aggregate.failed_details,

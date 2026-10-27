@@ -152,6 +152,30 @@ describe('ImportPage import run', () => {
     expect(uploaded?.get('file_name')).toBe('mail.eml');
   });
 
+  it('reports mail skipped as outside the retention period', async () => {
+    serveAccount();
+    server.use(
+      http.post(`${BASE}/api/v1/upload-import`, () =>
+        HttpResponse.json({
+          import_id: 'imp-2',
+          status: 'Completed',
+          format: 'eml',
+          total: 3,
+          success: 1,
+          duplicates: 0,
+          outside_retention: 2,
+          failed: 0,
+          failed_details: [],
+        }),
+      ),
+    );
+    await importOneEml();
+
+    expect(await screen.findByText('2 outside the retention period')).toBeInTheDocument();
+    // Skipped mail counts as processed, so the run reads as finished.
+    expect(screen.getByText('3 / 3 processed')).toBeInTheDocument();
+  });
+
   it('resets and explains when the upload fails', async () => {
     serveAccount();
     server.use(
@@ -167,5 +191,36 @@ describe('ImportPage import run', () => {
       ),
     );
     await waitFor(() => expect(screen.getByRole('button', { name: 'Import' })).toBeEnabled());
+  });
+});
+
+describe('ImportPage history', () => {
+  it('lists mail skipped as outside the retention period', async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/import-history`, () =>
+        HttpResponse.json([
+          {
+            id: 'h-1',
+            user_id: 1,
+            import_id: 'imp-1',
+            account_id: 7,
+            folder: 'Archive',
+            format: 'mbox',
+            status: 'completed',
+            total: 5,
+            success: 1,
+            duplicates: 0,
+            outside_retention: 4,
+            failed: 0,
+            failed_details: [],
+            created_at: 0,
+          },
+        ]),
+      ),
+    );
+    renderWithProviders(<ImportPage />);
+
+    await userEvent.click(await screen.findByRole('button', { name: /Import history/i }));
+    expect(await screen.findByText('4 outside retention')).toBeInTheDocument();
   });
 });

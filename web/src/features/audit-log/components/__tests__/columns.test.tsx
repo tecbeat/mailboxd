@@ -56,6 +56,7 @@ describe('audit log status column', () => {
           entry('disable-ok', 'mfa.disabled', true),
           entry('reset', 'mfa.reset', true),
           entry('repair-failed', 'email.repaired', false),
+          entry('purge-failed', 'email.retention_purged', false),
         ]}
       />
     )
@@ -65,5 +66,6 @@ describe('audit log status column', () => {
     expect(statusOf('disable-ok')).toHaveTextContent('Success')
     expect(statusOf('reset')).toHaveTextContent('—')
     expect(statusOf('repair-failed')).toHaveTextContent('Failed')
+    expect(statusOf('purge-failed')).toHaveTextContent('Failed')
   })
 })

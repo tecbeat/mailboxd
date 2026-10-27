@@ -12,6 +12,7 @@ const prog = (over: Partial<ImportProgress> = {}): ImportProgress => ({
   total: 1,
   success: 1,
   duplicates: 0,
+  outside_retention: 0,
   failed: 0,
   failed_details: [],
   ...over,
@@ -74,8 +75,9 @@ describe('importFiles', () => {
         success: 2,
         failed: 1,
         duplicates: 1,
+        outside_retention: 2,
       }),
-      'b.mbox': prog({ import_id: 'b', total: 2, success: 2 }),
+      'b.mbox': prog({ import_id: 'b', total: 2, success: 2, outside_retention: 1 }),
     }
     const deps = makeDeps({
       upload: vi.fn(async (file: File) => results[file.name]),
@@ -87,6 +89,7 @@ describe('importFiles', () => {
     expect(result.success).toBe(4)
     expect(result.failed).toBe(1)
     expect(result.duplicates).toBe(1)
+    expect(result.outside_retention).toBe(3)
     expect(result.status).toBe('Completed')
   })
 
