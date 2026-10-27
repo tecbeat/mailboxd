@@ -115,7 +115,8 @@ impl ImapExecutor {
             .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))
     }
 
-    /// Enumerate every UID currently present in the mailbox via `UID SEARCH ALL`.
+    /// Enumerate the UIDs of the mailbox matching `criteria` (`ALL` for every
+    /// message) via `UID SEARCH`, in ascending order.
     ///
     /// This is the drift-safe way to page through a full mailbox: UIDs are stable
     /// while the download runs (new arrivals only get larger UIDs), whereas
@@ -125,13 +126,14 @@ impl ImapExecutor {
     pub async fn uid_search_all_mailbox(
         session: &mut Session<Box<dyn SessionStream>>,
         mailbox_name: &str,
+        criteria: &str,
     ) -> MailboxdResult<Vec<u32>> {
         session
             .examine(mailbox_name)
             .await
             .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
         let results = session
-            .uid_search("ALL")
+            .uid_search(criteria)
             .await
             .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
         let mut uids: Vec<u32> = results.into_iter().collect();

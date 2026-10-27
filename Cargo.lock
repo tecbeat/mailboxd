@@ -2947,6 +2947,7 @@ dependencies = [
 name = "mailboxd-server"
 version = "1.6.2"
 dependencies = [
+ "base64 0.23.0",
  "chrono",
  "email_address",
  "futures",

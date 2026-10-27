@@ -217,6 +217,19 @@ impl AuditEntry {
                     success,
                 )
             }
+            Event::RetentionPurged {
+                account,
+                deleted,
+                window_days,
+                success,
+            } => Self::build(
+                "email.retention_purged",
+                "system".into(),
+                Some(account),
+                None,
+                Some(format!("deleted={deleted} window_days={window_days}")),
+                success,
+            ),
             Event::AttachmentDownloaded {
                 email_id,
                 content_hash,
@@ -345,6 +358,31 @@ mod tests {
             assert_eq!(entry.detail.as_deref(), Some(status));
             assert!(!entry.success, "{status} must not be recorded as a success");
         }
+    }
+
+    #[test]
+    fn maps_a_retention_sweep_to_a_system_entry_for_the_account() {
+        let entry = AuditEntry::from_event(Event::RetentionPurged {
+            account: "archive@example.com".into(),
+            deleted: 12,
+            window_days: 30,
+            success: true,
+        });
+        assert_eq!(entry.event_type, "email.retention_purged");
+        assert_eq!(entry.actor, "system");
+        assert_eq!(entry.target.as_deref(), Some("archive@example.com"));
+        assert_eq!(entry.detail.as_deref(), Some("deleted=12 window_days=30"));
+        assert_eq!(entry.ip, None);
+        assert!(entry.success);
+
+        let failed = AuditEntry::from_event(Event::RetentionPurged {
+            account: "archive@example.com".into(),
+            deleted: 3,
+            window_days: 30,
+            success: false,
+        });
+        assert_eq!(failed.detail.as_deref(), Some("deleted=3 window_days=30"));
+        assert!(!failed.success);
     }
 
     #[test]

@@ -36,7 +36,7 @@ use crate::{
     id,
     imap::executor::ImapExecutor,
     message::content::AttachmentInfo,
-    raise_error,
+    raise_error, retention,
     store::{
         blob::{DetachedEmail, BLOB_MANAGER},
         envelope::Envelope,
@@ -53,14 +53,17 @@ use crate::{
 };
 
 /// The outcome of extracting an envelope. `Duplicate` means the message was
-/// skipped because its content hash was already archived. `Imported` covers
-/// every other processed message, including mail dropped by archive rules,
-/// which has always counted as a success on the import surfaces.
+/// skipped because its content hash was already archived. `OutsideRetention`
+/// means it was skipped because it is older than the account's retention
+/// window. `Imported` covers every other processed message, including mail
+/// dropped by archive rules, which has always counted as a success on the
+/// import surfaces.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[must_use]
 pub enum ExtractOutcome {
     Imported,
     Duplicate,
+    OutsideRetention,
 }
 
 pub async fn extract_envelope_and_store_it(
@@ -140,7 +143,8 @@ async fn extract_envelope_core(
         )
     })?;
 
-    if let Ok(account) = AccountModel::get(account_id) {
+    let account = AccountModel::get(account_id).ok();
+    if let Some(ref account) = account {
         if let Some(ref rules) = account.archive_rules {
             let sender = message.from().and_then(|addr| {
                 AddrVec::from(addr)
@@ -208,6 +212,18 @@ async fn extract_envelope_core(
     } else {
         internal_date
     };
+
+    // The sweep would delete it again, and a full re-sync would fetch it again.
+    if let Some(cutoff) = account.as_ref().and_then(retention::cutoff_ms) {
+        if retention::is_expired(date, internal_date, cutoff) {
+            tracing::debug!(
+                account_id,
+                uid,
+                "Email outside the retention window, skipped"
+            );
+            return Ok(ExtractOutcome::OutsideRetention);
+        }
+    }
     let parse_addrs = |addrs: Option<AddressList<'_>>| {
         addrs
             .map(|addr| {
@@ -1505,6 +1521,41 @@ mod test {
                 .await
                 .expect("re-import is not an error");
             assert_eq!(second, super::ExtractOutcome::Duplicate);
+        });
+    }
+
+    #[test]
+    fn mail_older_than_the_retention_window_is_not_archived() {
+        let account_id = crate::id!(64);
+        crate::database::upsert_impl(
+            crate::database::manager::DB_MANAGER.db(),
+            crate::account::migration::AccountModel {
+                id: account_id,
+                email: "extract-retention@example.com".into(),
+                retention_days: Some(30),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        STORAGE_RUNTIME.block_on(async {
+            let old = unique_eml("Date: Mon, 1 Jan 2001 10:00:00 +0000\r\n");
+            let outcome = super::extract_envelope_from_eml(&old, account_id, 202)
+                .await
+                .expect("skipping is not an error");
+            assert_eq!(outcome, super::ExtractOutcome::OutsideRetention);
+            // Skipped mail is not remembered as archived, so it is skipped
+            // again rather than reported as a duplicate.
+            let again = super::extract_envelope_from_eml(&old, account_id, 202)
+                .await
+                .unwrap();
+            assert_eq!(again, super::ExtractOutcome::OutsideRetention);
+
+            let now = chrono::Utc::now().to_rfc2822();
+            let recent = unique_eml(&format!("Date: {now}\r\n"));
+            let outcome = super::extract_envelope_from_eml(&recent, account_id, 202)
+                .await
+                .unwrap();
+            assert_eq!(outcome, super::ExtractOutcome::Imported);
         });
     }
 

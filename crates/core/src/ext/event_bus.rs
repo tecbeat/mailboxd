@@ -108,6 +108,15 @@ pub enum Event {
         user: String,
         status: String,
     },
+    /// The retention sweep deleted mail of an account. `success` is false
+    /// when the sweep failed part-way; `deleted` then counts what was
+    /// deleted before the failure.
+    RetentionPurged {
+        account: String,
+        deleted: u64,
+        window_days: u64,
+        success: bool,
+    },
     AttachmentDownloaded {
         email_id: String,
         content_hash: String,

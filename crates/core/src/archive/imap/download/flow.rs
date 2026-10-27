@@ -38,6 +38,7 @@ use crate::{
             compress_uid_list, generate_uid_sequence_hashset, slow_server_message, ImapExecutor,
             DEFAULT_BATCH_SIZE,
         },
+        retention,
         store::tantivy::envelope::ENVELOPE_MANAGER,
     },
 };
@@ -78,10 +79,13 @@ pub async fn fetch_and_save_by_date(
         }
     };
 
-    let search_criteria = match direction {
-        FetchDirection::Since => format!("SINCE {date}"),
-        FetchDirection::Before => format!("BEFORE {date}"),
-    };
+    let search_criteria = retention::imap_search_criteria(
+        account,
+        &match direction {
+            FetchDirection::Since => format!("SINCE {date}"),
+            FetchDirection::Before => format!("BEFORE {date}"),
+        },
+    );
 
     let uid_list =
         match ImapExecutor::uid_search(&mut session, &mailbox.encoded_name(), &search_criteria)
@@ -314,24 +318,29 @@ pub async fn fetch_and_save_full_mailbox(
         }
     };
 
-    let uid_list =
-        match ImapExecutor::uid_search_all_mailbox(&mut session, &mailbox.encoded_name()).await {
-            Ok(list) => list,
-            Err(e) => {
-                let err_msg = format!("UID SEARCH failed in [{}]: {:#?}", mailbox.name, e);
-                DownloadState::update_folder_progress(
-                    account_id,
-                    mailbox.name.clone(),
-                    0,
-                    0,
-                    FolderStatus::Failed,
-                    Some(err_msg.clone()),
-                )?;
-                DownloadState::append_session_error(account_id, err_msg)?;
-                session.logout().await.ok();
-                return Err(e);
-            }
-        };
+    let uid_list = match ImapExecutor::uid_search_all_mailbox(
+        &mut session,
+        &mailbox.encoded_name(),
+        &retention::imap_search_criteria(account, "ALL"),
+    )
+    .await
+    {
+        Ok(list) => list,
+        Err(e) => {
+            let err_msg = format!("UID SEARCH failed in [{}]: {:#?}", mailbox.name, e);
+            DownloadState::update_folder_progress(
+                account_id,
+                mailbox.name.clone(),
+                0,
+                0,
+                FolderStatus::Failed,
+                Some(err_msg.clone()),
+            )?;
+            DownloadState::append_session_error(account_id, err_msg)?;
+            session.logout().await.ok();
+            return Err(e);
+        }
+    };
 
     let planned = uid_list.len() as u64;
     if planned == 0 {
@@ -619,28 +628,18 @@ async fn reconcile_uid_validity_change(
         .await
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
-    // Phase 2: collect remote UIDs, respecting date constraints
-    let remote_uid_list: Vec<u32> = if let Some(date_since) = &account.date_since {
-        let date = date_since.since_date()?;
-        let results = session
-            .uid_search(&format!("SINCE {date}"))
-            .await
-            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-        let mut v: Vec<u32> = results.into_iter().collect();
-        v.sort();
-        v
+    // Phase 2: collect remote UIDs, respecting date constraints and the
+    // retention window
+    let criteria = if let Some(date_since) = &account.date_since {
+        format!("SINCE {}", date_since.since_date()?)
     } else if let Some(date_before) = &account.date_before {
-        let date = date_before.calculate_date()?;
-        let results = session
-            .uid_search(&format!("BEFORE {date}"))
-            .await
-            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-        let mut v: Vec<u32> = results.into_iter().collect();
-        v.sort();
-        v
+        format!("BEFORE {}", date_before.calculate_date()?)
     } else {
+        "ALL".to_string()
+    };
+    let remote_uid_list: Vec<u32> = {
         let results = session
-            .uid_search("ALL")
+            .uid_search(&retention::imap_search_criteria(account, &criteria))
             .await
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         let mut v: Vec<u32> = results.into_iter().collect();
@@ -1950,6 +1949,187 @@ mod tests {
         assert_eq!(progress.status, FolderStatus::Success);
         assert_eq!((progress.planned, progress.current), (2, 1));
         assert!(has_error_starting_with(account_id, PARSE_SKIP_SUMMARY));
+    }
+
+    /// An account on `mails` that keeps 100 years of mail. Its UID SEARCH
+    /// carries a retention floor; the server answers that search with only
+    /// `in_window`, so the planned count shows whether the floor was sent.
+    /// (The mock serves every body whatever UID set is fetched, so only the
+    /// planned count is meaningful.)
+    async fn retained_account_on(
+        account_id: u64,
+        mails: &[crate::imap::mock_server::MockMail],
+        criteria: &str,
+        in_window: &[u32],
+    ) -> (AccountModel, MockImapServerHandle, String) {
+        constrained_account_on(account_id, mails, criteria, in_window, |_| {}).await
+    }
+
+    /// Like `retained_account_on`, with the account changed by `constrain`
+    /// (for example, given date constraints).
+    async fn constrained_account_on(
+        account_id: u64,
+        mails: &[crate::imap::mock_server::MockMail],
+        criteria: &str,
+        in_window: &[u32],
+        constrain: fn(&mut AccountModel),
+    ) -> (AccountModel, MockImapServerHandle, String) {
+        let mut probe = AccountModel {
+            retention_days: Some(36_500),
+            ..Default::default()
+        };
+        let search = retention::imap_search_criteria(&probe, criteria);
+        assert!(search.contains("SINCE"), "{search}");
+        let server = MockImapServer::new()
+            .respond(
+                format!("UID SEARCH {search}"),
+                crate::imap::mock_server::uid_search_response(in_window),
+            )
+            .serving(mails);
+        let (account, handle) = account_on(account_id, server).await;
+        probe = AccountModel {
+            retention_days: Some(36_500),
+            ..account
+        };
+        constrain(&mut probe);
+        crate::database::upsert_impl(crate::database::manager::DB_MANAGER.db(), probe.clone())
+            .unwrap();
+        (probe, handle, search)
+    }
+
+    #[tokio::test]
+    async fn a_full_download_only_searches_the_retention_window() {
+        let account_id = 59_342_407;
+        let mails = mock_mails(&[1, 2, 3]);
+        let (account, _server, _) = retained_account_on(account_id, &mails, "ALL", &[2, 3]).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_full_mailbox(&account, &mailbox, CancellationToken::new())
+            .await
+            .unwrap();
+
+        assert_eq!(watermark, Some(3));
+        assert_eq!(folder(account_id, "INBOX").planned, 2);
+    }
+
+    #[tokio::test]
+    async fn a_date_download_adds_the_retention_window_to_its_search() {
+        let account_id = 59_342_408;
+        let mails = mock_mails(&[1, 2, 3]);
+        let (account, _server, search) =
+            retained_account_on(account_id, &mails, "SINCE 01-Jan-2020", &[3]).await;
+        assert!(search.starts_with("SINCE 01-Jan-2020 SINCE "), "{search}");
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        fetch_and_save_by_date(
+            &account,
+            "01-Jan-2020",
+            &mailbox,
+            FetchDirection::Since,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(folder(account_id, "INBOX").planned, 1);
+    }
+
+    #[tokio::test]
+    async fn a_full_download_fails_the_folder_when_the_uid_search_fails() {
+        let account_id = 59_342_410;
+        let server = MockImapServer::new().respond("UID SEARCH", malformed_response());
+        let (account, _server) = account_on(account_id, server.serving(&mock_mails(&[1]))).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let result =
+            fetch_and_save_full_mailbox(&account, &mailbox, CancellationToken::new()).await;
+
+        assert!(result.is_err(), "{result:?}");
+        assert_eq!(folder(account_id, "INBOX").status, FolderStatus::Failed);
+        assert!(has_error_starting_with(
+            account_id,
+            "UID SEARCH failed in [INBOX]"
+        ));
+    }
+
+    /// Reconcile a changed UIDVALIDITY of INBOX for `account` and return how
+    /// many messages were planned.
+    async fn reconcile_planned(account: &AccountModel) -> u64 {
+        let local = MailBox {
+            uid_validity: Some(1),
+            ..fresh_mailbox(account.id, "INBOX")
+        };
+        let remote = MailBox {
+            uid_validity: Some(42),
+            exists: 3,
+            ..local.clone()
+        };
+        MailBox::batch_upsert(std::slice::from_ref(&local)).unwrap();
+
+        reconcile_mailboxes(
+            account,
+            &[remote],
+            std::slice::from_ref(&local),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        folder(account.id, "INBOX").planned
+    }
+
+    fn one_year() -> crate::account::since::RelativeDate {
+        crate::account::since::RelativeDate {
+            unit: crate::account::since::Unit::Years,
+            value: 1,
+        }
+    }
+
+    #[tokio::test]
+    async fn a_uid_validity_reconcile_keeps_the_date_since_constraint() {
+        let account_id = 59_342_411;
+        let criteria = format!("SINCE {}", one_year().calculate_date().unwrap());
+        let (account, _server, search) = constrained_account_on(
+            account_id,
+            &mock_mails(&[1, 2, 3]),
+            &criteria,
+            &[2, 3],
+            |account| {
+                account.date_since = Some(crate::account::since::DateSince {
+                    relative: Some(one_year()),
+                    ..Default::default()
+                })
+            },
+        )
+        .await;
+        assert!(search.starts_with(&criteria), "{search}");
+
+        assert_eq!(reconcile_planned(&account).await, 2);
+    }
+
+    #[tokio::test]
+    async fn a_uid_validity_reconcile_keeps_the_date_before_constraint() {
+        let account_id = 59_342_412;
+        let criteria = format!("BEFORE {}", one_year().calculate_date().unwrap());
+        let (account, _server, search) = constrained_account_on(
+            account_id,
+            &mock_mails(&[1, 2, 3]),
+            &criteria,
+            &[1],
+            |account| account.date_before = Some(one_year()),
+        )
+        .await;
+        assert!(search.starts_with(&criteria), "{search}");
+
+        assert_eq!(reconcile_planned(&account).await, 1);
+    }
+
+    #[tokio::test]
+    async fn a_uid_validity_reconcile_only_searches_the_retention_window() {
+        let account_id = 59_342_409;
+        let mails = mock_mails(&[1, 2, 3]);
+        let (account, _server, _) = retained_account_on(account_id, &mails, "ALL", &[3]).await;
+        assert_eq!(reconcile_planned(&account).await, 1);
     }
 
     #[tokio::test]

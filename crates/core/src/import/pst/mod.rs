@@ -31,10 +31,7 @@ use outlook_pst::{
     ndb::node_id::NodeId,
 };
 
-use crate::{
-    base64_encode_url_safe,
-    envelope::extractor::{extract_envelope_from_eml, ExtractOutcome},
-};
+use crate::{base64_encode_url_safe, envelope::extractor::extract_envelope_from_eml};
 
 mod encoding;
 
@@ -339,21 +336,19 @@ pub fn process_folder_with_progress<F>(
     parent_path: &str,
     account_id: u64,
     total: usize,
-    success_count: &mut usize,
-    duplicate_count: &mut usize,
+    counts: &mut super::OutcomeCounts,
     failed_details: &mut Vec<super::FailedItemDetail>,
     index: &mut usize,
     progress_cb: &F,
 ) where
-    F: Fn(usize, usize, usize), // (success, duplicates, failed)
+    F: Fn(super::OutcomeCounts, usize), // (outcome counts, failed)
 {
     process_folder_with_progress_inner(
         folder,
         parent_path,
         account_id,
         total,
-        success_count,
-        duplicate_count,
+        counts,
         failed_details,
         index,
         progress_cb,
@@ -365,13 +360,12 @@ fn process_folder_with_progress_inner<F>(
     parent_path: &str,
     account_id: u64,
     total: usize,
-    success_count: &mut usize,
-    duplicate_count: &mut usize,
+    counts: &mut super::OutcomeCounts,
     failed_details: &mut Vec<super::FailedItemDetail>,
     index: &mut usize,
     progress_cb: &F,
 ) where
-    F: Fn(usize, usize, usize),
+    F: Fn(super::OutcomeCounts, usize),
 {
     let folder_name = folder
         .properties()
@@ -401,8 +395,7 @@ fn process_folder_with_progress_inner<F>(
                                 &mail_folder,
                                 account_id,
                                 total,
-                                success_count,
-                                duplicate_count,
+                                counts,
                                 failed_details,
                                 index,
                                 progress_cb,
@@ -454,12 +447,7 @@ fn process_folder_with_progress_inner<F>(
                         match futures::executor::block_on(extract_envelope_from_eml(
                             &decoded, account_id, mailbox_id,
                         )) {
-                            Ok(ExtractOutcome::Imported) => {
-                                *success_count += 1;
-                            }
-                            Ok(ExtractOutcome::Duplicate) => {
-                                *duplicate_count += 1;
-                            }
+                            Ok(outcome) => counts.record(outcome),
                             Err(e) => {
                                 failed_details.push(super::FailedItemDetail {
                                     index: *index,
@@ -479,7 +467,7 @@ fn process_folder_with_progress_inner<F>(
 
             // Report progress every 50 messages
             if batch_size % 50 == 0 {
-                progress_cb(*success_count, *duplicate_count, failed_details.len());
+                progress_cb(*counts, failed_details.len());
             }
         }
     }
@@ -494,8 +482,7 @@ fn process_folder_with_progress_inner<F>(
                         &mail_folder,
                         account_id,
                         total,
-                        success_count,
-                        duplicate_count,
+                        counts,
                         failed_details,
                         index,
                         progress_cb,

@@ -232,3 +232,81 @@ async fn delete_nonexistent_account_returns_error() {
         .await;
     assert!(resp.0.status().is_client_error(), "delete nonexistent should 4xx");
 }
+
+#[tokio::test]
+async fn account_retention_window_round_trip() {
+    setup().await;
+    let token = admin_token().await;
+    let cli = api_client(build_api_route());
+    let auth = format!("Bearer {token}");
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let retention_of = |body: serde_json::Value| body["retention_days"].as_u64();
+
+    let resp = cli
+        .post("/api/v1/account")
+        .header("Authorization", &auth)
+        .body_json(&serde_json::json!({
+            "email": format!("retention-{nanos}@example.com"),
+            "enabled": false,
+            "account_type": "NoSync",
+            "use_dangerous": false,
+            "retention_days": 30,
+        }))
+        .send()
+        .await;
+    resp.assert_status_is_ok();
+    let created: serde_json::Value = resp.json().await.value().deserialize();
+    assert_eq!(retention_of(created.clone()), Some(30));
+    let id = created["id"].as_u64().unwrap();
+
+    let update = |days: u64| {
+        cli.post(format!("/api/v1/account/{id}"))
+            .header("Authorization", &auth)
+            .body_json(&serde_json::json!({ "retention_days": days }))
+            .send()
+    };
+    let read = || async {
+        let resp = cli
+            .get(format!("/api/v1/account/{id}"))
+            .header("Authorization", &auth)
+            .send()
+            .await;
+        resp.assert_status_is_ok();
+        let body: serde_json::Value = resp.json().await.value().deserialize();
+        retention_of(body)
+    };
+
+    update(36_501)
+        .await
+        .assert_status(poem::http::StatusCode::BAD_REQUEST);
+    assert_eq!(read().await, Some(30), "a rejected update changes nothing");
+
+    update(90).await.assert_status_is_ok();
+    assert_eq!(read().await, Some(90));
+
+    update(0).await.assert_status_is_ok();
+    assert_eq!(read().await, None, "0 turns retention off");
+
+    let resp = cli
+        .post("/api/v1/account")
+        .header("Authorization", &auth)
+        .body_json(&serde_json::json!({
+            "email": format!("retention-invalid-{nanos}@example.com"),
+            "enabled": false,
+            "account_type": "NoSync",
+            "use_dangerous": false,
+            "retention_days": 36_501,
+        }))
+        .send()
+        .await;
+    resp.assert_status(poem::http::StatusCode::BAD_REQUEST);
+
+    cli.delete(format!("/api/v1/account/{id}"))
+        .header("Authorization", &auth)
+        .send()
+        .await
+        .assert_status_is_ok();
+}

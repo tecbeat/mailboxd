@@ -264,6 +264,7 @@ impl From<AccountV3> for AccountModel {
             deleting: false,
             archive_rules: None,
             extraction_rules: None,
+            retention_days: None,
         }
     }
 }
@@ -937,5 +938,26 @@ mod tests {
         assert_eq!(user.sso_id, None);
         assert_eq!(user.sso_provider, None);
         assert_eq!(user.mfa, Default::default());
+    }
+
+    #[test]
+    fn a_migrated_account_keeps_its_mail_without_a_retention_window() {
+        let legacy = AccountV3 {
+            id: 9,
+            email: "bob@example.com".into(),
+            enabled: true,
+            sync_interval_min: Some(15),
+            ..Default::default()
+        };
+        let account: AccountModel = legacy.into();
+        assert_eq!(
+            (
+                account.id,
+                account.email.as_str(),
+                account.download_interval_min
+            ),
+            (9, "bob@example.com", Some(15))
+        );
+        assert_eq!(account.retention_days, None);
     }
 }

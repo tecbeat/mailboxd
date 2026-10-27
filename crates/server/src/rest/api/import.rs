@@ -82,17 +82,12 @@ impl ImportApi {
                     .unwrap_or_default()
                     .as_nanos()
             ),
-            status: if result.failed == 0 {
-                ImportStatus::Completed
-            } else if result.success == 0 && result.duplicates == 0 {
-                ImportStatus::Failed
-            } else {
-                ImportStatus::Completed
-            },
+            status: result.status(),
             format: "eml".to_string(),
             total: result.total,
             success: result.success,
             duplicates: result.duplicates,
+            outside_retention: result.outside_retention,
             failed: result.failed,
             failed_details: result.failed_details.clone(),
         };
@@ -250,6 +245,7 @@ impl ImportApi {
             total: 0,
             success: 0,
             duplicates: 0,
+            outside_retention: 0,
             failed: 0,
             failed_details: vec![],
         };

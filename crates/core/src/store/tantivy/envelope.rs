@@ -1240,6 +1240,17 @@ impl IndexManager {
         Ok(matched)
     }
 
+    /// Ids of up to `limit` envelopes of `account_id` that are older than
+    /// `cutoff_ms` (see [`retention_expired_query`]).
+    pub fn retention_expired_ids(
+        &self,
+        account_id: u64,
+        cutoff_ms: i64,
+        limit: usize,
+    ) -> MailboxdResult<Vec<String>> {
+        expired_envelope_ids(&self.create_searcher()?, account_id, cutoff_ms, limit)
+    }
+
     fn collect_facets_recursive(
         query: &dyn Query,
         searcher: &Searcher,
@@ -1859,6 +1870,58 @@ fn envelope_query(account_id: u64, eid: &str) -> Box<dyn Query> {
     ]))
 }
 
+/// Envelopes of `account_id` whose effective date, the older of `date` and
+/// `internal_date`, is before `cutoff_ms`. A timestamp of 0 is unknown and
+/// never counts as old, so mail without any timestamp is kept.
+fn retention_expired_query(account_id: u64, cutoff_ms: i64) -> Box<dyn Query> {
+    let f = SchemaTools::email_fields();
+    let before = |field| -> Box<dyn Query> {
+        Box::new(RangeQuery::new(
+            Bound::Excluded(Term::from_field_i64(field, 0)),
+            Bound::Excluded(Term::from_field_i64(field, cutoff_ms)),
+        ))
+    };
+    let older = BooleanQuery::new(vec![
+        (Occur::Should, before(f.f_date)),
+        (Occur::Should, before(f.f_internal_date)),
+    ]);
+    Box::new(BooleanQuery::new(vec![
+        (
+            Occur::Must,
+            Box::new(TermQuery::new(
+                Term::from_field_u64(f.f_account_id, account_id),
+                IndexRecordOption::Basic,
+            )),
+        ),
+        (Occur::Must, Box::new(older)),
+    ]))
+}
+
+fn expired_envelope_ids(
+    searcher: &Searcher,
+    account_id: u64,
+    cutoff_ms: i64,
+    limit: usize,
+) -> MailboxdResult<Vec<String>> {
+    let f = SchemaTools::email_fields();
+    let docs = searcher
+        .search(
+            &retention_expired_query(account_id, cutoff_ms),
+            &TopDocs::with_limit(limit).order_by_score(),
+        )
+        .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+    let mut ids = Vec::with_capacity(docs.len());
+    for (_, address) in docs {
+        let doc: TantivyDocument = searcher
+            .doc(address)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        if let Some(id) = doc.get_first(f.f_id).and_then(|v| v.as_str()) {
+            ids.push(id.to_string());
+        }
+    }
+    Ok(ids)
+}
+
 /// Number of distinct envelopes in `deletes` (keyed by account id) that exist.
 fn count_matching_envelopes(
     searcher: &Searcher,
@@ -2260,6 +2323,66 @@ mod tests {
         // Keyed by a mailbox id instead of the account id: nothing matches.
         let wrong_key = HashMap::from([(10, vec!["a1".to_string()])]);
         assert_eq!(count_matching_envelopes(&searcher, &wrong_key).unwrap(), 0);
+    }
+
+    #[test]
+    fn retention_query_matches_mail_whose_older_timestamp_is_before_the_cutoff() {
+        let f = SchemaTools::email_fields();
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        register_tokenizers(&index);
+        let cutoff = 1_000;
+        {
+            let mut writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
+            for (account_id, eid, date, internal_date) in [
+                (1, "both-old", 10, 20),
+                (1, "header-old", 10, 5_000),
+                (1, "internal-old", 5_000, 10),
+                (1, "header-unknown-internal-old", 0, 10),
+                (1, "header-unknown-internal-new", 0, 5_000),
+                (1, "both-unknown", 0, 0),
+                (1, "both-new", 5_000, 5_000),
+                (1, "exactly-at-cutoff", 1_000, 1_000),
+                (1, "just-before-cutoff", 999, 1_000),
+                (2, "other-account-old", 10, 10),
+            ] {
+                let mut doc = TantivyDocument::new();
+                doc.add_u64(f.f_account_id, account_id);
+                doc.add_text(f.f_id, eid);
+                doc.add_i64(f.f_date, date);
+                doc.add_i64(f.f_internal_date, internal_date);
+                writer.add_document(doc).unwrap();
+            }
+            writer.commit().unwrap();
+        }
+        let reader = index.reader().unwrap();
+        reader.reload().unwrap();
+        let searcher = reader.searcher();
+
+        let mut ids = expired_envelope_ids(&searcher, 1, cutoff, 100).unwrap();
+        ids.sort();
+        assert_eq!(
+            ids,
+            vec![
+                "both-old",
+                "header-old",
+                "header-unknown-internal-old",
+                "internal-old",
+                "just-before-cutoff",
+            ]
+        );
+
+        // The limit caps one batch.
+        assert_eq!(
+            expired_envelope_ids(&searcher, 1, cutoff, 2).unwrap().len(),
+            2
+        );
+        assert_eq!(
+            expired_envelope_ids(&searcher, 2, cutoff, 100).unwrap(),
+            vec!["other-account-old"]
+        );
+        assert!(expired_envelope_ids(&searcher, 3, cutoff, 100)
+            .unwrap()
+            .is_empty());
     }
 
     #[test]
