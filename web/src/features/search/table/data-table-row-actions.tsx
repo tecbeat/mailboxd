@@ -31,9 +31,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useTranslation } from 'react-i18next'
-import { EllipsisVertical as MoreVertical, Tag as TagIcon, Trash2, Upload } from 'lucide-react'
+import { EllipsisVertical as MoreVertical, Tag as TagIcon, Trash2, Upload, Wrench } from 'lucide-react'
 import { EmailEnvelope } from '@/api'
 import { useSearchContext } from '../context'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { REPAIR_PERMISSIONS } from '@/features/repair/permissions'
 
 interface DataTableRowActionsProps {
   row: Row<MailTableFeatures, EmailEnvelope>
@@ -42,6 +44,8 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentItem, setSelected, setToDelete, setEditTagsOpen } = useSearchContext()
   const { t } = useTranslation()
+  const { require_any_permission } = useCurrentUser()
+  const canRepair = require_any_permission(REPAIR_PERMISSIONS, row.original.account_id)
 
   const toggleToDelete = (accountId: number, mailId: string) => {
     setToDelete(prev => {
@@ -107,6 +111,22 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <Upload />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+          {canRepair && (
+            <DropdownMenuItem
+              className='text-xs'
+              onClick={(e) => {
+                e.stopPropagation()
+                setCurrentItem(row.original)
+                setSelected(new Map())
+                setOpen('repair')
+              }}
+            >
+              {t('repair_message.repairAction')}
+              <DropdownMenuShortcut>
+                <Wrench />
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
 

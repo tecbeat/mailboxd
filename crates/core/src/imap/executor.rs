@@ -54,6 +54,21 @@ fn classify_imap_error(e: &async_imap::error::Error) -> ErrorCode {
     }
 }
 
+/// The outcome of one batched body fetch ([`ImapExecutor::uid_batch_retrieve_emails`]).
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct BatchFetchOutcome {
+    /// Messages actually stored. Parse-skipped and oversized messages are
+    /// not included.
+    pub stored: u64,
+    /// The server looked like it was rate-limiting (consecutive stall
+    /// reports); callers back off before the next batch.
+    pub throttled: bool,
+    /// Messages whose body could not be parsed and were skipped (not
+    /// archived). They stay "missing" locally, so gap-fill keeps detecting
+    /// them on every later run.
+    pub parse_skipped: u64,
+}
+
 pub struct ImapExecutor;
 
 impl ImapExecutor {
@@ -100,7 +115,8 @@ impl ImapExecutor {
             .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))
     }
 
-    /// Enumerate every UID currently present in the mailbox via `UID SEARCH ALL`.
+    /// Enumerate the UIDs of the mailbox matching `criteria` (`ALL` for every
+    /// message) via `UID SEARCH`, in ascending order.
     ///
     /// This is the drift-safe way to page through a full mailbox: UIDs are stable
     /// while the download runs (new arrivals only get larger UIDs), whereas
@@ -110,13 +126,14 @@ impl ImapExecutor {
     pub async fn uid_search_all_mailbox(
         session: &mut Session<Box<dyn SessionStream>>,
         mailbox_name: &str,
+        criteria: &str,
     ) -> MailboxdResult<Vec<u32>> {
         session
             .examine(mailbox_name)
             .await
             .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
         let results = session
-            .uid_search("ALL")
+            .uid_search(criteria)
             .await
             .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
         let mut uids: Vec<u32> = results.into_iter().collect();
@@ -228,7 +245,7 @@ impl ImapExecutor {
                     start_uid,
                     examined.uid_next,
                 ) {
-                    tracing::warn!(
+                    info!(
                         account_id = account.id,
                         mailbox = %mailbox.name,
                         start_uid,
@@ -236,15 +253,7 @@ impl ImapExecutor {
                         "{}",
                         msg
                     );
-                    DownloadState::append_session_error(account.id, msg)?;
-                    DownloadState::update_folder_progress(
-                        account.id,
-                        mailbox.name.clone(),
-                        0,
-                        0,
-                        FolderStatus::Failed,
-                        Some("UID enumeration came back empty despite new mail on server. Retrying on next sync.".into()),
-                    )?;
+                    record_purged_tail(account.id, &mailbox.name)?;
                     return Ok(None);
                 }
             }
@@ -294,7 +303,7 @@ impl ImapExecutor {
                     ErrorCode::InternalError
                 ));
             }
-            let (processed, throttled) = Self::uid_batch_retrieve_emails(
+            let outcome = Self::uid_batch_retrieve_emails(
                 session,
                 account.id,
                 mailbox.id,
@@ -316,12 +325,12 @@ impl ImapExecutor {
                 }),
             )
             .await?;
-            if throttled {
+            if outcome.throttled {
                 // Server appears to be rate-limiting; back off before the next
                 // batch so we don't hammer the limiter with back-to-back bursts.
                 tokio::time::sleep(std::time::Duration::from_secs(5)).await;
             }
-            count += processed;
+            count += outcome.stored;
             DownloadState::update_folder_progress(
                 account.id,
                 mailbox.name.clone(),
@@ -501,7 +510,7 @@ impl ImapExecutor {
                     start_uid,
                     examined.uid_next,
                 ) {
-                    tracing::warn!(
+                    info!(
                         account_id = account.id,
                         mailbox = %mailbox.name,
                         start_uid,
@@ -509,15 +518,7 @@ impl ImapExecutor {
                         "{}",
                         msg
                     );
-                    DownloadState::append_session_error(account.id, msg)?;
-                    DownloadState::update_folder_progress(
-                        account.id,
-                        mailbox.name.clone(),
-                        0,
-                        0,
-                        FolderStatus::Failed,
-                        Some("UID enumeration came back empty despite new mail on server. Retrying on next sync.".into()),
-                    )?;
+                    record_purged_tail(account.id, &mailbox.name)?;
                     return Ok(None);
                 }
             }
@@ -588,7 +589,7 @@ impl ImapExecutor {
                 )
                 .await
                 {
-                    Ok(processed) => break Ok(processed),
+                    Ok(outcome) => break Ok(outcome),
                     Err(e)
                         if retries < MAX_NETWORK_RETRIES && e.code() == ErrorCode::NetworkError =>
                     {
@@ -637,8 +638,8 @@ impl ImapExecutor {
                 }
             };
             match batch_result {
-                Ok((processed, _throttled)) => {
-                    count += processed;
+                Ok(outcome) => {
+                    count += outcome.stored;
                     DownloadState::update_folder_progress(
                         account.id,
                         mailbox.name.clone(),
@@ -653,7 +654,7 @@ impl ImapExecutor {
                         mailbox.name,
                         index + 1,
                         total_batches,
-                        processed
+                        outcome.stored
                     );
                 }
                 Err(e) => {
@@ -680,6 +681,11 @@ impl ImapExecutor {
 
     /// Downloads the bodies of `uid_set` in one batch.
     ///
+    /// A message whose body cannot be parsed is skipped — it is NOT archived,
+    /// the batch and the stream keep going, and it is reported both through
+    /// the log and as a session error so the running state shows a warning
+    /// (#377). Oversized messages are skipped the same way as before.
+    ///
     /// `progress` (if given) is invoked after each stored message with the
     /// cumulative count for the whole mailbox, the current average
     /// inter-message interval in seconds (None until at least two messages
@@ -699,7 +705,7 @@ impl ImapExecutor {
         progress: Option<
             &(dyn Fn(u64, Option<f64>, Option<f64>) -> MailboxdResult<()> + Send + Sync),
         >,
-    ) -> MailboxdResult<(u64, bool)> {
+    ) -> MailboxdResult<BatchFetchOutcome> {
         let limit = max_email_size_bytes.unwrap_or(DEFAULT_MAX_EMAIL_SIZE);
 
         // PASS 1: fetch only SIZE to identify oversized messages
@@ -734,7 +740,7 @@ impl ImapExecutor {
         };
 
         if acceptable_uids.is_empty() {
-            return Ok((0, false));
+            return Ok(BatchFetchOutcome::default());
         }
 
         // PASS 2: fetch bodies only for acceptable UIDs
@@ -745,6 +751,10 @@ impl ImapExecutor {
             .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
 
         let mut count = 0u64;
+        // Messages skipped because their body could not be parsed (not
+        // archived). Reported through the outcome so callers can surface a
+        // folder-level warning and count them as failed where appropriate.
+        let mut parse_skipped = 0u64;
         // Sliding window of recent per-message receive times, used to estimate
         // how slow the server is: slow servers push messages seconds apart.
         let mut recv_times: std::collections::VecDeque<std::time::Instant> =
@@ -825,18 +835,50 @@ impl ImapExecutor {
             } else {
                 None
             };
-            if let Err(e) = extract_envelope_and_store_it(fetch, account_id, mailbox_id).await {
-                if let Some(progress) = progress {
-                    let _ = progress(count, None, None);
+            // Read the UID before the fetch is moved into the extractor, so
+            // the skip-warning below can name the message.
+            let fetch_uid = fetch.uid.unwrap_or(0);
+            match extract_envelope_and_store_it(fetch, account_id, mailbox_id).await {
+                Ok(()) => {}
+                Err(e) if e.code() == ErrorCode::EmailParseError => {
+                    // One broken message must not abort the batch (#377): it is
+                    // not stored, the stream keeps going, and the running state
+                    // gets a per-message warning so the user can find it. The
+                    // UID is never marked present locally, so gap-fill keeps
+                    // detecting it on every later run (and warns again).
+                    parse_skipped += 1;
+                    tracing::warn!(
+                        account_id,
+                        mailbox_id,
+                        uid = fetch_uid,
+                        "Skipping unparseable email (not archived)"
+                    );
+                    let _ = DownloadState::append_session_error(
+                        account_id,
+                        format!(
+                            "Skipped unparseable email (mailbox {mailbox_id}, uid {fetch_uid}): \
+                             message not archived; gap-fill will keep detecting it"
+                        ),
+                    );
+                    continue;
                 }
-                return Err(e);
+                Err(e) => {
+                    if let Some(progress) = progress {
+                        let _ = progress(count, None, None);
+                    }
+                    return Err(e);
+                }
             }
             count += 1;
             if let Some(progress) = progress {
                 progress(count, avg_secs, None)?;
             }
         }
-        Ok((count, consecutive_stalls >= 2))
+        Ok(BatchFetchOutcome {
+            stored: count,
+            throttled: consecutive_stalls >= 2,
+            parse_skipped,
+        })
     }
 
     /// Fetches the raw RFC822 body of a single message by UID.
@@ -1152,6 +1194,21 @@ fn filter_before_date(
     Ok(uid_vec)
 }
 
+/// Record an empty `UID FETCH {start}:*` despite a higher UIDNEXT. Servers
+/// report this when the newest messages were deleted, so it is a normal state
+/// rather than a sync error: the folder counts as successful and highest_uid
+/// stays unchanged so a later sync still picks up anything that was missed.
+fn record_purged_tail(account_id: u64, mailbox_name: &str) -> MailboxdResult<()> {
+    DownloadState::update_folder_progress(
+        account_id,
+        mailbox_name.to_string(),
+        0,
+        0,
+        FolderStatus::Success,
+        Some("UID FETCH range returned empty; the newest UIDs appear to have been purged on the server. highest_uid unchanged, will retry on next sync.".into()),
+    )
+}
+
 /// When a range enumeration comes back empty, decide whether that is an
 /// anomaly (server claims messages exist in the range but none were returned)
 /// or a genuine "no new mail" result. Returns a warning message for the
@@ -1174,25 +1231,19 @@ fn empty_enumeration_anomaly(
     }
 }
 
+/// Extract the Message-ID from a fetched header block.
+///
+/// Uses mail-parser, the parser that produced the archived Message-ID, so
+/// header-name casing, folded values, non-UTF-8 bytes in other headers and
+/// angle brackets are handled exactly as at archive time and gap-fill
+/// comparisons match.
 fn parse_message_id_header(header_bytes: &[u8]) -> Option<String> {
-    let header = std::str::from_utf8(header_bytes).ok()?;
-    for line in header.lines() {
-        if let Some(value) = line
-            .strip_prefix("Message-ID:")
-            .or_else(|| line.strip_prefix("Message-Id:"))
-            .or_else(|| line.strip_prefix("Message-id:"))
-        {
-            // mail_parser strips angle brackets, so we must do the same
-            // to ensure comparisons against the Tantivy index match.
-            let trimmed = value.trim();
-            let stripped = trimmed.strip_prefix('<').unwrap_or(trimmed);
-            let stripped = stripped.strip_suffix('>').unwrap_or(stripped);
-            if !stripped.is_empty() {
-                return Some(stripped.to_string());
-            }
-        }
-    }
-    None
+    let message = mail_parser::MessageParser::new().parse_headers(header_bytes)?;
+    message
+        .message_id()
+        .map(str::trim)
+        .filter(|id| !id.is_empty())
+        .map(str::to_string)
 }
 
 #[cfg(test)]
@@ -1200,6 +1251,27 @@ mod test {
     use super::*;
     use crate::imap::session::SessionStream;
     use tokio_io_timeout::TimeoutStream;
+
+    #[tokio::test]
+    async fn purged_tail_marks_folder_successful_without_session_error() {
+        // Account id used by no other test.
+        let account_id = 59_342_001;
+        DownloadState::init(account_id).await.unwrap();
+
+        record_purged_tail(account_id, "INBOX").unwrap();
+
+        let session = DownloadState::get(account_id)
+            .unwrap()
+            .and_then(|state| state.active_session)
+            .expect("session stays active");
+        assert!(session.errors.is_empty());
+        let folder = &session.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert!(folder
+            .message
+            .as_deref()
+            .is_some_and(|m| m.contains("purged")));
+    }
 
     // ── compress_uid_list ──────────────────────────────────────────
 
@@ -1364,6 +1436,44 @@ To: recipient@example.com\r\n\r\n";
             parse_message_id_header(header),
             Some("plain@example.com".into())
         );
+    }
+
+    #[test]
+    fn parse_message_id_all_lowercase_header_name() {
+        let header = b"message-id: <low@example.com>\r\n";
+        assert_eq!(
+            parse_message_id_header(header),
+            Some("low@example.com".into())
+        );
+    }
+
+    #[test]
+    fn parse_folded_message_id() {
+        let header = b"Message-ID:\r\n <folded@example.com>\r\n\r\n";
+        assert_eq!(
+            parse_message_id_header(header),
+            Some("folded@example.com".into())
+        );
+    }
+
+    #[test]
+    fn parse_message_id_next_to_non_utf8_header() {
+        let header = b"Subject: caf\xe9\r\nMessage-ID: <latin1@example.com>\r\n\r\n";
+        assert_eq!(
+            parse_message_id_header(header),
+            Some("latin1@example.com".into())
+        );
+    }
+
+    #[test]
+    fn parse_message_id_matches_archived_message_id() {
+        // Gap-fill compares this value against the Message-ID that
+        // mail-parser extracted when the message was archived.
+        let raw = b"Message-ID:\r\n  <same@example.com>\r\nSubject: x\r\n\r\nbody";
+        let archived = mail_parser::MessageParser::new()
+            .parse(&raw[..])
+            .and_then(|m| m.message_id().map(str::to_string));
+        assert_eq!(parse_message_id_header(raw), archived);
     }
 
     // ── empty_enumeration_anomaly ──────────────────────────────────
@@ -1535,6 +1645,244 @@ To: recipient@example.com\r\n\r\n";
             vec![1, 2, 3]
         );
         assert_eq!(skipped, 1);
+        session.logout().await.ok();
+    }
+
+    // ── batched body download and incremental fetch via mock server ──
+
+    use crate::imap::mock_server::{minimal_eml, uid_fetch_body_response};
+
+    fn mailbox_named(id: u64, name: &str) -> MailBox {
+        MailBox {
+            id,
+            name: name.into(),
+            ..Default::default()
+        }
+    }
+
+    fn account_with_id(id: u64) -> AccountModel {
+        AccountModel {
+            id,
+            ..Default::default()
+        }
+    }
+
+    fn active_session(account_id: u64) -> crate::account::state::DownloadSession {
+        DownloadState::get(account_id)
+            .unwrap()
+            .and_then(|state| state.active_session)
+            .expect("session stays active")
+    }
+
+    /// Script answering the three FETCH shapes of an incremental download:
+    /// the `{start}:*` enumeration, the per-batch SIZE pre-check and the
+    /// body fetch. `bodies` lists every message the server holds.
+    fn download_server(examine: Vec<u8>, bodies: &[(u32, &[u8])]) -> MockImapServer {
+        let sizes: Vec<(u32, u32)> = bodies
+            .iter()
+            .map(|(uid, eml)| (*uid, eml.len() as u32))
+            .collect();
+        MockImapServer::new()
+            .respond("LOGIN", "{TAG} OK LOGIN done\r\n")
+            .respond("EXAMINE", examine)
+            .respond("BODY.PEEK[]", uid_fetch_body_response(bodies))
+            .respond("RFC822.SIZE INTERNALDATE)", uid_fetch_size_response(&sizes))
+            .respond("(UID RFC822.SIZE)", uid_fetch_size_response(&sizes))
+    }
+
+    #[tokio::test]
+    async fn batch_download_skips_unparseable_email_and_stores_the_rest() {
+        let account_id = 59_342_101;
+        DownloadState::init(account_id).await.unwrap();
+        let first = minimal_eml("first", "first@batch.test");
+        let third = minimal_eml("third", "third@batch.test");
+        // An empty body is the input mail-parser refuses to parse.
+        let bodies: [(u32, &[u8]); 3] = [(1, &first), (2, b""), (3, &third)];
+        let handle = download_server(examine_response("INBOX", 3, 42, 4), &bodies)
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let outcome = ImapExecutor::uid_batch_retrieve_emails(
+            &mut session,
+            account_id,
+            7_101,
+            "1:3",
+            None,
+            CancellationToken::new(),
+            None,
+        )
+        .await
+        .expect("one broken message must not fail the batch");
+
+        assert_eq!(
+            outcome,
+            BatchFetchOutcome {
+                stored: 2,
+                throttled: false,
+                parse_skipped: 1,
+            }
+        );
+        let errors = active_session(account_id).errors;
+        assert_eq!(errors.len(), 1);
+        assert!(errors[0].error.contains("uid 2"), "{:?}", errors[0].error);
+        assert!(errors[0].error.contains("not archived"));
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn batch_download_with_only_oversized_messages_stores_nothing() {
+        let handle = MockImapServer::new()
+            .respond("LOGIN", "{TAG} OK LOGIN done\r\n")
+            .respond("EXAMINE", examine_response("INBOX", 2, 42, 3))
+            .respond(
+                "(UID RFC822.SIZE)",
+                uid_fetch_size_response(&[(1, 5_000), (2, 9_000)]),
+            )
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let outcome = ImapExecutor::uid_batch_retrieve_emails(
+            &mut session,
+            59_342_102,
+            7_102,
+            "1:2",
+            Some(1_000),
+            CancellationToken::new(),
+            None,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(outcome, BatchFetchOutcome::default());
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn empty_tail_fetch_is_recorded_as_purged_mail() {
+        // UIDNEXT 10 claims mail at or above start_uid 5, but the ranged
+        // enumeration returns nothing: the newest messages were purged.
+        let account_id = 59_342_103;
+        DownloadState::init(account_id).await.unwrap();
+        let handle = download_server(examine_response("INBOX", 4, 42, 10), &[])
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let result = ImapExecutor::fetch_new_mail(
+            &mut session,
+            &account_with_id(account_id),
+            &mailbox_named(7_103, "INBOX"),
+            5,
+            None,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(result, None, "the watermark must not move");
+        let session_state = active_session(account_id);
+        assert!(session_state.errors.is_empty());
+        let folder = &session_state.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert!(folder.message.as_deref().unwrap().contains("purged"));
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn empty_tail_fetch_with_date_filter_is_recorded_as_purged_mail() {
+        let account_id = 59_342_104;
+        DownloadState::init(account_id).await.unwrap();
+        let handle = download_server(examine_response("INBOX", 4, 42, 10), &[])
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let result = ImapExecutor::fetch_new_mail(
+            &mut session,
+            &account_with_id(account_id),
+            &mailbox_named(7_104, "INBOX"),
+            5,
+            Some("01-Feb-2025"),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(result, None);
+        let session_state = active_session(account_id);
+        assert!(session_state.errors.is_empty());
+        let folder = &session_state.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert!(folder.message.as_deref().unwrap().contains("purged"));
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn incremental_fetch_counts_only_stored_messages() {
+        let account_id = 59_342_105;
+        DownloadState::init(account_id).await.unwrap();
+        let five = minimal_eml("five", "five@range.test");
+        let seven = minimal_eml("seven", "seven@range.test");
+        let bodies: [(u32, &[u8]); 3] = [(5, &five), (6, b""), (7, &seven)];
+        let handle = download_server(examine_response("INBOX", 3, 42, 8), &bodies)
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        let result = ImapExecutor::fetch_new_mail(
+            &mut session,
+            &account_with_id(account_id),
+            &mailbox_named(7_105, "INBOX"),
+            5,
+            None,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        // The unparseable UID 6 is skipped, but the folder completes, so the
+        // watermark moves past it.
+        assert_eq!(result, Some(7));
+        let session_state = active_session(account_id);
+        let folder = &session_state.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert_eq!((folder.planned, folder.current), (2, 2));
+        assert_eq!(session_state.errors.len(), 1, "one per-message warning");
+        session.logout().await.ok();
+    }
+
+    #[tokio::test]
+    async fn date_filtered_incremental_fetch_counts_only_stored_messages() {
+        let account_id = 59_342_106;
+        DownloadState::init(account_id).await.unwrap();
+        let five = minimal_eml("five", "five@before.test");
+        let seven = minimal_eml("seven", "seven@before.test");
+        let bodies: [(u32, &[u8]); 3] = [(5, &five), (6, b""), (7, &seven)];
+        let handle = download_server(examine_response("INBOX", 3, 42, 8), &bodies)
+            .start()
+            .await;
+        let mut session = mock_session(&handle).await;
+
+        // Every message has INTERNALDATE 01-Jan-2025, before the cutoff.
+        let result = ImapExecutor::fetch_new_mail(
+            &mut session,
+            &account_with_id(account_id),
+            &mailbox_named(7_106, "INBOX"),
+            5,
+            Some("01-Feb-2025"),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(result, Some(7));
+        let session_state = active_session(account_id);
+        let folder = &session_state.folder_details["INBOX"];
+        assert_eq!(folder.status, FolderStatus::Success);
+        assert_eq!((folder.planned, folder.current), (2, 2));
+        assert_eq!(session_state.errors.len(), 1, "one per-message warning");
         session.logout().await.ok();
     }
 }

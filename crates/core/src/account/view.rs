@@ -60,6 +60,7 @@ pub struct AccountResp {
     pub auto_download_new_mailboxes: Option<bool>,
     pub download_schedule: Option<String>,
     pub archive_rules: Option<ArchiveRules>,
+    pub retention_days: Option<u64>,
     pub deleting: bool,
 }
 
@@ -98,6 +99,7 @@ impl AccountResp {
             auto_download_new_mailboxes: account.auto_download_new_mailboxes,
             download_schedule: account.download_schedule,
             archive_rules: account.archive_rules,
+            retention_days: account.retention_days,
             deleting: account.deleting,
         }
     }

@@ -27,7 +27,7 @@ use crate::store::envelope::Envelope;
 use crate::utils::compute_content_hash;
 use crate::utils::html::block_remote_content;
 use crate::{error::MailboxdResult, raise_error};
-use mail_parser::MessageParser;
+use mail_parser::{MessageParser, MessagePart};
 //use poem_openapi::Object;
 use serde::{Deserialize, Serialize};
 /// Represents metadata of an attachment in a Gmail message.
@@ -49,6 +49,10 @@ pub struct AttachmentInfo {
     pub content_id: Option<String>,
     /// Hash of the content.
     pub content_hash: String,
+    /// Hash of the original encoded MIME body used for lossless reconstruction.
+    /// Legacy records use `content_hash` as their storage key.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub raw_content_hash: Option<String>,
     pub is_message: bool,
     /// Text extracted from the attachment body (populated when a text
     /// extractor is registered — see crates/core/src/ext/text_extractor.rs).
@@ -62,6 +66,12 @@ pub struct AttachmentInfo {
 }
 
 impl AttachmentInfo {
+    pub fn storage_hash(&self) -> &str {
+        self.raw_content_hash
+            .as_deref()
+            .unwrap_or(&self.content_hash)
+    }
+
     pub fn is_inline(&self) -> bool {
         self.inline && self.content_id.is_some()
     }
@@ -176,13 +186,27 @@ pub struct FullNestedMessageContent {
     pub has_remote_content: bool,
 }
 
+/// MIME type of an attachment part. A part without a `Content-Type` header
+/// (rustmailer/bichon#369) gets a type guessed from its filename, or
+/// `application/octet-stream`.
+fn attachment_file_type(attachment: &MessagePart<'_>) -> String {
+    if let Some(ct) = attachment.content_type() {
+        return format!("{}/{}", ct.ctype(), ct.subtype().unwrap_or(""));
+    }
+    attachment
+        .attachment_name()
+        .and_then(|name| mime_guess::from_path(name).first_raw())
+        .unwrap_or("application/octet-stream")
+        .to_string()
+}
+
 pub fn retrieve_email_content(
     account_id: u64,
     envelope_id: String,
     block_remote: bool,
 ) -> MailboxdResult<FullMessageContent> {
     AccountModel::check_account_exists(account_id)?;
-    let (envelope, eml) = reattach_eml_content(account_id, envelope_id)?;
+    let (_, eml) = reattach_eml_content(account_id, envelope_id)?;
     let message = MessageParser::default().parse(&eml).ok_or_else(|| {
         raise_error!(
             "Failed to parse EML data — the message may be corrupted.".into(),
@@ -194,22 +218,9 @@ pub fn retrieve_email_content(
     let mut attachments = Vec::new();
     for attachment in attachment_parts(&message) {
         let contents = part_contents(&attachment);
-        let content_type = attachment.content_type().ok_or_else(|| {
-            raise_error!(
-                format!(
-                    "Attachment is missing Content-Type (email id={})",
-                    &envelope.id
-                ),
-                ErrorCode::InternalError
-            )
-        })?;
         let filename = attachment.attachment_name().map(|name| name.to_string());
         let disposition = attachment.content_disposition();
-        let file_type = format!(
-            "{}/{}",
-            content_type.ctype(),
-            content_type.subtype().unwrap_or("")
-        );
+        let file_type = attachment_file_type(&attachment);
 
         let inline = disposition
             .map(|d| d.is_inline())
@@ -244,6 +255,7 @@ pub fn retrieve_email_content(
             is_message,
             content_hash,
             content_id: attachment.content_id().map(Into::into),
+            raw_content_hash: None,
             extracted_text: None,
             extracted_page_count: None,
             extracted_is_ocr: false,
@@ -346,6 +358,7 @@ pub fn retrieve_nested_eml_content(
             file_type,
             content_hash,
             is_message: attachment.is_message(),
+            raw_content_hash: None,
             content_id: cid.map(Into::into),
             extracted_text: None,
             extracted_page_count: None,
@@ -375,6 +388,32 @@ pub fn retrieve_nested_eml_content(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn first_attachment_type(raw: &[u8]) -> String {
+        let message = MessageParser::default().parse(raw).unwrap();
+        let attachment = attachment_parts(&message)
+            .next()
+            .expect("fixture has an attachment");
+        attachment_file_type(&attachment)
+    }
+
+    #[test]
+    fn attachment_file_type_uses_declared_content_type() {
+        let raw = b"From: a@example.com\r\nContent-Type: multipart/mixed; boundary=b\r\n\r\n--b\r\nContent-Type: text/plain\r\n\r\nBody\r\n--b\r\nContent-Type: application/pdf\r\nContent-Disposition: attachment; filename=report.bin\r\n\r\ndata\r\n--b--\r\n";
+        assert_eq!(first_attachment_type(raw), "application/pdf");
+    }
+
+    #[test]
+    fn attachment_file_type_guesses_from_filename_without_content_type() {
+        let raw = b"From: a@example.com\r\nContent-Type: multipart/mixed; boundary=b\r\n\r\n--b\r\nContent-Type: text/plain\r\n\r\nBody\r\n--b\r\nContent-Disposition: attachment; filename=report.pdf\r\n\r\ndata\r\n--b--\r\n";
+        assert_eq!(first_attachment_type(raw), "application/pdf");
+    }
+
+    #[test]
+    fn attachment_file_type_falls_back_to_octet_stream() {
+        let raw = b"From: a@example.com\r\nContent-Type: multipart/mixed; boundary=b\r\n\r\n--b\r\nContent-Type: text/plain\r\n\r\nBody\r\n--b\r\nContent-Disposition: attachment; filename=noextension\r\n\r\ndata\r\n--b--\r\n";
+        assert_eq!(first_attachment_type(raw), "application/octet-stream");
+    }
 
     /// Simulates JSON written by a version before `extracted_text`, `extracted_page_count`,
     /// and `extracted_is_ocr` were added to [`AttachmentInfo`]. Deserialization must
@@ -444,6 +483,7 @@ mod tests {
                 size: 42,
                 content_id: None,
                 content_hash: "hash1".into(),
+                raw_content_hash: Some("encoded-hash1".into()),
                 is_message: true,
                 extracted_text: Some("hello world".into()),
                 extracted_page_count: Some(1),
@@ -456,6 +496,7 @@ mod tests {
                 size: 99999,
                 content_id: None,
                 content_hash: "hash2".into(),
+                raw_content_hash: None,
                 is_message: false,
                 extracted_text: None,
                 extracted_page_count: None,

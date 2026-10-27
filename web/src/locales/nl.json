@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "E-mails groter dan dit worden overgeslagen. Laat leeg om de standaard (100 MB) te gebruiken.",
     "maxEmailSizeBytesPlaceholder": "Standaard: 100 MB",
     "maxEmailSizeBytesUnlimited": "Standaard: 100 MB",
+    "retentionDays": "Bewaartermijn (dagen)",
+    "retentionDaysDescription": "Gearchiveerde e-mails ouder dan dit aantal dagen worden verwijderd, en oudere e-mails worden niet meer gearchiveerd. Laat leeg om alle e-mails te bewaren.",
+    "retentionOff": "Altijd bewaren",
+    "retentionWarning": "E-mails ouder dan de bewaartermijn worden binnen de komende 6 uur definitief uit het archief verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "minutes": "minuten",
     "months": "Maanden",
     "mustBeAtLeast1": "Moet ten minste 1 zijn",
@@ -331,6 +335,8 @@
       "generalDesc": "Basisaccountinformatie en status.",
       "newAccount": "Nieuw account",
       "performance": "Prestaties",
+      "retention": "Bewaren",
+      "retentionDesc": "Kies hoe lang gearchiveerde e-mails worden bewaard.",
       "schedule": "Tijdschema",
       "scope": "Bereik",
       "server": "Server",
@@ -541,10 +547,21 @@
     "login": "Inloggen",
     "loginFailed": "Inloggen Mislukt",
     "logout": "Uitloggen",
+    "mfa": {
+      "back": "Terug naar inloggen",
+      "challengeExpired": "De aanmelding is verlopen. Log opnieuw in.",
+      "code": "Verificatiecode",
+      "codeFormat": "Voer de 6-cijferige code uit je authenticator-app of een herstelcode in.",
+      "invalidCode": "Ongeldige verificatiecode. Probeer het opnieuw.",
+      "prompt": "Voer de 6-cijferige code uit je authenticator-app in. Heb je er geen toegang meer toe, voer dan een van je herstelcodes in.",
+      "tooManyCodes": "Te veel ongeldige codes. Log opnieuw in.",
+      "verify": "Verifiëren"
+    },
     "password": "Wachtwoord",
     "sessionExpired": "Sessie verlopen!",
     "sessionExpiredDesc": "Uw sessie is beëindigd vanwege inactiviteit. Log opnieuw in om door te gaan.",
     "somethingWentWrong": "Er is iets fout gegaan",
+    "tooManyAttempts": "Te veel inlogpogingen. Wacht een paar minuten en probeer het opnieuw.",
     "username": "Gebruikersnaam",
     "welcome": "Welkom bij mailboxd",
     "youWillNeedToLogInAgain": "U moet opnieuw inloggen om toegang te krijgen tot uw account.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Gedetecteerd",
     "detectedFrom": "Gedetecteerd uit",
     "dropHere": "Sleep .eml / .mbox / .pst bestanden hierheen",
+    "duplicateCount": "{{count}} duplicaten overgeslagen",
     "failed": "Import mislukt",
     "failedCount": "{{count}} mislukt",
     "failedDetails": "Mislukte items",
@@ -734,6 +752,7 @@
     "noMailboxFound": "Geen mailbox gevonden.",
     "noMailboxes": "Geen mailboxen gevonden in dit account.",
     "orClick": "of klik om te bladeren",
+    "outsideRetentionCount": "{{count}} buiten de bewaartermijn",
     "processed": "{{current}} / {{total}} verwerkt",
     "processing": "Verwerken…",
     "pstFolderDesc": "Het PST-bestand bevat een eigen mapstructuur (bijv. Postvak IN, Verzonden items, enz.). Mappen worden automatisch aangemaakt tijdens de import.",
@@ -747,6 +766,7 @@
     "source": "bron",
     "startImport": "Importeren",
     "successCount": "{{count}} geïmporteerd",
+    "summaryOutsideRetention": "{{count}} buiten bewaartermijn",
     "target": "1. Selecteer doelaccount",
     "title": "Importeren",
     "uploading": "Uploaden…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "Een geheime sleutel verstrekt door de OAuth-aanbieder om uw applicatie te authenticeren.",
+    "accessToken": "Toegangstoken",
+    "accessTokenCannotBeEmpty": "Toegangstoken mag niet leeg zijn",
+    "accountIsRequired": "Selecteer een account.",
     "actions": {
       "authorize": "Autoriseren",
       "delete": "Verwijderen",
       "edit": "Bewerken",
+      "importTokens": "Tokens importeren",
       "openMenu": "Menu openen"
     },
     "addConfiguration": "Configuratie Toevoegen",
@@ -867,8 +891,8 @@
     "addScope": "Scope Toevoegen",
     "areYouSureYouWantTo": "Weet u zeker dat u deze OAuth2 client wilt {{action}}?",
     "areYouSureYouWantToDelete": "Weet u zeker dat u wilt verwijderen",
-    "authAtatus": "OAuth2 Authenticatiestatus",
     "authFailed": "OAuth2 Authenticatie Mislukt",
+    "authStatus": "OAuth2 Authenticatiestatus",
     "authSuccess": "OAuth2 Authenticatie Succesvol",
     "authUrlLabel": "Auth Url:",
     "authorizationUrlCannotBeEmpty": "Autorisatie-URL mag niet leeg zijn",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "OAuth2 Client Inschakelen",
     "enabled": "Ingeschakeld",
     "enterIdToConfirmDeletion": "Voer ID in om verwijdering te bevestigen.",
+    "enterTheAccessTokenHere": "Plak hier het toegangstoken.",
     "enterTheAuthorizationUrl": "Voer de autorisatie-URL in",
     "enterTheKeyHere": "Voer de sleutel hier in.",
+    "enterTheRefreshTokenHere": "Plak hier het vernieuwingstoken.",
     "enterTheScopeHere": "Voer de scope hier in.",
     "enterTheTokenUrl": "Voer de token-URL in",
     "enterTheValueHere": "Voer de waarde hier in.",
@@ -922,6 +948,15 @@
     "goHome": "Naar Startpagina",
     "goToAccounts": "Naar Accounts",
     "id": "ID",
+    "importTokensDescription": "Gebruik dit wanneer de OAuth2-client de autorisatie niet in mailboxd kan voltooien, bijvoorbeeld wanneer de tokens met een externe tool zoals email-oauth2-proxy zijn verkregen. Het geselecteerde account moet al OAuth2 als IMAP-authenticatietype gebruiken.",
+    "importTokensFailed": "Importeren van tokens mislukt",
+    "importTokensSuccess": "Tokens geïmporteerd",
+    "importTokensSuccessDesc": "De tokens zijn opgeslagen en worden automatisch vernieuwd.",
+    "importTokensTitle": "Externe tokens importeren",
+    "importTokensWarningClientMustMatch": "De Client ID en het Client Secret van deze configuratie moeten identiek zijn aan die van de client die het vernieuwingstoken heeft uitgegeven, anders mislukt het vernieuwen.",
+    "importTokensWarningLongLivedCredential": "Een vernieuwingstoken is een langdurig geldige referentie. Het wordt versleuteld op deze server opgeslagen.",
+    "importTokensWarningStopExternalTool": "Stop de externe tool die deze tokens heeft verkregen. Als beide tools hetzelfde vernieuwingstoken vernieuwen, ontstaat er een conflict en stopt het archiveren.",
+    "importing": "Importeren...",
     "information": "Informatie",
     "invalidAuthorizationUrlFormat": "Ongeldig Autoristatie-URL formaat",
     "invalidRedirectUriFormat": "Ongeldig Redirect URI formaat",
@@ -935,6 +970,8 @@
     "noConfigurations": "Geen OAuth2 Configuraties",
     "noConfigurationsDesc": "U heeft nog geen OAuth2-configuraties toegevoegd. Voeg er een toe om de OAuth2-functies te gebruiken.",
     "noEmailAccountsRegistered": "Geen e-mailaccounts geregistreerd. Gelieve er een aan te maken.",
+    "noOAuth2Accounts": "Geen van je accounts gebruikt OAuth2-authenticatie. Maak eerst een account aan met OAuth2 als authenticatietype.",
+    "noProxy": "Geen proxy",
     "noProxyAvailable": "Geen proxy beschikbaar",
     "noStatus": "Deze pagina toont het resultaat van uw OAuth2-authenticatie. Momenteel is er geen specifieke status beschikbaar. Probeer het indien nodig opnieuw.",
     "oauth2ClientHasBeenSuccessfully": "OAuth2 client is succesvol {{action}}.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "Redirect URI mag niet leeg zijn",
     "redirectUriIsRequired": "Redirect URI is vereist",
     "redirectUrlLabel": "Redirect Url:",
+    "refreshToken": "Vernieuwingstoken",
+    "refreshTokenCannotBeEmpty": "Vernieuwingstoken mag niet leeg zijn",
     "save": "Opslaan",
     "saveChanges": "Wijzigingen opslaan",
     "saving": "Bezig met opslaan...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Probeer opnieuw",
     "warningDesc": "Wees voorzichtig, deze bewerking kan niet ongedaan worden gemaakt.",
     "warningTitle": "Waarschuwing!"
+  },
+  "repair_message": {
+    "confirm": "Repareren",
+    "desc": "Haalt dit bericht opnieuw op van de IMAP-server en slaat ontbrekende inhoud op. Inhoud wordt alleen opgeslagen als deze overeenkomt met de gearchiveerde hash.",
+    "emailMissing": "Berichtinhoud ontbreekt nog steeds",
+    "emailRestored": "Berichtinhoud hersteld",
+    "failedHint": "Het bericht kon niet worden opgehaald of gecontroleerd. Zie de fout hieronder.",
+    "hideDetails": "Details verbergen",
+    "history": "Reparatiegeschiedenis",
+    "historyEmpty": "Nog geen reparaties.",
+    "historyFailed": "Kan de reparatiegeschiedenis niet laden.",
+    "historyHint": "De laatste {{limit}} reparatiepogingen.",
+    "missingAfter": "Bijlagen die nog ontbreken",
+    "missingBefore": "Bijlagen die vóór de reparatie ontbraken",
+    "operator": "Uitgevoerd door",
+    "partialHint": "Sommige inhoud kon niet worden hersteld. Inhoud die niet overeenkomt met de gearchiveerde hash wordt nooit opgeslagen.",
+    "repairAction": "Bericht repareren",
+    "repairing": "Bezig met repareren…",
+    "repairingHint": "Het bericht wordt opgehaald van de IMAP-server. Dit kan even duren.",
+    "reportDesc": "Resultaat van de reparatiepoging.",
+    "reportTitle": "Reparatierapport",
+    "requestFailed": "Reparatieverzoek mislukt",
+    "result": "Resultaat",
+    "showDetails": "Details weergeven",
+    "statusComplete": "Er ontbrak niets",
+    "statusFailed": "Mislukt",
+    "statusPartial": "Gedeeltelijk gerepareerd",
+    "statusRepaired": "Gerepareerd",
+    "title": "Bericht repareren",
+    "wholeMessageNote": "Dit repareert het hele bericht: de inhoud en alle bijlagen."
   },
   "restore_message": {
     "accountsInvolved": "Betrokken accounts",
@@ -1307,6 +1376,7 @@
     "body": "Inhoud",
     "button": "Zoeken",
     "clear_history": "Geschiedenis wissen",
+    "hint": "Alle woorden moeten overeenkomen. Gebruik OR om te verbreden, \"aanhalingstekens\" voor een zin, -woord om uit te sluiten.",
     "no_history": "Geen zoekgeschiedenis",
     "placeholder": "Zoek e-mails (gebruik \" \" voor woordgroepen)",
     "recent_title": "Recente zoekopdrachten",
@@ -1350,9 +1420,17 @@
     "label": "Resetten",
     "tooltip": "Alle filters wissen"
   },
+  "search_sort": {
+    "relevance": "Relevantie",
+    "relevance_needs_text": "Voer een zoekterm in om op relevantie te sorteren",
+    "relevance_tooltip": "Sorteren op beste overeenkomst"
+  },
   "search_view": {
+    "absolute": "Absoluut",
     "button_label": "Weergave",
-    "menu_title": "Kolominstellingen"
+    "date_display": "Datumweergave",
+    "menu_title": "Kolominstellingen",
+    "relative": "Relatief"
   },
   "settings": {
     "accounts": "Accounts",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Ongeldig wachtwoord",
     "lastAccess": "Laatste Toegang",
     "manageRootTokenAndPassword": "Beheer root-token en wachtwoord veilig.",
+    "mfa": {
+      "copied": "Gekopieerd naar klembord",
+      "description": "Beveilig het inloggen met wachtwoord met een eenmalige code uit een authenticator-app.",
+      "disabled": {
+        "description": "Als deze aan staat, is bij inloggen met wachtwoord ook een 6-cijferige code nodig uit een authenticator-app zoals Aegis, Google Authenticator of 1Password.",
+        "enable": "Tweestapsverificatie inschakelen",
+        "title": "Tweestapsverificatie staat uit"
+      },
+      "enabled": {
+        "codesLeft": "Ongebruikte herstelcodes: {{remaining}}",
+        "codesLow": "Je herstelcodes raken op. Schakel tweestapsverificatie uit en weer in om nieuwe te krijgen.",
+        "confirmDisable": "Uitschakelen",
+        "description": "Voor inloggen met wachtwoord is een code uit je authenticator-app nodig.",
+        "disable": "Tweestapsverificatie uitschakelen",
+        "disableCode": "Code uit je authenticator-app of een herstelcode",
+        "disabledToast": "Tweestapsverificatie uitgeschakeld",
+        "title": "Tweestapsverificatie staat aan"
+      },
+      "enrol": {
+        "code": "Code uit de app",
+        "confirm": "Bevestigen en inschakelen",
+        "copySecret": "Geheime sleutel kopiëren",
+        "description": "Scan de QR-code met je authenticator-app of voer de geheime sleutel handmatig in. Voer daarna de 6-cijferige code in die de app toont.",
+        "qrAlt": "QR-code voor je authenticator-app",
+        "qrFailed": "De QR-code kon niet worden gemaakt. Voer de geheime sleutel handmatig in.",
+        "secret": "Geheime sleutel voor handmatige invoer",
+        "title": "Je authenticator-app instellen"
+      },
+      "errors": {
+        "enrolFailed": "Het instellen kon niet worden gestart",
+        "invalidCode": "Ongeldige verificatiecode. Probeer het opnieuw.",
+        "tooManyAttempts": "Te veel pogingen. Wacht een paar minuten en probeer het opnieuw."
+      },
+      "loadError": "De status van tweestapsverificatie kon niet worden geladen.",
+      "recovery": {
+        "copy": "Codes kopiëren",
+        "description": "Met elke code kun je één keer inloggen als je geen toegang meer hebt tot je authenticator-app.",
+        "done": "Klaar",
+        "download": "Downloaden als .txt",
+        "leaveWarning": "Je hebt nog niet bevestigd dat je je herstelcodes hebt opgeslagen. Ze worden niet opnieuw getoond. Toch verlaten?",
+        "onlyOnce": "Deze codes worden maar één keer getoond. Bewaar ze nu op een veilige plek.",
+        "saved": "Ik heb mijn herstelcodes op een veilige plek bewaard",
+        "title": "Bewaar je herstelcodes"
+      },
+      "ssoNote": "Je logt in via single sign-on (SSO). Tweestapsverificatie voor je account wordt geregeld door je identiteitsprovider en kan hier dus niet worden ingesteld.",
+      "title": "Tweestapsverificatie"
+    },
     "name": "Naam",
     "noProxies": "Geen Proxy's",
     "noProxiesDesc": "U heeft nog geen proxy-configuraties toegevoegd. Voeg er een toe om proxy-functies te gebruiken.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "API-tokens",
       "backup": "Back-up",
       "configurations": "Systeemconfiguraties",
+      "mfa": "Tweestapsverificatie",
       "profile": "Profiel",
       "proxy": "Netwerkproxy"
     },
@@ -1517,6 +1643,12 @@
     "title": "Uitloggen"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Wachtwoord wijzigen",
+      "badge": "Beveiliging",
+      "message": "Het ingebouwde admin-account accepteert nog het oorspronkelijke wachtwoord. Wijzig het in het profiel terwijl je als admin bent aangemeld, of onder Gebruikers.",
+      "title": "Standaard beheerderswachtwoord in gebruik"
+    },
     "notifications": "Systeemmeldingen"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Zoek gebruikers..."
       },
+      "reset_mfa": {
+        "button_confirm": "2FA resetten",
+        "confirm_msg": "Tweestapsverificatie voor gebruiker {{name}} (ID: {{id}}) wordt uitgeschakeld en de herstelcodes worden verwijderd. Totdat de gebruiker het opnieuw instelt, is het wachtwoord voldoende om in te loggen.",
+        "failed_title": "Resetten mislukt",
+        "menu": "2FA resetten",
+        "success_desc": "Tweestapsverificatie voor \"{{name}}\" is uitgeschakeld.",
+        "success_title": "2FA gereset",
+        "title": "Tweestapsverificatie resetten"
+      },
       "schema": {
         "account_required": "Selecteer een account",
         "description_max": "Beschrijving max 256 tekens",
@@ -1767,6 +1908,7 @@
       "created_at": "Gemaakt op",
       "email": "E-mailadres",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Rollen & permissies",
       "updated_at": "Bijgewerkt op",
       "username": "Gebruikersnaam"
@@ -1775,6 +1917,7 @@
       "description": "Klik op de knop hieronder om uw eerste gebruiker toe te voegen.",
       "title": "Geen gebruikers gevonden"
     },
+    "mfa_enabled": "Aan",
     "nav": {
       "api_tokens": "API-tokens",
       "roles": "Rollen",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Voer uw wachtwoord in",
     "pleaseEnterUsernameOrEmail": "Voer alstublieft uw gebruikersnaam of e-mailadres in",
     "required": "Dit veld is verplicht",
+    "retentionDaysRange": "Voer een geheel aantal dagen in van 1 tot 36500, of laat het veld leeg.",
     "singleRequestBatchSizeMustBeNumber": "Batch‑grootte moet een nummer zijn",
     "singleRequestBatchSizeTooLarge": "Batch‑grootte moet hoogstens 200 zijn",
     "singleRequestBatchSizeTooSmall": "Batch‑grootte moet ten minste 10 zijn"

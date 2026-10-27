@@ -252,6 +252,10 @@
     "maxEmailSizeBytesDescription": "Emails larger than this will be skipped. Leave empty to use the default (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Default: 100 MB",
     "maxEmailSizeBytesUnlimited": "Default: 100 MB",
+    "retentionDays": "Retention period (days)",
+    "retentionDaysDescription": "Archived mail older than this many days is deleted, and older mail is no longer archived. Leave empty to keep all mail.",
+    "retentionOff": "Keep forever",
+    "retentionWarning": "Mail older than the retention period is permanently deleted from the archive within the next 6 hours. This cannot be undone.",
     "minutes": "minutes",
     "months": "Months",
     "mustBeAtLeast1": "Must be at least 1",
@@ -336,6 +340,8 @@
       "newAccount": "New Account",
       "performance": "Performance",
       "reset": "Reset",
+      "retention": "Retention",
+      "retentionDesc": "Choose how long archived mail is kept.",
       "save": "Save",
       "saved": "Saved",
       "savedDesc": "Settings have been saved successfully.",
@@ -556,10 +562,21 @@
     "login": "Login",
     "loginFailed": "Login Failed",
     "logout": "Log out",
+    "mfa": {
+      "back": "Back to sign-in",
+      "challengeExpired": "The sign-in has expired. Please sign in again.",
+      "code": "Verification code",
+      "codeFormat": "Enter the 6-digit code from your authenticator app or a recovery code.",
+      "invalidCode": "Invalid verification code. Please try again.",
+      "prompt": "Enter the 6-digit code from your authenticator app. If you have lost access to it, enter one of your recovery codes instead.",
+      "tooManyCodes": "Too many invalid codes. Please sign in again.",
+      "verify": "Verify"
+    },
     "password": "Password",
     "sessionExpired": "Session expired!",
     "sessionExpiredDesc": "Your session has ended due to inactivity. Please log in again to continue.",
     "somethingWentWrong": "Something went wrong",
+    "tooManyAttempts": "Too many login attempts. Please wait a few minutes and try again.",
     "username": "Username",
     "welcome": "Welcome to mailboxd",
     "youWillNeedToLogInAgain": "You will need to log in again to access your account.",
@@ -733,6 +750,7 @@
     "detectedFolder": "Detected",
     "detectedFrom": "Detected from",
     "dropHere": "Drop .eml / .mbox / .pst files here",
+    "duplicateCount": "{{count}} duplicates skipped",
     "failed": "Import failed",
     "failedCount": "{{count}} failed",
     "failedDetails": "Failed items",
@@ -754,6 +772,7 @@
     "noMailboxFound": "No mailbox found.",
     "noMailboxes": "No mailboxes found in this account.",
     "orClick": "or click to browse",
+    "outsideRetentionCount": "{{count}} outside the retention period",
     "processed": "{{current}} / {{total}} processed",
     "processing": "Processing…",
     "pstFolderDesc": "The PST file contains its own folder structure (e.g. Inbox, Sent Items, etc.). Folders will be automatically created during import.",
@@ -775,6 +794,7 @@
     "successCount": "{{count}} imported",
     "summaryDuplicates": "{{count}} dup",
     "summaryFailed": "{{count}} failed",
+    "summaryOutsideRetention": "{{count}} outside retention",
     "summarySuccess": "{{count}} success",
     "summaryTotal": "{{count}} total",
     "target": "1. Select target account",
@@ -886,10 +906,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "A secret key provided by the OAuth provider to authenticate your application.",
+    "accessToken": "Access Token",
+    "accessTokenCannotBeEmpty": "Access Token cannot be empty",
+    "accountIsRequired": "Please select an account.",
     "actions": {
       "authorize": "Authorize",
       "delete": "Delete",
       "edit": "Edit",
+      "importTokens": "Import Tokens",
       "openMenu": "Open menu"
     },
     "addConfiguration": "Add Configuration",
@@ -898,8 +922,8 @@
     "addScope": "Add Scope",
     "areYouSureYouWantTo": "Are you sure you want to {{action}} this OAuth2 client?",
     "areYouSureYouWantToDelete": "Are you sure you want to delete",
-    "authAtatus": "OAuth2 Authentication Status",
     "authFailed": "OAuth2 Authentication Failed",
+    "authStatus": "OAuth2 Authentication Status",
     "authSuccess": "OAuth2 Authentication Successful",
     "authUrlLabel": "Auth Url:",
     "authorizationUrlCannotBeEmpty": "Authorization URL cannot be empty",
@@ -938,8 +962,10 @@
     "enableOAuth2Client": "Enable OAuth2 Client",
     "enabled": "Enabled",
     "enterIdToConfirmDeletion": "Enter id to confirm deletion.",
+    "enterTheAccessTokenHere": "Paste the access token here.",
     "enterTheAuthorizationUrl": "Enter the authorization URL",
     "enterTheKeyHere": "Enter the key here.",
+    "enterTheRefreshTokenHere": "Paste the refresh token here.",
     "enterTheScopeHere": "Enter the scope here.",
     "enterTheTokenUrl": "Enter the token URL",
     "enterTheValueHere": "Enter the value here.",
@@ -953,6 +979,15 @@
     "goHome": "Go Home",
     "goToAccounts": "Go to Accounts",
     "id": "ID",
+    "importTokensDescription": "Use this when the OAuth2 client cannot complete authorization inside mailboxd, for example when the tokens were obtained with an external tool such as email-oauth2-proxy. The selected account must already use OAuth2 as its IMAP authentication type.",
+    "importTokensFailed": "Failed to import tokens",
+    "importTokensSuccess": "Tokens imported",
+    "importTokensSuccessDesc": "The tokens have been stored and will be refreshed automatically.",
+    "importTokensTitle": "Import External Tokens",
+    "importTokensWarningClientMustMatch": "The Client ID and Client Secret of this configuration must be identical to the client that issued the refresh token, otherwise refreshing will fail.",
+    "importTokensWarningLongLivedCredential": "A refresh token is a long-lived credential. It will be encrypted and stored on this server.",
+    "importTokensWarningStopExternalTool": "Stop the external tool that obtained these tokens. If both tools refresh the same refresh token, the tokens will conflict and archiving will stop.",
+    "importing": "Importing...",
     "information": "Information",
     "invalidAuthorizationUrlFormat": "Invalid Authorization URL format",
     "invalidRedirectUriFormat": "Invalid Redirect URI format",
@@ -966,6 +1001,8 @@
     "noConfigurations": "No OAuth2 Configurations",
     "noConfigurationsDesc": "You haven't added any OAuth2 configurations yet. Add one to start using OAuth2 features.",
     "noEmailAccountsRegistered": "No email accounts registered. Please create one.",
+    "noOAuth2Accounts": "None of your accounts use OAuth2 authentication. Create an account with OAuth2 as its authentication type first.",
+    "noProxy": "No proxy",
     "noProxyAvailable": "No proxy available",
     "noStatus": "This page displays the result of your OAuth2 authentication. Currently, no specific status is available. Please try again if needed.",
     "oauth2ClientHasBeenSuccessfully": "OAuth2 client has been successfully {{action}}.",
@@ -981,6 +1018,8 @@
     "redirectUriCannotBeEmpty": "Redirect URI cannot be empty",
     "redirectUriIsRequired": "Redirect URI is required",
     "redirectUrlLabel": "Redirect Url:",
+    "refreshToken": "Refresh Token",
+    "refreshTokenCannotBeEmpty": "Refresh Token cannot be empty",
     "save": "Save",
     "saveChanges": "Save changes",
     "saving": "Saving...",
@@ -1089,6 +1128,36 @@
     "tryAgain": "Try again",
     "warningDesc": "Please be careful, this operation cannot be rolled back.",
     "warningTitle": "Warning!"
+  },
+  "repair_message": {
+    "confirm": "Repair",
+    "desc": "Fetches this message again from the IMAP server and stores any missing content. Content is only stored when it matches the archived hash.",
+    "emailMissing": "Message content is still missing",
+    "emailRestored": "Message content restored",
+    "failedHint": "The message could not be fetched or verified. See the error below.",
+    "hideDetails": "Hide details",
+    "history": "Repair history",
+    "historyEmpty": "No repairs yet.",
+    "historyFailed": "Failed to load the repair history.",
+    "historyHint": "The most recent {{limit}} repair attempts.",
+    "missingAfter": "Attachments still missing",
+    "missingBefore": "Attachments missing before the repair",
+    "operator": "Operator",
+    "partialHint": "Some content could not be restored. Content that does not match the archived hash is never stored.",
+    "repairAction": "Repair message",
+    "repairing": "Repairing…",
+    "repairingHint": "Fetching the message from the IMAP server. This can take a while.",
+    "reportDesc": "Outcome of the repair attempt.",
+    "reportTitle": "Repair report",
+    "requestFailed": "Repair request failed",
+    "result": "Result",
+    "showDetails": "Show details",
+    "statusComplete": "Nothing was missing",
+    "statusFailed": "Failed",
+    "statusPartial": "Partially repaired",
+    "statusRepaired": "Repaired",
+    "title": "Repair message",
+    "wholeMessageNote": "This repairs the whole message: its body and every attachment."
   },
   "restore_message": {
     "accountsInvolved": "Accounts involved",
@@ -1341,6 +1410,7 @@
     "body": "Body",
     "button": "Search",
     "clear_history": "Clear history",
+    "hint": "All words must match. Use OR to widen, \"quotes\" for a phrase, -word to exclude.",
     "no_history": "No search history",
     "placeholder": "Search emails (use \" \" for phrase search)",
     "recent_title": "Recent searches",
@@ -1386,9 +1456,17 @@
     "label": "Reset",
     "tooltip": "Clear all filters"
   },
+  "search_sort": {
+    "relevance": "Relevance",
+    "relevance_needs_text": "Enter a search term to sort by relevance",
+    "relevance_tooltip": "Sort by best match"
+  },
   "search_view": {
+    "absolute": "Absolute",
     "button_label": "View",
-    "menu_title": "Column settings"
+    "date_display": "Date display",
+    "menu_title": "Column settings",
+    "relative": "Relative"
   },
   "settings": {
     "accounts": "Accounts",
@@ -1457,6 +1535,53 @@
     "invalidPassword": "Invalid password",
     "lastAccess": "Last Access",
     "manageRootTokenAndPassword": "Manage root token and password securely.",
+    "mfa": {
+      "copied": "Copied to clipboard",
+      "description": "Protect your password sign-in with a one-time code from an authenticator app.",
+      "disabled": {
+        "description": "When it is on, signing in with your password also requires a 6-digit code from an authenticator app such as Aegis, Google Authenticator or 1Password.",
+        "enable": "Enable two-factor authentication",
+        "title": "Two-factor authentication is off"
+      },
+      "enabled": {
+        "codesLeft": "Unused recovery codes: {{remaining}}",
+        "codesLow": "You are running out of recovery codes. Disable and re-enable two-factor authentication to get new ones.",
+        "confirmDisable": "Disable",
+        "description": "Signing in with your password requires a code from your authenticator app.",
+        "disable": "Disable two-factor authentication",
+        "disableCode": "Code from your authenticator app or a recovery code",
+        "disabledToast": "Two-factor authentication disabled",
+        "title": "Two-factor authentication is on"
+      },
+      "enrol": {
+        "code": "Code from the app",
+        "confirm": "Confirm and enable",
+        "copySecret": "Copy secret",
+        "description": "Scan the QR code with your authenticator app or enter the secret manually. Then enter the 6-digit code the app shows.",
+        "qrAlt": "QR code for your authenticator app",
+        "qrFailed": "The QR code could not be generated. Enter the secret manually.",
+        "secret": "Secret for manual entry",
+        "title": "Set up your authenticator app"
+      },
+      "errors": {
+        "enrolFailed": "Could not start the setup",
+        "invalidCode": "Invalid verification code. Please try again.",
+        "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again."
+      },
+      "loadError": "Failed to load the two-factor authentication status.",
+      "recovery": {
+        "copy": "Copy codes",
+        "description": "Each code signs you in once if you lose access to your authenticator app.",
+        "done": "Done",
+        "download": "Download as .txt",
+        "leaveWarning": "You have not confirmed that you saved your recovery codes. They will not be shown again. Leave anyway?",
+        "onlyOnce": "These codes are shown only once. Store them somewhere safe now.",
+        "saved": "I have saved my recovery codes in a safe place",
+        "title": "Save your recovery codes"
+      },
+      "ssoNote": "You sign in with single sign-on (SSO). Two-factor authentication for your account is handled by your identity provider, so it cannot be set up here.",
+      "title": "Two-Factor Authentication"
+    },
     "name": "Name",
     "noProxies": "No Proxies",
     "noProxiesDesc": "You haven't added any proxy configurations yet. Add one to start using proxy features.",
@@ -1535,6 +1660,7 @@
       "apiTokens": "API Tokens",
       "backup": "Backup",
       "configurations": "System Configurations",
+      "mfa": "Two-Factor Authentication",
       "profile": "Profile",
       "proxy": "Network Proxy"
     },
@@ -1570,6 +1696,12 @@
     "title": "Sign out"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Change password",
+      "badge": "Security",
+      "message": "The built-in admin account still accepts its initial password. Change it in the profile while signed in as admin, or under Users.",
+      "title": "Default admin password in use"
+    },
     "newRelease": "New Release",
     "noNotifications": "No new notifications",
     "notifications": "System Notifications",
@@ -1734,6 +1866,15 @@
       "placeholder": {
         "filter": "Search users..."
       },
+      "reset_mfa": {
+        "button_confirm": "Reset 2FA",
+        "confirm_msg": "Two-factor authentication for user {{name}} (ID: {{id}}) will be turned off and their recovery codes deleted. Until they set it up again, their password alone is enough to sign in.",
+        "failed_title": "Reset Failed",
+        "menu": "Reset 2FA",
+        "success_desc": "Two-factor authentication for \"{{name}}\" has been turned off.",
+        "success_title": "2FA Reset",
+        "title": "Reset Two-Factor Authentication"
+      },
       "schema": {
         "account_required": "Please select an account",
         "description_max": "Description cannot exceed 256 characters",
@@ -1829,6 +1970,7 @@
       "created_at": "Created At",
       "email": "Email Address",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roles",
       "updated_at": "Updated At",
       "username": "Username"
@@ -1838,6 +1980,7 @@
       "description": "Click the button below to start adding your first user.",
       "title": "No users found"
     },
+    "mfa_enabled": "On",
     "nav": {
       "api_tokens": "API Tokens",
       "roles": "Roles",
@@ -1877,6 +2020,7 @@
     "pleaseEnterPassword": "Please enter your password",
     "pleaseEnterUsernameOrEmail": "Please enter your username or email",
     "required": "This field is required",
+    "retentionDaysRange": "Enter a whole number of days from 1 to 36500, or leave the field empty.",
     "singleRequestBatchSizeMustBeNumber": "Batch size must be a number",
     "singleRequestBatchSizeTooLarge": "Batch size must be at most 200",
     "singleRequestBatchSizeTooSmall": "Batch size must be at least 10"

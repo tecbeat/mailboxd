@@ -20,7 +20,7 @@
 
 use std::str::FromStr;
 
-use crate::account::entity::ImapConfig;
+use crate::account::entity::{AuthType, ImapConfig};
 use crate::account::migration::{
     AccountModel, AccountType, ArchiveRules, ExtractionRules, QuotaWindow,
 };
@@ -65,6 +65,9 @@ pub struct AccountCreateRequest {
     /// Attachment text extraction rules (Pro feature).
     /// `None` = extract everything (backward compatible).
     pub extraction_rules: Option<ExtractionRules>,
+    /// Delete archived mail older than this many days (1 to 36500).
+    /// `None` or `0` keeps everything.
+    pub retention_days: Option<u64>,
 }
 
 impl AccountCreateRequest {
@@ -128,6 +131,7 @@ impl AccountCreateRequest {
                 raise_error!(format!("archive_rules: {}", e), ErrorCode::InvalidParameter)
             })?;
         }
+        validate_retention_days(self.retention_days)?;
         Ok(AccountModel::new(user_id, self)?)
     }
 
@@ -203,6 +207,9 @@ pub struct AccountUpdateRequest {
     /// Attachment text extraction rules (Pro feature).
     /// `None` = no change. Use `Some(ExtractionRules { .. })` to set.
     pub extraction_rules: Option<ExtractionRules>,
+    /// Delete archived mail older than this many days (1 to 36500).
+    /// `Some(0)` turns retention off; `None` = no change.
+    pub retention_days: Option<u64>,
 }
 
 impl AccountUpdateRequest {
@@ -271,7 +278,21 @@ impl AccountUpdateRequest {
                 raise_error!(format!("archive_rules: {}", e), ErrorCode::InvalidParameter)
             })?;
         }
+        validate_retention_days(self.retention_days)?;
         Ok(())
+    }
+}
+
+/// Longest allowed retention window: 100 years.
+pub const MAX_RETENTION_DAYS: u64 = 36_500;
+
+fn validate_retention_days(days: Option<u64>) -> MailboxdResult<()> {
+    match days {
+        Some(days) if days > MAX_RETENTION_DAYS => Err(raise_error!(
+            format!("retention_days must be between 1 and {MAX_RETENTION_DAYS}, or 0 to keep everything"),
+            ErrorCode::InvalidParameter
+        )),
+        _ => Ok(()),
     }
 }
 
@@ -298,6 +319,10 @@ pub struct MinimalAccount {
     pub id: u64,
     pub email: String,
     pub name: Option<String>,
+    /// The IMAP authentication method, or `None` for accounts without an IMAP
+    /// configuration (e.g. `NoSync`). Defaults when talking to an older server.
+    #[serde(default)]
+    pub auth_type: Option<AuthType>,
 }
 
 pub fn filter_accessible_accounts<'a>(
@@ -313,7 +338,7 @@ pub fn filter_accessible_accounts<'a>(
 
 #[cfg(test)]
 mod test {
-    use super::validate_cron_expression;
+    use super::{validate_cron_expression, AuthType, MinimalAccount};
 
     #[test]
     fn valid_cron_expressions() {
@@ -339,5 +364,83 @@ mod test {
     #[test]
     fn invalid_cron_expression_garbage() {
         assert!(validate_cron_expression("not a cron").is_err());
+    }
+
+    /// The CLI may talk to a server that predates `auth_type`.
+    #[test]
+    fn minimal_account_parses_without_auth_type() {
+        let account: MinimalAccount =
+            serde_json::from_str(r#"{"id":7,"email":"a@example.com","name":"a"}"#).unwrap();
+        assert_eq!(account.id, 7);
+        assert_eq!(account.name.as_deref(), Some("a"));
+        assert_eq!(account.auth_type, None);
+    }
+
+    #[test]
+    fn minimal_account_parses_auth_type() {
+        let account: MinimalAccount = serde_json::from_str(
+            r#"{"id":7,"email":"a@example.com","name":null,"auth_type":"OAuth2"}"#,
+        )
+        .unwrap();
+        assert_eq!(account.auth_type, Some(AuthType::OAuth2));
+    }
+
+    mod retention_days {
+        use crate::account::migration::{AccountModel, AccountType};
+        use crate::account::payload::{AccountCreateRequest, AccountUpdateRequest};
+        use crate::error::code::ErrorCode;
+
+        fn create(days: Option<u64>) -> AccountCreateRequest {
+            AccountCreateRequest {
+                email: "retention-payload@example.com".into(),
+                account_type: AccountType::NoSync,
+                retention_days: days,
+                ..Default::default()
+            }
+        }
+
+        #[test]
+        fn create_accepts_off_and_the_whole_range() {
+            for (days, stored) in [
+                (None, None),
+                (Some(0), None),
+                (Some(1), Some(1)),
+                (Some(36_500), Some(36_500)),
+            ] {
+                let account = create(days).create_entity(1).unwrap();
+                assert_eq!(account.retention_days, stored, "retention_days {days:?}");
+            }
+        }
+
+        #[test]
+        fn create_rejects_more_than_100_years() {
+            let err = create(Some(36_501)).create_entity(1).unwrap_err();
+            assert_eq!(err.code(), ErrorCode::InvalidParameter);
+            assert!(err.to_string().contains("retention_days"), "{err}");
+        }
+
+        #[test]
+        fn update_validates_the_same_range() {
+            let account = AccountModel {
+                account_type: AccountType::NoSync,
+                ..Default::default()
+            };
+            for days in [None, Some(0), Some(1), Some(36_500)] {
+                let request = AccountUpdateRequest {
+                    retention_days: days,
+                    ..Default::default()
+                };
+                assert!(
+                    request.validate_update_request(&account).is_ok(),
+                    "{days:?}"
+                );
+            }
+            let request = AccountUpdateRequest {
+                retention_days: Some(36_501),
+                ..Default::default()
+            };
+            let err = request.validate_update_request(&account).unwrap_err();
+            assert_eq!(err.code(), ErrorCode::InvalidParameter);
+        }
     }
 }

@@ -109,6 +109,7 @@ export interface User {
     sso_provider?: string | null;
     theme?: string | null;
     language?: string | null;
+    totp_enabled: boolean;
 }
 
 
@@ -116,8 +117,26 @@ export interface LoginResult {
     success: boolean;
     error_message?: string | null;
     access_token?: string | null;
-    theme?: string,
-    language?: string,
+    theme?: string | null,
+    language?: string | null,
+    mfa_required?: boolean,
+    mfa_challenge?: string | null,
+    error_code?: string | null,
+}
+
+export interface MfaStatus {
+    enabled: boolean;
+    available: boolean;
+    recovery_codes_left: number;
+}
+
+export interface MfaEnrolment {
+    secret: string;
+    otpauth_uri: string;
+}
+
+export interface MfaRecoveryCodes {
+    recovery_codes: string[];
 }
 
 
@@ -130,6 +149,36 @@ export interface MinimalUser {
 
 export const login = async (data: object) => {
     const response = await axiosInstance.post<LoginResult>(`api/login`, data);
+    return response.data;
+};
+
+export const verify_mfa_login = async (challenge: string, code: string) => {
+    const response = await axiosInstance.post<LoginResult>(`api/auth/mfa/verify`, { challenge, code });
+    return response.data;
+};
+
+export const get_mfa_status = async () => {
+    const response = await axiosInstance.get<MfaStatus>("api/v1/mfa/status");
+    return response.data;
+};
+
+export const enroll_mfa = async () => {
+    const response = await axiosInstance.post<MfaEnrolment>("api/v1/mfa/enroll");
+    return response.data;
+};
+
+export const confirm_mfa = async (code: string) => {
+    const response = await axiosInstance.post<MfaRecoveryCodes>("api/v1/mfa/confirm", { code });
+    return response.data;
+};
+
+export const disable_mfa = async (code: string) => {
+    const response = await axiosInstance.post("api/v1/mfa/disable", { code });
+    return response.data;
+};
+
+export const reset_user_mfa = async (id: number) => {
+    const response = await axiosInstance.post(`api/v1/mfa/admin-reset/${id}`);
     return response.data;
 };
 

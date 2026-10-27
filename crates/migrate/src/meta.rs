@@ -264,6 +264,7 @@ impl From<AccountV3> for AccountModel {
             deleting: false,
             archive_rules: None,
             extraction_rules: None,
+            retention_days: None,
         }
     }
 }
@@ -577,6 +578,7 @@ impl From<MailboxdUserV2> for mailboxd_core::users::MailboxdUserV2 {
             language: value.language,
             sso_id: None,
             sso_provider: None,
+            mfa: Default::default(),
         }
     }
 }
@@ -913,4 +915,49 @@ pub fn migrate_metadata(root_path: &PathBuf) -> Result<(), Box<dyn std::error::E
     );
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_migrated_user_starts_without_sso_and_two_factor() {
+        let legacy = MailboxdUserV2 {
+            id: 7,
+            username: "ann".into(),
+            email: "ann@example.com".into(),
+            password: Some("hash".into()),
+            ..Default::default()
+        };
+        let user: mailboxd_core::users::MailboxdUserV2 = legacy.into();
+        assert_eq!(
+            (user.id, user.username.as_str(), user.password.as_deref()),
+            (7, "ann", Some("hash"))
+        );
+        assert_eq!(user.sso_id, None);
+        assert_eq!(user.sso_provider, None);
+        assert_eq!(user.mfa, Default::default());
+    }
+
+    #[test]
+    fn a_migrated_account_keeps_its_mail_without_a_retention_window() {
+        let legacy = AccountV3 {
+            id: 9,
+            email: "bob@example.com".into(),
+            enabled: true,
+            sync_interval_min: Some(15),
+            ..Default::default()
+        };
+        let account: AccountModel = legacy.into();
+        assert_eq!(
+            (
+                account.id,
+                account.email.as_str(),
+                account.download_interval_min
+            ),
+            (9, "bob@example.com", Some(15))
+        );
+        assert_eq!(account.retention_days, None);
+    }
 }

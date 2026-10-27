@@ -17,9 +17,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 
+import { server } from '@/test/server'
 import { renderWithProviders } from '@/test/utils'
 import type { User } from '@/api/users/api'
 
@@ -40,6 +43,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     account_permissions: {},
     created_at: 0,
     updated_at: 0,
+    totp_enabled: false,
     ...overrides,
   }
 }
@@ -62,5 +66,22 @@ describe('UserProfileForm password field', () => {
 
     expect(screen.getByDisplayValue('alice')).toBeInTheDocument()
     expect(screen.getByDisplayValue('alice@example.com')).toBeInTheDocument()
+  })
+})
+
+describe('UserProfileForm update', () => {
+  it('refreshes the notifications after saving, so the password reminder can go away', async () => {
+    server.use(
+      http.post('http://localhost:15630/api/v1/users/1', () => HttpResponse.json(null)),
+    )
+    const { queryClient } = renderWithProviders(<UserProfileForm user={makeUser()} />)
+    queryClient.setQueryData(['system-notifications'], { default_admin_password: true })
+
+    await userEvent.type(screen.getByPlaceholderText(PASSWORD_PLACEHOLDER), 'a-new-Passw0rd!')
+    await userEvent.click(screen.getByRole('button', { name: 'Update profile' }))
+
+    await waitFor(() =>
+      expect(queryClient.getQueryState(['system-notifications'])?.isInvalidated).toBe(true),
+    )
   })
 })

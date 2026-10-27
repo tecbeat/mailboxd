@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "E-post större än detta kommer att hoppas över. Lämna tomt för att använda standard (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Standard: 100 MB",
     "maxEmailSizeBytesUnlimited": "Standard: 100 MB",
+    "retentionDays": "Lagringsperiod (dagar)",
+    "retentionDaysDescription": "Arkiverad e-post som är äldre än detta antal dagar raderas, och äldre e-post arkiveras inte längre. Lämna tomt för att behålla all e-post.",
+    "retentionOff": "Behåll för alltid",
+    "retentionWarning": "E-post som är äldre än lagringsperioden raderas permanent från arkivet inom de närmaste 6 timmarna. Detta kan inte ångras.",
     "minutes": "minuter",
     "months": "Månader",
     "mustBeAtLeast1": "Måste vara minst 1",
@@ -331,6 +335,8 @@
       "generalDesc": "Grundläggande kontoinformation och status.",
       "newAccount": "Nytt konto",
       "performance": "Prestanda",
+      "retention": "Lagring",
+      "retentionDesc": "Välj hur länge arkiverad e-post sparas.",
       "schedule": "Tidsplan",
       "scope": "Omfång",
       "server": "Server",
@@ -541,10 +547,21 @@
     "login": "Logga in",
     "loginFailed": "Inloggning misslyckades",
     "logout": "Logga ut",
+    "mfa": {
+      "back": "Tillbaka till inloggningen",
+      "challengeExpired": "Inloggningen har gått ut. Logga in igen.",
+      "code": "Verifieringskod",
+      "codeFormat": "Ange den 6-siffriga koden från din autentiseringsapp eller en återställningskod.",
+      "invalidCode": "Ogiltig verifieringskod. Försök igen.",
+      "prompt": "Ange den 6-siffriga koden från din autentiseringsapp. Om du inte längre har tillgång till den kan du ange en av dina återställningskoder i stället.",
+      "tooManyCodes": "För många ogiltiga koder. Logga in igen.",
+      "verify": "Verifiera"
+    },
     "password": "Lösenord",
     "sessionExpired": "Sessionen har löpt ut!",
     "sessionExpiredDesc": "Din session har avslutas på grund av inaktivitet. Vänligen logga in igen för att fortsätta.",
     "somethingWentWrong": "Något gick fel",
+    "tooManyAttempts": "För många inloggningsförsök. Vänta några minuter och försök igen.",
     "username": "Användarnamn",
     "welcome": "Välkommen till mailboxd",
     "youWillNeedToLogInAgain": "Du måste logga in igen för att komma åt ditt konto.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Identifierad",
     "detectedFrom": "Identifierad från",
     "dropHere": "Släpp .eml / .mbox / .pst-filer här",
+    "duplicateCount": "{{count}} dubbletter hoppades över",
     "failed": "Import misslyckades",
     "failedCount": "{{count}} misslyckades",
     "failedDetails": "Misslyckade objekt",
@@ -734,6 +752,7 @@
     "noMailboxFound": "Ingen brevlåda hittades.",
     "noMailboxes": "Inga brevlådor hittades på detta konto.",
     "orClick": "eller klicka för att bläddra",
+    "outsideRetentionCount": "{{count}} utanför lagringsperioden",
     "processed": "{{current}} / {{total}} behandlade",
     "processing": "Behandlar…",
     "pstFolderDesc": "PST-filen innehåller sin egen mappstruktur (t.ex. Inborgen, Skickat osv.). Mappar skapas automatiskt under importen.",
@@ -747,6 +766,7 @@
     "source": "källa",
     "startImport": "Importera",
     "successCount": "{{count}} importerade",
+    "summaryOutsideRetention": "{{count}} utanför lagring",
     "target": "1. Välj målkonto",
     "title": "Import",
     "uploading": "Laddar upp…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "En hemlig nyckel tillhandahållen av OAuth-leverantören för att autentisera din applikation.",
+    "accessToken": "Åtkomsttoken",
+    "accessTokenCannotBeEmpty": "Åtkomsttoken får inte vara tom",
+    "accountIsRequired": "Välj ett konto.",
     "actions": {
       "authorize": "Auktorisera",
       "delete": "Ta bort",
       "edit": "Redigera",
+      "importTokens": "Importera token",
       "openMenu": "Öppna meny"
     },
     "addConfiguration": "Lägg till konfiguration",
@@ -867,8 +891,8 @@
     "addScope": "Lägg till omfattning",
     "areYouSureYouWantTo": "Är du säker på att du vill {{action}} denna OAuth2-klient?",
     "areYouSureYouWantToDelete": "Är du säker på att du vill ta bort",
-    "authAtatus": "OAuth2-autentiseringsstatus",
     "authFailed": "OAuth2-autentisering misslyckades",
+    "authStatus": "OAuth2-autentiseringsstatus",
     "authSuccess": "OAuth2-autentisering lyckades",
     "authUrlLabel": "Auth-URL:",
     "authorizationUrlCannotBeEmpty": "Auktoriserings-URL kan inte vara tom",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "Aktivera OAuth2-klient",
     "enabled": "Aktiverad",
     "enterIdToConfirmDeletion": "Ange id för att bekräfta borttagning.",
+    "enterTheAccessTokenHere": "Klistra in åtkomsttoken här.",
     "enterTheAuthorizationUrl": "Ange auktoriserings-URL",
     "enterTheKeyHere": "Ange nyckeln här.",
+    "enterTheRefreshTokenHere": "Klistra in uppdateringstoken här.",
     "enterTheScopeHere": "Ange omfattning här.",
     "enterTheTokenUrl": "Ange token-URL",
     "enterTheValueHere": "Ange värdet här.",
@@ -922,6 +948,15 @@
     "goHome": "Gå till startsidan",
     "goToAccounts": "Gå till Konton",
     "id": "ID",
+    "importTokensDescription": "Använd detta när OAuth2-klienten inte kan slutföra auktoriseringen i mailboxd, till exempel när token hämtades med ett externt verktyg som email-oauth2-proxy. Det valda kontot måste redan använda OAuth2 som IMAP-autentiseringstyp.",
+    "importTokensFailed": "Det gick inte att importera token",
+    "importTokensSuccess": "Token importerade",
+    "importTokensSuccessDesc": "Token har sparats och förnyas automatiskt.",
+    "importTokensTitle": "Importera externa token",
+    "importTokensWarningClientMustMatch": "Klient-ID och klienthemlighet i denna konfiguration måste vara identiska med klienten som utfärdade uppdateringstoken, annars misslyckas förnyelsen.",
+    "importTokensWarningLongLivedCredential": "En uppdateringstoken är en långlivad inloggningsuppgift. Den krypteras och lagras på denna server.",
+    "importTokensWarningStopExternalTool": "Stoppa det externa verktyget som hämtade dessa token. Om båda verktygen förnyar samma uppdateringstoken uppstår en konflikt och arkiveringen stoppas.",
+    "importing": "Importerar...",
     "information": "Information",
     "invalidAuthorizationUrlFormat": "Ogiltigt format på auktoriserings-URL",
     "invalidRedirectUriFormat": "Ogiltigt format på omdirigerings-URI",
@@ -935,6 +970,8 @@
     "noConfigurations": "Inga OAuth2-konfigurationer",
     "noConfigurationsDesc": "Du har inte lagt till några OAuth2-konfigurationer ännu. Lägg till en för att börja använda OAuth2-funktioner.",
     "noEmailAccountsRegistered": "Inga e-postkonton registrerade. Vänligen skapa ett.",
+    "noOAuth2Accounts": "Inget av dina konton använder OAuth2-autentisering. Skapa först ett konto med OAuth2 som autentiseringstyp.",
+    "noProxy": "Ingen proxy",
     "noProxyAvailable": "Ingen proxy tillgänglig",
     "noStatus": "Denna sida visar resultatet av din OAuth2-autentisering. För närvarande finns ingen specifik status tillgänglig. Vänligen försök igen vid behov.",
     "oauth2ClientHasBeenSuccessfully": "OAuth2-klient har {{action}}.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "Omdirigerings-URI kan inte vara tom",
     "redirectUriIsRequired": "Omdirigerings-URI krävs",
     "redirectUrlLabel": "Omdirigerings-URL:",
+    "refreshToken": "Uppdateringstoken",
+    "refreshTokenCannotBeEmpty": "Uppdateringstoken får inte vara tom",
     "save": "Spara",
     "saveChanges": "Spara ändringar",
     "saving": "Sparar...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Försök igen",
     "warningDesc": "Vänligen var försiktig, denna åtgärd kan inte ångras.",
     "warningTitle": "Varning!"
+  },
+  "repair_message": {
+    "confirm": "Reparera",
+    "desc": "Hämtar meddelandet på nytt från IMAP-servern och sparar innehåll som saknas. Innehåll sparas bara om det matchar den arkiverade hashen.",
+    "emailMissing": "Meddelandets innehåll saknas fortfarande",
+    "emailRestored": "Meddelandets innehåll har återställts",
+    "failedHint": "Meddelandet kunde inte hämtas eller verifieras. Se felet nedan.",
+    "hideDetails": "Dölj detaljer",
+    "history": "Reparationshistorik",
+    "historyEmpty": "Inga reparationer ännu.",
+    "historyFailed": "Det gick inte att läsa in reparationshistoriken.",
+    "historyHint": "De senaste {{limit}} reparationsförsöken.",
+    "missingAfter": "Bilagor som fortfarande saknas",
+    "missingBefore": "Bilagor som saknades före reparationen",
+    "operator": "Utförd av",
+    "partialHint": "En del innehåll kunde inte återställas. Innehåll som inte matchar den arkiverade hashen sparas aldrig.",
+    "repairAction": "Reparera meddelande",
+    "repairing": "Reparerar…",
+    "repairingHint": "Hämtar meddelandet från IMAP-servern. Det kan ta en stund.",
+    "reportDesc": "Resultatet av reparationsförsöket.",
+    "reportTitle": "Reparationsrapport",
+    "requestFailed": "Reparationsbegäran misslyckades",
+    "result": "Resultat",
+    "showDetails": "Visa detaljer",
+    "statusComplete": "Inget saknades",
+    "statusFailed": "Misslyckades",
+    "statusPartial": "Delvis reparerat",
+    "statusRepaired": "Reparerat",
+    "title": "Reparera meddelande",
+    "wholeMessageNote": "Detta reparerar hela meddelandet: innehållet och alla bilagor."
   },
   "restore_message": {
     "accountsInvolved": "Inblandade konton",
@@ -1307,6 +1376,7 @@
     "body": "Innehåll",
     "button": "Sök",
     "clear_history": "Rensa historik",
+    "hint": "Alla ord måste matcha. Använd OR för att bredda, \"citattecken\" för en fras, -ord för att utesluta.",
     "no_history": "Ingen sökhistorik",
     "placeholder": "Sök efter e-post (använd \" \" för frassökning)",
     "recent_title": "Senaste sökningar",
@@ -1350,9 +1420,17 @@
     "label": "Återställ",
     "tooltip": "Rensa alla filter"
   },
+  "search_sort": {
+    "relevance": "Relevans",
+    "relevance_needs_text": "Ange ett sökord för att sortera efter relevans",
+    "relevance_tooltip": "Sortera efter bästa träff"
+  },
   "search_view": {
+    "absolute": "Absolut",
     "button_label": "Vy",
-    "menu_title": "Inställningar för kolumner"
+    "date_display": "Datumvisning",
+    "menu_title": "Inställningar för kolumner",
+    "relative": "Relativ"
   },
   "settings": {
     "accounts": "Konton",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Ogiltigt lösenord",
     "lastAccess": "Senaste åtkomst",
     "manageRootTokenAndPassword": "Hantera root-token och lösenord säkert.",
+    "mfa": {
+      "copied": "Kopierat till urklipp",
+      "description": "Skydda inloggningen med lösenord med en engångskod från en autentiseringsapp.",
+      "disabled": {
+        "description": "När den är på kräver inloggning med lösenord även en 6-siffrig kod från en autentiseringsapp som Aegis, Google Authenticator eller 1Password.",
+        "enable": "Aktivera tvåfaktorsautentisering",
+        "title": "Tvåfaktorsautentisering är av"
+      },
+      "enabled": {
+        "codesLeft": "Oanvända återställningskoder: {{remaining}}",
+        "codesLow": "Dina återställningskoder håller på att ta slut. Inaktivera och aktivera tvåfaktorsautentisering igen för att få nya.",
+        "confirmDisable": "Inaktivera",
+        "description": "Inloggning med lösenord kräver en kod från din autentiseringsapp.",
+        "disable": "Inaktivera tvåfaktorsautentisering",
+        "disableCode": "Kod från din autentiseringsapp eller en återställningskod",
+        "disabledToast": "Tvåfaktorsautentisering inaktiverad",
+        "title": "Tvåfaktorsautentisering är på"
+      },
+      "enrol": {
+        "code": "Kod från appen",
+        "confirm": "Bekräfta och aktivera",
+        "copySecret": "Kopiera hemlig nyckel",
+        "description": "Skanna QR-koden med din autentiseringsapp eller ange den hemliga nyckeln manuellt. Ange sedan den 6-siffriga kod som appen visar.",
+        "qrAlt": "QR-kod för din autentiseringsapp",
+        "qrFailed": "QR-koden kunde inte skapas. Ange den hemliga nyckeln manuellt.",
+        "secret": "Hemlig nyckel för manuell inmatning",
+        "title": "Konfigurera din autentiseringsapp"
+      },
+      "errors": {
+        "enrolFailed": "Det gick inte att starta konfigurationen",
+        "invalidCode": "Ogiltig verifieringskod. Försök igen.",
+        "tooManyAttempts": "För många försök. Vänta några minuter och försök igen."
+      },
+      "loadError": "Det gick inte att läsa in status för tvåfaktorsautentisering.",
+      "recovery": {
+        "copy": "Kopiera koder",
+        "description": "Varje kod låter dig logga in en gång om du förlorar åtkomsten till din autentiseringsapp.",
+        "done": "Klar",
+        "download": "Ladda ner som .txt",
+        "leaveWarning": "Du har inte bekräftat att du har sparat dina återställningskoder. De visas inte igen. Vill du lämna ändå?",
+        "onlyOnce": "Dessa koder visas bara en gång. Förvara dem på ett säkert ställe nu.",
+        "saved": "Jag har sparat mina återställningskoder på ett säkert ställe",
+        "title": "Spara dina återställningskoder"
+      },
+      "ssoNote": "Du loggar in med enkel inloggning (SSO). Tvåfaktorsautentisering för ditt konto hanteras av din identitetsleverantör och kan därför inte konfigureras här.",
+      "title": "Tvåfaktorsautentisering"
+    },
     "name": "Namn",
     "noProxies": "Inga proxys",
     "noProxiesDesc": "Du har inte lagt till några proxy-konfigurationer ännu. Lägg till en för att börja använda proxy-funktioner.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "API-tokens",
       "backup": "Säkerhetskopiering",
       "configurations": "Systemkonfigurationer",
+      "mfa": "Tvåfaktorsautentisering",
       "profile": "Profil",
       "proxy": "Nätverksproxy"
     },
@@ -1517,6 +1643,12 @@
     "title": "Logga ut"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Ändra lösenord",
+      "badge": "Säkerhet",
+      "message": "Det inbyggda admin-kontot accepterar fortfarande sitt ursprungliga lösenord. Ändra det i profilen när du är inloggad som admin, eller under Användare.",
+      "title": "Standardlösenord för admin används"
+    },
     "notifications": "Systemaviseringar"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Sök användare..."
       },
+      "reset_mfa": {
+        "button_confirm": "Återställ 2FA",
+        "confirm_msg": "Tvåfaktorsautentisering för användaren {{name}} (ID: {{id}}) stängs av och användarens återställningskoder raderas. Tills den konfigureras igen räcker lösenordet för att logga in.",
+        "failed_title": "Återställningen misslyckades",
+        "menu": "Återställ 2FA",
+        "success_desc": "Tvåfaktorsautentisering för \"{{name}}\" har stängts av.",
+        "success_title": "2FA återställd",
+        "title": "Återställ tvåfaktorsautentisering"
+      },
       "schema": {
         "account_required": "Välj ett konto",
         "description_max": "Beskrivningen får vara max 256 tecken",
@@ -1767,6 +1908,7 @@
       "created_at": "Skapad",
       "email": "E-postadress",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roller och behörigheter",
       "updated_at": "Uppdaterad",
       "username": "Användarnamn"
@@ -1775,6 +1917,7 @@
       "description": "Klicka på knappen nedan för att lägga till din första användare.",
       "title": "Inga användare hittades"
     },
+    "mfa_enabled": "På",
     "nav": {
       "api_tokens": "API-nycklar",
       "roles": "Roller",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Vänligen ange ditt lösenord",
     "pleaseEnterUsernameOrEmail": "Vänligen ange ditt användarnamn eller din e-postadress",
     "required": "Detta fält är obligatoriskt",
+    "retentionDaysRange": "Ange ett helt antal dagar från 1 till 36500, eller lämna fältet tomt.",
     "singleRequestBatchSizeMustBeNumber": "Batchstorlek måste vara ett tal",
     "singleRequestBatchSizeTooLarge": "Batchstorlek måste vara högst 200",
     "singleRequestBatchSizeTooSmall": "Batchstorlek måste vara minst 10"

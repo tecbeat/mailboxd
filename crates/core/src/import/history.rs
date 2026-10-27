@@ -26,6 +26,8 @@ pub struct ImportHistory {
     pub total: usize,
     pub success: usize,
     pub duplicates: usize,
+    #[serde(default)]
+    pub outside_retention: usize,
     pub failed: usize,
     pub failed_details: Vec<crate::import::FailedItemDetail>,
     /// Unix timestamp in milliseconds.
@@ -66,6 +68,7 @@ impl ImportHistory {
             total: progress.total,
             success: progress.success,
             duplicates: progress.duplicates,
+            outside_retention: progress.outside_retention,
             failed: progress.failed,
             failed_details: progress.failed_details.clone(),
             created_at: crate::utc_now!(),

@@ -36,6 +36,7 @@ pub mod meta;
 pub mod migrate_store_v2;
 pub mod migrate_v037;
 pub mod migrate_v1;
+pub mod reindex;
 
 /// Directories the migration operates on (`MAILBOXD_*_DIR`); `index_dir` and
 /// `data_dir` fall back to `root_dir` when unset.

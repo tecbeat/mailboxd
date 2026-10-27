@@ -88,6 +88,24 @@ export const getColumns = (t: (key: string) => string, roles: UserRole[]): Colum
     meta: { className: 'text-center' },
   },
   {
+    accessorKey: 'totp_enabled',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title={t('users.columns.mfa')} className="justify-center" />
+    ),
+    cell: ({ row }) => {
+      if (!row.original.totp_enabled) {
+        return <span className="text-muted-foreground">-</span>
+      }
+      return (
+        <div className="flex justify-center">
+          <Badge variant="secondary">{t('users.mfa_enabled')}</Badge>
+        </div>
+      )
+    },
+    meta: { className: 'w-20 text-center' },
+    enableSorting: false,
+  },
+  {
     id: 'roles',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t('users.columns.roles')} className="justify-center" />

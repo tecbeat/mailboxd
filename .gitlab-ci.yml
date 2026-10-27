@@ -50,6 +50,22 @@ include:
   tags:
     - teccave
 
+# cargo-llvm-cov for the Rust coverage report, pinned by version and
+# checksum. It builds into target/llvm-cov-target, which the target cache
+# keeps like the normal build.
+# The version and checksum sit in the script itself: jobs pull this in with
+# !reference, which does not carry over a `variables:` block.
+.llvm_cov:
+  before_script:
+    - rustup component add llvm-tools-preview
+    - apt-get $APT_OPTS install -y --no-install-recommends curl
+    - curl -fsSL -o /tmp/cargo-llvm-cov.tar.gz "https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.9.1/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz"
+    - echo "b3f68e625481fed9b16444174f3fa5ebcdbde4a1878803a35eabe2dcefcdc41a  /tmp/cargo-llvm-cov.tar.gz" | sha256sum -c -
+    - tar -xzf /tmp/cargo-llvm-cov.tar.gz -C /usr/local/bin cargo-llvm-cov
+
+# Runs the whole workspace test suite with coverage. The coverage is
+# report-only: the total shows up on the pipeline and merge request, the
+# per-line data in the merge request diff. It never fails the job.
 cargo_test:
   extends: .rust_job
   needs: []
@@ -58,12 +74,22 @@ cargo_test:
     MAILBOXD_ENCRYPT_PASSWORD: ci-test-password
   before_script:
     - !reference [.rust_job, before_script]
-    - mkdir -p "$MAILBOXD_ROOT_DIR"
+    - !reference [.llvm_cov, before_script]
+    - mkdir -p "$MAILBOXD_ROOT_DIR" coverage
   script:
     # Disable the `embed-web` feature on the server crate so the frontend
     # (pnpm/node) is not required for unit tests. The feature is exercised
     # separately by `test_build_image`, which builds the full container.
-    - cargo test --workspace --locked --no-default-features
+    - cargo llvm-cov --workspace --locked --no-default-features --no-report
+    - cargo llvm-cov report --cobertura --output-path coverage/rust-cobertura.xml
+    - cargo llvm-cov report --summary-only
+  coverage: '/^TOTAL(?:\s+\d+\s+\d+\s+[\d.]+%){2}\s+\d+\s+\d+\s+([\d.]+)%/'
+  artifacts:
+    expire_in: 1 week
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/rust-cobertura.xml
 
 # Storage-migration coverage as a first-class, visible gate. `cargo_test`
 # already runs these as part of the workspace, but a half-broken migration is
@@ -96,12 +122,17 @@ migration_tests:
       paths:
         - target
       policy: pull
+  before_script:
+    - !reference [.rust_job, before_script]
+    - !reference [.llvm_cov, before_script]
+  # Run through cargo-llvm-cov without a report so the instrumented build
+  # from cargo_test is reused instead of compiling the workspace again.
   script:
     # v1.x fjall -> v2, v0.3.7 Tantivy -> v2 (incl. a byte-identical
     # end-to-end fixture), and the guard/idempotency cases.
-    - cargo test -p mailboxd-migrate --locked --no-default-features -- --test-threads=1 --nocapture
+    - cargo llvm-cov test -p mailboxd-migrate --locked --no-default-features --no-report -- --test-threads=1 --nocapture
     # Bichon layout adoption (bichon-* -> mailboxd-*) and the shared core helpers.
-    - cargo test -p mailboxd-core --locked --no-default-features migrate -- --test-threads=1
+    - cargo llvm-cov test -p mailboxd-core --locked --no-default-features --no-report migrate -- --test-threads=1
 
 # Frontend (web/) checks. Node/pnpm are deliberately kept out of the Rust jobs
 # above (see the embed-web note in cargo_test); this is the dedicated frontend
@@ -155,11 +186,19 @@ web_deps:
     - pnpm install --frozen-lockfile --prefer-offline --config.strict-dep-builds=false --store-dir=.pnpm-store --libc=glibc --libc=musl
 
 # Hard gate: the frontend must type-check and its unit tests must pass.
+# Coverage is report-only, like in cargo_test.
 web_test:
   extends: .web_check
   script:
     - pnpm exec tsc -b
-    - pnpm test
+    - pnpm test:coverage
+  coverage: '/^Lines\s*:\s*(\d+(?:\.\d+)?)%/'
+  artifacts:
+    expire_in: 1 week
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: web/coverage/cobertura-coverage.xml
 
 # Hard gate: the frontend must lint clean. The pre-existing violation backlog
 # (#16) has been cleared, so lint now blocks the pipeline like web_test.

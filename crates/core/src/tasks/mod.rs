@@ -24,6 +24,7 @@ use crate::common::periodic::TaskHandle;
 use crate::context::MailboxdTask;
 use crate::oauth2::{refresh::OAuth2RefreshTask, task::OAuth2CleanTask};
 use crate::oidc::task::OidcCleanTask;
+use crate::retention::task::RetentionSweepTask;
 use crate::store::tantivy::dedup::DedupTask;
 
 pub struct PeriodicTasks {
@@ -37,6 +38,7 @@ impl PeriodicTasks {
         tasks.push(OAuth2RefreshTask::start());
         tasks.push(OidcCleanTask::start());
         tasks.push(AuditCleanTask::start());
+        tasks.push(RetentionSweepTask::start());
         tasks.push(DedupTask::start());
         // Only run the backup scheduler when a directory and cron schedule are
         // configured; otherwise it would tick uselessly every minute.

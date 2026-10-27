@@ -37,6 +37,7 @@ import { get_oauth2_list } from '@/api/oauth2/api'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
 import { AuthorizeDialog } from './components/authorize-dialog'
+import { ImportTokensDialog } from './components/import-tokens-dialog'
 import { FixedHeader } from '@/components/layout/fixed-header'
 import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -121,6 +122,18 @@ export default function OAuth2() {
             open={open === 'authorize'}
             onOpenChange={() => {
               setOpen('authorize')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
+            }}
+            currentRow={currentRow}
+          />
+
+          <ImportTokensDialog
+            key={`oauth2-import-tokens-${currentRow.id}`}
+            open={open === 'import-tokens'}
+            onOpenChange={() => {
+              setOpen('import-tokens')
               setTimeout(() => {
                 setCurrentRow(null)
               }, 500)

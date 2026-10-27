@@ -32,6 +32,7 @@ struct AccountResp {
     email: String,
     enabled: bool,
     account_name: Option<String>,
+    deleting: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -74,6 +75,7 @@ async fn account_crud() {
     resp.assert_status_is_ok();
     let account: AccountResp = resp.json().await.value().deserialize();
     assert_eq!(account.email, "test-crud@example.com");
+    assert_eq!(account.account_name.as_deref(), Some("CRUD Test Account"));
     assert!(!account.enabled);
     let account_id = account.id;
 
@@ -94,6 +96,9 @@ async fn account_crud() {
         .send()
         .await;
     resp.assert_status_is_ok();
+    let page: DataPage<AccountResp> = resp.json().await.value().deserialize();
+    assert!(page.items.iter().any(|a| a.id == account_id));
+    assert!(page.total_items >= 1);
 
     // ── Update ──────────────────────────────────────────────────────────
     let update_payload = UpdateAccountPayload {
@@ -108,21 +113,46 @@ async fn account_crud() {
         .await;
     resp.assert_status_is_ok();
 
+    let resp = cli
+        .get(format!("/api/v1/account/{}", account_id))
+        .header("Authorization", &format!("Bearer {}", token))
+        .send()
+        .await;
+    resp.assert_status_is_ok();
+    let account: AccountResp = resp.json().await.value().deserialize();
+    assert_eq!(account.account_name.as_deref(), Some("Updated Name"));
+    assert!(account.enabled);
+
     // ── Delete ──────────────────────────────────────────────────────────
     let resp = cli
-        .delete(&format!("/api/v1/account/{}", account_id))
+        .delete(format!("/api/v1/account/{}", account_id))
         .header("Authorization", &format!("Bearer {}", token))
         .send()
         .await;
     resp.assert_status_is_ok();
 
     // ── Verify deleted ──────────────────────────────────────────────────
-    let resp = cli
-        .get(&format!("/api/v1/account/{}", account_id))
-        .header("Authorization", &format!("Bearer {}", token))
-        .send()
-        .await;
-    assert!(resp.0.status().is_client_error(), "should be 4xx after delete");
+    // Deletion marks the account as `deleting` and removes it in a
+    // background task, so wait for it to disappear.
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    loop {
+        let resp = cli
+            .get(format!("/api/v1/account/{}", account_id))
+            .header("Authorization", format!("Bearer {}", token))
+            .send()
+            .await;
+        if resp.0.status().is_client_error() {
+            break;
+        }
+        resp.assert_status_is_ok();
+        let account: AccountResp = resp.json().await.value().deserialize();
+        assert!(account.deleting, "a deleted account must be marked as deleting");
+        assert!(
+            std::time::Instant::now() < deadline,
+            "account still exists 10 s after delete"
+        );
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
 }
 
 #[tokio::test]
@@ -201,4 +231,82 @@ async fn delete_nonexistent_account_returns_error() {
         .send()
         .await;
     assert!(resp.0.status().is_client_error(), "delete nonexistent should 4xx");
+}
+
+#[tokio::test]
+async fn account_retention_window_round_trip() {
+    setup().await;
+    let token = admin_token().await;
+    let cli = api_client(build_api_route());
+    let auth = format!("Bearer {token}");
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let retention_of = |body: serde_json::Value| body["retention_days"].as_u64();
+
+    let resp = cli
+        .post("/api/v1/account")
+        .header("Authorization", &auth)
+        .body_json(&serde_json::json!({
+            "email": format!("retention-{nanos}@example.com"),
+            "enabled": false,
+            "account_type": "NoSync",
+            "use_dangerous": false,
+            "retention_days": 30,
+        }))
+        .send()
+        .await;
+    resp.assert_status_is_ok();
+    let created: serde_json::Value = resp.json().await.value().deserialize();
+    assert_eq!(retention_of(created.clone()), Some(30));
+    let id = created["id"].as_u64().unwrap();
+
+    let update = |days: u64| {
+        cli.post(format!("/api/v1/account/{id}"))
+            .header("Authorization", &auth)
+            .body_json(&serde_json::json!({ "retention_days": days }))
+            .send()
+    };
+    let read = || async {
+        let resp = cli
+            .get(format!("/api/v1/account/{id}"))
+            .header("Authorization", &auth)
+            .send()
+            .await;
+        resp.assert_status_is_ok();
+        let body: serde_json::Value = resp.json().await.value().deserialize();
+        retention_of(body)
+    };
+
+    update(36_501)
+        .await
+        .assert_status(poem::http::StatusCode::BAD_REQUEST);
+    assert_eq!(read().await, Some(30), "a rejected update changes nothing");
+
+    update(90).await.assert_status_is_ok();
+    assert_eq!(read().await, Some(90));
+
+    update(0).await.assert_status_is_ok();
+    assert_eq!(read().await, None, "0 turns retention off");
+
+    let resp = cli
+        .post("/api/v1/account")
+        .header("Authorization", &auth)
+        .body_json(&serde_json::json!({
+            "email": format!("retention-invalid-{nanos}@example.com"),
+            "enabled": false,
+            "account_type": "NoSync",
+            "use_dangerous": false,
+            "retention_days": 36_501,
+        }))
+        .send()
+        .await;
+    resp.assert_status(poem::http::StatusCode::BAD_REQUEST);
+
+    cli.delete(format!("/api/v1/account/{id}"))
+        .header("Authorization", &auth)
+        .send()
+        .await
+        .assert_status_is_ok();
 }

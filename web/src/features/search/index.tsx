@@ -40,8 +40,10 @@ import { useTranslation } from 'react-i18next';
 import { RestoreMessageDialog } from '@/features/mail-list/restore-message-dialog';
 import { MailListTable } from './mail-list-table';
 import { SortingState } from '@tanstack/react-table';
+import { initialSorting } from '@/features/mail-list/sorting';
 import { MailBoxDeleteDialog } from '@/features/mail-list/delete-mailbox-dialog';
 import { UpdateTagsDialog } from './bulk-add-tag-dialog';
+import { RepairMessageDialog } from '@/features/repair/repair-message-dialog';
 
 // Search's list item already is a full envelope, so it resolves synchronously.
 function useSearchCurrentEnvelope() {
@@ -61,7 +63,6 @@ export default function EmailSearch() {
   const [toDelete, setToDelete] = React.useState<Map<number, Set<string>>>(new Map());
   const [selected, setSelected] = React.useState<Map<number, Set<string>>>(new Map());
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([{ id: "date", desc: true }]);
   const [deleteMailboxId, setDeleteMailboxId] = React.useState<string | undefined>(undefined);
   const [selectedAccountId, setSelectedAccountId] = React.useState<number | undefined>(undefined);
   const [editTagsOpen, setEditTagsOpen] = React.useState(false);
@@ -79,8 +80,13 @@ export default function EmailSearch() {
     setSortBy,
     setSortOrder,
     filter,
-    setFilter
+    setFilter,
+    sortBy,
+    sortOrder,
   } = useSearchMessages();
+  const [sorting, setSorting] = React.useState<SortingState>(() =>
+    initialSorting(sortBy, sortOrder),
+  );
 
   const handleSetPageSize = (pageSize: number) => {
     setPage(1);
@@ -201,6 +207,15 @@ export default function EmailSearch() {
             key='restore-mail-dialog'
             open={open === 'restore'}
             onOpenChange={() => setOpen('restore')}
+          />
+
+          <RepairMessageDialog
+            key='repair-mail-dialog'
+            open={open === 'repair'}
+            onOpenChange={() => setOpen('repair')}
+            accountId={selectedEnvelope?.account_id}
+            envelopeId={selectedEnvelope?.id}
+            subject={selectedEnvelope?.subject}
           />
 
           <MailBoxDeleteDialog

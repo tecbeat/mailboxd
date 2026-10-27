@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "Le email più grandi saranno ignorate. Lascia vuoto per utilizzare il valore predefinito (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Predefinito: 100 MB",
     "maxEmailSizeBytesUnlimited": "Predefinito: 100 MB",
+    "retentionDays": "Periodo di conservazione (giorni)",
+    "retentionDaysDescription": "Le email archiviate più vecchie di questo numero di giorni vengono eliminate e le email più vecchie non vengono più archiviate. Lascia vuoto per conservare tutte le email.",
+    "retentionOff": "Conserva per sempre",
+    "retentionWarning": "Le email più vecchie del periodo di conservazione verranno eliminate definitivamente dall'archivio entro le prossime 6 ore. L'operazione non può essere annullata.",
     "minutes": "minuti",
     "months": "Mesi",
     "mustBeAtLeast1": "Deve essere almeno 1",
@@ -331,6 +335,8 @@
       "generalDesc": "Informazioni di base sull'account e stato.",
       "newAccount": "Nuovo account",
       "performance": "Prestazioni",
+      "retention": "Conservazione",
+      "retentionDesc": "Scegli per quanto tempo conservare le email archiviate.",
       "schedule": "Pianificazione",
       "scope": "Ambito",
       "server": "Server",
@@ -541,10 +547,21 @@
     "login": "Accedi",
     "loginFailed": "Accesso Fallito",
     "logout": "Esci",
+    "mfa": {
+      "back": "Torna all'accesso",
+      "challengeExpired": "L'accesso è scaduto. Accedi di nuovo.",
+      "code": "Codice di verifica",
+      "codeFormat": "Inserisci il codice a 6 cifre della tua app di autenticazione oppure un codice di recupero.",
+      "invalidCode": "Codice di verifica non valido. Riprova.",
+      "prompt": "Inserisci il codice a 6 cifre mostrato dalla tua app di autenticazione. Se non hai più accesso all'app, inserisci invece uno dei tuoi codici di recupero.",
+      "tooManyCodes": "Troppi codici non validi. Accedi di nuovo.",
+      "verify": "Verifica"
+    },
     "password": "Password",
     "sessionExpired": "Sessione scaduta!",
     "sessionExpiredDesc": "La tua sessione è terminata per inattività. Esegui nuovamente l'accesso per continuare.",
     "somethingWentWrong": "Qualcosa è andato storto",
+    "tooManyAttempts": "Troppi tentativi di accesso. Attendi qualche minuto e riprova.",
     "username": "Nome utente",
     "welcome": "Benvenuto in mailboxd",
     "youWillNeedToLogInAgain": "Dovrai accedere nuovamente per accedere al tuo account.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Rilevato",
     "detectedFrom": "Rilevato da",
     "dropHere": "Trascina i file .eml / .mbox / .pst qui",
+    "duplicateCount": "{{count}} duplicati saltati",
     "failed": "Importazione fallita",
     "failedCount": "{{count}} falliti",
     "failedDetails": "Elementi falliti",
@@ -734,6 +752,7 @@
     "noMailboxFound": "Nessuna casella postale trouvata.",
     "noMailboxes": "Nessuna casella postale trovata in questo account.",
     "orClick": "o clicca per sfogliare",
+    "outsideRetentionCount": "{{count}} fuori dal periodo di conservazione",
     "processed": "{{current}} / {{total}} elaborati",
     "processing": "Elaborazione…",
     "pstFolderDesc": "Il file PST contiene la propria struttura di cartelle (es. Posta in arrivo, Elementi inviati, ecc.). Le cartelle verranno create automaticamente durante l'importazione.",
@@ -747,6 +766,7 @@
     "source": "origine",
     "startImport": "Importa",
     "successCount": "{{count}} importati",
+    "summaryOutsideRetention": "{{count}} fuori conservazione",
     "target": "1. Seleziona account di destinazione",
     "title": "Importa",
     "uploading": "Caricamento…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "Una chiave segreta fornita dal provider OAuth per autenticare la tua applicazione.",
+    "accessToken": "Token di accesso",
+    "accessTokenCannotBeEmpty": "Il token di accesso non può essere vuoto",
+    "accountIsRequired": "Seleziona un account.",
     "actions": {
       "authorize": "Autorizza",
       "delete": "Elimina",
       "edit": "Modifica",
+      "importTokens": "Importa token",
       "openMenu": "Apri Menu"
     },
     "addConfiguration": "Aggiungi Configurazione",
@@ -867,8 +891,8 @@
     "addScope": "Aggiungi Scope",
     "areYouSureYouWantTo": "Sei sicuro di voler {{action}} questo client OAuth2?",
     "areYouSureYouWantToDelete": "Sei sicuro di voler eliminare",
-    "authAtatus": "Stato di Autenticazione OAuth2",
     "authFailed": "Autenticazione OAuth2 Fallita",
+    "authStatus": "Stato di Autenticazione OAuth2",
     "authSuccess": "Autenticazione OAuth2 Riuscita",
     "authUrlLabel": "URL di Autorizzazione:",
     "authorizationUrlCannotBeEmpty": "L'URL di Autorizzazione non può essere vuoto",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "Abilita Client OAuth2",
     "enabled": "Abilitato",
     "enterIdToConfirmDeletion": "Inserisci l'ID per confermare l'eliminazione.",
+    "enterTheAccessTokenHere": "Incolla qui il token di accesso.",
     "enterTheAuthorizationUrl": "Inserisci l'URL di autorizzazione",
     "enterTheKeyHere": "Inserisci la chiave qui.",
+    "enterTheRefreshTokenHere": "Incolla qui il token di aggiornamento.",
     "enterTheScopeHere": "Inserisci lo scope qui.",
     "enterTheTokenUrl": "Inserisci l'URL del token",
     "enterTheValueHere": "Inserisci il valore qui.",
@@ -922,6 +948,15 @@
     "goHome": "Vai alla Home",
     "goToAccounts": "Vai ad Account",
     "id": "ID",
+    "importTokensDescription": "Usalo quando il client OAuth2 non riesce a completare l'autorizzazione in mailboxd, ad esempio quando i token sono stati ottenuti con uno strumento esterno come email-oauth2-proxy. L'account selezionato deve già usare OAuth2 come tipo di autenticazione IMAP.",
+    "importTokensFailed": "Importazione dei token non riuscita",
+    "importTokensSuccess": "Token importati",
+    "importTokensSuccessDesc": "I token sono stati salvati e verranno rinnovati automaticamente.",
+    "importTokensTitle": "Importa token esterni",
+    "importTokensWarningClientMustMatch": "Il Client ID e il Client Secret di questa configurazione devono essere identici a quelli del client che ha emesso il token di aggiornamento, altrimenti il rinnovo non riuscirà.",
+    "importTokensWarningLongLivedCredential": "Un token di aggiornamento è una credenziale a lunga durata. Verrà cifrato e salvato su questo server.",
+    "importTokensWarningStopExternalTool": "Arresta lo strumento esterno che ha ottenuto questi token. Se entrambi gli strumenti rinnovano lo stesso token di aggiornamento, i token entreranno in conflitto e l'archiviazione si fermerà.",
+    "importing": "Importazione...",
     "information": "Informazioni",
     "invalidAuthorizationUrlFormat": "Formato URL di Autorizzazione non valido",
     "invalidRedirectUriFormat": "Formato URI di Reindirizzamento non valido",
@@ -935,6 +970,8 @@
     "noConfigurations": "Nessuna Configurazione OAuth2",
     "noConfigurationsDesc": "Non hai ancora aggiunto alcuna configurazione OAuth2. Aggiungine una per iniziare a usare le funzionalità OAuth2.",
     "noEmailAccountsRegistered": "Nessun account email registrato. Per favore, creane uno.",
+    "noOAuth2Accounts": "Nessuno dei tuoi account usa l'autenticazione OAuth2. Crea prima un account con OAuth2 come tipo di autenticazione.",
+    "noProxy": "Senza proxy",
     "noProxyAvailable": "Nessun proxy disponibile",
     "noStatus": "Questa pagina mostra il risultato della tua autenticazione OAuth2. Attualmente non è disponibile alcuno stato specifico. Riprova se necessario.",
     "oauth2ClientHasBeenSuccessfully": "Il client OAuth2 è stato {{action}} con successo.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "L'URI di Reindirizzamento non può essere vuoto",
     "redirectUriIsRequired": "L'URI di Reindirizzamento è obbligatorio",
     "redirectUrlLabel": "URI di Reindirizzamento:",
+    "refreshToken": "Token di aggiornamento",
+    "refreshTokenCannotBeEmpty": "Il token di aggiornamento non può essere vuoto",
     "save": "Salva",
     "saveChanges": "Salva Modifiche",
     "saving": "Salvataggio in corso...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Riprova",
     "warningDesc": "Fai attenzione, questa operazione non può essere annullata.",
     "warningTitle": "Attenzione!"
+  },
+  "repair_message": {
+    "confirm": "Ripara",
+    "desc": "Recupera nuovamente questo messaggio dal server IMAP e salva il contenuto mancante. Il contenuto viene salvato solo se corrisponde all'hash archiviato.",
+    "emailMissing": "Il contenuto del messaggio manca ancora",
+    "emailRestored": "Contenuto del messaggio ripristinato",
+    "failedHint": "Impossibile recuperare o verificare il messaggio. Vedere l'errore qui sotto.",
+    "hideDetails": "Nascondi dettagli",
+    "history": "Cronologia riparazioni",
+    "historyEmpty": "Nessuna riparazione finora.",
+    "historyFailed": "Impossibile caricare la cronologia delle riparazioni.",
+    "historyHint": "Gli ultimi {{limit}} tentativi di riparazione.",
+    "missingAfter": "Allegati ancora mancanti",
+    "missingBefore": "Allegati mancanti prima della riparazione",
+    "operator": "Operatore",
+    "partialHint": "Non è stato possibile ripristinare parte del contenuto. Il contenuto che non corrisponde all'hash archiviato non viene mai salvato.",
+    "repairAction": "Ripara messaggio",
+    "repairing": "Riparazione in corso…",
+    "repairingHint": "Recupero del messaggio dal server IMAP. L'operazione può richiedere del tempo.",
+    "reportDesc": "Esito del tentativo di riparazione.",
+    "reportTitle": "Rapporto di riparazione",
+    "requestFailed": "Richiesta di riparazione non riuscita",
+    "result": "Esito",
+    "showDetails": "Mostra dettagli",
+    "statusComplete": "Non mancava nulla",
+    "statusFailed": "Non riuscito",
+    "statusPartial": "Riparato parzialmente",
+    "statusRepaired": "Riparato",
+    "title": "Ripara messaggio",
+    "wholeMessageNote": "Questa operazione ripara l'intero messaggio: il corpo e tutti gli allegati."
   },
   "restore_message": {
     "accountsInvolved": "Account coinvolti",
@@ -1307,6 +1376,7 @@
     "body": "Corpo del messaggio",
     "button": "Cerca",
     "clear_history": "Cancella cronologia",
+    "hint": "Tutte le parole devono corrispondere. Usa OR per ampliare, le \"virgolette\" per una frase, -parola per escludere.",
     "no_history": "Nessuna cronologia di ricerca",
     "placeholder": "Cerca email (usa \" \" per la ricerca di frasi)",
     "recent_title": "Ricerche recenti",
@@ -1350,9 +1420,17 @@
     "label": "Reimposta",
     "tooltip": "Cancella tutti i filtri"
   },
+  "search_sort": {
+    "relevance": "Pertinenza",
+    "relevance_needs_text": "Inserisci un termine di ricerca per ordinare per pertinenza",
+    "relevance_tooltip": "Ordina per corrispondenza migliore"
+  },
   "search_view": {
+    "absolute": "Assoluta",
     "button_label": "Vista",
-    "menu_title": "Impostazioni colonne"
+    "date_display": "Visualizzazione data",
+    "menu_title": "Impostazioni colonne",
+    "relative": "Relativa"
   },
   "settings": {
     "accounts": "Account",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Password non valida",
     "lastAccess": "Ultimo Accesso",
     "manageRootTokenAndPassword": "Gestisci in modo sicuro il token e la password root.",
+    "mfa": {
+      "copied": "Copiato negli appunti",
+      "description": "Proteggi l'accesso con password con un codice monouso generato da un'app di autenticazione.",
+      "disabled": {
+        "description": "Quando è attiva, l'accesso con password richiede anche un codice a 6 cifre di un'app di autenticazione come Aegis, Google Authenticator o 1Password.",
+        "enable": "Attiva l'autenticazione a due fattori",
+        "title": "L'autenticazione a due fattori è disattivata"
+      },
+      "enabled": {
+        "codesLeft": "Codici di recupero non usati: {{remaining}}",
+        "codesLow": "Stai esaurendo i codici di recupero. Disattiva e riattiva l'autenticazione a due fattori per ottenerne di nuovi.",
+        "confirmDisable": "Disattiva",
+        "description": "L'accesso con password richiede un codice della tua app di autenticazione.",
+        "disable": "Disattiva l'autenticazione a due fattori",
+        "disableCode": "Codice della tua app di autenticazione o codice di recupero",
+        "disabledToast": "Autenticazione a due fattori disattivata",
+        "title": "L'autenticazione a due fattori è attiva"
+      },
+      "enrol": {
+        "code": "Codice dell'app",
+        "confirm": "Conferma e attiva",
+        "copySecret": "Copia la chiave segreta",
+        "description": "Scansiona il codice QR con la tua app di autenticazione oppure inserisci manualmente la chiave segreta. Poi inserisci il codice a 6 cifre mostrato dall'app.",
+        "qrAlt": "Codice QR per la tua app di autenticazione",
+        "qrFailed": "Impossibile generare il codice QR. Inserisci manualmente la chiave segreta.",
+        "secret": "Chiave segreta per l'inserimento manuale",
+        "title": "Configura la tua app di autenticazione"
+      },
+      "errors": {
+        "enrolFailed": "Impossibile avviare la configurazione",
+        "invalidCode": "Codice di verifica non valido. Riprova.",
+        "tooManyAttempts": "Troppi tentativi. Attendi qualche minuto e riprova."
+      },
+      "loadError": "Impossibile caricare lo stato dell'autenticazione a due fattori.",
+      "recovery": {
+        "copy": "Copia i codici",
+        "description": "Ogni codice ti permette di accedere una volta se perdi l'accesso alla tua app di autenticazione.",
+        "done": "Fatto",
+        "download": "Scarica come .txt",
+        "leaveWarning": "Non hai confermato di aver salvato i codici di recupero. Non verranno mostrati di nuovo. Uscire comunque?",
+        "onlyOnce": "Questi codici vengono mostrati una sola volta. Conservali subito in un luogo sicuro.",
+        "saved": "Ho conservato i miei codici di recupero in un luogo sicuro",
+        "title": "Salva i tuoi codici di recupero"
+      },
+      "ssoNote": "Accedi tramite single sign-on (SSO). L'autenticazione a due fattori del tuo account è gestita dal tuo provider di identità, quindi non può essere configurata qui.",
+      "title": "Autenticazione a due fattori"
+    },
     "name": "Nome",
     "noProxies": "Nessun Proxy",
     "noProxiesDesc": "Non hai ancora aggiunto alcuna configurazione proxy. Aggiungine una per utilizzare le funzionalità proxy.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "Token API",
       "backup": "Backup",
       "configurations": "Configurazioni di sistema",
+      "mfa": "Autenticazione a due fattori",
       "profile": "Profilo",
       "proxy": "Proxy di rete"
     },
@@ -1517,6 +1643,12 @@
     "title": "Disconnetti"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Cambia password",
+      "badge": "Sicurezza",
+      "message": "L’account admin integrato accetta ancora la password iniziale. Cambiala nel profilo con l’accesso come admin oppure in Utenti.",
+      "title": "Password amministratore predefinita in uso"
+    },
     "notifications": "Notifiche di sistema"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Cerca utenti..."
       },
+      "reset_mfa": {
+        "button_confirm": "Reimposta 2FA",
+        "confirm_msg": "L'autenticazione a due fattori dell'utente {{name}} (ID: {{id}}) verrà disattivata e i suoi codici di recupero eliminati. Finché non la configura di nuovo, per accedere basterà la sua password.",
+        "failed_title": "Reimpostazione non riuscita",
+        "menu": "Reimposta 2FA",
+        "success_desc": "L'autenticazione a due fattori di \"{{name}}\" è stata disattivata.",
+        "success_title": "2FA reimpostata",
+        "title": "Reimposta l'autenticazione a due fattori"
+      },
       "schema": {
         "account_required": "Seleziona un account",
         "description_max": "Descrizione max 256 caratteri",
@@ -1767,6 +1908,7 @@
       "created_at": "Creato il",
       "email": "Indirizzo email",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Ruoli e permessi",
       "updated_at": "Aggiornato il",
       "username": "Nome utente"
@@ -1775,6 +1917,7 @@
       "description": "Clicca sul pulsante qui sotto per aggiungere il tuo primo utente.",
       "title": "Nessun utente trovato"
     },
+    "mfa_enabled": "Attiva",
     "nav": {
       "api_tokens": "Token API",
       "roles": "Ruoli",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Inserisci la tua password",
     "pleaseEnterUsernameOrEmail": "Inserisci il tuo nome utente o email",
     "required": "Questo campo è obbligatorio",
+    "retentionDaysRange": "Inserisci un numero intero di giorni compreso tra 1 e 36500 oppure lascia vuoto il campo.",
     "singleRequestBatchSizeMustBeNumber": "La dimensione del batch deve essere un numero",
     "singleRequestBatchSizeTooLarge": "La dimensione del batch deve essere al massimo 200",
     "singleRequestBatchSizeTooSmall": "La dimensione del batch deve essere almeno 10"

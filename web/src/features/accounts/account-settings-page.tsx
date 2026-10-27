@@ -36,6 +36,7 @@ import { TabGeneral } from "./components/tab-general";
 import { TabServer } from "./components/tab-server";
 import { TabDownload } from "./components/tab-download";
 import { TabFilters } from "./components/tab-filters";
+import { RetentionField } from "./components/retention-field";
 import { update_account, list_accounts, type AccountModel } from "@/api/account/api";
 import { getAccountSchema, type AccountFormValues } from "./components/schema";
 import type { AxiosError } from "axios";
@@ -68,6 +69,7 @@ function mapAccountToFormValues(account: AccountModel): AccountFormValues {
     auto_download_new_mailboxes: account.auto_download_new_mailboxes ?? true,
     download_schedule: account.download_schedule ?? undefined,
     archive_rules: account.archive_rules ?? undefined,
+    retention_days: account.retention_days ?? undefined,
   };
 }
 
@@ -159,6 +161,8 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
         auto_download_new_mailboxes: data.auto_download_new_mailboxes,
         download_schedule: data.download_schedule || null,
         archive_rules: data.archive_rules || null,
+        // 0 turns retention off; leaving it out would keep the old period.
+        retention_days: data.retention_days ?? 0,
       };
 
       if (!data.date_since && !data.date_before) {
@@ -247,6 +251,16 @@ export function AccountSettingsPage({ accountId }: AccountSettingsPageProps) {
                       description={t('accounts.settings.filtersDesc')}
                     />
                     <TabFilters />
+                  </section>
+
+                  <hr />
+
+                  <section>
+                    <SectionHeader
+                      title={t('accounts.settings.retention')}
+                      description={t('accounts.settings.retentionDesc')}
+                    />
+                    <RetentionField />
                   </section>
 
                   <div className="flex items-center justify-between pt-4 border-t">

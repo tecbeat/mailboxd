@@ -137,6 +137,7 @@ pub fn part_contents<'m>(part: &MessagePart<'m>) -> Cow<'m, [u8]> {
 #[cfg(test)]
 mod tests {
     use crate::envelope::utils::{merge_contiguous_encoded_words, normalize_subject};
+    use mail_parser::MessageParser;
 
     // ── merge_contiguous_encoded_words ──────────────────────────────
 
@@ -217,5 +218,21 @@ mod tests {
     #[test]
     fn normalize_subject_none() {
         assert_eq!(normalize_subject(None), "");
+    }
+
+    #[test]
+    fn cp1253_subject_and_base64_body() {
+        let eml = concat!(
+            "Subject: =?Cp1253?B?1/Hd+fPnIOvv4+Hx6eHz7O/9?=\r\n",
+            "MIME-Version: 1.0\r\n",
+            "Content-Type: text/plain; charset=\"Cp1253\"\r\n",
+            "Content-Transfer-Encoding: base64\r\n",
+            "\r\n",
+            "wePh8Of03SDw5evc9Oc=\r\n",
+        );
+
+        let message = MessageParser::default().parse(eml).unwrap();
+        assert_eq!(message.subject(), Some("Χρέωση λογαριασμού"));
+        assert_eq!(message.body_text(0).as_deref(), Some("Αγαπητέ πελάτη"));
     }
 }

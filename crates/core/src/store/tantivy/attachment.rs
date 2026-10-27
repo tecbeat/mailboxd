@@ -38,14 +38,21 @@ use crate::{
     raise_error,
     settings::dir::DATA_DIR_MANAGER,
     store::tantivy::{
+        envelope::ENVELOPE_MANAGER,
         fatal_commit,
         fields::{
-            F_ATTACHMENT_CATEGORY, F_ATTACHMENT_CONTENT_TYPE, F_ATTACHMENT_EXT, F_DATE,
-            F_INGEST_AT, F_SIZE, F_TAGS,
+            F_ATTACHMENT_CATEGORY, F_ATTACHMENT_CONTENT_TYPE, F_ATTACHMENT_EXT, F_DATE, F_SIZE,
+            F_TAGS,
+        },
+        format::{
+            check_index_format, heal_index_format_marker, write_index_format_version,
+            IndexFormatStatus,
         },
         model::{extract_senders, AttachmentModel},
+        rebuild::{document_tags, extracted_text_of, rebuild_attachment_document},
         schema::SchemaTools,
-        tokenizers::EuroTokenizer,
+        sort::top_docs_page,
+        tokenizers::{register_tokenizers, text_parser, word_or_tri},
     },
 };
 
@@ -58,7 +65,7 @@ use tantivy::{
     },
     collector::{Count, FacetCollector, TopDocs},
     indexer::{LogMergePolicy, UserOperation},
-    query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
+    query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, RangeQuery, TermQuery},
     schema::{Field, IndexRecordOption, Value},
     DocAddress, Index, IndexReader, IndexWriter, Order, TantivyDocument, Term,
 };
@@ -67,7 +74,7 @@ use tokio::{
     sync::{mpsc, Mutex},
     task::{self, JoinHandle},
 };
-use tracing::info;
+use tracing::{info, warn};
 
 pub static ATTACHMENT_MANAGER: LazyLock<IndexManager> = LazyLock::new(IndexManager::new);
 
@@ -92,7 +99,7 @@ impl IndexManager {
     }
     pub fn new() -> Self {
         let index = Self::open_or_create_index(&DATA_DIR_MANAGER.attachment_dir);
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
         let mut merge_policy = LogMergePolicy::default();
         merge_policy.set_min_num_segments(25);
         merge_policy.set_min_layer_size(10_000);
@@ -225,13 +232,28 @@ impl IndexManager {
             std::fs::create_dir_all(&index_dir).unwrap_or_else(|e| {
                 panic!("Failed to create index directory {:?}: {}", index_dir, e)
             });
-            Index::create_in_dir(&index_dir, SchemaTools::attachment_schema())
-                .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e))
+            let index = Index::create_in_dir(index_dir, SchemaTools::attachment_schema())
+                .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e));
+            if let Err(e) = write_index_format_version(index_dir) {
+                warn!(
+                    "Failed to write INDEX_FORMAT marker for {:?}: {}",
+                    index_dir, e
+                );
+            }
+            index
         } else {
             info!(
                 "Opening existing attachment index at {}",
                 index_dir.display()
             );
+            heal_index_format_marker(index_dir);
+            if check_index_format(index_dir) == IndexFormatStatus::NeedsUpgrade {
+                panic!(
+                    "The attachment index in {:?} has an outdated format and must be rebuilt; \
+                     restart mailboxd to rebuild it automatically",
+                    index_dir
+                );
+            }
             Self::open(&index_dir)
         }
     }
@@ -335,21 +357,24 @@ impl IndexManager {
         }
 
         if let Some(ref text) = filter.text {
-            let query_parser =
-                QueryParser::for_index(&self.index, SchemaTools::attachment_default_fields());
+            let query_parser = text_parser(&self.index, SchemaTools::attachment_default_fields());
 
-            let query = query_parser
+            let word = query_parser
                 .parse_query(text)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, Box::new(query)));
+            let tri_fields = [f.f_subject_tri, f.f_from_text_tri, f.f_name_text_tri];
+            subqueries.push((Occur::Must, word_or_tri(word, &tri_fields, text)));
         }
 
         if let Some(ref subject_val) = filter.subject {
-            let query_parser = QueryParser::for_index(&self.index, vec![f.f_subject]);
-            let q = query_parser
+            let query_parser = text_parser(&self.index, vec![f.f_subject]);
+            let word = query_parser
                 .parse_query(subject_val)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, q));
+            subqueries.push((
+                Occur::Must,
+                word_or_tri(word, &[f.f_subject_tri], subject_val),
+            ));
         }
 
         if let Some(ref tags) = filter.tags {
@@ -373,11 +398,14 @@ impl IndexManager {
         }
 
         if let Some(from_query) = &filter.from {
-            let query_parser = QueryParser::for_index(&self.index, vec![f.f_from_text]);
-            let q = query_parser
+            let query_parser = text_parser(&self.index, vec![f.f_from_text]);
+            let word = query_parser
                 .parse_query(from_query)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, q))
+            subqueries.push((
+                Occur::Must,
+                word_or_tri(word, &[f.f_from_text_tri], from_query),
+            ))
         }
 
         if let Some(content_hash) = &filter.content_hash {
@@ -393,13 +421,12 @@ impl IndexManager {
         }
 
         if let Some(ref name) = filter.attachment_name {
-            let query_parser =
-                QueryParser::for_index(&self.index, vec![f.f_name_text, f.f_name_exact]);
+            let query_parser = text_parser(&self.index, vec![f.f_name_text, f.f_name_exact]);
 
-            let q = query_parser
+            let word = query_parser
                 .parse_query(name)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, q));
+            subqueries.push((Occur::Must, word_or_tri(word, &[f.f_name_text_tri], name)));
         }
 
         if let Some(ref extension) = filter.attachment_extension {
@@ -756,11 +783,7 @@ impl IndexManager {
                         .doc(*doc_address)
                         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
-                    let mut current_tags: HashSet<String> = old_doc
-                        .get_all(f_tags)
-                        .filter_map(|val| val.as_facet())
-                        .map(|facet| facet.to_string())
-                        .collect();
+                    let mut current_tags = document_tags(&old_doc, f_tags);
 
                     match request.action {
                         TagAction::Add => {
@@ -778,16 +801,33 @@ impl IndexManager {
                         }
                     }
 
-                    let mut new_doc = TantivyDocument::new();
-
-                    for (field, value) in old_doc.field_values() {
-                        if field != f_tags {
-                            new_doc.add_field_value(field, value);
+                    // f_text is not stored; take it from the attachment
+                    // metadata of the owning envelope.
+                    let f = SchemaTools::attachment_fields();
+                    let envelope_id = old_doc.get_first(f.f_envelope_id).and_then(|v| v.as_str());
+                    let content_hash = old_doc.get_first(f.f_content_hash).and_then(|v| v.as_str());
+                    let extracted_text = match (envelope_id, content_hash) {
+                        (Some(envelope_id), Some(content_hash)) => {
+                            match ENVELOPE_MANAGER
+                                .stored_attachments_of(*account_id, envelope_id)?
+                            {
+                                Some(attachments) => extracted_text_of(&attachments, content_hash),
+                                None => {
+                                    tracing::warn!(
+                                        envelope_id,
+                                        "Envelope of attachment not found during tag update"
+                                    );
+                                    None
+                                }
+                            }
                         }
-                    }
-                    for tag in current_tags {
-                        new_doc.add_facet(f_tags, &tag);
-                    }
+                        _ => None,
+                    };
+                    let new_doc = rebuild_attachment_document(
+                        &old_doc,
+                        &current_tags,
+                        extracted_text.as_deref(),
+                    );
 
                     let delete_term = Term::from_field_text(f_id, aid);
                     operations.push(UserOperation::Delete(delete_term));
@@ -847,57 +887,17 @@ impl IndexManager {
             });
         }
 
-        let order = if desc { Order::Desc } else { Order::Asc };
-        let attachment_docs: Vec<DocAddress>;
-
-        match sort_by {
-            SortBy::DATE => {
-                let date_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_DATE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                attachment_docs = date_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            SortBy::SIZE => {
-                let size_docs: Vec<(Option<u64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_SIZE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                attachment_docs = size_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            // Attachments carry no IMAP INTERNALDATE; fall back to the
-            // attachment's own date field so the sort remains well defined.
-            SortBy::InternalDate => {
-                let date_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_DATE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                attachment_docs = date_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            SortBy::IngestAt => {
-                let ingest_at_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_INGEST_AT, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                attachment_docs = ingest_at_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-        }
+        // Attachments carry no IMAP INTERNALDATE; their own date keeps that
+        // sort well defined.
+        let attachment_docs = top_docs_page(
+            &searcher,
+            &query,
+            sort_by,
+            desc,
+            offset as usize,
+            page_size as usize,
+            F_DATE,
+        )?;
 
         let mut result = Vec::new();
 
@@ -1019,6 +1019,7 @@ impl IndexManager {
                     exts.push(Group {
                         key: ext.clone(),
                         count: entry.doc_count,
+                        account_id: None,
                     });
                 }
             }
@@ -1032,6 +1033,7 @@ impl IndexManager {
                     cats.push(Group {
                         key: cat.clone(),
                         count: entry.doc_count,
+                        account_id: None,
                     });
                 }
             }
@@ -1046,6 +1048,7 @@ impl IndexManager {
                     ctypes.push(Group {
                         key: content_type.clone(),
                         count: entry.doc_count,
+                        account_id: None,
                     });
                 }
             }
@@ -1058,3 +1061,7 @@ impl IndexManager {
         })
     }
 }
+
+#[cfg(test)]
+#[path = "attachment_tests.rs"]
+mod tests;

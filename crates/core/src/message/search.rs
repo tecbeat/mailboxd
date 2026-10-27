@@ -86,6 +86,33 @@ pub enum SortBy {
     #[serde(rename = "INGEST_AT")]
     #[cfg_attr(feature = "web-api", oai(rename = "INGEST_AT"))]
     IngestAt,
+    /// Sort by full-text relevance (tantivy's BM25 score), best match first;
+    /// `desc` is ignored. Falls back to `DATE` without a text query.
+    #[serde(rename = "RELEVANCE")]
+    #[cfg_attr(feature = "web-api", oai(rename = "RELEVANCE"))]
+    Relevance,
+}
+
+/// Date stays the default. Relevance needs a text query to score; without
+/// one, every match scores the same and the order would be arbitrary.
+fn resolve_sort_by(requested: Option<SortBy>, has_text: bool) -> SortBy {
+    match requested {
+        Some(SortBy::Relevance) if !has_text => SortBy::DATE,
+        Some(sort_by) => sort_by,
+        None => SortBy::DATE,
+    }
+}
+
+impl EmailSearchFilter {
+    fn has_text(&self) -> bool {
+        self.text.is_some() || self.subject.is_some() || self.body.is_some()
+    }
+}
+
+impl AttachmentSearchFilter {
+    fn has_text(&self) -> bool {
+        self.text.is_some() || self.subject.is_some()
+    }
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -121,13 +148,14 @@ pub fn search_messages_impl(
     request: EmailSearchRequest,
 ) -> MailboxdResult<DataPage<Envelope>> {
     request.validate()?;
+    let sort_by = resolve_sort_by(request.sort_by, request.filter.has_text());
     ENVELOPE_MANAGER.search(
         accounts,
         request.filter,
         request.page,
         request.page_size,
         request.desc.unwrap_or(true),
-        request.sort_by.unwrap_or(SortBy::DATE),
+        sort_by,
     )
 }
 
@@ -198,12 +226,197 @@ pub fn search_attachment_impl(
     request: AttachmentSearchRequest,
 ) -> MailboxdResult<DataPage<AttachmentModel>> {
     request.validate()?;
+    let sort_by = resolve_sort_by(request.sort_by, request.filter.has_text());
     ATTACHMENT_MANAGER.search(
         accounts,
         request.filter,
         request.page,
         request.page_size,
         request.desc.unwrap_or(true),
-        request.sort_by.unwrap_or(SortBy::DATE),
+        sort_by,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn date_stays_the_default_even_with_text() {
+        assert_eq!(resolve_sort_by(None, true), SortBy::DATE);
+        assert_eq!(resolve_sort_by(None, false), SortBy::DATE);
+    }
+
+    #[test]
+    fn relevance_is_kept_with_text_and_falls_back_to_date_without() {
+        assert_eq!(
+            resolve_sort_by(Some(SortBy::Relevance), true),
+            SortBy::Relevance
+        );
+        assert_eq!(
+            resolve_sort_by(Some(SortBy::Relevance), false),
+            SortBy::DATE
+        );
+    }
+
+    #[test]
+    fn other_explicit_sorts_are_kept() {
+        for sort_by in [
+            SortBy::DATE,
+            SortBy::SIZE,
+            SortBy::InternalDate,
+            SortBy::IngestAt,
+        ] {
+            assert_eq!(resolve_sort_by(Some(sort_by.clone()), true), sort_by);
+        }
+    }
+
+    #[test]
+    fn text_means_a_scored_query_field() {
+        assert!(!EmailSearchFilter::default().has_text());
+        for filter in [
+            EmailSearchFilter {
+                text: Some("x".into()),
+                ..Default::default()
+            },
+            EmailSearchFilter {
+                subject: Some("x".into()),
+                ..Default::default()
+            },
+            EmailSearchFilter {
+                body: Some("x".into()),
+                ..Default::default()
+            },
+        ] {
+            assert!(filter.has_text());
+        }
+        assert!(!EmailSearchFilter {
+            from: Some("x".into()),
+            ..Default::default()
+        }
+        .has_text());
+
+        assert!(!AttachmentSearchFilter::default().has_text());
+        assert!(AttachmentSearchFilter {
+            text: Some("x".into()),
+            ..Default::default()
+        }
+        .has_text());
+        assert!(AttachmentSearchFilter {
+            subject: Some("x".into()),
+            ..Default::default()
+        }
+        .has_text());
+    }
+
+    mod against_the_global_indexes {
+        use super::*;
+        use crate::store::tantivy::envelope::test_support::{
+            commit_documents, envelope, envelope_document, init_globals, register_mailbox,
+            unique_id,
+        };
+
+        const PASSING: &str = "News from our partners, offers, events, a note about \
+                               Primagaz, the weather, recipes, travel tips and much \
+                               more for the season.";
+
+        fn registered_mailbox() -> (u64, u64) {
+            let (account_id, mailbox_id) = (unique_id(), unique_id());
+            register_mailbox(account_id, mailbox_id, "owner@example.com");
+            (account_id, mailbox_id)
+        }
+
+        /// The best match is older than a mail mentioning the term in passing.
+        #[tokio::test(flavor = "multi_thread")]
+        async fn message_search_sorts_by_relevance_only_when_asked() {
+            init_globals();
+            let (account_id, mailbox_id) = registered_mailbox();
+            let mut best = envelope(account_id, mailbox_id, "best");
+            best.subject = "Welcome to Primagaz".into();
+            best.date = 1_000;
+            let mut passing = envelope(account_id, mailbox_id, "passing");
+            passing.subject = "September newsletter".into();
+            passing.date = 2_000;
+            commit_documents(
+                &ENVELOPE_MANAGER,
+                vec![
+                    envelope_document(best, None, "Your Primagaz account is ready."),
+                    envelope_document(passing, None, PASSING),
+                ],
+            )
+            .await;
+
+            let ids = |sort_by: Option<SortBy>| -> Vec<String> {
+                let request = EmailSearchRequest {
+                    filter: EmailSearchFilter {
+                        text: Some("primagaz".into()),
+                        ..Default::default()
+                    },
+                    page: 1,
+                    page_size: 10,
+                    sort_by,
+                    desc: None,
+                };
+                search_messages_impl(Some(HashSet::from([account_id])), request)
+                    .unwrap()
+                    .items
+                    .into_iter()
+                    .map(|e| e.id)
+                    .collect()
+            };
+            assert_eq!(ids(None), ["passing", "best"]);
+            assert_eq!(ids(Some(SortBy::Relevance)), ["best", "passing"]);
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn attachment_search_sorts_by_relevance_only_when_asked() {
+            init_globals();
+            let (account_id, mailbox_id) = registered_mailbox();
+            let attachment = |id: &str, subject: &str, text: &str, date: i64| AttachmentModel {
+                id: id.to_string(),
+                envelope_id: id.to_string(),
+                account_id,
+                mailbox_id,
+                subject: subject.to_string(),
+                content_hash: format!("{:064x}", unique_id()),
+                from: "sender@example.com".to_string(),
+                date,
+                category: "document".to_string(),
+                content_type: "application/pdf".to_string(),
+                text: Some(text.to_string()),
+                ..Default::default()
+            };
+            {
+                let mut writer = ATTACHMENT_MANAGER.index_writer().lock().await;
+                for doc in [
+                    attachment("best", "Primagaz contract", "Primagaz terms", 1_000),
+                    attachment("passing", "September newsletter", PASSING, 2_000),
+                ] {
+                    writer.add_document(doc.into_document()).unwrap();
+                }
+                writer.commit().unwrap();
+            }
+
+            let ids = |sort_by: Option<SortBy>| -> Vec<String> {
+                let request = AttachmentSearchRequest {
+                    filter: AttachmentSearchFilter {
+                        text: Some("primagaz".into()),
+                        ..Default::default()
+                    },
+                    page: 1,
+                    page_size: 10,
+                    sort_by,
+                    desc: None,
+                };
+                search_attachment_impl(Some(HashSet::from([account_id])), request)
+                    .unwrap()
+                    .items
+                    .into_iter()
+                    .map(|a| a.id)
+                    .collect()
+            };
+            assert_eq!(ids(None), ["passing", "best"]);
+            assert_eq!(ids(Some(SortBy::Relevance)), ["best", "passing"]);
+        }
+    }
 }

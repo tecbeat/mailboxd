@@ -24,6 +24,7 @@ import { AttachmentModel, search_attachment } from '@/api/attachment/api';
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import React from 'react';
+import { type ListSortBy } from '@/features/mail-list/sorting';
 
 interface SearchSubmitValues {
     has_attachment?: boolean;
@@ -92,7 +93,7 @@ export function useSearchAttachments() {
         updateParams({ pageSize: size, page: 1 });
     };
 
-    const setSortBy = React.useCallback((val: "DATE" | "SIZE") => updateParams({ sortBy: val }), [updateParams]);
+    const setSortBy = React.useCallback((val: ListSortBy) => updateParams({ sortBy: val }), [updateParams]);
     const setSortOrder = React.useCallback((val: "desc" | "asc") => updateParams({ sortOrder: val }), [updateParams]);
 
     const onSubmit = (cleaned: SearchSubmitValues) => {

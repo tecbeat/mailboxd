@@ -48,5 +48,13 @@ export default defineConfig({
     },
     setupFiles: './src/test/setup.ts',
     css: false,
+    coverage: {
+      provider: 'v8',
+      // text-summary feeds the coverage badge in CI, cobertura the line
+      // coverage shown in merge request diffs.
+      reporter: ['text-summary', 'cobertura'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/__tests__/**', 'src/**/*.test.{ts,tsx}', 'src/test/**', 'src/**/*.d.ts'],
+    },
   },
 })

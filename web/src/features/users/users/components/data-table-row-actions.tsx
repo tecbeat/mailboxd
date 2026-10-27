@@ -19,7 +19,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Pencil, ShieldOff, Trash2 } from 'lucide-react'
 import { Row } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,7 @@ import {
 import { useUserContext } from '../context'
 import { useTranslation } from 'react-i18next'
 import { User } from '@/api/users/api'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 interface DataTableRowActionsProps {
   row: Row<DataTableFeatures, User>
@@ -42,6 +43,9 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow } = useUserContext()
   const { t } = useTranslation()
+  const { user: currentUser } = useCurrentUser()
+  const canResetMfa =
+    row.original.totp_enabled && row.original.id !== currentUser?.id
   return (
     <>
       <DropdownMenu modal={false}>
@@ -79,6 +83,22 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          {canResetMfa && (
+            <>
+              <DropdownMenuItem
+                onClick={() => {
+                  setCurrentRow(row.original)
+                  setOpen('mfa-reset')
+                }}
+              >
+                {t('users.actions.reset_mfa.menu')}
+                <DropdownMenuShortcut>
+                  <ShieldOff />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem
             onClick={() => {
               setCurrentRow(row.original)

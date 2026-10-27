@@ -32,6 +32,7 @@ use crate::{
     dashboard::{DashboardStats, Group, LargestEmail, TimeBucket},
     error::{code::ErrorCode, MailboxdResult},
     message::{
+        content::AttachmentInfo,
         search::{EmailSearchFilter, SortBy},
         tags::{TagAction, TagCount, TagsRequest},
     },
@@ -45,20 +46,24 @@ use crate::{
             dedup_cache::DEDUP_CACHE,
             fatal_commit,
             fields::{
-                F_ACCOUNT_ID, F_DATE, F_FROM, F_ID, F_INGEST_AT, F_INTERNAL_DATE,
-                F_REGULAR_ATTACHMENT_COUNT, F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
+                F_ACCOUNT_ID, F_DATE, F_FROM, F_ID, F_INTERNAL_DATE, F_REGULAR_ATTACHMENT_COUNT,
+                F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
+            },
+            format::{
+                check_index_format, heal_index_format_marker, write_index_format_version,
+                IndexFormatStatus,
             },
             model::{extract_contacts, EnvelopeWithAttachments},
+            rebuild::{document_tags, rebuild_envelope_document, stored_attachments},
             schema::SchemaTools,
-            tokenizers::EuroTokenizer,
+            sort::top_docs_page,
+            tokenizers::{register_tokenizers, text_parser, word_or_tri},
         },
     },
     utc_now,
-    utils::html::extract_text,
 };
 
 use chrono::Utc;
-use mail_parser::MessageParser;
 use serde_json::json;
 use tantivy::{
     aggregation::{
@@ -70,7 +75,7 @@ use tantivy::{
     },
     collector::{Count, DocSetCollector, FacetCollector, TopDocs},
     indexer::{LogMergePolicy, UserOperation},
-    query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
+    query::{AllQuery, BooleanQuery, EmptyQuery, Occur, Query, RangeQuery, TermQuery},
     schema::{IndexRecordOption, Value},
     DocAddress, Index, IndexReader, IndexWriter, Order, TantivyDocument, Term,
 };
@@ -128,7 +133,7 @@ impl IndexManager {
     }
     pub fn new() -> Self {
         let index = Self::open_or_create_index(&DATA_DIR_MANAGER.envelope_dir);
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
         let mut merge_policy = LogMergePolicy::default();
         merge_policy.set_min_num_segments(25);
         merge_policy.set_min_layer_size(10_000);
@@ -263,10 +268,25 @@ impl IndexManager {
             std::fs::create_dir_all(&index_dir).unwrap_or_else(|e| {
                 panic!("Failed to create index directory {:?}: {}", index_dir, e)
             });
-            Index::create_in_dir(&index_dir, SchemaTools::email_schema())
-                .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e))
+            let index = Index::create_in_dir(index_dir, SchemaTools::email_schema())
+                .unwrap_or_else(|e| panic!("Failed to create index in {:?}: {}", index_dir, e));
+            if let Err(e) = write_index_format_version(index_dir) {
+                warn!(
+                    "Failed to write INDEX_FORMAT marker for {:?}: {}",
+                    index_dir, e
+                );
+            }
+            index
         } else {
             info!("Opening existing email index at {}", index_dir.display());
+            heal_index_format_marker(index_dir);
+            if check_index_format(index_dir) == IndexFormatStatus::NeedsUpgrade {
+                panic!(
+                    "The email index in {:?} has an outdated format and must be rebuilt; \
+                     restart mailboxd to rebuild it automatically",
+                    index_dir
+                );
+            }
             Self::open(&index_dir)
         }
     }
@@ -435,19 +455,7 @@ impl IndexManager {
     }
 
     fn envelope_query(&self, account_id: u64, eid: &str) -> Box<dyn Query> {
-        let account_id_query = TermQuery::new(
-            Term::from_field_u64(SchemaTools::email_fields().f_account_id, account_id),
-            IndexRecordOption::Basic,
-        );
-        let envelope_id_query = TermQuery::new(
-            Term::from_field_text(SchemaTools::email_fields().f_id, eid),
-            IndexRecordOption::Basic,
-        );
-        let boolean_query = BooleanQuery::new(vec![
-            (Occur::Must, Box::new(account_id_query)),
-            (Occur::Must, Box::new(envelope_id_query)),
-        ]);
-        Box::new(boolean_query)
+        envelope_query(account_id, eid)
     }
 
     fn filter_query(
@@ -482,25 +490,35 @@ impl IndexManager {
         }
 
         if let Some(ref text) = filter.text {
-            let query_parser =
-                QueryParser::for_index(&self.index, SchemaTools::email_default_fields());
+            let query_parser = text_parser(&self.index, SchemaTools::email_default_fields());
 
-            let query = query_parser
+            let word = query_parser
                 .parse_query(text)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, Box::new(query)));
+            let tri_fields = [
+                f.f_subject_tri,
+                f.f_from_text_tri,
+                f.f_to_text_tri,
+                f.f_cc_text_tri,
+                f.f_bcc_text_tri,
+                f.f_attachment_name_text_tri,
+            ];
+            subqueries.push((Occur::Must, word_or_tri(word, &tri_fields, text)));
         }
 
         if let Some(ref subject_val) = filter.subject {
-            let query_parser = QueryParser::for_index(&self.index, vec![f.f_subject]);
-            let q = query_parser
+            let query_parser = text_parser(&self.index, vec![f.f_subject]);
+            let word = query_parser
                 .parse_query(subject_val)
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-            subqueries.push((Occur::Must, q));
+            subqueries.push((
+                Occur::Must,
+                word_or_tri(word, &[f.f_subject_tri], subject_val),
+            ));
         }
 
         if let Some(ref body_val) = filter.body {
-            let query_parser = QueryParser::for_index(&self.index, vec![f.f_body]);
+            let query_parser = text_parser(&self.index, vec![f.f_body]);
 
             let q = query_parser
                 .parse_query(body_val)
@@ -528,28 +546,32 @@ impl IndexManager {
             }
         }
 
-        for (field, opt_value) in [
-            (f.f_from_text, &filter.from),
-            (f.f_to_text, &filter.to),
-            (f.f_cc_text, &filter.cc),
-            (f.f_bcc_text, &filter.bcc),
+        for (field, tri_field, opt_value) in [
+            (f.f_from_text, f.f_from_text_tri, &filter.from),
+            (f.f_to_text, f.f_to_text_tri, &filter.to),
+            (f.f_cc_text, f.f_cc_text_tri, &filter.cc),
+            (f.f_bcc_text, f.f_bcc_text_tri, &filter.bcc),
         ] {
             if let Some(ref v) = opt_value {
-                let query_parser = QueryParser::for_index(&self.index, vec![field]);
-                let q = query_parser
+                let query_parser = text_parser(&self.index, vec![field]);
+                let word = query_parser
                     .parse_query(v)
                     .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-                subqueries.push((Occur::Must, q));
+                subqueries.push((Occur::Must, word_or_tri(word, &[tri_field], v)));
             }
         }
 
         // any_recipient: OR across to, cc, bcc
         if let Some(ref v) = filter.any_recipient {
             let mut recipient_queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
-            for field in [f.f_to_text, f.f_cc_text, f.f_bcc_text] {
-                let query_parser = QueryParser::for_index(&self.index, vec![field]);
-                if let Ok(q) = query_parser.parse_query(v) {
-                    recipient_queries.push((Occur::Should, q));
+            for (field, tri_field) in [
+                (f.f_to_text, f.f_to_text_tri),
+                (f.f_cc_text, f.f_cc_text_tri),
+                (f.f_bcc_text, f.f_bcc_text_tri),
+            ] {
+                let query_parser = text_parser(&self.index, vec![field]);
+                if let Ok(word) = query_parser.parse_query(v) {
+                    recipient_queries.push((Occur::Should, word_or_tri(word, &[tri_field], v)));
                 }
             }
             if !recipient_queries.is_empty() {
@@ -560,10 +582,15 @@ impl IndexManager {
         // any_participant: OR across from, to, cc, bcc
         if let Some(ref v) = filter.any_participant {
             let mut participant_queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
-            for field in [f.f_from_text, f.f_to_text, f.f_cc_text, f.f_bcc_text] {
-                let query_parser = QueryParser::for_index(&self.index, vec![field]);
-                if let Ok(q) = query_parser.parse_query(v) {
-                    participant_queries.push((Occur::Should, q));
+            for (field, tri_field) in [
+                (f.f_from_text, f.f_from_text_tri),
+                (f.f_to_text, f.f_to_text_tri),
+                (f.f_cc_text, f.f_cc_text_tri),
+                (f.f_bcc_text, f.f_bcc_text_tri),
+            ] {
+                let query_parser = text_parser(&self.index, vec![field]);
+                if let Ok(word) = query_parser.parse_query(v) {
+                    participant_queries.push((Occur::Should, word_or_tri(word, &[tri_field], v)));
                 }
             }
             if !participant_queries.is_empty() {
@@ -595,23 +622,27 @@ impl IndexManager {
                 let term = Term::from_field_text(f.f_attachment_name_exact, name);
                 let exact_query = TermQuery::new(term, IndexRecordOption::Basic);
 
-                let query_parser =
-                    QueryParser::for_index(&self.index, vec![f.f_attachment_name_text]);
-                let q: Box<dyn Query> = query_parser
+                let query_parser = text_parser(&self.index, vec![f.f_attachment_name_text]);
+                let word: Box<dyn Query> = query_parser
                     .parse_query(name)
                     .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
                 let query = BooleanQuery::new(vec![
                     (Occur::Should, Box::new(exact_query)),
-                    (Occur::Should, Box::new(q)),
+                    (
+                        Occur::Should,
+                        word_or_tri(word, &[f.f_attachment_name_text_tri], name),
+                    ),
                 ]);
                 subqueries.push((Occur::Must, Box::new(query)));
             } else {
-                let query_parser =
-                    QueryParser::for_index(&self.index, vec![f.f_attachment_name_text]);
-                let q = query_parser
+                let query_parser = text_parser(&self.index, vec![f.f_attachment_name_text]);
+                let word = query_parser
                     .parse_query(name)
                     .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InvalidParameter))?;
-                subqueries.push((Occur::Must, q));
+                subqueries.push((
+                    Occur::Must,
+                    word_or_tri(word, &[f.f_attachment_name_text_tri], name),
+                ));
             }
         }
 
@@ -800,6 +831,29 @@ impl IndexManager {
         } else {
             Ok(None)
         }
+    }
+
+    /// Attachment metadata stored with an envelope, or `None` if the
+    /// envelope doesn't exist.
+    pub fn stored_attachments_of(
+        &self,
+        account_id: u64,
+        envelope_id: &str,
+    ) -> MailboxdResult<Option<Vec<AttachmentInfo>>> {
+        let searcher = self.create_searcher()?;
+        let docs = searcher
+            .search(
+                self.envelope_query(account_id, envelope_id).as_ref(),
+                &TopDocs::with_limit(1).order_by_score(),
+            )
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        let Some((_, doc_address)) = docs.first() else {
+            return Ok(None);
+        };
+        let doc: TantivyDocument = searcher
+            .doc(*doc_address)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        Ok(Some(stored_attachments(&doc).unwrap_or_default()))
     }
 
     pub fn top_10_largest_emails(
@@ -1105,46 +1159,24 @@ impl IndexManager {
         // still-referenced blob would be deleted.
         fatal_commit(writer);
         let searcher = self.create_searcher()?;
-        let fields = SchemaTools::email_fields();
-        let mut eml: HashSet<String> = HashSet::new();
-        for content_hash in eml_content_hashes {
-            // Check if any other emails still reference this content hash
-            let hash_term = Term::from_field_text(fields.f_content_hash, &content_hash);
-            let hash_query = TermQuery::new(hash_term, IndexRecordOption::Basic);
-            let count = searcher
-                .search(&hash_query, &Count)
-                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-
-            // If no references found, delete from KV store
-            if count == 0 {
-                eml.insert(content_hash);
-            }
-        }
-        let mut attachments: HashSet<String> = HashSet::new();
-        for content_hash in attachments_content_hashes {
-            // Check if any other emails still reference this content hash
-            let hash_term = Term::from_field_text(fields.f_attachment_content_hash, &content_hash);
-            let hash_query = TermQuery::new(hash_term, IndexRecordOption::Basic);
-            let count = searcher
-                .search(&hash_query, &Count)
-                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-
-            // If no references found, delete from KV store
-            if count == 0 {
-                attachments.insert(content_hash);
-            }
-        }
-
-        BLOB_MANAGER.delete(&eml, &attachments)
+        let to_delete =
+            unreferenced_hashes(&searcher, eml_content_hashes, attachments_content_hashes)?;
+        BLOB_MANAGER.delete(&to_delete, std::iter::empty::<&str>())
     }
 
+    /// Deletes the given envelopes, keyed by account id, and returns how many
+    /// of them existed. Nothing is written when none of them exist.
     pub async fn delete_envelopes_multi_account(
         &self,
         deletes: HashMap<u64, Vec<String>>,
-    ) -> MailboxdResult<()> {
+    ) -> MailboxdResult<u64> {
         if deletes.is_empty() {
             tracing::warn!("delete_envelopes_multi_account: deletes is empty, nothing to delete");
-            return Ok(());
+            return Ok(0);
+        }
+        let matched = count_matching_envelopes(&self.create_searcher()?, &deletes)?;
+        if matched == 0 {
+            return Ok(0);
         }
 
         let mut eml_content_hash_triples: HashSet<(u64, u64, String)> = HashSet::new();
@@ -1205,7 +1237,18 @@ impl IndexManager {
             DEDUP_CACHE.remove(aid, mid, &hash);
         }
 
-        Ok(())
+        Ok(matched)
+    }
+
+    /// Ids of up to `limit` envelopes of `account_id` that are older than
+    /// `cutoff_ms` (see [`retention_expired_query`]).
+    pub fn retention_expired_ids(
+        &self,
+        account_id: u64,
+        cutoff_ms: i64,
+        limit: usize,
+    ) -> MailboxdResult<Vec<String>> {
+        expired_envelope_ids(&self.create_searcher()?, account_id, cutoff_ms, limit)
     }
 
     fn collect_facets_recursive(
@@ -1327,11 +1370,7 @@ impl IndexManager {
                         .doc(*doc_address)
                         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
-                    let mut current_tags: HashSet<String> = old_doc
-                        .get_all(f_tags)
-                        .filter_map(|val| val.as_facet())
-                        .map(|facet| facet.to_string())
-                        .collect();
+                    let mut current_tags = document_tags(&old_doc, f_tags);
 
                     match request.action {
                         TagAction::Add => {
@@ -1349,116 +1388,30 @@ impl IndexManager {
                         }
                     }
 
-                    let mut new_doc = TantivyDocument::new();
-
-                    // Copy stored fields, excluding f_tags (handled separately).
-                    for (field, value) in old_doc.field_values() {
-                        if field != f_tags {
-                            new_doc.add_field_value(field, value);
-                        }
-                    }
-
-                    // Reconstruct non-stored text-search fields from their
-                    // stored counterparts. f_from_text / f_to_text / f_cc_text /
-                    // f_bcc_text carry the same content as f_from / f_to / f_cc / f_bcc.
-                    for val in old_doc.get_all(f.f_from) {
-                        if let Some(s) = val.as_str() {
-                            new_doc.add_text(f.f_from_text, s);
-                        }
-                    }
-                    for val in old_doc.get_all(f.f_to) {
-                        if let Some(s) = val.as_str() {
-                            new_doc.add_text(f.f_to_text, s);
-                        }
-                    }
-                    for val in old_doc.get_all(f.f_cc) {
-                        if let Some(s) = val.as_str() {
-                            new_doc.add_text(f.f_cc_text, s);
-                        }
-                    }
-                    for val in old_doc.get_all(f.f_bcc) {
-                        if let Some(s) = val.as_str() {
-                            new_doc.add_text(f.f_bcc_text, s);
-                        }
-                    }
-
-                    // Reconstruct attachment-name fields from the stored
-                    // f_attachments JSON blob.
-                    if let Some(attrs_val) = old_doc.get_first(f.f_attachments) {
-                        if let Some(json_str) = attrs_val.as_str() {
-                            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_str)
-                            {
-                                if let Some(arr) = parsed.as_array() {
-                                    for att in arr {
-                                        let is_inline = att
-                                            .get("inline")
-                                            .and_then(|v| v.as_bool())
-                                            .unwrap_or(false);
-                                        let has_cid = att
-                                            .get("content_id")
-                                            .and_then(|v| v.as_str())
-                                            .map(|s| !s.is_empty())
-                                            .unwrap_or(false);
-                                        if is_inline && has_cid {
-                                            continue;
-                                        }
-                                        if let Some(filename) = att
-                                            .get("filename")
-                                            .and_then(|v| v.as_str())
-                                            .filter(|s| !s.is_empty())
-                                        {
-                                            new_doc.add_text(f.f_attachment_name_text, filename);
-                                            new_doc.add_text(f.f_attachment_name_exact, filename);
-                                        }
-                                    }
-                                }
+                    // f_body is not stored; take it from the EML in the blob store.
+                    let eml = match old_doc.get_first(f.f_content_hash).and_then(|v| v.as_str()) {
+                        Some(content_hash) => match BLOB_MANAGER.get_email(content_hash) {
+                            Ok(Some(eml)) => Some(eml),
+                            Ok(None) => {
+                                tracing::warn!(
+                                    content_hash,
+                                    "EML not found in blob store during tag update"
+                                );
+                                None
                             }
-                        }
-                    }
-
-                    // Reconstruct body text from the original EML stored in the
-                    // blob store, referenced by f_content_hash.
-                    if let Some(hash_val) = old_doc.get_first(f.f_content_hash) {
-                        if let Some(content_hash) = hash_val.as_str() {
-                            match BLOB_MANAGER.get_email(content_hash) {
-                                Ok(Some(eml_bytes)) => {
-                                    if let Some(message) = MessageParser::new().parse(&eml_bytes) {
-                                        let text = message
-                                            .body_text(0)
-                                            .map(|cow| cow.into_owned())
-                                            .or_else(|| {
-                                                message
-                                                    .body_html(0)
-                                                    .map(|cow| extract_text(cow.into_owned()))
-                                            })
-                                            .unwrap_or_default();
-                                        let body_text =
-                                            text.split_whitespace().collect::<Vec<_>>().join(" ");
-                                        if !body_text.is_empty() {
-                                            new_doc.add_text(f.f_body, &body_text);
-                                        }
-                                    }
-                                }
-                                Ok(None) => {
-                                    tracing::warn!(
-                                        content_hash,
-                                        "EML not found in blob store during tag update"
-                                    );
-                                }
-                                Err(e) => {
-                                    tracing::warn!(
-                                        content_hash,
-                                        error = %e,
-                                        "Failed to fetch EML during tag update"
-                                    );
-                                }
+                            Err(e) => {
+                                tracing::warn!(
+                                    content_hash,
+                                    error = %e,
+                                    "Failed to fetch EML during tag update"
+                                );
+                                None
                             }
-                        }
-                    }
-
-                    for tag in &current_tags {
-                        new_doc.add_facet(f_tags, tag);
-                    }
+                        },
+                        None => None,
+                    };
+                    let new_doc =
+                        rebuild_envelope_document(&old_doc, &current_tags, eml.as_deref());
 
                     let delete_term = Term::from_field_text(f_id, eid);
                     operations.push(UserOperation::Delete(delete_term));
@@ -1518,58 +1471,15 @@ impl IndexManager {
             });
         }
 
-        let order = if desc { Order::Desc } else { Order::Asc };
-        let mailbox_docs: Vec<DocAddress>;
-
-        match sort_by {
-            SortBy::DATE => {
-                let date_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_DATE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                mailbox_docs = date_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            SortBy::SIZE => {
-                let size_docs: Vec<(Option<u64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_SIZE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                mailbox_docs = size_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-            SortBy::InternalDate => {
-                let internal_date_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_INTERNAL_DATE, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                mailbox_docs = internal_date_docs
-                    .into_iter()
-                    .map(|(_, addr)| addr)
-                    .collect();
-            }
-            SortBy::IngestAt => {
-                let ingest_at_docs: Vec<(Option<i64>, DocAddress)> = searcher
-                    .search(
-                        &query,
-                        &TopDocs::with_limit(page_size as usize)
-                            .and_offset(offset as usize)
-                            .order_by_fast_field(F_INGEST_AT, order),
-                    )
-                    .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-                mailbox_docs = ingest_at_docs.into_iter().map(|(_, addr)| addr).collect();
-            }
-        }
+        let mailbox_docs = top_docs_page(
+            &searcher,
+            &query,
+            sort_by,
+            desc,
+            offset as usize,
+            page_size as usize,
+            F_INTERNAL_DATE,
+        )?;
 
         let mut result = Vec::new();
 
@@ -1824,6 +1734,7 @@ impl IndexManager {
                     top_senders.push(Group {
                         key: sender.clone(),
                         count: entry.doc_count,
+                        account_id: None,
                     });
                 }
             }
@@ -1836,11 +1747,12 @@ impl IndexManager {
             top_account_values
         {
             for entry in buckets {
-                if let Key::U64(account_id) = &entry.key {
-                    match AccountModel::get(*account_id) {
+                if let Some(account_id) = account_id_of(&entry.key) {
+                    match AccountModel::get(account_id) {
                         Ok(account) => {
                             top_accounts.push(Group {
                                 key: account.email,
+                                account_id: Some(account_id),
                                 count: entry.doc_count,
                             });
                         }
@@ -1850,7 +1762,6 @@ impl IndexManager {
                                 error = %e,
                                 "orphaned account index detected, scheduling cleanup"
                             );
-                            let account_id = *account_id;
                             tokio::spawn(async move {
                                 if let Err(e) =
                                     ENVELOPE_MANAGER.delete_account_envelopes(account_id).await
@@ -1901,10 +1812,140 @@ impl IndexManager {
     }
 }
 
+/// The account id of a terms-aggregation bucket. tantivy reports a u64 key
+/// that fits into an i64 as `Key::I64`.
+fn account_id_of(key: &Key) -> Option<u64> {
+    match key {
+        Key::U64(id) => Some(*id),
+        Key::I64(id) => u64::try_from(*id).ok(),
+        _ => None,
+    }
+}
+
+/// Return the candidate blob keys that no indexed email references anymore.
+///
+/// Email and attachment blobs share one key space, so a key can be referenced
+/// both as an email content hash and as an attachment content hash (e.g. a
+/// nested `.eml` attachment that was also archived standalone). A key is only
+/// unreferenced when neither field still uses it.
+fn unreferenced_hashes(
+    searcher: &Searcher,
+    eml_content_hashes: HashSet<String>,
+    attachments_content_hashes: HashSet<String>,
+) -> MailboxdResult<HashSet<String>> {
+    let fields = SchemaTools::email_fields();
+    let count = |field, hash: &str| {
+        let query = TermQuery::new(Term::from_field_text(field, hash), IndexRecordOption::Basic);
+        searcher
+            .search(&query, &Count)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))
+    };
+
+    let mut unreferenced = HashSet::new();
+    for hash in eml_content_hashes
+        .into_iter()
+        .chain(attachments_content_hashes)
+    {
+        if count(fields.f_content_hash, &hash)? == 0
+            && count(fields.f_attachment_content_hash, &hash)? == 0
+        {
+            unreferenced.insert(hash);
+        }
+    }
+    Ok(unreferenced)
+}
+
+fn envelope_query(account_id: u64, eid: &str) -> Box<dyn Query> {
+    let account_id_query = TermQuery::new(
+        Term::from_field_u64(SchemaTools::email_fields().f_account_id, account_id),
+        IndexRecordOption::Basic,
+    );
+    let envelope_id_query = TermQuery::new(
+        Term::from_field_text(SchemaTools::email_fields().f_id, eid),
+        IndexRecordOption::Basic,
+    );
+    Box::new(BooleanQuery::new(vec![
+        (Occur::Must, Box::new(account_id_query)),
+        (Occur::Must, Box::new(envelope_id_query)),
+    ]))
+}
+
+/// Envelopes of `account_id` whose effective date, the older of `date` and
+/// `internal_date`, is before `cutoff_ms`. A timestamp of 0 is unknown and
+/// never counts as old, so mail without any timestamp is kept.
+fn retention_expired_query(account_id: u64, cutoff_ms: i64) -> Box<dyn Query> {
+    let f = SchemaTools::email_fields();
+    let before = |field| -> Box<dyn Query> {
+        Box::new(RangeQuery::new(
+            Bound::Excluded(Term::from_field_i64(field, 0)),
+            Bound::Excluded(Term::from_field_i64(field, cutoff_ms)),
+        ))
+    };
+    let older = BooleanQuery::new(vec![
+        (Occur::Should, before(f.f_date)),
+        (Occur::Should, before(f.f_internal_date)),
+    ]);
+    Box::new(BooleanQuery::new(vec![
+        (
+            Occur::Must,
+            Box::new(TermQuery::new(
+                Term::from_field_u64(f.f_account_id, account_id),
+                IndexRecordOption::Basic,
+            )),
+        ),
+        (Occur::Must, Box::new(older)),
+    ]))
+}
+
+fn expired_envelope_ids(
+    searcher: &Searcher,
+    account_id: u64,
+    cutoff_ms: i64,
+    limit: usize,
+) -> MailboxdResult<Vec<String>> {
+    let f = SchemaTools::email_fields();
+    let docs = searcher
+        .search(
+            &retention_expired_query(account_id, cutoff_ms),
+            &TopDocs::with_limit(limit).order_by_score(),
+        )
+        .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+    let mut ids = Vec::with_capacity(docs.len());
+    for (_, address) in docs {
+        let doc: TantivyDocument = searcher
+            .doc(address)
+            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+        if let Some(id) = doc.get_first(f.f_id).and_then(|v| v.as_str()) {
+            ids.push(id.to_string());
+        }
+    }
+    Ok(ids)
+}
+
+/// Number of distinct envelopes in `deletes` (keyed by account id) that exist.
+fn count_matching_envelopes(
+    searcher: &Searcher,
+    deletes: &HashMap<u64, Vec<String>>,
+) -> MailboxdResult<u64> {
+    let mut matched = 0u64;
+    for (account_id, envelope_ids) in deletes {
+        let unique_ids: HashSet<&String> = envelope_ids.iter().collect();
+        for eid in unique_ids {
+            let count = searcher
+                .search(&envelope_query(*account_id, eid), &Count)
+                .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
+            if count > 0 {
+                matched += 1;
+            }
+        }
+    }
+    Ok(matched)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::store::tantivy::tokenizers::EuroTokenizer;
+    use crate::store::tantivy::fields::F_INGEST_AT;
     use serde_json::json;
     use tantivy::{
         collector::Count,
@@ -1971,107 +2012,19 @@ mod tests {
         doc
     }
 
-    /// Reconstruct a new tantivy document from `old_doc`, preserving all
-    /// fields (including non-stored ones) and replacing tags with
-    /// `new_tags`.  Body text is reconstructed from the supplied `eml_cache`
-    /// (a stand-in for the blob store) rather than from
-    /// `old_doc.field_values()` because `f_body` is not STORED.
+    /// `rebuild_envelope_document` with the EML looked up in `eml_cache`,
+    /// a stand-in for the blob store.
     fn reconstruct_for_test(
         old_doc: &TantivyDocument,
         new_tags: &HashSet<String>,
         eml_cache: &HashMap<String, Vec<u8>>,
     ) -> TantivyDocument {
         let f = SchemaTools::email_fields();
-        let mut new_doc = TantivyDocument::new();
-
-        // ── stored fields (except f_tags) ──────────────────────────
-        for (field, value) in old_doc.field_values() {
-            if field != f.f_tags {
-                new_doc.add_field_value(field, value);
-            }
-        }
-
-        // ── non-stored text-search fields ──────────────────────────
-        for val in old_doc.get_all(f.f_from) {
-            if let Some(s) = val.as_str() {
-                new_doc.add_text(f.f_from_text, s);
-            }
-        }
-        for val in old_doc.get_all(f.f_to) {
-            if let Some(s) = val.as_str() {
-                new_doc.add_text(f.f_to_text, s);
-            }
-        }
-        for val in old_doc.get_all(f.f_cc) {
-            if let Some(s) = val.as_str() {
-                new_doc.add_text(f.f_cc_text, s);
-            }
-        }
-        for val in old_doc.get_all(f.f_bcc) {
-            if let Some(s) = val.as_str() {
-                new_doc.add_text(f.f_bcc_text, s);
-            }
-        }
-
-        // ── attachment-name fields ─────────────────────────────────
-        if let Some(attrs_val) = old_doc.get_first(f.f_attachments) {
-            if let Some(json_str) = attrs_val.as_str() {
-                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_str) {
-                    if let Some(arr) = parsed.as_array() {
-                        for att in arr {
-                            let is_inline =
-                                att.get("inline").and_then(|v| v.as_bool()).unwrap_or(false);
-                            let has_cid = att
-                                .get("content_id")
-                                .and_then(|v| v.as_str())
-                                .map(|s| !s.is_empty())
-                                .unwrap_or(false);
-                            if is_inline && has_cid {
-                                continue;
-                            }
-                            if let Some(filename) = att
-                                .get("filename")
-                                .and_then(|v| v.as_str())
-                                .filter(|s| !s.is_empty())
-                            {
-                                new_doc.add_text(f.f_attachment_name_text, filename);
-                                new_doc.add_text(f.f_attachment_name_exact, filename);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── body text (from eml cache – stands in for BLOB_MANAGER) ──
-        if let Some(hash_val) = old_doc.get_first(f.f_content_hash) {
-            if let Some(content_hash) = hash_val.as_str() {
-                if let Some(eml_bytes) = eml_cache.get(content_hash) {
-                    if let Some(message) = MessageParser::new().parse(eml_bytes) {
-                        let text = message
-                            .body_text(0)
-                            .map(|cow| cow.into_owned())
-                            .or_else(|| {
-                                message
-                                    .body_html(0)
-                                    .map(|cow| extract_text(cow.into_owned()))
-                            })
-                            .unwrap_or_default();
-                        let body_text = text.split_whitespace().collect::<Vec<_>>().join(" ");
-                        if !body_text.is_empty() {
-                            new_doc.add_text(f.f_body, &body_text);
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── updated tags ───────────────────────────────────────────
-        for tag in new_tags {
-            new_doc.add_facet(f.f_tags, tag);
-        }
-
-        new_doc
+        let eml = old_doc
+            .get_first(f.f_content_hash)
+            .and_then(|v| v.as_str())
+            .and_then(|hash| eml_cache.get(hash));
+        rebuild_envelope_document(old_doc, new_tags, eml.map(Vec::as_slice))
     }
 
     #[test]
@@ -2080,7 +2033,7 @@ mod tests {
 
         // ---- setup: in-memory index + document --------------------
         let index = Index::create_in_ram(SchemaTools::email_schema());
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
 
         {
             let mut writer = index
@@ -2201,8 +2154,7 @@ mod tests {
 
     #[test]
     fn body_reconstruction_from_eml_cache() {
-        // Verify the EML → body_text extraction used inside
-        // reconstruct_for_test (and therefore update_envelope_tags).
+        // Verify the EML → body_text extraction used by update_envelope_tags.
         let eml = b"From: x@y\r\n\
                          Subject: testing\r\n\
                          Date: Thu, 01 Jan 2023 00:00:00 +0000\r\n\
@@ -2221,7 +2173,7 @@ mod tests {
         // The body should have been extracted from the EML and added
         // back to the document.  Search for it.
         let index = Index::create_in_ram(SchemaTools::email_schema());
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
         let mut writer = index
             .writer_with_num_threads(1, 15_000_000)
             .expect("writer");
@@ -2263,7 +2215,7 @@ mod tests {
     fn get_message_ids_returns_stored_ids() {
         let f = SchemaTools::email_fields();
         let index = Index::create_in_ram(SchemaTools::email_schema());
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
 
         // Insert two docs for mailbox 10, one for mailbox 20
         {
@@ -2340,10 +2292,104 @@ mod tests {
     }
 
     #[test]
+    fn count_matching_envelopes_counts_only_existing_ids_per_account() {
+        let f = SchemaTools::email_fields();
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        register_tokenizers(&index);
+        {
+            let mut writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
+            for (account_id, eid) in [(1, "a1"), (1, "a2"), (2, "b1")] {
+                let mut doc = TantivyDocument::new();
+                doc.add_u64(f.f_account_id, account_id);
+                doc.add_u64(f.f_mailbox_id, 10);
+                doc.add_text(f.f_id, eid);
+                writer.add_document(doc).unwrap();
+            }
+            writer.commit().unwrap();
+        }
+        let reader = index.reader().unwrap();
+        reader.reload().unwrap();
+        let searcher = reader.searcher();
+
+        let deletes = HashMap::from([
+            (
+                1,
+                vec!["a1".to_string(), "a1".to_string(), "missing".to_string()],
+            ),
+            (2, vec!["b1".to_string()]),
+        ]);
+        assert_eq!(count_matching_envelopes(&searcher, &deletes).unwrap(), 2);
+
+        // Keyed by a mailbox id instead of the account id: nothing matches.
+        let wrong_key = HashMap::from([(10, vec!["a1".to_string()])]);
+        assert_eq!(count_matching_envelopes(&searcher, &wrong_key).unwrap(), 0);
+    }
+
+    #[test]
+    fn retention_query_matches_mail_whose_older_timestamp_is_before_the_cutoff() {
+        let f = SchemaTools::email_fields();
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        register_tokenizers(&index);
+        let cutoff = 1_000;
+        {
+            let mut writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
+            for (account_id, eid, date, internal_date) in [
+                (1, "both-old", 10, 20),
+                (1, "header-old", 10, 5_000),
+                (1, "internal-old", 5_000, 10),
+                (1, "header-unknown-internal-old", 0, 10),
+                (1, "header-unknown-internal-new", 0, 5_000),
+                (1, "both-unknown", 0, 0),
+                (1, "both-new", 5_000, 5_000),
+                (1, "exactly-at-cutoff", 1_000, 1_000),
+                (1, "just-before-cutoff", 999, 1_000),
+                (2, "other-account-old", 10, 10),
+            ] {
+                let mut doc = TantivyDocument::new();
+                doc.add_u64(f.f_account_id, account_id);
+                doc.add_text(f.f_id, eid);
+                doc.add_i64(f.f_date, date);
+                doc.add_i64(f.f_internal_date, internal_date);
+                writer.add_document(doc).unwrap();
+            }
+            writer.commit().unwrap();
+        }
+        let reader = index.reader().unwrap();
+        reader.reload().unwrap();
+        let searcher = reader.searcher();
+
+        let mut ids = expired_envelope_ids(&searcher, 1, cutoff, 100).unwrap();
+        ids.sort();
+        assert_eq!(
+            ids,
+            vec![
+                "both-old",
+                "header-old",
+                "header-unknown-internal-old",
+                "internal-old",
+                "just-before-cutoff",
+            ]
+        );
+
+        // The limit caps one batch.
+        assert_eq!(
+            expired_envelope_ids(&searcher, 1, cutoff, 2).unwrap().len(),
+            2
+        );
+        assert_eq!(
+            expired_envelope_ids(&searcher, 2, cutoff, 100).unwrap(),
+            vec!["other-account-old"]
+        );
+        assert!(expired_envelope_ids(&searcher, 3, cutoff, 100)
+            .unwrap()
+            .is_empty());
+    }
+
+    #[test]
     fn get_message_ids_empty_mailbox_returns_empty() {
         let f = SchemaTools::email_fields();
         let index = Index::create_in_ram(SchemaTools::email_schema());
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
 
         {
             let mut writer = index
@@ -2391,7 +2437,7 @@ mod tests {
     fn mailbox_contains_message_id_finds_existing() {
         let f = SchemaTools::email_fields();
         let index = Index::create_in_ram(SchemaTools::email_schema());
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
 
         {
             let mut writer = index
@@ -2447,7 +2493,7 @@ mod tests {
     fn mailbox_contains_message_id_returns_zero_for_missing() {
         let f = SchemaTools::email_fields();
         let index = Index::create_in_ram(SchemaTools::email_schema());
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
 
         {
             let mut writer = index
@@ -2501,7 +2547,7 @@ mod tests {
     fn mailbox_contains_message_id_respects_mailbox_boundary() {
         let f = SchemaTools::email_fields();
         let index = Index::create_in_ram(SchemaTools::email_schema());
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
 
         {
             let mut writer = index
@@ -2619,7 +2665,7 @@ mod tests {
     fn stable_uid_ordering_by_ingest_at() {
         let f = SchemaTools::email_fields();
         let index = Index::create_in_ram(SchemaTools::email_schema());
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
 
         let mailbox_id = 42u64;
 
@@ -2742,5 +2788,876 @@ mod tests {
                 uid
             );
         }
+    }
+
+    fn index_with_docs(docs: &[(&str, &[&str])]) -> Index {
+        let f = SchemaTools::email_fields();
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        register_tokenizers(&index);
+        let mut writer = index
+            .writer_with_num_threads(1, 15_000_000)
+            .expect("writer");
+        for (content_hash, attachment_hashes) in docs {
+            let mut doc = TantivyDocument::new();
+            doc.add_text(f.f_content_hash, content_hash);
+            for h in attachment_hashes.iter() {
+                doc.add_text(f.f_attachment_content_hash, h);
+            }
+            writer.add_document(doc).unwrap();
+        }
+        writer.commit().unwrap();
+        index
+    }
+
+    fn set(items: &[&str]) -> HashSet<String> {
+        items.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn unreferenced_hashes_keeps_email_key_still_used_as_attachment() {
+        // "shared" is the content hash of a deleted email, but a remaining
+        // email still carries the same blob as a (nested .eml) attachment.
+        let index = index_with_docs(&[("other-email", &["shared"])]);
+        let searcher = index.reader().unwrap().searcher();
+        let result = unreferenced_hashes(&searcher, set(&["shared", "gone"]), set(&[])).unwrap();
+        assert_eq!(result, set(&["gone"]));
+    }
+
+    #[test]
+    fn unreferenced_hashes_keeps_attachment_key_still_used_as_email() {
+        let index = index_with_docs(&[("shared", &[])]);
+        let searcher = index.reader().unwrap().searcher();
+        let result = unreferenced_hashes(&searcher, set(&[]), set(&["shared", "gone"])).unwrap();
+        assert_eq!(result, set(&["gone"]));
+    }
+
+    #[test]
+    fn unreferenced_hashes_keeps_keys_referenced_in_their_own_field() {
+        let index = index_with_docs(&[("email-1", &["att-1"])]);
+        let searcher = index.reader().unwrap().searcher();
+        let result = unreferenced_hashes(
+            &searcher,
+            set(&["email-1", "email-2"]),
+            set(&["att-1", "att-2"]),
+        )
+        .unwrap();
+        assert_eq!(result, set(&["email-2", "att-2"]));
+    }
+}
+
+/// Regression cases for the search fix (rustmailer/bichon#361 and #215):
+/// deterministic word level plus the thresholded trigram layer.
+#[cfg(test)]
+mod search_fix_tests {
+    use super::*;
+    use crate::store::tantivy::tokenizers::{text_parser, tri_query};
+    use tantivy::{collector::Count, query::QueryParser, Index};
+
+    /// Build an in-memory index with trigram fields and write (subject, body)
+    /// messages; the id is the subject to make assertions easy.
+    fn build_index(docs: &[(&str, &str)]) -> Index {
+        let index = Index::create_in_ram(SchemaTools::email_schema());
+        register_tokenizers(&index);
+        let f = SchemaTools::email_fields();
+        {
+            let mut writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
+            for (subject, body) in docs {
+                let mut d = TantivyDocument::new();
+                d.add_text(f.f_id, *subject);
+                d.add_text(f.f_subject, *subject);
+                d.add_text(f.f_subject_tri, *subject);
+                d.add_text(f.f_body, *body);
+                writer.add_document(d).unwrap();
+            }
+            writer.commit().unwrap();
+        }
+        index
+    }
+
+    fn count(index: &Index, query: &dyn Query) -> usize {
+        let reader = index.reader().unwrap();
+        reader.reload().unwrap();
+        reader.searcher().search(query, &Count).unwrap()
+    }
+
+    /// Ids (i.e. subjects) of the matching messages, sorted.
+    fn matching_ids(index: &Index, query: &dyn Query) -> Vec<String> {
+        let f = SchemaTools::email_fields();
+        let reader = index.reader().unwrap();
+        reader.reload().unwrap();
+        let searcher = reader.searcher();
+        let mut ids: Vec<String> = searcher
+            .search(query, &DocSetCollector)
+            .unwrap()
+            .into_iter()
+            .map(|addr| {
+                let doc: TantivyDocument = searcher.doc(addr).unwrap();
+                doc.get_first(f.f_id).unwrap().as_str().unwrap().to_string()
+            })
+            .collect();
+        ids.sort();
+        ids
+    }
+
+    fn word_query(index: &Index, field: tantivy::schema::Field, term: &str) -> Box<dyn Query> {
+        QueryParser::for_index(index, vec![field])
+            .parse_query(term)
+            .unwrap()
+    }
+
+    /// rustmailer/bichon#361: words in a Danish subject must be findable no matter what
+    /// language the whole string is judged to be. This case necessarily fails
+    /// under the old whichlang tokenizer (the whole string was judged Danish and
+    /// stemmed, the single word was judged another language, so the index term
+    /// differed from the query term).
+    #[test]
+    fn issue_361_danish_subject_is_findable() {
+        let index = build_index(&[("VS: Sejlerferie i Kroatien med skipper", "body here")]);
+        let f = SchemaTools::email_fields();
+
+        for term in ["Sejlerferie", "Kroatien", "skipper"] {
+            assert_eq!(
+                count(&index, word_query(&index, f.f_subject, term).as_ref()),
+                1,
+                "word-level: {term}"
+            );
+            let combined = word_or_tri(
+                word_query(&index, f.f_subject, term),
+                &[f.f_subject_tri],
+                term,
+            );
+            assert_eq!(count(&index, combined.as_ref()), 1, "word+tri: {term}");
+        }
+    }
+
+    /// rustmailer/bichon#215: a body word hits, and a two-word query (both
+    /// words in the body) hits.
+    #[test]
+    fn issue_215_body_word_and_multiword() {
+        let index = build_index(&[("Rechnung", "laserdrucker brother toner")]);
+        let f = SchemaTools::email_fields();
+
+        assert_eq!(
+            count(
+                &index,
+                word_query(&index, f.f_body, "laserdrucker").as_ref()
+            ),
+            1
+        );
+        assert_eq!(
+            count(
+                &index,
+                word_query(&index, f.f_body, "laserdrucker brother").as_ref()
+            ),
+            1
+        );
+    }
+
+    /// Morphology coverage across Nordic and Southern-European languages, plus
+    /// the short-term precision boundary of the trigram layer.
+    ///
+    /// Measured behaviour this pins down:
+    /// - the word level is exact and accent-insensitive (deunicode folds `café`,
+    ///   so `cafe` finds it);
+    /// - the trigram layer recovers one level of morphology: Danish definite
+    ///   forms (`bil` → `bilen`), Nordic compounds (`ferie` ⊂ `sejlerferie`),
+    ///   Romance conjugation (`mangio` → `mangiare`), German/Latin inflection
+    ///   (`Kroatiens` → `Kroatien`);
+    /// - a 4-character term must NOT over-match: `haus` must not drag in
+    ///   `Mauser`, even though both contain the `aus` gram;
+    /// - a 3-character term is a pure substring match (a single gram), which is
+    ///   intended.
+    #[test]
+    fn nordic_and_romance_morphology() {
+        let index = build_index(&[
+            ("Sejlerferie i Kroatien", ""),
+            ("bilen er rod", ""),
+            ("café con leche", ""),
+            ("mangiare la pasta", ""),
+            ("Haus am See", ""),
+            ("Mauser Gewehr", ""),
+        ]);
+        let f = SchemaTools::email_fields();
+        let subj_tri = [f.f_subject_tri];
+
+        let word = |term: &str| {
+            matching_ids(
+                &index,
+                QueryParser::for_index(&index, vec![f.f_subject])
+                    .parse_query(term)
+                    .unwrap()
+                    .as_ref(),
+            )
+        };
+        let tri = |term: &str| matching_ids(&index, tri_query(&subj_tri, term).as_ref());
+
+        // ── exact word level, accent-insensitive ──
+        assert_eq!(word("Kroatien"), ["Sejlerferie i Kroatien"]);
+        assert_eq!(
+            word("cafe"),
+            ["café con leche"],
+            "deunicode folds the accent"
+        );
+        assert_eq!(word("Haus"), ["Haus am See"]);
+
+        // ── trigram recovers one level of morphology ──
+        assert_eq!(
+            tri("Kroatiens"),
+            ["Sejlerferie i Kroatien"],
+            "one-level inflection"
+        );
+        assert_eq!(tri("bil"), ["bilen er rod"], "Danish definite form");
+        assert_eq!(tri("ferie"), ["Sejlerferie i Kroatien"], "Nordic compound");
+        assert_eq!(tri("mangio"), ["mangiare la pasta"], "Romance conjugation");
+
+        // ── a 4-character term must not over-match ──
+        // Two grams means no leave-one-out variant, so both grams are required —
+        // i.e. an exact 4-character substring.
+        assert_eq!(tri("haus"), ["Haus am See"], "must not drag in Mauser");
+        assert_eq!(
+            tri("Haus"),
+            ["Haus am See"],
+            "case-insensitive, same result"
+        );
+
+        // ── a 3-character term is a single gram = pure substring match ──
+        assert_eq!(
+            tri("aus"),
+            ["Haus am See", "Mauser Gewehr"],
+            "intended substring semantics for 3-char terms"
+        );
+    }
+
+    /// §8.3 trigram threshold: tolerate one level of inflection, reject noise
+    /// driven by a single common gram.
+    #[test]
+    fn trigram_recall_and_threshold() {
+        let index = build_index(&[
+            ("Kroatien", ""),
+            ("Laserdrucker", ""),
+            ("Versandinformation", ""),
+        ]);
+        let f = SchemaTools::email_fields();
+        let subj_tri = [f.f_subject_tri];
+
+        // Inflection: kroatiens and kroatien share 6/7 grams → hit
+        assert_eq!(
+            matching_ids(&index, tri_query(&subj_tri, "Kroatiens").as_ref()),
+            vec!["Kroatien".to_string()]
+        );
+        // All-gram substring: laserdruck ⊂ laserdrucker → hit
+        assert_eq!(
+            matching_ids(&index, tri_query(&subj_tri, "laserdruck").as_ref()),
+            vec!["Laserdrucker".to_string()]
+        );
+        // A single shared gram must not hit: laserdruckers and
+        // versandinformation share only "ers", so only the genuine one-level
+        // inflection target (laserdrucker) should match.
+        assert_eq!(
+            matching_ids(&index, tri_query(&subj_tri, "laserdruckers").as_ref()),
+            vec!["Laserdrucker".to_string()],
+            "a single shared gram must not drag in Versandinformation"
+        );
+    }
+
+    /// rustmailer/bichon#215: a word of an English subject and body is found
+    /// on its own.
+    #[test]
+    fn issue_215_single_word_of_subject_and_body() {
+        let index = build_index(&[(
+            "Our 11th anniversary offer",
+            "Celebrate our anniversary with 20% off",
+        )]);
+        let f = SchemaTools::email_fields();
+
+        for field in [f.f_subject, f.f_body] {
+            assert_eq!(
+                count(&index, word_query(&index, field, "anniversary").as_ref()),
+                1
+            );
+        }
+    }
+
+    /// Accented words are found with and without the accents.
+    #[test]
+    fn accented_words_match_folded_queries() {
+        let index = build_index(&[("Étoiles filantes ce soir", "")]);
+        let f = SchemaTools::email_fields();
+
+        for term in ["Étoiles", "etoiles", "filantes"] {
+            assert_eq!(
+                count(&index, word_query(&index, f.f_subject, term).as_ref()),
+                1,
+                "{term}"
+            );
+        }
+    }
+
+    /// Space-separated terms are AND-ed, as in email clients: another word
+    /// narrows the result. Explicit `OR`, phrases and exclusion still work.
+    #[test]
+    fn multiword_query_is_and() {
+        let index = build_index(&[
+            ("both", "alert for rustmailer git"),
+            ("only alert", "alert only"),
+        ]);
+        let f = SchemaTools::email_fields();
+        let word = |query: &str| {
+            matching_ids(
+                &index,
+                text_parser(&index, vec![f.f_body])
+                    .parse_query(query)
+                    .unwrap()
+                    .as_ref(),
+            )
+        };
+
+        assert_eq!(word("alert"), ["both", "only alert"]);
+        assert_eq!(word("alert rustmailer"), ["both"]);
+        assert_eq!(word("rustmailer OR alert"), ["both", "only alert"]);
+        assert_eq!(word("\"alert for\""), ["both"]);
+        assert_eq!(word("alert -rustmailer"), ["only alert"]);
+    }
+
+    /// The trigram layer ANDs terms as well, and steps aside for a term too
+    /// short for grams instead of making the conjunction false.
+    #[test]
+    fn trigram_terms_are_and() {
+        let index = build_index(&[("Quarterly report", ""), ("Annual report", "")]);
+        let f = SchemaTools::email_fields();
+        let tri = |query: &str| matching_ids(&index, tri_query(&[f.f_subject_tri], query).as_ref());
+
+        assert_eq!(tri("report"), ["Annual report", "Quarterly report"]);
+        assert_eq!(tri("quarterly report"), ["Quarterly report"]);
+        assert!(tri("quarterly annual").is_empty());
+        assert!(tri("quarterly q4").is_empty(), "q4 has no grams");
+    }
+}
+
+#[cfg(test)]
+#[path = "test_support.rs"]
+pub(crate) mod test_support;
+
+/// `IndexManager` behaviour on its own index directory: opening, the search
+/// filters, attachment lookup, deletion, tag updates and dashboard stats.
+#[cfg(test)]
+mod manager_tests {
+    use super::test_support::{
+        attachment, blob_key, commit_documents, envelope, envelope_document, envelope_manager_at,
+        init_globals, register_mailbox, store_email_blob, unique_id,
+    };
+    use super::*;
+    use crate::store::tantivy::format::{read_index_format_version, CURRENT_INDEX_FORMAT_VERSION};
+
+    struct Fixture {
+        _dir: tempfile::TempDir,
+        manager: IndexManager,
+        account_id: u64,
+        mailbox_id: u64,
+    }
+
+    impl Fixture {
+        fn new() -> Self {
+            let dir = tempfile::tempdir().unwrap();
+            let manager = envelope_manager_at(dir.path());
+            let account_id = unique_id();
+            let mailbox_id = unique_id();
+            register_mailbox(account_id, mailbox_id, "owner@example.com");
+            Self {
+                _dir: dir,
+                manager,
+                account_id,
+                mailbox_id,
+            }
+        }
+
+        fn envelope(&self, id: &str) -> Envelope {
+            envelope(self.account_id, self.mailbox_id, id)
+        }
+
+        async fn add(&self, envelopes: Vec<(Envelope, Option<Vec<AttachmentInfo>>, &str)>) {
+            let docs = envelopes
+                .into_iter()
+                .map(|(envelope, attachments, body)| envelope_document(envelope, attachments, body))
+                .collect();
+            commit_documents(&self.manager, docs).await;
+        }
+
+        fn search_page(&self, filter: EmailSearchFilter, sort_by: SortBy) -> Vec<Envelope> {
+            self.manager
+                .search(
+                    Some(HashSet::from([self.account_id])),
+                    filter,
+                    1,
+                    50,
+                    true,
+                    sort_by,
+                )
+                .unwrap()
+                .items
+        }
+
+        /// Ids of the matches, sorted.
+        fn ids(&self, filter: EmailSearchFilter) -> Vec<String> {
+            let mut ids: Vec<String> = self
+                .search_page(filter, SortBy::DATE)
+                .into_iter()
+                .map(|e| e.id)
+                .collect();
+            ids.sort();
+            ids
+        }
+
+        async fn tag(&self, ids: &[&str], tag: &str) {
+            self.manager
+                .update_envelope_tags(TagsRequest {
+                    updates: HashMap::from([(
+                        self.account_id,
+                        ids.iter().map(|id| id.to_string()).collect(),
+                    )]),
+                    tags: vec![tag.to_string()],
+                    action: TagAction::Add,
+                })
+                .await
+                .unwrap();
+        }
+    }
+
+    fn text(value: &str) -> EmailSearchFilter {
+        EmailSearchFilter {
+            text: Some(value.into()),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn reopening_an_index_heals_a_lost_format_marker() {
+        let dir = tempfile::tempdir().unwrap();
+        drop(envelope_manager_at(dir.path()));
+        std::fs::remove_file(dir.path().join("INDEX_FORMAT")).unwrap();
+
+        drop(envelope_manager_at(dir.path()));
+
+        assert_eq!(
+            read_index_format_version(dir.path()),
+            Some(CURRENT_INDEX_FORMAT_VERSION)
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "has an outdated format and must be rebuilt")]
+    fn reopening_an_outdated_index_panics() {
+        let dir = tempfile::tempdir().unwrap();
+        drop(envelope_manager_at(dir.path()));
+        std::fs::write(dir.path().join("INDEX_FORMAT"), "1\n").unwrap();
+
+        envelope_manager_at(dir.path());
+    }
+
+    #[tokio::test]
+    async fn text_search_requires_every_word() {
+        let fx = Fixture::new();
+        let mut a = fx.envelope("a");
+        a.subject = "Quarterly report".into();
+        let mut b = fx.envelope("b");
+        b.subject = "Quarterly plan".into();
+        fx.add(vec![
+            (a, None, "the numbers are attached"),
+            (b, None, "nothing to see"),
+        ])
+        .await;
+
+        assert_eq!(fx.ids(text("quarterly")), ["a", "b"]);
+        assert_eq!(fx.ids(text("quarterly numbers")), ["a"]);
+        assert!(fx.ids(text("quarterly budget")).is_empty());
+    }
+
+    /// Words are not stemmed; the trigram fields find fragments and
+    /// inflections in subjects, addresses and attachment names.
+    #[tokio::test]
+    async fn text_search_finds_fragments_through_trigram_fields() {
+        let fx = Fixture::new();
+        let mut a = fx.envelope("a");
+        a.subject = "Sejlerferie i Kroatien".into();
+        let mut b = fx.envelope("b");
+        b.subject = "Hello".into();
+        b.to = vec!["zelda@wonderland.test".into()];
+        let mut c = fx.envelope("c");
+        c.subject = "Scan".into();
+        fx.add(vec![
+            (a, None, ""),
+            (b, None, ""),
+            (c, Some(vec![attachment("blueprint.pdf", &blob_key(1))]), ""),
+        ])
+        .await;
+
+        assert_eq!(fx.ids(text("kroatiens")), ["a"]);
+        assert_eq!(fx.ids(text("wonderla")), ["b"]);
+        assert_eq!(fx.ids(text("bluepri")), ["c"]);
+    }
+
+    #[tokio::test]
+    async fn subject_and_body_filters_look_only_at_their_field() {
+        let fx = Fixture::new();
+        let mut s = fx.envelope("in-subject");
+        s.subject = "Newsletter September".into();
+        let mut b = fx.envelope("in-body");
+        b.subject = "Hello".into();
+        fx.add(vec![
+            (s, None, "plain text"),
+            (b, None, "read our newsletter"),
+        ])
+        .await;
+
+        let subject = |v: &str| EmailSearchFilter {
+            subject: Some(v.into()),
+            ..Default::default()
+        };
+        let body = |v: &str| EmailSearchFilter {
+            body: Some(v.into()),
+            ..Default::default()
+        };
+        assert_eq!(fx.ids(subject("newsletter")), ["in-subject"]);
+        assert_eq!(fx.ids(subject("newslett")), ["in-subject"], "fragment");
+        assert_eq!(fx.ids(body("newsletter")), ["in-body"]);
+    }
+
+    #[tokio::test]
+    async fn address_filters_match_their_own_fields() {
+        let fx = Fixture::new();
+        let mut x = fx.envelope("x");
+        x.from = "alice@alpha.test".into();
+        x.to = vec!["bob@beta.test".into()];
+        x.cc = vec!["carol@gamma.test".into()];
+        x.bcc = vec!["dave@delta.test".into()];
+        let mut y = fx.envelope("y");
+        y.from = "dave@delta.test".into();
+        y.to = vec!["alice@alpha.test".into()];
+        y.bcc = vec!["carol@gamma.test".into()];
+        fx.add(vec![(x, None, ""), (y, None, "")]).await;
+
+        let filter = |f: fn(&mut EmailSearchFilter) -> &mut Option<String>, v: &str| {
+            let mut filter = EmailSearchFilter::default();
+            *f(&mut filter) = Some(v.into());
+            fx.ids(filter)
+        };
+        assert_eq!(filter(|f| &mut f.from, "alice"), ["x"]);
+        assert_eq!(filter(|f| &mut f.to, "alice"), ["y"]);
+        assert_eq!(filter(|f| &mut f.cc, "gamm"), ["x"], "cc fragment");
+        assert_eq!(filter(|f| &mut f.bcc, "carol"), ["y"]);
+        assert_eq!(filter(|f| &mut f.bcc, "dave"), ["x"]);
+        assert_eq!(filter(|f| &mut f.bcc, "delt"), ["x"], "bcc fragment");
+
+        assert_eq!(filter(|f| &mut f.any_recipient, "alice"), ["y"]);
+        assert_eq!(filter(|f| &mut f.any_recipient, "carol"), ["x", "y"]);
+        assert_eq!(filter(|f| &mut f.any_recipient, "bob"), ["x"]);
+        assert_eq!(filter(|f| &mut f.any_participant, "alice"), ["x", "y"]);
+        assert_eq!(filter(|f| &mut f.any_participant, "delt"), ["x", "y"]);
+        assert_eq!(filter(|f| &mut f.any_participant, "beta"), ["x"]);
+    }
+
+    #[tokio::test]
+    async fn attachment_name_filter_matches_whole_names_and_fragments() {
+        let fx = Fixture::new();
+        let x = fx.envelope("x");
+        let y = fx.envelope("y");
+        fx.add(vec![
+            (
+                x,
+                Some(vec![attachment("invoice-2024.pdf", &blob_key(1))]),
+                "",
+            ),
+            (y, Some(vec![attachment("holiday.png", &blob_key(2))]), ""),
+        ])
+        .await;
+
+        let name = |v: &str| EmailSearchFilter {
+            attachment_name: Some(v.into()),
+            ..Default::default()
+        };
+        assert_eq!(fx.ids(name("invoice-2024.pdf")), ["x"]);
+        assert_eq!(fx.ids(name("holiday.png")), ["y"]);
+        assert_eq!(fx.ids(name("invoic")), ["x"]);
+        assert_eq!(fx.ids(name("holidays")), ["y"], "inflection");
+    }
+
+    #[tokio::test]
+    async fn search_by_relevance_puts_the_best_match_first() {
+        let fx = Fixture::new();
+        let mut best = fx.envelope("best");
+        best.subject = "Welcome to Primagaz".into();
+        best.date = 1_000;
+        let mut passing = fx.envelope("passing");
+        passing.subject = "September newsletter".into();
+        passing.date = 2_000;
+        fx.add(vec![
+            (best, None, "Your Primagaz account is ready."),
+            (
+                passing,
+                None,
+                "News from our partners, offers, events, a note about Primagaz, \
+                 the weather, recipes, travel tips and much more for the season.",
+            ),
+        ])
+        .await;
+
+        let order = |sort_by| -> Vec<String> {
+            fx.search_page(text("primagaz"), sort_by)
+                .into_iter()
+                .map(|e| e.id)
+                .collect()
+        };
+        assert_eq!(order(SortBy::DATE), ["passing", "best"]);
+        assert_eq!(order(SortBy::Relevance), ["best", "passing"]);
+    }
+
+    #[tokio::test]
+    async fn stored_attachments_of_returns_the_envelope_attachments() {
+        let fx = Fixture::new();
+        fx.add(vec![
+            (
+                fx.envelope("with"),
+                Some(vec![attachment("report.pdf", &blob_key(1))]),
+                "",
+            ),
+            (fx.envelope("without"), None, ""),
+        ])
+        .await;
+
+        let with = fx
+            .manager
+            .stored_attachments_of(fx.account_id, "with")
+            .unwrap()
+            .expect("envelope exists");
+        assert_eq!(with.len(), 1);
+        assert_eq!(with[0].filename.as_deref(), Some("report.pdf"));
+        assert_eq!(
+            fx.manager
+                .stored_attachments_of(fx.account_id, "without")
+                .unwrap(),
+            Some(vec![])
+        );
+        assert_eq!(
+            fx.manager
+                .stored_attachments_of(fx.account_id, "missing")
+                .unwrap(),
+            None
+        );
+        assert_eq!(
+            fx.manager
+                .stored_attachments_of(fx.account_id + 1, "with")
+                .unwrap(),
+            None,
+            "other account"
+        );
+    }
+
+    #[tokio::test]
+    async fn deleting_nothing_reports_zero() {
+        let fx = Fixture::new();
+        assert_eq!(
+            fx.manager
+                .delete_envelopes_multi_account(HashMap::new())
+                .await
+                .unwrap(),
+            0
+        );
+    }
+
+    /// Deleting envelopes reports how many existed and drops the blobs no
+    /// remaining envelope references.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn deleting_envelopes_drops_only_unreferenced_blobs() {
+        init_globals();
+        let fx = Fixture::new();
+        let own = blob_key(unique_id());
+        let shared = blob_key(unique_id());
+        store_email_blob(&own, b"Subject: own\r\n\r\nown\r\n").await;
+        store_email_blob(&shared, b"Subject: shared\r\n\r\nshared\r\n").await;
+        let mut d1 = fx.envelope("d1");
+        d1.content_hash = own.clone();
+        let mut d2 = fx.envelope("d2");
+        d2.content_hash = shared.clone();
+        let mut d3 = fx.envelope("d3");
+        d3.content_hash = shared.clone();
+        fx.add(vec![(d1, None, ""), (d2, None, ""), (d3, None, "")])
+            .await;
+
+        let deleted = fx
+            .manager
+            .delete_envelopes_multi_account(HashMap::from([(
+                fx.account_id,
+                vec!["d1".to_string(), "d2".to_string(), "unknown".to_string()],
+            )]))
+            .await
+            .unwrap();
+
+        assert_eq!(deleted, 2);
+        assert_eq!(fx.ids(EmailSearchFilter::default()), ["d3"]);
+        assert!(BLOB_MANAGER.get_email(&own).unwrap().is_none());
+        assert!(BLOB_MANAGER.get_email(&shared).unwrap().is_some());
+    }
+
+    fn tags_of(fx: &Fixture, id: &str) -> Vec<String> {
+        let filter = EmailSearchFilter {
+            id: Some(id.into()),
+            ..Default::default()
+        };
+        fx.search_page(filter, SortBy::DATE)
+            .pop()
+            .expect("envelope exists")
+            .tags
+            .unwrap_or_default()
+    }
+
+    fn body_ids(fx: &Fixture, word: &str) -> Vec<String> {
+        fx.ids(EmailSearchFilter {
+            body: Some(word.into()),
+            ..Default::default()
+        })
+    }
+
+    /// The body is not stored; a tag update takes it from the EML so the
+    /// envelope stays findable by its body.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn tagging_keeps_the_body_searchable_from_the_stored_eml() {
+        init_globals();
+        let fx = Fixture::new();
+        let hash = blob_key(unique_id());
+        store_email_blob(&hash, b"Subject: x\r\n\r\nThe zebra crossing\r\n").await;
+        let mut e = fx.envelope("e");
+        e.content_hash = hash;
+        fx.add(vec![(e, None, "The zebra crossing")]).await;
+
+        fx.tag(&["e"], "/project").await;
+
+        assert_eq!(tags_of(&fx, "e"), ["/project"]);
+        assert_eq!(body_ids(&fx, "zebra"), ["e"]);
+    }
+
+    /// Without its EML, whether missing or under an unreadable key, the
+    /// envelope is still tagged; only the body can't be restored.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn tagging_without_the_eml_still_applies_the_tag() {
+        init_globals();
+        let fx = Fixture::new();
+        let mut missing = fx.envelope("missing");
+        missing.content_hash = blob_key(unique_id());
+        let mut unreadable = fx.envelope("unreadable");
+        unreadable.content_hash = "not-a-blob-key".into();
+        fx.add(vec![
+            (missing, None, "giraffe"),
+            (unreadable, None, "giraffe"),
+        ])
+        .await;
+        assert_eq!(body_ids(&fx, "giraffe"), ["missing", "unreadable"]);
+
+        fx.tag(&["missing", "unreadable"], "/project").await;
+
+        assert_eq!(tags_of(&fx, "missing"), ["/project"]);
+        assert_eq!(tags_of(&fx, "unreadable"), ["/project"]);
+        assert!(body_ids(&fx, "giraffe").is_empty());
+    }
+
+    /// A document without a content hash has no EML to look up; it is still
+    /// tagged.
+    #[tokio::test]
+    async fn tagging_an_envelope_without_content_hash_still_applies_the_tag() {
+        let fx = Fixture::new();
+        let f = SchemaTools::email_fields();
+        let mut doc = TantivyDocument::new();
+        doc.add_text(f.f_id, "no-hash");
+        doc.add_u64(f.f_account_id, fx.account_id);
+        commit_documents(&fx.manager, vec![doc]).await;
+
+        fx.tag(&["no-hash"], "/project").await;
+
+        let tagged = fx
+            .manager
+            .create_searcher()
+            .unwrap()
+            .search(
+                &TermQuery::new(
+                    Term::from_facet(f.f_tags, &Facet::from("/project")),
+                    IndexRecordOption::Basic,
+                ),
+                &Count,
+            )
+            .unwrap();
+        assert_eq!(tagged, 1);
+    }
+
+    /// Senders are grouped by address and carry no account id.
+    #[tokio::test]
+    async fn dashboard_groups_top_senders() {
+        let fx = Fixture::new();
+        let mut a1 = fx.envelope("a1");
+        a1.from = "news@shop.test".into();
+        let mut a2 = fx.envelope("a2");
+        a2.from = "news@shop.test".into();
+        let mut b1 = fx.envelope("b1");
+        b1.from = "friend@mail.test".into();
+        fx.add(vec![(a1, None, ""), (a2, None, ""), (b1, None, "")])
+            .await;
+
+        let stats = fx
+            .manager
+            .get_dashboard_stats(&Some(HashSet::from([fx.account_id])))
+            .unwrap();
+
+        let senders: Vec<(String, u64, Option<u64>)> = stats
+            .top_senders
+            .into_iter()
+            .map(|g| (g.key, g.count, g.account_id))
+            .collect();
+        assert_eq!(
+            senders,
+            [
+                ("news@shop.test".to_string(), 2, None),
+                ("friend@mail.test".to_string(), 1, None),
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn dashboard_lists_top_accounts_with_their_counts() {
+        // An unknown account schedules a cleanup on the global manager.
+        init_globals();
+        let fx = Fixture::new();
+        let second_account = unique_id();
+        let second_mailbox = unique_id();
+        register_mailbox(second_account, second_mailbox, "second@example.com");
+        let unknown_account = unique_id();
+
+        fx.add(vec![
+            (fx.envelope("o1"), None, ""),
+            (fx.envelope("o2"), None, ""),
+            (envelope(second_account, second_mailbox, "s1"), None, ""),
+            (envelope(unknown_account, unique_id(), "u1"), None, ""),
+        ])
+        .await;
+
+        let stats = fx.manager.get_dashboard_stats(&None).unwrap();
+
+        let accounts: Vec<(String, u64, Option<u64>)> = stats
+            .top_accounts
+            .into_iter()
+            .map(|g| (g.key, g.count, g.account_id))
+            .collect();
+        assert_eq!(
+            accounts,
+            [
+                ("owner@example.com".to_string(), 2, Some(fx.account_id)),
+                ("second@example.com".to_string(), 1, Some(second_account)),
+            ]
+        );
+    }
+
+    #[test]
+    fn account_ids_are_read_from_signed_and_unsigned_keys() {
+        assert_eq!(account_id_of(&Key::I64(42)), Some(42));
+        assert_eq!(account_id_of(&Key::U64(u64::MAX)), Some(u64::MAX));
+        assert_eq!(account_id_of(&Key::I64(-1)), None);
+        assert_eq!(account_id_of(&Key::Str("42".into())), None);
     }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getFormSchema } from '../schema'
+import { getFormSchema, getMfaCodeSchema } from '../schema'
 
 // Simple mock t function that returns the key
 const t = (key: string) => key
@@ -77,5 +77,21 @@ describe('Login Form Schema', () => {
       const result = schema.safeParse({ username: 'admin' })
       expect(result.success).toBe(false)
     })
+  })
+})
+
+describe('MFA code schema', () => {
+  const schema = getMfaCodeSchema(t)
+
+  it.each(['123456', '123 456', 'ABCD2345', 'abcd-2345'])('accepts %s', (code) => {
+    expect(schema.safeParse({ code }).success).toBe(true)
+  })
+
+  it.each(['', '12345', '1234567', 'ABCD234', 'ABCD!345'])('rejects %s', (code) => {
+    const result = schema.safeParse({ code })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('auth.mfa.codeFormat')
+    }
   })
 })

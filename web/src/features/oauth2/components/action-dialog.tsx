@@ -49,6 +49,7 @@ import { cn } from '@/lib/utils'
 import { LoaderCircle, CircleMinus as MinusCircle, Plus } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { create_oauth2, update_oauth2 } from '@/api/oauth2/api'
+import { proxyUpdateFields } from './proxy-update'
 import { ToastAction } from '@/components/ui/toast'
 import { AxiosError } from 'axios'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -195,7 +196,7 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
         extra_params: values.extra_params?.reduce((acc, item) => ({ ...acc, [item.key]: item.value }), {}),
         scopes: values.scopes?.map(scope => scope.value),
         enabled: values.enabled,
-        use_proxy: values.use_proxy
+        ...proxyUpdateFields(values.use_proxy),
       });
     } else {
       createMutation.mutate({
@@ -497,7 +498,7 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
                     <FormLabel className="flex items-center justify-between">{t('oauth2.useProxyOptional')}</FormLabel>
                     <FormControl>
                       <Select
-                        onValueChange={(val) => field.onChange(Number(val))}
+                        onValueChange={(val) => field.onChange(val === 'none' ? undefined : Number(val))}
                         defaultValue={field.value?.toString()}
                       >
                         <FormControl>
@@ -506,6 +507,7 @@ export function ActionDialog({ currentRow, open, onOpenChange }: Props) {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">{t('oauth2.noProxy')}</SelectItem>
                           {proxyOptions && proxyOptions.length > 0 ? (
                             proxyOptions.map((option) => (
                               <SelectItem key={option.value} value={option.value.toString()}>

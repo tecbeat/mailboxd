@@ -113,7 +113,7 @@ pub async fn process_imap_download(
         };
         match result {
             Ok(_) => {
-                DownloadState::update_session_status(account_id, DownloadStatus::Success, None)?;
+                DownloadState::finish_completed_session(account_id)?;
             }
             Err(e) => {
                 let err_msg = format!("Email Download interrupted: {:#?}", e);
@@ -183,7 +183,7 @@ pub async fn process_imap_download(
     // during gap-fill are not dropped (update_session_status closes the active
     // session, moving it into history).
     match reconcile_result {
-        Ok(_) => DownloadState::update_session_status(account_id, DownloadStatus::Success, None)?,
+        Ok(_) => DownloadState::finish_completed_session(account_id)?,
         Err(e) => {
             let err_msg = format!("Email Download interrupted: {:#?}", e);
             DownloadState::append_session_error(account_id, err_msg.clone())?;
@@ -253,4 +253,78 @@ async fn gap_fill_phase(
         }
     }
     Ok((cancelled, total_downloaded, total_failed))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::imap::mock_server::{
+        mock_mails, register_mock_account, MockImapServer, MockImapServerHandle,
+    };
+    use crate::utils::create_hash;
+
+    /// Registers a fresh account (no download state, no local mailboxes)
+    /// against a mock server whose INBOX holds UIDs 1 and 2.
+    async fn fresh_account(account_id: u64) -> (AccountModel, MockImapServerHandle) {
+        DownloadState::delete(account_id).unwrap();
+        MailBox::clean(account_id).unwrap();
+        let handle = MockImapServer::new()
+            .serving(&mock_mails(&[1, 2]))
+            .start()
+            .await;
+        (register_mock_account(&handle, account_id), handle)
+    }
+
+    async fn run_manual_download(account: &AccountModel) {
+        let token = CancellationToken::new();
+        process_imap_download(account, token, TriggerType::Manual, false)
+            .await
+            .unwrap();
+    }
+
+    fn last_finished_session(account_id: u64) -> (DownloadStatus, Option<String>) {
+        let state = DownloadState::get(account_id)
+            .unwrap()
+            .expect("download state");
+        assert!(state.active_session.is_none(), "session must be closed");
+        let session = state.history.last().expect("finished session");
+        (session.status.clone(), session.message.clone())
+    }
+
+    fn inbox_highest_uid(account_id: u64) -> Option<u32> {
+        MailBox::get(create_hash(account_id, "INBOX"))
+            .unwrap()
+            .highest_uid
+    }
+
+    #[tokio::test]
+    async fn first_download_fetches_everything_and_finishes_successfully() {
+        let account_id = 59_342_501;
+        let (account, _server) = fresh_account(account_id).await;
+
+        run_manual_download(&account).await;
+
+        assert_eq!(
+            last_finished_session(account_id),
+            (DownloadStatus::Success, None)
+        );
+        assert_eq!(inbox_highest_uid(account_id), Some(2));
+    }
+
+    #[tokio::test]
+    async fn follow_up_download_reconciles_and_finishes_successfully() {
+        let account_id = 59_342_502;
+        let (account, _server) = fresh_account(account_id).await;
+        run_manual_download(&account).await;
+
+        run_manual_download(&account).await;
+
+        let state = DownloadState::get(account_id).unwrap().unwrap();
+        assert_eq!(state.history.len(), 2, "second run is a separate session");
+        assert_eq!(
+            last_finished_session(account_id),
+            (DownloadStatus::Success, None)
+        );
+        assert_eq!(inbox_highest_uid(account_id), Some(2));
+    }
 }

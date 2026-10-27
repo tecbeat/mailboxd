@@ -8,7 +8,7 @@
 use poem::test::TestClient;
 use serde::{Deserialize, Serialize};
 
-use super::{admin_token, build_api_route, setup};
+use super::{admin_token, build_api_route, login, setup};
 
 fn api_client(route: impl poem::Endpoint) -> TestClient<impl poem::Endpoint> {
     TestClient::new(route).default_header("X-Forwarded-For", "127.0.0.1")
@@ -37,6 +37,7 @@ struct UpdateUserPayload {
 }
 
 const ADMIN_ROLE_ID: u64 = 100_000_000_000_000;
+const MEMBER_ROLE_ID: u64 = 100_200_000_000_000;
 
 #[tokio::test]
 async fn user_crud() {
@@ -62,6 +63,7 @@ async fn user_crud() {
     resp.assert_status_is_ok();
     let user: UserView = resp.json().await.value().deserialize();
     assert_eq!(user.username, "testuser1");
+    assert_eq!(user.email, "testuser1@example.com");
     let user_id = user.id;
 
     // List users
@@ -154,4 +156,57 @@ async fn cannot_delete_default_admin() {
         .send()
         .await;
     assert!(resp.0.status().is_client_error(), "deleting admin should fail");
+}
+
+#[derive(Debug, Deserialize)]
+struct Notifications {
+    default_admin_password: bool,
+}
+
+/// The test admin keeps the initial password, so it is reminded; a regular
+/// member must not learn that the admin password is the public default.
+#[tokio::test]
+async fn default_admin_password_is_only_reported_to_user_managers() {
+    setup().await;
+    let token = admin_token().await;
+    let cli = api_client(build_api_route());
+    let default_password = |token: String| {
+        let cli = &cli;
+        async move {
+            let resp = cli
+                .get("/api/v1/notifications")
+                .header("Authorization", format!("Bearer {}", token))
+                .send()
+                .await;
+            resp.assert_status_is_ok();
+            let notifications: Notifications = resp.json().await.value().deserialize();
+            notifications.default_admin_password
+        }
+    };
+
+    assert!(default_password(token.clone()).await);
+
+    let resp = cli
+        .post("/api/v1/users")
+        .header("Authorization", format!("Bearer {}", token))
+        .body_json(&CreateUserPayload {
+            username: "member-notifications".into(),
+            email: "member-notifications@example.com".into(),
+            password: "member-pass-123".into(),
+            global_roles: vec![MEMBER_ROLE_ID],
+            account_access_map: Default::default(),
+        })
+        .send()
+        .await;
+    resp.assert_status_is_ok();
+    let member: UserView = resp.json().await.value().deserialize();
+
+    let member_token = login("member-notifications", "member-pass-123").await;
+    assert!(!default_password(member_token).await);
+
+    cli.delete(format!("/api/v1/users/{}", member.id))
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .assert_status_is_ok();
 }

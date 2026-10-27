@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useOAuth2Context } from '../context'
 import { OAuth2Entity } from '../data/schema'
-import { Workflow as WorkflowIcon, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Workflow as WorkflowIcon, KeyRound, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/hooks/use-current-user'
 
@@ -82,6 +82,18 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             {t('oauth2.actions.authorize')}
             <DropdownMenuShortcut>
               <WorkflowIcon />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={!require_any_permission(['system:root', 'account:manage'])}
+            onClick={() => {
+              setCurrentRow(row.original)
+              setOpen('import-tokens')
+            }}
+          >
+            {t('oauth2.actions.importTokens')}
+            <DropdownMenuShortcut>
+              <KeyRound />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

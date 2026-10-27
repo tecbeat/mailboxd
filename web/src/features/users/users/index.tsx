@@ -26,6 +26,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { UserActionDialog } from './components/action-dialog'
 import { getColumns } from './components/columns'
 import { UserDeleteDialog } from './components/delete-dialog'
+import { UserMfaResetDialog } from './components/mfa-reset-dialog'
 import { UsersTable } from './components/table'
 import UserProvider from './context/provider'
 import { type UserDialogType } from './context'
@@ -110,6 +111,16 @@ export default function Users() {
                 key={`user-delete-${currentRow.id}`}
                 currentRow={currentRow}
                 open={open === 'delete'}
+                onOpenChange={() => {
+                  setOpen(null)
+                  setTimeout(() => setCurrentRow(null), 500)
+                }}
+              />
+
+              <UserMfaResetDialog
+                key={`user-mfa-reset-${currentRow.id}`}
+                currentRow={currentRow}
+                open={open === 'mfa-reset'}
                 onOpenChange={() => {
                   setOpen(null)
                   setTimeout(() => setCurrentRow(null), 500)

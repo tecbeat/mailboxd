@@ -191,6 +191,21 @@ impl BlobManager {
         }
     }
 
+    /// Writes `email` and returns once it is stored, bypassing the background
+    /// writer. For a single write that must be readable right afterwards,
+    /// such as a repair. Like [`Self::queue`], existing blobs are kept.
+    pub async fn store(&self, email: DetachedEmail) -> MailboxdResult<()> {
+        let engine = Arc::clone(&self.engine);
+        task::spawn_blocking(move || Self::process_detached_email(email, &engine))
+            .await
+            .map_err(|e| {
+                raise_error!(
+                    format!("blob write task failed: {e:#?}"),
+                    ErrorCode::InternalError
+                )
+            })
+    }
+
     pub async fn queue(&self, email: DetachedEmail) {
         if let Err(e) = self.sender.send(email).await {
             tracing::error!("BlobManager channel closed, email lost: {:#?}", e);

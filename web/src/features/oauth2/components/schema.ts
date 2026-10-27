@@ -60,3 +60,19 @@ export const getOAuth2Schema = (t: (key: string) => string) =>
   })
 
 export type OAuth2FormValues = z.infer<ReturnType<typeof getOAuth2Schema>>
+
+export const getImportTokensSchema = (t: (key: string) => string) =>
+  z.object({
+    account_id: z.number({ error: t('oauth2.accountIsRequired') }),
+    // Trimmed, since tokens copied out of other tools often carry whitespace.
+    access_token: z
+      .string()
+      .trim()
+      .min(1, { message: t('oauth2.accessTokenCannotBeEmpty') }),
+    refresh_token: z
+      .string()
+      .trim()
+      .min(1, { message: t('oauth2.refreshTokenCannotBeEmpty') }),
+  })
+
+export type ImportTokensFormValues = z.infer<ReturnType<typeof getImportTokensSchema>>

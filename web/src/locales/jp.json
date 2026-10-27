@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "これより大きいメールはスキップされます。空欄にするとデフォルト（100 MB）が使用されます。",
     "maxEmailSizeBytesPlaceholder": "デフォルト：100 MB",
     "maxEmailSizeBytesUnlimited": "デフォルト：100 MB",
+    "retentionDays": "保存期間（日）",
+    "retentionDaysDescription": "この日数より古いアーカイブ済みメールは削除され、それより古いメールはアーカイブされなくなります。すべてのメールを保存するには空欄のままにしてください。",
+    "retentionOff": "無期限に保存",
+    "retentionWarning": "保存期間より古いメールは、今後 6 時間以内にアーカイブから完全に削除されます。この操作は元に戻せません。",
     "minutes": "分",
     "months": "月",
     "mustBeAtLeast1": "1以上である必要があります",
@@ -331,6 +335,8 @@
       "generalDesc": "アカウントの基本情報とステータス。",
       "newAccount": "新規アカウント",
       "performance": "パフォーマンス",
+      "retention": "保存期間",
+      "retentionDesc": "アーカイブ済みメールを保存する期間を選択します。",
       "schedule": "時間計画",
       "scope": "同期対象期間",
       "server": "サーバー設定",
@@ -541,10 +547,21 @@
     "login": "ログイン",
     "loginFailed": "ログインに失敗しました",
     "logout": "ログアウト",
+    "mfa": {
+      "back": "サインインに戻る",
+      "challengeExpired": "サインインの有効期限が切れました。もう一度サインインしてください。",
+      "code": "確認コード",
+      "codeFormat": "認証アプリの6桁のコードまたはリカバリーコードを入力してください。",
+      "invalidCode": "確認コードが無効です。もう一度お試しください。",
+      "prompt": "認証アプリに表示される6桁のコードを入力してください。アプリにアクセスできない場合は、代わりにリカバリーコードのいずれかを入力してください。",
+      "tooManyCodes": "無効なコードが多すぎます。もう一度サインインしてください。",
+      "verify": "確認"
+    },
     "password": "パスワード",
     "sessionExpired": "セッションの有効期限が切れました！",
     "sessionExpiredDesc": "操作がないためセッションが終了しました。継続するには再度ログインしてください。",
     "somethingWentWrong": "問題が発生しました",
+    "tooManyAttempts": "ログイン試行回数が多すぎます。数分待ってから再度お試しください。",
     "username": "ユーザー名",
     "welcome": "mailboxd へようこそ",
     "youWillNeedToLogInAgain": "アカウントにアクセスするには、再度ログインする必要があります。",
@@ -714,6 +731,7 @@
     "detectedFolder": "放出演出",
     "detectedFrom": "検出元:",
     "dropHere": "ここに .eml / .mbox / .pst 文件をドロップ",
+    "duplicateCount": "{{count}} 件の重複をスキップ",
     "failed": "インポート失敗",
     "failedCount": "{{count}} 件の失敗",
     "failedDetails": "失敗したアイテム",
@@ -734,6 +752,7 @@
     "noMailboxFound": "メールボックスが見つかりません。",
     "noMailboxes": "このアカウントにメールボックスが見つかりません。",
     "orClick": "またはクリックしてファイルを選択",
+    "outsideRetentionCount": "{{count}} 件が保存期間外",
     "processed": "{{current}} / {{total}} 件を処理済み",
     "processing": "処理中…",
     "pstFolderDesc": "PSTファイルには独自のフォルダ構造（受信トレイ、送信済みアイテムなど）が含まれています。インポート時にフォルダが自動的に作成されます。",
@@ -747,6 +766,7 @@
     "source": "ソース",
     "startImport": "インポート",
     "successCount": "{{current}} 件を処理済み",
+    "summaryOutsideRetention": "{{count}} 件が保存期間外",
     "target": "1. 対象アカウントの選択",
     "title": "インポート",
     "uploading": "アップロード中…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "OAuthプロバイダーから提供される、アプリケーションを認証するためのシークレットキー。",
+    "accessToken": "アクセストークン",
+    "accessTokenCannotBeEmpty": "アクセストークンを入力してください",
+    "accountIsRequired": "アカウントを選択してください。",
     "actions": {
       "authorize": "認証",
       "delete": "削除",
       "edit": "編集",
+      "importTokens": "トークンをインポート",
       "openMenu": "メニューを開く"
     },
     "addConfiguration": "設定を追加",
@@ -867,8 +891,8 @@
     "addScope": "スコープを追加",
     "areYouSureYouWantTo": "このOAuth2クライアントを{{action}}してもよろしいですか？",
     "areYouSureYouWantToDelete": "削除してもよろしいですか",
-    "authAtatus": "OAuth2認証ステータス",
     "authFailed": "OAuth2認証に失敗しました",
+    "authStatus": "OAuth2認証ステータス",
     "authSuccess": "OAuth2認証成功",
     "authUrlLabel": "認証URL:",
     "authorizationUrlCannotBeEmpty": "認証URLは空にできません",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "OAuth2クライアントを有効にする",
     "enabled": "有効",
     "enterIdToConfirmDeletion": "削除を確認するためにIDを入力してください。",
+    "enterTheAccessTokenHere": "ここにアクセストークンを貼り付けてください。",
     "enterTheAuthorizationUrl": "認証URLを入力",
     "enterTheKeyHere": "ここにキーを入力。",
+    "enterTheRefreshTokenHere": "ここにリフレッシュトークンを貼り付けてください。",
     "enterTheScopeHere": "ここにスコープを入力。",
     "enterTheTokenUrl": "トークンURLを入力",
     "enterTheValueHere": "ここに値を入力。",
@@ -922,6 +948,15 @@
     "goHome": "ホームへ",
     "goToAccounts": "アカウントへ移動",
     "id": "ID",
+    "importTokensDescription": "OAuth2 クライアントが mailboxd 内で認可を完了できない場合に使用します。たとえば、email-oauth2-proxy などの外部ツールでトークンを取得した場合です。選択するアカウントは、IMAP の認証方式として既に OAuth2 を使用している必要があります。",
+    "importTokensFailed": "トークンのインポートに失敗しました",
+    "importTokensSuccess": "トークンをインポートしました",
+    "importTokensSuccessDesc": "トークンは保存され、自動的に更新されます。",
+    "importTokensTitle": "外部トークンのインポート",
+    "importTokensWarningClientMustMatch": "この設定のクライアント ID とクライアントシークレットは、リフレッシュトークンを発行したクライアントと同一である必要があります。異なる場合、更新に失敗します。",
+    "importTokensWarningLongLivedCredential": "リフレッシュトークンは長期間有効な認証情報です。暗号化されてこのサーバーに保存されます。",
+    "importTokensWarningStopExternalTool": "これらのトークンを取得した外部ツールを停止してください。両方のツールが同じリフレッシュトークンを更新すると、トークンが競合してアーカイブが停止します。",
+    "importing": "インポート中...",
     "information": "情報",
     "invalidAuthorizationUrlFormat": "認証URLの形式が無効です",
     "invalidRedirectUriFormat": "リダイレクトURIの形式が無効です",
@@ -935,6 +970,8 @@
     "noConfigurations": "OAuth2設定がありません",
     "noConfigurationsDesc": "まだOAuth2設定を追加していません。機能を利用するには設定を追加してください。",
     "noEmailAccountsRegistered": "登録されたメールアカウントがありません。作成してください。",
+    "noOAuth2Accounts": "OAuth2 認証を使用しているアカウントがありません。まず認証方式が OAuth2 のアカウントを作成してください。",
+    "noProxy": "プロキシ不使用",
     "noProxyAvailable": "利用可能なプロキシはありません",
     "noStatus": "このページにはOAuth2認証の結果が表示されます。現在、特定のステータスは利用できません。必要に応じて再試行してください。",
     "oauth2ClientHasBeenSuccessfully": "OAuth2クライアントは正常に{{action}}されました。",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "リダイレクトURIは空にできません",
     "redirectUriIsRequired": "リダイレクトURIは必須です",
     "redirectUrlLabel": "リダイレクトURL:",
+    "refreshToken": "リフレッシュトークン",
+    "refreshTokenCannotBeEmpty": "リフレッシュトークンを入力してください",
     "save": "保存",
     "saveChanges": "変更を保存",
     "saving": "保存中...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "再試行",
     "warningDesc": "ご注意ください。この操作は元に戻せません。",
     "warningTitle": "警告！"
+  },
+  "repair_message": {
+    "confirm": "修復",
+    "desc": "このメッセージを IMAP サーバーから再取得し、欠落しているコンテンツを保存します。コンテンツはアーカイブ済みのハッシュと一致する場合にのみ保存されます。",
+    "emailMissing": "メッセージの内容がまだ欠落しています",
+    "emailRestored": "メッセージの内容を復元しました",
+    "failedHint": "メッセージを取得または検証できませんでした。以下のエラーを確認してください。",
+    "hideDetails": "詳細を隠す",
+    "history": "修復履歴",
+    "historyEmpty": "修復履歴はまだありません。",
+    "historyFailed": "修復履歴を読み込めませんでした。",
+    "historyHint": "直近 {{limit}} 件の修復試行。",
+    "missingAfter": "まだ欠落している添付ファイル",
+    "missingBefore": "修復前に欠落していた添付ファイル",
+    "operator": "実行者",
+    "partialHint": "一部のコンテンツを復元できませんでした。アーカイブ済みのハッシュと一致しないコンテンツは保存されません。",
+    "repairAction": "メッセージを修復",
+    "repairing": "修復中…",
+    "repairingHint": "IMAP サーバーからメッセージを取得しています。しばらく時間がかかる場合があります。",
+    "reportDesc": "修復試行の結果です。",
+    "reportTitle": "修復レポート",
+    "requestFailed": "修復リクエストに失敗しました",
+    "result": "結果",
+    "showDetails": "詳細を表示",
+    "statusComplete": "欠落はありませんでした",
+    "statusFailed": "失敗",
+    "statusPartial": "一部修復",
+    "statusRepaired": "修復済み",
+    "title": "メッセージを修復",
+    "wholeMessageNote": "本文とすべての添付ファイルを含むメッセージ全体を修復します。"
   },
   "restore_message": {
     "accountsInvolved": "対象アカウント",
@@ -1307,6 +1376,7 @@
     "body": "本文",
     "button": "検索",
     "clear_history": "履歴をクリア",
+    "hint": "すべての語が一致する必要があります。OR で範囲を広げ、\"引用符\" でフレーズ検索、-語 で除外します。",
     "no_history": "履歴なし",
     "placeholder": "メールを検索 (フレーズ検索は \" \" を使用)",
     "recent_title": "最近の検索",
@@ -1350,9 +1420,17 @@
     "label": "リセット",
     "tooltip": "すべての条件をクリア"
   },
+  "search_sort": {
+    "relevance": "関連度",
+    "relevance_needs_text": "関連度で並べ替えるには検索語を入力してください",
+    "relevance_tooltip": "一致度の高い順に並べ替え"
+  },
   "search_view": {
+    "absolute": "絶対",
     "button_label": "表示",
-    "menu_title": "列の設定"
+    "date_display": "日付表示",
+    "menu_title": "列の設定",
+    "relative": "相対"
   },
   "settings": {
     "accounts": "アカウント",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "無効なパスワード",
     "lastAccess": "最終アクセス",
     "manageRootTokenAndPassword": "ルートトークンとパスワードを安全に管理します。",
+    "mfa": {
+      "copied": "クリップボードにコピーしました",
+      "description": "パスワードでのサインインを、認証アプリのワンタイムコードで保護します。",
+      "disabled": {
+        "description": "有効にすると、パスワードでのサインイン時に、Aegis、Google Authenticator、1Password などの認証アプリの6桁のコードも必要になります。",
+        "enable": "二要素認証を有効にする",
+        "title": "二要素認証は無効です"
+      },
+      "enabled": {
+        "codesLeft": "未使用のリカバリーコード: {{remaining}}",
+        "codesLow": "リカバリーコードが残り少なくなっています。新しいコードを取得するには、二要素認証を無効にしてから再度有効にしてください。",
+        "confirmDisable": "無効にする",
+        "description": "パスワードでのサインインには認証アプリのコードが必要です。",
+        "disable": "二要素認証を無効にする",
+        "disableCode": "認証アプリのコードまたはリカバリーコード",
+        "disabledToast": "二要素認証を無効にしました",
+        "title": "二要素認証は有効です"
+      },
+      "enrol": {
+        "code": "アプリのコード",
+        "confirm": "確認して有効にする",
+        "copySecret": "シークレットをコピー",
+        "description": "認証アプリで QR コードをスキャンするか、シークレットを手動で入力してください。その後、アプリに表示される6桁のコードを入力してください。",
+        "qrAlt": "認証アプリ用の QR コード",
+        "qrFailed": "QR コードを生成できませんでした。シークレットを手動で入力してください。",
+        "secret": "手動入力用のシークレット",
+        "title": "認証アプリを設定する"
+      },
+      "errors": {
+        "enrolFailed": "設定を開始できませんでした",
+        "invalidCode": "確認コードが無効です。もう一度お試しください。",
+        "tooManyAttempts": "試行回数が多すぎます。数分待ってからもう一度お試しください。"
+      },
+      "loadError": "二要素認証の状態を読み込めませんでした。",
+      "recovery": {
+        "copy": "コードをコピー",
+        "description": "認証アプリにアクセスできなくなった場合、各コードで1回サインインできます。",
+        "done": "完了",
+        "download": ".txt としてダウンロード",
+        "leaveWarning": "リカバリーコードを保存したことを確認していません。コードは二度と表示されません。このまま移動しますか?",
+        "onlyOnce": "これらのコードは一度だけ表示されます。今すぐ安全な場所に保管してください。",
+        "saved": "リカバリーコードを安全な場所に保存しました",
+        "title": "リカバリーコードを保存してください"
+      },
+      "ssoNote": "シングルサインオン (SSO) でサインインしています。アカウントの二要素認証は ID プロバイダーが管理するため、ここでは設定できません。",
+      "title": "二要素認証"
+    },
     "name": "名前",
     "noProxies": "プロキシなし",
     "noProxiesDesc": "まだプロキシ設定を追加していません。機能を利用するには追加してください。",
@@ -1490,6 +1615,7 @@
       "apiTokens": "APIトークン",
       "backup": "バックアップ",
       "configurations": "システム設定",
+      "mfa": "二要素認証",
       "profile": "プロフィール",
       "proxy": "ネットワークプロキシ"
     },
@@ -1517,6 +1643,12 @@
     "title": "サインアウト"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "パスワードを変更",
+      "badge": "セキュリティ",
+      "message": "組み込みの admin アカウントは初期パスワードのままです。admin でサインインしてプロフィールから、または「ユーザー」から変更してください。",
+      "title": "既定の管理者パスワードが使用中です"
+    },
     "notifications": "システム通知"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "ユーザーを検索..."
       },
+      "reset_mfa": {
+        "button_confirm": "2FA をリセット",
+        "confirm_msg": "ユーザー {{name}} (ID: {{id}}) の二要素認証を無効にし、リカバリーコードを削除します。再設定されるまでは、パスワードだけでサインインできます。",
+        "failed_title": "リセットに失敗しました",
+        "menu": "2FA をリセット",
+        "success_desc": "「{{name}}」の二要素認証を無効にしました。",
+        "success_title": "2FA をリセットしました",
+        "title": "二要素認証をリセット"
+      },
       "schema": {
         "account_required": "アカウントを選択してください",
         "description_max": "説明は 256 文字以内である必要があります",
@@ -1767,6 +1908,7 @@
       "created_at": "作成日時",
       "email": "メールアドレス",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "ロールと権限",
       "updated_at": "更新日時",
       "username": "ユーザー名"
@@ -1775,6 +1917,7 @@
       "description": "下のボタンをクリックして、最初のユーザーを追加してください。",
       "title": "ユーザーが見つかりません"
     },
+    "mfa_enabled": "有効",
     "nav": {
       "api_tokens": "API トークン",
       "roles": "ロール",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "パスワードを入力してください",
     "pleaseEnterUsernameOrEmail": "ユーザー名またはメールアドレスを入力してください",
     "required": "このフィールドは必須です",
+    "retentionDaysRange": "1 から 36500 までの整数の日数を入力するか、空欄のままにしてください。",
     "singleRequestBatchSizeMustBeNumber": "バッチサイズは数値でなければなりません",
     "singleRequestBatchSizeTooLarge": "バッチサイズは最大でも200でなければなりません",
     "singleRequestBatchSizeTooSmall": "バッチサイズは最低でも10でなければなりません"

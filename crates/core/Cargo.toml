@@ -22,6 +22,9 @@ clap.workspace = true
 mailboxd-memdb.workspace = true
 itertools.workspace = true
 ring.workspace = true
+subtle.workspace = true
+argon2.workspace = true
+totp-rs.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
@@ -37,6 +40,7 @@ email_address.workspace = true
 futures.workspace = true
 utf7-imap.workspace = true
 mail-parser.workspace = true
+mime_guess.workspace = true
 tokio-rustls.workspace = true
 oauth2.workspace = true
 jsonwebtoken.workspace = true
@@ -67,7 +71,6 @@ uuid.workspace = true
 mailboxd-blob.workspace = true
 tracing-log.workspace = true
 tokio-util.workspace = true
-whichlang = "0.1.1"
 deunicode = "1.6.2"
 scopeguard = "1.2.0"
 cron = "0.17"
@@ -94,3 +97,4 @@ zstd = "0.14"
 
 [dev-dependencies]
 aws-lc-rs = "=1.18.2"
+tempfile = "=3.27.0"

@@ -36,6 +36,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { RetentionField } from './retention-field';
+import { getRetentionDaysSchema } from './schema';
 
 
 const accountSchema = (t: (key: string) => string) =>
@@ -47,7 +49,8 @@ const accountSchema = (t: (key: string) => string) =>
           ? t('validation.emailRequired')
           : t('validation.invalidEmail'),
     }),
-    enabled: z.boolean()
+    enabled: z.boolean(),
+    retention_days: getRetentionDaysSchema(t),
   });
 
 
@@ -55,6 +58,7 @@ export type NoSyncAccount = {
   account_name?: string;
   email: string;
   enabled: boolean;
+  retention_days?: number;
 };
 
 
@@ -77,7 +81,8 @@ const mapCurrentRowToFormValues = (currentRow: AccountModel): NoSyncAccount => {
   const account = {
     account_name: currentRow.account_name === null ? '' : currentRow.account_name,
     email: currentRow.email,
-    enabled: currentRow.enabled
+    enabled: currentRow.enabled,
+    retention_days: currentRow.retention_days ?? undefined,
   };
   return account;
 };
@@ -146,11 +151,13 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
         use_dangerous: false
       };
       if (isEdit) {
-        updateAccount(commonData);
+        // 0 turns retention off; leaving it out would keep the old period.
+        updateAccount({ ...commonData, retention_days: data.retention_days ?? 0 });
       } else {
         const payload = {
           ...commonData,
-          account_type: "NoSync"
+          account_type: "NoSync",
+          retention_days: data.retention_days,
         };
         createAccount(payload);
       }
@@ -232,6 +239,7 @@ export function NoSyncAccountDialog({ currentRow, open, onOpenChange }: Props) {
                   </FormItem>
                 )}
               />
+              <RetentionField />
             </form>
           </Form>
         </ScrollArea>

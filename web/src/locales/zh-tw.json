@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "超出此大小的郵件將被跳過。留空則使用預設值（100 MB）。",
     "maxEmailSizeBytesPlaceholder": "預設：100 MB",
     "maxEmailSizeBytesUnlimited": "預設：100 MB",
+    "retentionDays": "保留期限（天）",
+    "retentionDaysDescription": "早於此天數的已封存郵件將被刪除，更早的郵件也不再封存。留空則保留所有郵件。",
+    "retentionOff": "永久保留",
+    "retentionWarning": "早於保留期限的郵件將在接下來的 6 小時內從封存中永久刪除。此操作無法復原。",
     "minutes": "分鐘",
     "months": "月",
     "mustBeAtLeast1": "必須大於或等於 1",
@@ -331,6 +335,8 @@
       "generalDesc": "基本帳戶資訊与狀態。",
       "newAccount": "建立新帳戶",
       "performance": "效能",
+      "retention": "保留",
+      "retentionDesc": "選擇已封存郵件的保留時長。",
       "schedule": "時間排程",
       "scope": "下載範圍",
       "server": "伺服器設定",
@@ -541,10 +547,21 @@
     "login": "登入",
     "loginFailed": "登入失敗",
     "logout": "登出",
+    "mfa": {
+      "back": "返回登入",
+      "challengeExpired": "登入已過期，請重新登入。",
+      "code": "驗證碼",
+      "codeFormat": "請輸入驗證器應用程式中的 6 位數驗證碼或復原碼。",
+      "invalidCode": "驗證碼無效，請再試一次。",
+      "prompt": "請輸入驗證器應用程式中顯示的 6 位數驗證碼。若無法使用該應用程式，請改為輸入其中一組復原碼。",
+      "tooManyCodes": "無效驗證碼次數過多，請重新登入。",
+      "verify": "驗證"
+    },
     "password": "密碼",
     "sessionExpired": "連線逾時！",
     "sessionExpiredDesc": "由於閒置過久，您的連線已終止。請重新登入以繼續。",
     "somethingWentWrong": "發生錯誤",
+    "tooManyAttempts": "登入嘗試次數過多，請稍候幾分鐘再試。",
     "username": "使用者名稱",
     "welcome": "歡迎使用 mailboxd",
     "youWillNeedToLogInAgain": "您將需要再次登入才能存取您的帳號。",
@@ -714,6 +731,7 @@
     "detectedFolder": "已識別",
     "detectedFrom": "識別自",
     "dropHere": "將 .eml / .mbox / .pst 檔案拖曳到此處",
+    "duplicateCount": "已略過 {{count}} 個重複項",
     "failed": "匯入失敗",
     "failedCount": "{{count}} 個失敗",
     "failedDetails": "失敗詳情",
@@ -734,6 +752,7 @@
     "noMailboxFound": "未找到郵箱。",
     "noMailboxes": "該帳戶下未找到任何郵箱。",
     "orClick": "或點擊瀏覽檔案",
+    "outsideRetentionCount": "{{count}} 封超出保留期限",
     "processed": "已處理 {{current}} / {{total}}",
     "processing": "正在處理…",
     "pstFolderDesc": "PST 檔案包含其自身的資料夾結構（例如：收件箱、已發送郵件等）。匯入過程中將自動建立這些資料夾。",
@@ -747,6 +766,7 @@
     "source": "來源",
     "startImport": "開始匯入",
     "successCount": "已成功匯入 {{count}} 封",
+    "summaryOutsideRetention": "{{count}} 封超出保留期限",
     "target": "1. 選擇目標帳戶",
     "title": "匯入郵件",
     "uploading": "正在上傳…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "由 OAuth 服務供應商提供，用於驗證您的應用程式的密鑰。",
+    "accessToken": "存取權杖",
+    "accessTokenCannotBeEmpty": "存取權杖不能為空",
+    "accountIsRequired": "請選擇帳號。",
     "actions": {
       "authorize": "授權",
       "delete": "刪除",
       "edit": "編輯",
+      "importTokens": "匯入權杖",
       "openMenu": "開啟選單"
     },
     "addConfiguration": "新增設定",
@@ -867,8 +891,8 @@
     "addScope": "新增範圍",
     "areYouSureYouWantTo": "您確定要{{action}}此 OAuth2 客戶端嗎？",
     "areYouSureYouWantToDelete": "確定要刪除嗎",
-    "authAtatus": "OAuth2 授權狀態",
     "authFailed": "OAuth2 授權失敗",
+    "authStatus": "OAuth2 授權狀態",
     "authSuccess": "OAuth2 授權成功",
     "authUrlLabel": "授權 URL：",
     "authorizationUrlCannotBeEmpty": "授權 URL 不可為空",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "啟用 OAuth2 客戶端",
     "enabled": "已啟用",
     "enterIdToConfirmDeletion": "請輸入 ID 以確認刪除。",
+    "enterTheAccessTokenHere": "在此貼上存取權杖。",
     "enterTheAuthorizationUrl": "輸入授權 URL",
     "enterTheKeyHere": "在此輸入金鑰。",
+    "enterTheRefreshTokenHere": "在此貼上重新整理權杖。",
     "enterTheScopeHere": "在此輸入範圍。",
     "enterTheTokenUrl": "輸入權杖 URL",
     "enterTheValueHere": "在此輸入值。",
@@ -922,6 +948,15 @@
     "goHome": "回首頁",
     "goToAccounts": "前往帳號頁面",
     "id": "ID",
+    "importTokensDescription": "當 OAuth2 用戶端無法在 mailboxd 內完成授權時使用，例如權杖是透過 email-oauth2-proxy 等外部工具取得的。所選帳號必須已使用 OAuth2 作為 IMAP 驗證方式。",
+    "importTokensFailed": "匯入權杖失敗",
+    "importTokensSuccess": "權杖已匯入",
+    "importTokensSuccessDesc": "權杖已儲存，並會自動重新整理。",
+    "importTokensTitle": "匯入外部權杖",
+    "importTokensWarningClientMustMatch": "此設定的用戶端 ID 與用戶端密鑰必須與核發重新整理權杖的用戶端相同，否則重新整理會失敗。",
+    "importTokensWarningLongLivedCredential": "重新整理權杖是長期有效的憑證，將會加密後儲存在此伺服器上。",
+    "importTokensWarningStopExternalTool": "請停止取得這些權杖的外部工具。如果兩個工具同時重新整理同一個重新整理權杖，權杖會發生衝突，封存將會停止。",
+    "importing": "匯入中...",
     "information": "資訊",
     "invalidAuthorizationUrlFormat": "授權 URL 格式無效",
     "invalidRedirectUriFormat": "重新導向 URI 格式無效",
@@ -935,6 +970,8 @@
     "noConfigurations": "沒有 OAuth2 設定",
     "noConfigurationsDesc": "您尚未新增任何 OAuth2 設定。請新增設定以使用功能。",
     "noEmailAccountsRegistered": "沒有已註冊的電子郵件帳號。請建立一個。",
+    "noOAuth2Accounts": "您的帳號都未使用 OAuth2 驗證。請先建立驗證方式為 OAuth2 的帳號。",
+    "noProxy": "不使用代理",
     "noProxyAvailable": "無可用代理",
     "noStatus": "此頁面顯示 OAuth2 授權結果。目前沒有特定狀態可用，請根據需要重試。",
     "oauth2ClientHasBeenSuccessfully": "OAuth2 客戶端已成功{{action}}。",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "重新導向 URI 不可為空",
     "redirectUriIsRequired": "重新導向 URI 為必填項",
     "redirectUrlLabel": "重新導向 URL：",
+    "refreshToken": "重新整理權杖",
+    "refreshTokenCannotBeEmpty": "重新整理權杖不能為空",
     "save": "儲存",
     "saveChanges": "儲存變更",
     "saving": "正在儲存...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "重試",
     "warningDesc": "請小心，此操作無法復原。",
     "warningTitle": "警告！"
+  },
+  "repair_message": {
+    "confirm": "修復",
+    "desc": "從 IMAP 伺服器重新取得此郵件並儲存缺少的內容。僅當內容與封存的雜湊值相符時才會儲存。",
+    "emailMissing": "郵件內容仍然缺少",
+    "emailRestored": "郵件內容已還原",
+    "failedHint": "無法取得或驗證該郵件。請查看下方的錯誤訊息。",
+    "hideDetails": "隱藏詳細資料",
+    "history": "修復紀錄",
+    "historyEmpty": "尚無修復紀錄。",
+    "historyFailed": "無法載入修復紀錄。",
+    "historyHint": "最近 {{limit}} 次修復嘗試。",
+    "missingAfter": "仍然缺少的附件",
+    "missingBefore": "修復前缺少的附件",
+    "operator": "執行者",
+    "partialHint": "部分內容無法還原。與封存雜湊值不符的內容永遠不會被儲存。",
+    "repairAction": "修復郵件",
+    "repairing": "正在修復…",
+    "repairingHint": "正在從 IMAP 伺服器取得郵件，可能需要一些時間。",
+    "reportDesc": "修復嘗試的結果。",
+    "reportTitle": "修復報告",
+    "requestFailed": "修復請求失敗",
+    "result": "結果",
+    "showDetails": "顯示詳細資料",
+    "statusComplete": "沒有缺少的內容",
+    "statusFailed": "失敗",
+    "statusPartial": "部分修復",
+    "statusRepaired": "已修復",
+    "title": "修復郵件",
+    "wholeMessageNote": "這將修復整封郵件：內文及所有附件。"
   },
   "restore_message": {
     "accountsInvolved": "涉及帳戶",
@@ -1307,6 +1376,7 @@
     "body": "郵件正文",
     "button": "搜尋",
     "clear_history": "清除紀錄",
+    "hint": "多個詞需同時匹配。用 OR 放寬，用「引號」匹配短語，-詞 排除。",
     "no_history": "尚無搜尋紀錄",
     "placeholder": "搜尋郵件（使用 \" \" 進行短語搜尋）",
     "recent_title": "最近搜尋",
@@ -1350,9 +1420,17 @@
     "label": "重設",
     "tooltip": "清除所有篩選條件"
   },
+  "search_sort": {
+    "relevance": "相關性",
+    "relevance_needs_text": "輸入搜尋詞以依相關性排序",
+    "relevance_tooltip": "依最佳相符排序"
+  },
   "search_view": {
+    "absolute": "絕對",
     "button_label": "檢視",
-    "menu_title": "顯示欄位設定"
+    "date_display": "日期顯示",
+    "menu_title": "顯示欄位設定",
+    "relative": "相對"
   },
   "settings": {
     "accounts": "帳號",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "密碼無效",
     "lastAccess": "上次存取",
     "manageRootTokenAndPassword": "安全地管理根權杖和密碼。",
+    "mfa": {
+      "copied": "已複製到剪貼簿",
+      "description": "使用驗證器應用程式產生的一次性驗證碼保護密碼登入。",
+      "disabled": {
+        "description": "啟用後，使用密碼登入時還需要輸入驗證器應用程式（例如 Aegis、Google Authenticator 或 1Password）中的 6 位數驗證碼。",
+        "enable": "啟用雙重驗證",
+        "title": "雙重驗證未啟用"
+      },
+      "enabled": {
+        "codesLeft": "未使用的復原碼：{{remaining}}",
+        "codesLow": "復原碼即將用完。請停用後重新啟用雙重驗證以取得新的復原碼。",
+        "confirmDisable": "停用",
+        "description": "使用密碼登入時需要驗證器應用程式中的驗證碼。",
+        "disable": "停用雙重驗證",
+        "disableCode": "驗證器應用程式中的驗證碼或復原碼",
+        "disabledToast": "雙重驗證已停用",
+        "title": "雙重驗證已啟用"
+      },
+      "enrol": {
+        "code": "應用程式中的驗證碼",
+        "confirm": "確認並啟用",
+        "copySecret": "複製金鑰",
+        "description": "使用驗證器應用程式掃描 QR 碼，或手動輸入金鑰。接著輸入應用程式顯示的 6 位數驗證碼。",
+        "qrAlt": "驗證器應用程式的 QR 碼",
+        "qrFailed": "無法產生 QR 碼，請手動輸入金鑰。",
+        "secret": "手動輸入用的金鑰",
+        "title": "設定驗證器應用程式"
+      },
+      "errors": {
+        "enrolFailed": "無法開始設定",
+        "invalidCode": "驗證碼無效，請再試一次。",
+        "tooManyAttempts": "嘗試次數過多，請稍候幾分鐘再試一次。"
+      },
+      "loadError": "無法載入雙重驗證狀態。",
+      "recovery": {
+        "copy": "複製復原碼",
+        "description": "若無法使用驗證器應用程式，每組復原碼可用於登入一次。",
+        "done": "完成",
+        "download": "下載為 .txt",
+        "leaveWarning": "您尚未確認已儲存復原碼。復原碼不會再次顯示。仍要離開嗎？",
+        "onlyOnce": "這些復原碼只會顯示一次，請立即妥善保存。",
+        "saved": "我已將復原碼保存在安全的地方",
+        "title": "儲存復原碼"
+      },
+      "ssoNote": "您透過單一登入（SSO）登入。您帳戶的雙重驗證由身分識別提供者負責，因此無法在此設定。",
+      "title": "雙重驗證"
+    },
     "name": "名稱",
     "noProxies": "無代理設定",
     "noProxiesDesc": "您尚未新增任何代理設定。請新增設定以使用功能。",
@@ -1490,6 +1615,7 @@
       "apiTokens": "API 權杖",
       "backup": "備份",
       "configurations": "系統配置",
+      "mfa": "雙重驗證",
       "profile": "個人資料",
       "proxy": "網路代理"
     },
@@ -1517,6 +1643,12 @@
     "title": "登出"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "修改密碼",
+      "badge": "安全",
+      "message": "內建 admin 帳號仍接受初始密碼。請以 admin 登入後在個人資料中修改，或在「使用者」中修改。",
+      "title": "仍在使用預設管理員密碼"
+    },
     "notifications": "系統通知"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "搜尋使用者..."
       },
+      "reset_mfa": {
+        "button_confirm": "重設 2FA",
+        "confirm_msg": "將停用使用者 {{name}}（ID：{{id}}）的雙重驗證並刪除其復原碼。在重新設定之前，該使用者僅憑密碼即可登入。",
+        "failed_title": "重設失敗",
+        "menu": "重設 2FA",
+        "success_desc": "已停用「{{name}}」的雙重驗證。",
+        "success_title": "2FA 已重設",
+        "title": "重設雙重驗證"
+      },
       "schema": {
         "account_required": "請選擇一個帳戶",
         "description_max": "描述長度不能超過 256 個字元",
@@ -1767,6 +1908,7 @@
       "created_at": "建立時間",
       "email": "電子郵件地址",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "角色權限",
       "updated_at": "更新時間",
       "username": "使用者名稱"
@@ -1775,6 +1917,7 @@
       "description": "點擊下方按鈕開始新增第一個使用者。",
       "title": "未發現使用者"
     },
+    "mfa_enabled": "已啟用",
     "nav": {
       "api_tokens": "API 權杖",
       "roles": "角色",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "請輸入密碼",
     "pleaseEnterUsernameOrEmail": "請輸入您的使用者名稱或電子郵件",
     "required": "此欄位為必填項",
+    "retentionDaysRange": "請輸入 1 到 36500 之間的整數天數，或留空。",
     "singleRequestBatchSizeMustBeNumber": "批次大小必須是數字",
     "singleRequestBatchSizeTooLarge": "批次大小必須最多為200",
     "singleRequestBatchSizeTooSmall": "批次大小必須至少為10"

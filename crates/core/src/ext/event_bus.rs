@@ -41,6 +41,33 @@ pub enum Event {
         ip: Option<IpAddr>,
         success: bool,
     },
+    /// The second step of a password login. `method` is the kind of code
+    /// that was tried (`totp` or `recovery_code`), `None` for a malformed
+    /// code.
+    MfaLogin {
+        user: String,
+        ip: Option<IpAddr>,
+        success: bool,
+        method: Option<&'static str>,
+    },
+    /// A user confirmed TOTP enrolment; `success` is false for a wrong code.
+    MfaEnabled {
+        user: String,
+        ip: Option<IpAddr>,
+        success: bool,
+    },
+    /// A user turned TOTP off; `success` is false for a wrong code.
+    MfaDisabled {
+        user: String,
+        ip: Option<IpAddr>,
+        success: bool,
+    },
+    /// An administrator removed a user's two-factor authentication.
+    MfaReset {
+        reset_by: String,
+        target_user: String,
+        ip: Option<IpAddr>,
+    },
     UserCreated {
         created_by: String,
         new_user: String,
@@ -73,6 +100,22 @@ pub enum Event {
     EmailDeleted {
         email_id: String,
         user: String,
+    },
+    /// A blob repair that found something to repair. `status` is the
+    /// repair report's verdict (`repaired`, `partial` or `failed`).
+    EmailRepaired {
+        email_id: String,
+        user: String,
+        status: String,
+    },
+    /// The retention sweep deleted mail of an account. `success` is false
+    /// when the sweep failed part-way; `deleted` then counts what was
+    /// deleted before the failure.
+    RetentionPurged {
+        account: String,
+        deleted: u64,
+        window_days: u64,
+        success: bool,
     },
     AttachmentDownloaded {
         email_id: String,

@@ -46,7 +46,7 @@ const MessageHeader = ({
         <div className="space-y-4 mb-4 bg-card p-5 rounded-xl border shadow-xs">
             <div className="space-y-1">
                 <h1 className="text-lg font-bold text-foreground leading-snug">
-                    {envelope.subject || `(${t('mail.noSubject')})`}
+                    {envelope.subject || t('search.thread.noSubject')}
                 </h1>
                 <div className="text-[11px] text-muted-foreground">
                     {formatDateTime(envelope.date)}

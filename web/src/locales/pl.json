@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "Większe wiadomości zostaną pominięte. Pozostaw puste, aby użyć domyślnego limitu (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Domyślnie: 100 MB",
     "maxEmailSizeBytesUnlimited": "Domyślnie: 100 MB",
+    "retentionDays": "Okres przechowywania (dni)",
+    "retentionDaysDescription": "Zarchiwizowane wiadomości starsze niż podana liczba dni są usuwane, a starsze wiadomości nie są już archiwizowane. Pozostaw puste, aby zachować wszystkie wiadomości.",
+    "retentionOff": "Przechowuj bezterminowo",
+    "retentionWarning": "Wiadomości starsze niż okres przechowywania zostaną trwale usunięte z archiwum w ciągu najbliższych 6 godzin. Tej operacji nie można cofnąć.",
     "minutes": "minut",
     "months": "Miesiące",
     "mustBeAtLeast1": "Nie mniej jak 1",
@@ -331,6 +335,8 @@
       "generalDesc": "Podstawowe informacje o koncie i jego status.",
       "newAccount": "Nowe konto",
       "performance": "Wydajność",
+      "retention": "Przechowywanie",
+      "retentionDesc": "Wybierz, jak długo przechowywać zarchiwizowane wiadomości.",
       "schedule": "Harmonogram",
       "scope": "Zakres",
       "server": "Serwer",
@@ -541,10 +547,21 @@
     "login": "Login",
     "loginFailed": "Błędny login",
     "logout": "Wyloguj",
+    "mfa": {
+      "back": "Powrót do logowania",
+      "challengeExpired": "Logowanie wygasło. Zaloguj się ponownie.",
+      "code": "Kod weryfikacyjny",
+      "codeFormat": "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej lub kod odzyskiwania.",
+      "invalidCode": "Nieprawidłowy kod weryfikacyjny. Spróbuj ponownie.",
+      "prompt": "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej. Jeśli nie masz już do niej dostępu, wpisz zamiast tego jeden z kodów odzyskiwania.",
+      "tooManyCodes": "Zbyt wiele nieprawidłowych kodów. Zaloguj się ponownie.",
+      "verify": "Zweryfikuj"
+    },
     "password": "Hasło",
     "sessionExpired": "Sesja wygasła",
     "sessionExpiredDesc": "Twoja sesja wygasła z powodu bezczynności. Zaloguj się ponownie",
     "somethingWentWrong": "Coś poszło nie tak",
+    "tooManyAttempts": "Zbyt wiele prób logowania. Odczekaj kilka minut i spróbuj ponownie.",
     "username": "Nazwa",
     "welcome": "Witaj w mailboxd",
     "youWillNeedToLogInAgain": "Musisz zalogować się ponownie, aby ponownie móc korzystać.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Wykryto",
     "detectedFrom": "Wykryto z",
     "dropHere": "Upuść pliki .eml / .mbox / .pst tutaj",
+    "duplicateCount": "Pominięto duplikatów: {{count}}",
     "failed": "Import nie powiódł się",
     "failedCount": "Niepowodzenie: {{count}}",
     "failedDetails": "Nieudane elementy",
@@ -734,6 +752,7 @@
     "noMailboxFound": "Nie znaleziono skrzynki pocztowej.",
     "noMailboxes": "Nie znaleziono skrzynek pocztowych na tym koncie.",
     "orClick": "lub kliknij, aby przeglądać",
+    "outsideRetentionCount": "Poza okresem przechowywania: {{count}}",
     "processed": "Przetworzono: {{current}} / {{total}}",
     "processing": "Przetwarzanie…",
     "pstFolderDesc": "Plik PST zawiera własną strukturę folderów (np. Skrzynka odbiorcza, Elementy wysłane itp.). Foldery zostaną utworzone automatycznie podczas importu.",
@@ -747,6 +766,7 @@
     "source": "źródło",
     "startImport": "Importuj",
     "successCount": "Zaimportowano: {{count}}",
+    "summaryOutsideRetention": "Poza przechowywaniem: {{count}}",
     "target": "1. Wybierz konto docelowe",
     "title": "Import",
     "uploading": "Przesyłanie…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "Tajny klucz dostarczony przez dostawcę OAuth w celu uwierzytelnienia Twojej aplikacji.",
+    "accessToken": "Token dostępu",
+    "accessTokenCannotBeEmpty": "Token dostępu nie może być pusty",
+    "accountIsRequired": "Wybierz konto.",
     "actions": {
       "authorize": "Autoryzuj",
       "delete": "Usuń",
       "edit": "Edytuj",
+      "importTokens": "Importuj tokeny",
       "openMenu": "Otwórz menu"
     },
     "addConfiguration": "Dodaj konfigurację",
@@ -867,8 +891,8 @@
     "addScope": "Dodaj zakres",
     "areYouSureYouWantTo": "Czy jesteś pewnny, aby {{action}} klienta OAuth2?",
     "areYouSureYouWantToDelete": "Czy na pewno chcesz usunąć?",
-    "authAtatus": "Status Autoryzacji OAuth2",
     "authFailed": "Bład przy autoryzacji OAuth2",
+    "authStatus": "Status Autoryzacji OAuth2",
     "authSuccess": "Autoryzacja OAuth2 zakończona sukcesem",
     "authUrlLabel": "URL autoryzacji:",
     "authorizationUrlCannotBeEmpty": "URL Autoryzacji nie może być pusty",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "Włącz klienta OAuth2",
     "enabled": "Aktywne",
     "enterIdToConfirmDeletion": "Wpisz 'id', aby potwierdzić chęć usunięcia.",
+    "enterTheAccessTokenHere": "Wklej tutaj token dostępu.",
     "enterTheAuthorizationUrl": "Wpisz URL autoryzacji",
     "enterTheKeyHere": "Wpisz klucz tutaj.",
+    "enterTheRefreshTokenHere": "Wklej tutaj token odświeżania.",
     "enterTheScopeHere": "Wpisz zakres tutaj.",
     "enterTheTokenUrl": "Wpisz token URL",
     "enterTheValueHere": "Wpisz wartość tutaj.",
@@ -922,6 +948,15 @@
     "goHome": "Powrót to strony głównej",
     "goToAccounts": "Idz do kont",
     "id": "ID",
+    "importTokensDescription": "Użyj tej opcji, gdy klient OAuth2 nie może dokończyć autoryzacji w mailboxd, na przykład gdy tokeny uzyskano za pomocą zewnętrznego narzędzia, takiego jak email-oauth2-proxy. Wybrane konto musi już używać OAuth2 jako typu uwierzytelniania IMAP.",
+    "importTokensFailed": "Nie udało się zaimportować tokenów",
+    "importTokensSuccess": "Tokeny zaimportowane",
+    "importTokensSuccessDesc": "Tokeny zostały zapisane i będą odświeżane automatycznie.",
+    "importTokensTitle": "Importuj zewnętrzne tokeny",
+    "importTokensWarningClientMustMatch": "Client ID i Client Secret tej konfiguracji muszą być identyczne z danymi klienta, który wystawił token odświeżania, w przeciwnym razie odświeżanie się nie powiedzie.",
+    "importTokensWarningLongLivedCredential": "Token odświeżania to długotrwałe poświadczenie. Zostanie zaszyfrowany i zapisany na tym serwerze.",
+    "importTokensWarningStopExternalTool": "Zatrzymaj zewnętrzne narzędzie, które uzyskało te tokeny. Jeśli oba narzędzia odświeżają ten sam token odświeżania, tokeny wejdą w konflikt i archiwizacja się zatrzyma.",
+    "importing": "Importowanie...",
     "information": "Informacje",
     "invalidAuthorizationUrlFormat": "Niewłaściwy format URLa Autoryzacji",
     "invalidRedirectUriFormat": "Niewłaściwy format 'Redirect URI'",
@@ -935,6 +970,8 @@
     "noConfigurations": "Brak konfiguracji OAuth2",
     "noConfigurationsDesc": "Nie dodano jeszcze żadnych konfiguracji OAuth2. Dodaj jedną, aby zacząć korzystać z funkcji OAuth2.",
     "noEmailAccountsRegistered": "Brak zarejestrowanych kont email. Proszę je utworzyć.",
+    "noOAuth2Accounts": "Żadne z Twoich kont nie używa uwierzytelniania OAuth2. Najpierw utwórz konto z OAuth2 jako typem uwierzytelniania.",
+    "noProxy": "Bez proxy",
     "noProxyAvailable": "Brak dostępnych proxy",
     "noStatus": "Ta strona wyświetla wynik uwierzytelnienia OAuth2. Obecnie nie ma konkretnego statusu. Spróbuj ponownie, jeśli to konieczne.",
     "oauth2ClientHasBeenSuccessfully": "Klient OAuth2 został {{action}}.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "'Redirect URI' nie może być pusty",
     "redirectUriIsRequired": "'Redirect URI' jest wymagany",
     "redirectUrlLabel": "Przekierowanie URL:",
+    "refreshToken": "Token odświeżania",
+    "refreshTokenCannotBeEmpty": "Token odświeżania nie może być pusty",
     "save": "Zapisz",
     "saveChanges": "Zapisywanie zmian",
     "saving": "Zapisywanie...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Spróbuj ponownie",
     "warningDesc": "Należy zachować ostrożność, tej operacji nie można cofnąć",
     "warningTitle": "Ostrzeżenie!"
+  },
+  "repair_message": {
+    "confirm": "Napraw",
+    "desc": "Ponownie pobiera tę wiadomość z serwera IMAP i zapisuje brakującą zawartość. Zawartość jest zapisywana tylko wtedy, gdy zgadza się z zarchiwizowanym skrótem.",
+    "emailMissing": "Nadal brakuje treści wiadomości",
+    "emailRestored": "Przywrócono treść wiadomości",
+    "failedHint": "Nie udało się pobrać ani zweryfikować wiadomości. Zobacz błąd poniżej.",
+    "hideDetails": "Ukryj szczegóły",
+    "history": "Historia napraw",
+    "historyEmpty": "Brak napraw.",
+    "historyFailed": "Nie udało się wczytać historii napraw.",
+    "historyHint": "Ostatnie próby naprawy (maks. {{limit}}).",
+    "missingAfter": "Nadal brakujące załączniki",
+    "missingBefore": "Załączniki brakujące przed naprawą",
+    "operator": "Wykonał(a)",
+    "partialHint": "Części zawartości nie udało się przywrócić. Zawartość niezgodna z zarchiwizowanym skrótem nigdy nie jest zapisywana.",
+    "repairAction": "Napraw wiadomość",
+    "repairing": "Naprawianie…",
+    "repairingHint": "Pobieranie wiadomości z serwera IMAP. Może to chwilę potrwać.",
+    "reportDesc": "Wynik próby naprawy.",
+    "reportTitle": "Raport naprawy",
+    "requestFailed": "Żądanie naprawy nie powiodło się",
+    "result": "Wynik",
+    "showDetails": "Pokaż szczegóły",
+    "statusComplete": "Niczego nie brakowało",
+    "statusFailed": "Niepowodzenie",
+    "statusPartial": "Częściowo naprawiono",
+    "statusRepaired": "Naprawiono",
+    "title": "Napraw wiadomość",
+    "wholeMessageNote": "Naprawia całą wiadomość: jej treść i wszystkie załączniki."
   },
   "restore_message": {
     "accountsInvolved": "Zaangażowane konta",
@@ -1307,6 +1376,7 @@
     "body": "Treść",
     "button": "Szukaj",
     "clear_history": "Wyczyść historię",
+    "hint": "Wszystkie słowa muszą pasować. Użyj OR, aby poszerzyć, \"cudzysłowu\" dla frazy, -słowo, aby wykluczyć.",
     "no_history": "Brak historii wyszukiwania",
     "placeholder": "Wyszukaj e-maile (użyj \" \" do wyszukiwania fraz)",
     "recent_title": "Ostatnie wyszukiwania",
@@ -1350,9 +1420,17 @@
     "label": "Reset",
     "tooltip": "Wyczyść wszystkie filtry"
   },
+  "search_sort": {
+    "relevance": "Trafność",
+    "relevance_needs_text": "Wpisz wyszukiwane hasło, aby sortować według trafności",
+    "relevance_tooltip": "Sortuj według najlepszego dopasowania"
+  },
   "search_view": {
+    "absolute": "Bezwzględna",
     "button_label": "Widok",
-    "menu_title": "Ustawienia kolumn"
+    "date_display": "Wyświetlanie daty",
+    "menu_title": "Ustawienia kolumn",
+    "relative": "Względna"
   },
   "settings": {
     "accounts": "Konta",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Błędne hasło",
     "lastAccess": "Ostatni dostęp",
     "manageRootTokenAndPassword": "Zarządzaj tokenem głównym i hasłem w sposób bezpieczny",
+    "mfa": {
+      "copied": "Skopiowano do schowka",
+      "description": "Chroń logowanie hasłem jednorazowym kodem z aplikacji uwierzytelniającej.",
+      "disabled": {
+        "description": "Gdy jest włączone, logowanie hasłem wymaga także 6-cyfrowego kodu z aplikacji uwierzytelniającej, takiej jak Aegis, Google Authenticator lub 1Password.",
+        "enable": "Włącz uwierzytelnianie dwuskładnikowe",
+        "title": "Uwierzytelnianie dwuskładnikowe jest wyłączone"
+      },
+      "enabled": {
+        "codesLeft": "Niewykorzystane kody odzyskiwania: {{remaining}}",
+        "codesLow": "Kończą Ci się kody odzyskiwania. Wyłącz i ponownie włącz uwierzytelnianie dwuskładnikowe, aby otrzymać nowe.",
+        "confirmDisable": "Wyłącz",
+        "description": "Logowanie hasłem wymaga kodu z aplikacji uwierzytelniającej.",
+        "disable": "Wyłącz uwierzytelnianie dwuskładnikowe",
+        "disableCode": "Kod z aplikacji uwierzytelniającej lub kod odzyskiwania",
+        "disabledToast": "Uwierzytelnianie dwuskładnikowe wyłączone",
+        "title": "Uwierzytelnianie dwuskładnikowe jest włączone"
+      },
+      "enrol": {
+        "code": "Kod z aplikacji",
+        "confirm": "Potwierdź i włącz",
+        "copySecret": "Kopiuj klucz tajny",
+        "description": "Zeskanuj kod QR aplikacją uwierzytelniającą lub wpisz klucz tajny ręcznie. Następnie wpisz 6-cyfrowy kod wyświetlony przez aplikację.",
+        "qrAlt": "Kod QR dla aplikacji uwierzytelniającej",
+        "qrFailed": "Nie udało się wygenerować kodu QR. Wpisz klucz tajny ręcznie.",
+        "secret": "Klucz tajny do ręcznego wpisania",
+        "title": "Skonfiguruj aplikację uwierzytelniającą"
+      },
+      "errors": {
+        "enrolFailed": "Nie udało się rozpocząć konfiguracji",
+        "invalidCode": "Nieprawidłowy kod weryfikacyjny. Spróbuj ponownie.",
+        "tooManyAttempts": "Zbyt wiele prób. Odczekaj kilka minut i spróbuj ponownie."
+      },
+      "loadError": "Nie udało się wczytać stanu uwierzytelniania dwuskładnikowego.",
+      "recovery": {
+        "copy": "Kopiuj kody",
+        "description": "Każdy kod pozwala zalogować się jeden raz, jeśli utracisz dostęp do aplikacji uwierzytelniającej.",
+        "done": "Gotowe",
+        "download": "Pobierz jako .txt",
+        "leaveWarning": "Nie potwierdzono zapisania kodów odzyskiwania. Nie zostaną one ponownie wyświetlone. Czy mimo to opuścić stronę?",
+        "onlyOnce": "Te kody są wyświetlane tylko raz. Przechowaj je teraz w bezpiecznym miejscu.",
+        "saved": "Zapisałem kody odzyskiwania w bezpiecznym miejscu",
+        "title": "Zapisz kody odzyskiwania"
+      },
+      "ssoNote": "Logujesz się przez jednokrotne logowanie (SSO). Uwierzytelnianiem dwuskładnikowym Twojego konta zarządza dostawca tożsamości, dlatego nie można go tu skonfigurować.",
+      "title": "Uwierzytelnianie dwuskładnikowe"
+    },
     "name": "Nazwa",
     "noProxies": "Brak Proxy",
     "noProxiesDesc": "Nie dodano jeszcze żadnych konfiguracji proxy. Dodaj jedną, aby zacząć korzystać z funkcji proxy.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "Tokeny API",
       "backup": "Kopia zapasowa",
       "configurations": "Konfiguracja systemu",
+      "mfa": "Uwierzytelnianie dwuskładnikowe",
       "profile": "Profil",
       "proxy": "Proxy sieciowe"
     },
@@ -1517,6 +1643,12 @@
     "title": "Wyloguj się"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Zmień hasło",
+      "badge": "Bezpieczeństwo",
+      "message": "Wbudowane konto admin nadal akceptuje hasło początkowe. Zmień je w profilu po zalogowaniu jako admin lub w sekcji Użytkownicy.",
+      "title": "Używane jest domyślne hasło administratora"
+    },
     "notifications": "Powiadomienia systemowe"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Szukaj użytkowników..."
       },
+      "reset_mfa": {
+        "button_confirm": "Resetuj 2FA",
+        "confirm_msg": "Uwierzytelnianie dwuskładnikowe użytkownika {{name}} (ID: {{id}}) zostanie wyłączone, a jego kody odzyskiwania usunięte. Dopóki nie skonfiguruje go ponownie, do zalogowania wystarczy samo hasło.",
+        "failed_title": "Resetowanie nie powiodło się",
+        "menu": "Resetuj 2FA",
+        "success_desc": "Uwierzytelnianie dwuskładnikowe użytkownika „{{name}}” zostało wyłączone.",
+        "success_title": "Zresetowano 2FA",
+        "title": "Resetuj uwierzytelnianie dwuskładnikowe"
+      },
       "schema": {
         "account_required": "Wybierz konto",
         "description_max": "Opis maks. 256 znaków",
@@ -1767,6 +1908,7 @@
       "created_at": "Utworzono",
       "email": "Adres e-mail",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Role i uprawnienia",
       "updated_at": "Zaktualizowano",
       "username": "Nazwa użytkownika"
@@ -1775,6 +1917,7 @@
       "description": "Kliknij przycisk poniżej, aby dodać pierwszego użytkownika.",
       "title": "Nie znaleziono użytkowników"
     },
+    "mfa_enabled": "Włączone",
     "nav": {
       "api_tokens": "Tokeny API",
       "roles": "Role",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Proszę podać hasło",
     "pleaseEnterUsernameOrEmail": "Proszę podać nazwę użytkownika lub adres e-mail",
     "required": "To pole jest wymagane",
+    "retentionDaysRange": "Wprowadź liczbę całkowitą dni od 1 do 36500 lub pozostaw pole puste.",
     "singleRequestBatchSizeMustBeNumber": "Rozmiar partii musi być liczbą",
     "singleRequestBatchSizeTooLarge": "Rozmiar partii może wynosić maksymalnie 200",
     "singleRequestBatchSizeTooSmall": "Rozmiar partii musi wynosić co najmniej 10"

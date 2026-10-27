@@ -59,11 +59,12 @@ const relativeDateSchema = (t: (key: string) => string) =>
 const dateSelectionSchema = (t: (key: string) => string) =>
   z
     .object({
+      // nullish: the API returns the unused half as null
       fixed: z
         .string({ error: t('accounts.selectDate') })
         .min(1, { message: t('accounts.selectDate') })
-        .optional(),
-      relative: relativeDateSchema(t).optional(),
+        .nullish(),
+      relative: relativeDateSchema(t).nullish(),
     })
     .optional()
 
@@ -79,6 +80,25 @@ const archiveRulesSchema = z.object({
   skip_larger_than: z.number().int().positive().optional(),
   spam_headers: z.array(z.string()),
 })
+
+/** The longest retention period the server accepts. */
+export const MAX_RETENTION_DAYS = 36500
+
+/** Days to keep archived mail; unset keeps everything. */
+export const getRetentionDaysSchema = (t: (key: string) => string) => {
+  const message = t('validation.retentionDaysRange')
+  return z
+    .number({ error: message })
+    .int({ message })
+    .min(1, { message })
+    .max(MAX_RETENTION_DAYS, { message })
+    .optional()
+}
+
+/** The days typed into the retention field; an empty field turns retention off. */
+export function parseRetentionDays(value: string): number | undefined {
+  return value.trim() === '' ? undefined : Number(value)
+}
 
 export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
   z.object({
@@ -136,6 +156,7 @@ export const getAccountSchema = (isEdit: boolean, t: (key: string) => string) =>
         { message: t('validation.invalidCronExpression') }
       ),
     archive_rules: archiveRulesSchema.optional(),
+    retention_days: getRetentionDaysSchema(t),
   })
 
 export type AccountFormValues = z.infer<

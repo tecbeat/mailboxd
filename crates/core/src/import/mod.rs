@@ -33,7 +33,7 @@ use crate::{
     envelope::extractor::{extract_envelope_from_eml, ExtractOutcome},
     error::{code::ErrorCode, MailboxdResult},
     raise_error,
-    settings::dir::DATA_DIR_MANAGER,
+    settings::dir::{available_space, DATA_DIR_MANAGER},
     utils::create_hash,
 };
 
@@ -72,10 +72,47 @@ pub struct BatchEmlResult {
     pub success: usize,
     /// Number of duplicate emails skipped (content hash already existed).
     pub duplicates: usize,
+    /// Number of emails skipped because they are older than the account's
+    /// retention window.
+    pub outside_retention: usize,
     /// Number of emails failed to import.
     pub failed: usize,
     /// A list of details for failed imports.
     pub failed_details: Vec<FailedItemDetail>,
+}
+
+impl BatchEmlResult {
+    /// A batch failed only when every message failed; skipped duplicates and
+    /// mail outside the retention window count as handled.
+    pub fn status(&self) -> ImportStatus {
+        if self.failed > 0
+            && self.success == 0
+            && self.duplicates == 0
+            && self.outside_retention == 0
+        {
+            ImportStatus::Failed
+        } else {
+            ImportStatus::Completed
+        }
+    }
+}
+
+/// How many messages of an import ended in each successful outcome.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct OutcomeCounts {
+    pub success: usize,
+    pub duplicates: usize,
+    pub outside_retention: usize,
+}
+
+impl OutcomeCounts {
+    pub fn record(&mut self, outcome: ExtractOutcome) {
+        match outcome {
+            ExtractOutcome::Imported => self.success += 1,
+            ExtractOutcome::Duplicate => self.duplicates += 1,
+            ExtractOutcome::OutsideRetention => self.outside_retention += 1,
+        }
+    }
 }
 
 pub struct ImportEmls;
@@ -132,8 +169,7 @@ impl ImportEmls {
         };
 
         let account_id = account.id;
-        let mut success_count = 0;
-        let mut duplicate_count = 0;
+        let mut counts = OutcomeCounts::default();
         let mut failed_details: Vec<FailedItemDetail> = Vec::new(); // Store failure details
 
         let total = request.emls.len();
@@ -171,12 +207,7 @@ impl ImportEmls {
             }
 
             match extract_envelope_from_eml(&decoded, account_id, mailbox_id).await {
-                Ok(ExtractOutcome::Imported) => {
-                    success_count += 1;
-                }
-                Ok(ExtractOutcome::Duplicate) => {
-                    duplicate_count += 1;
-                }
+                Ok(outcome) => counts.record(outcome),
                 Err(e) => {
                     let error_msg = format!(
                         "Failed to extract envelope from EML at index {}: {:?}",
@@ -198,8 +229,9 @@ impl ImportEmls {
 
         Ok(BatchEmlResult {
             total,
-            success: success_count,
-            duplicates: duplicate_count,
+            success: counts.success,
+            duplicates: counts.duplicates,
+            outside_retention: counts.outside_retention,
             failed: failed_count,
             failed_details, // Return the list of failure details
         })
@@ -226,6 +258,8 @@ pub struct ImportProgress {
     pub total: usize,
     pub success: usize,
     pub duplicates: usize,
+    #[serde(default)]
+    pub outside_retention: usize,
     pub failed: usize,
     pub failed_details: Vec<FailedItemDetail>,
 }
@@ -244,19 +278,9 @@ pub fn update_progress(import_id: &str, progress: ImportProgress) {
 }
 
 /// Check free disk space (in bytes) on the temp directory's filesystem.
+/// Reports plenty of space if the file system cannot be determined.
 pub fn check_temp_disk_space() -> MailboxdResult<u64> {
-    use sysinfo::Disks;
-    let disks = Disks::new_with_refreshed_list();
-    let temp_path = &DATA_DIR_MANAGER.temp_dir;
-    // Use the canonical path so we can match mount points
-    let canonical = std::fs::canonicalize(temp_path).unwrap_or_else(|_| temp_path.clone());
-    for disk in disks.list() {
-        if canonical.starts_with(disk.mount_point()) {
-            return Ok(disk.available_space());
-        }
-    }
-    // Fallback: if we can't find the mount point, report plenty of space
-    Ok(u64::MAX)
+    Ok(available_space(&DATA_DIR_MANAGER.temp_dir))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -461,6 +485,7 @@ pub fn process_uploaded_file(
                 total: 0,
                 success: 0,
                 duplicates: 0,
+                outside_retention: 0,
                 failed: 0,
                 failed_details: vec![FailedItemDetail {
                     index: 0,
@@ -483,6 +508,7 @@ pub fn process_uploaded_file(
                 total: 0,
                 success: 0,
                 duplicates: 0,
+                outside_retention: 0,
                 failed: 0,
                 failed_details: vec![FailedItemDetail {
                     index: 0,
@@ -506,6 +532,7 @@ pub fn process_uploaded_file(
                 total: 0,
                 success: 0,
                 duplicates: 0,
+                outside_retention: 0,
                 failed: 0,
                 failed_details: vec![FailedItemDetail {
                     index: 0,
@@ -589,13 +616,13 @@ fn process_eml_file(
             total,
             success: 0,
             duplicates: 0,
+            outside_retention: 0,
             failed: 0,
             failed_details: vec![],
         },
     );
 
-    let (success_count, duplicate_count, failed_details) =
-        process_single_eml(&file_bytes, 0, account_id, mailbox_id);
+    let (counts, failed_details) = process_single_eml(&file_bytes, 0, account_id, mailbox_id);
 
     // Clean up
     let _ = std::fs::remove_file(file_path);
@@ -605,8 +632,9 @@ fn process_eml_file(
         status: ImportStatus::Completed,
         format: "eml".to_string(),
         total,
-        success: success_count,
-        duplicates: duplicate_count,
+        success: counts.success,
+        duplicates: counts.duplicates,
+        outside_retention: counts.outside_retention,
         failed: failed_details.len(),
         failed_details,
     };
@@ -653,13 +681,13 @@ fn process_mbox_file(
             total,
             success: 0,
             duplicates: 0,
+            outside_retention: 0,
             failed: 0,
             failed_details: vec![],
         },
     );
 
-    let mut success_count = 0usize;
-    let mut duplicate_count = 0usize;
+    let mut counts = OutcomeCounts::default();
     let mut failed_details: Vec<FailedItemDetail> = Vec::new();
 
     for (index, entry) in mbox.iter().enumerate() {
@@ -682,12 +710,7 @@ fn process_mbox_file(
         match futures::executor::block_on(extract_envelope_from_eml(
             eml_bytes, account_id, mailbox_id,
         )) {
-            Ok(ExtractOutcome::Imported) => {
-                success_count += 1;
-            }
-            Ok(ExtractOutcome::Duplicate) => {
-                duplicate_count += 1;
-            }
+            Ok(outcome) => counts.record(outcome),
             Err(e) => {
                 failed_details.push(FailedItemDetail {
                     index,
@@ -705,8 +728,9 @@ fn process_mbox_file(
                     status: ImportStatus::Processing,
                     format: "mbox".to_string(),
                     total,
-                    success: success_count,
-                    duplicates: duplicate_count,
+                    success: counts.success,
+                    duplicates: counts.duplicates,
+                    outside_retention: counts.outside_retention,
                     failed: failed_details.len(),
                     failed_details: failed_details.clone(),
                 },
@@ -723,8 +747,9 @@ fn process_mbox_file(
         status: ImportStatus::Completed,
         format: "mbox".to_string(),
         total,
-        success: success_count,
-        duplicates: duplicate_count,
+        success: counts.success,
+        duplicates: counts.duplicates,
+        outside_retention: counts.outside_retention,
         failed: failed_details.len(),
         failed_details,
     };
@@ -732,19 +757,19 @@ fn process_mbox_file(
     update_progress(import_id, final_progress);
 }
 
-/// Process a single EML byte slice and return (success_count, duplicate_count,
-/// failed_details).
+/// Process a single EML byte slice and return the outcome counts and the
+/// failure details.
 fn process_single_eml(
     eml_bytes: &[u8],
     index: usize,
     account_id: u64,
     mailbox_id: u64,
-) -> (usize, usize, Vec<FailedItemDetail>) {
+) -> (OutcomeCounts, Vec<FailedItemDetail>) {
+    let mut counts = OutcomeCounts::default();
     if eml_bytes.len() > MAX_SINGLE_EML_BYTES {
         let size_mb = eml_bytes.len() as f64 / 1024.0 / 1024.0;
         return (
-            0,
-            0,
+            counts,
             vec![FailedItemDetail {
                 index,
                 error_message: format!(
@@ -758,11 +783,12 @@ fn process_single_eml(
 
     match futures::executor::block_on(extract_envelope_from_eml(eml_bytes, account_id, mailbox_id))
     {
-        Ok(ExtractOutcome::Imported) => (1, 0, vec![]),
-        Ok(ExtractOutcome::Duplicate) => (0, 1, vec![]),
+        Ok(outcome) => {
+            counts.record(outcome);
+            (counts, vec![])
+        }
         Err(e) => (
-            0,
-            0,
+            counts,
             vec![FailedItemDetail {
                 index,
                 error_message: format!("{:?}", e),
@@ -808,14 +834,14 @@ fn process_pst_upload(
             total,
             success: 0,
             duplicates: 0,
+            outside_retention: 0,
             failed: 0,
             failed_details: vec![],
         },
     );
 
     // Pass 2: process messages with progress updates
-    let mut success_count: usize = 0;
-    let mut duplicate_count: usize = 0;
+    let mut counts = OutcomeCounts::default();
     let mut failed_details: Vec<FailedItemDetail> = Vec::new();
     let mut index: usize = 0;
 
@@ -875,11 +901,10 @@ fn process_pst_upload(
         "", // parent_path starts empty
         account_id,
         total, // pass pre-counted total for accurate progress
-        &mut success_count,
-        &mut duplicate_count,
+        &mut counts,
         &mut failed_details,
         &mut index,
-        &|success, duplicates, actual_failed| {
+        &|counts: OutcomeCounts, actual_failed| {
             update_progress(
                 &import_id,
                 ImportProgress {
@@ -887,8 +912,9 @@ fn process_pst_upload(
                     status: ImportStatus::Processing,
                     format: format_str.clone(),
                     total,
-                    success,
-                    duplicates,
+                    success: counts.success,
+                    duplicates: counts.duplicates,
+                    outside_retention: counts.outside_retention,
                     failed: actual_failed,
                     failed_details: vec![],
                 },
@@ -904,8 +930,9 @@ fn process_pst_upload(
         status: ImportStatus::Completed,
         format: "pst".to_string(),
         total,
-        success: success_count,
-        duplicates: duplicate_count,
+        success: counts.success,
+        duplicates: counts.duplicates,
+        outside_retention: counts.outside_retention,
         failed: failed_details.len(),
         failed_details,
     };
@@ -929,6 +956,7 @@ fn fail_progress(
         total: 0,
         success: 0,
         duplicates: 0,
+        outside_retention: 0,
         failed: 0,
         failed_details: vec![FailedItemDetail {
             index: 0,
@@ -937,4 +965,275 @@ fn fail_progress(
     };
     update_progress(import_id, progress.clone());
     history::save_import_history(user_id, account_id, folder, &progress);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn temp_disk_space_check_reports_free_space() {
+        // The temp dir always lives on some file system; when it cannot be
+        // identified the check reports plenty of space rather than failing.
+        let free = check_temp_disk_space().expect("disk space check never errors");
+        assert!(free > 0, "temp file system must report free space");
+    }
+
+    #[test]
+    fn outcome_counts_tally_each_outcome() {
+        let mut counts = OutcomeCounts::default();
+        for outcome in [
+            ExtractOutcome::Imported,
+            ExtractOutcome::Imported,
+            ExtractOutcome::Duplicate,
+            ExtractOutcome::OutsideRetention,
+        ] {
+            counts.record(outcome);
+        }
+        assert_eq!(
+            counts,
+            OutcomeCounts {
+                success: 2,
+                duplicates: 1,
+                outside_retention: 1,
+            }
+        );
+    }
+
+    #[test]
+    fn a_batch_fails_only_when_no_message_was_handled() {
+        let result = |success, duplicates, outside_retention, failed| BatchEmlResult {
+            total: success + duplicates + outside_retention + failed,
+            success,
+            duplicates,
+            outside_retention,
+            failed,
+            failed_details: vec![],
+        };
+        assert_eq!(result(0, 0, 0, 0).status(), ImportStatus::Completed);
+        assert_eq!(result(2, 0, 0, 0).status(), ImportStatus::Completed);
+        assert_eq!(result(0, 0, 0, 2).status(), ImportStatus::Failed);
+        assert_eq!(result(1, 0, 0, 1).status(), ImportStatus::Completed);
+        assert_eq!(result(0, 1, 0, 1).status(), ImportStatus::Completed);
+        assert_eq!(result(0, 0, 1, 1).status(), ImportStatus::Completed);
+    }
+
+    mod retention {
+        use super::*;
+        use crate::{
+            database::{manager::DB_MANAGER, upsert_impl},
+            store::tantivy::envelope::test_support::{init_globals, unique_id},
+        };
+
+        /// An enabled no-sync account that keeps 30 days of mail.
+        pub(super) fn retained_account() -> u64 {
+            let id = unique_id();
+            upsert_impl(
+                DB_MANAGER.db(),
+                AccountModel {
+                    id,
+                    email: "import-retention@example.com".into(),
+                    enabled: true,
+                    account_type: AccountType::NoSync,
+                    retention_days: Some(30),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+            id
+        }
+
+        /// A message with a unique Message-ID dated `date` (RFC 2822).
+        fn eml(date: &str) -> String {
+            format!(
+                "From: sender@example.com\r\nTo: rcpt@example.com\r\nSubject: retention\r\n\
+                 Message-ID: <{}@import.test>\r\nDate: {date}\r\n\r\nbody\r\n",
+                uuid::Uuid::new_v4()
+            )
+        }
+
+        fn recent() -> String {
+            chrono::Utc::now().to_rfc2822()
+        }
+
+        const OLD: &str = "Mon, 1 Jan 2001 10:00:00 +0000";
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn a_batch_import_counts_mail_outside_the_window() {
+            init_globals();
+            let account_id = retained_account();
+            let result = ImportEmls::do_import(BatchEmlRequest {
+                account_id,
+                mail_folder: "Imported".into(),
+                emls: [eml(OLD), eml(&recent())]
+                    .iter()
+                    .map(|e| crate::base64_encode_url_safe!(e))
+                    .collect(),
+            })
+            .await
+            .unwrap();
+            assert_eq!(
+                (
+                    result.total,
+                    result.success,
+                    result.outside_retention,
+                    result.failed
+                ),
+                (2, 1, 1, 0)
+            );
+        }
+
+        /// Upload `content` as `name` and return the final progress.
+        pub(super) async fn upload(account_id: u64, name: &str, content: String) -> ImportProgress {
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join(name);
+            std::fs::write(&path, content).unwrap();
+            let import_id = format!("retention-{}", unique_id());
+            let (id, file) = (import_id.clone(), name.to_string());
+            tokio::task::spawn_blocking(move || {
+                process_uploaded_file(&id, &path, &file, account_id, "Uploaded", 1)
+            })
+            .await
+            .unwrap();
+            get_import_progress(&import_id).expect("progress is recorded")
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn an_eml_upload_outside_the_window_is_counted_not_imported() {
+            init_globals();
+            let progress = upload(retained_account(), "old.eml", eml(OLD)).await;
+            assert_eq!(progress.status, ImportStatus::Completed);
+            assert_eq!(
+                (
+                    progress.success,
+                    progress.outside_retention,
+                    progress.failed
+                ),
+                (0, 1, 0)
+            );
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn an_mbox_upload_counts_mail_outside_the_window() {
+            init_globals();
+            let mbox = format!(
+                "From sender@example.com Mon Jan  1 10:00:00 2001\n{}\n\
+                 From sender@example.com Mon Jan  1 10:00:00 2001\n{}\n",
+                eml(OLD).replace("\r\n", "\n"),
+                eml(&recent()).replace("\r\n", "\n"),
+            );
+            let progress = upload(retained_account(), "mail.mbox", mbox).await;
+            assert_eq!(progress.status, ImportStatus::Completed);
+            assert_eq!(
+                (progress.total, progress.success, progress.outside_retention),
+                (2, 1, 1)
+            );
+        }
+    }
+
+    mod failures {
+        use super::retention::{retained_account, upload};
+        use super::*;
+        use crate::store::tantivy::envelope::test_support::{init_globals, unique_id};
+
+        fn error_of(progress: &ImportProgress) -> &str {
+            &progress.failed_details[0].error_message
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn an_upload_to_an_unknown_account_fails() {
+            init_globals();
+            let progress = upload(unique_id(), "mail.eml", "Subject: x\r\n\r\nx\r\n".into()).await;
+            assert_eq!(progress.status, ImportStatus::Failed);
+            assert!(
+                error_of(&progress).starts_with("Account validation failed"),
+                "{progress:?}"
+            );
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn an_upload_in_an_unknown_format_fails() {
+            init_globals();
+            let progress = upload(retained_account(), "notes.txt", "\0\0\0".into()).await;
+            assert_eq!(
+                (&progress.status, progress.format.as_str()),
+                (&ImportStatus::Failed, "unknown")
+            );
+            assert!(
+                error_of(&progress).contains("Unknown file format"),
+                "{progress:?}"
+            );
+        }
+
+        /// Run `process` on a file that does not exist and return its progress.
+        async fn missing_file(process: fn(&str, &Path, u64, u64, u64, &str)) -> ImportProgress {
+            let import_id = format!("missing-{}", unique_id());
+            let id = import_id.clone();
+            tokio::task::spawn_blocking(move || {
+                let dir = tempfile::tempdir().unwrap();
+                process(&id, &dir.path().join("gone"), unique_id(), 1, 1, "Uploaded");
+            })
+            .await
+            .unwrap();
+            get_import_progress(&import_id).expect("progress is recorded")
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn an_unreadable_eml_file_fails_the_import() {
+            init_globals();
+            let progress = missing_file(process_eml_file).await;
+            assert_eq!(
+                (&progress.status, progress.format.as_str()),
+                (&ImportStatus::Failed, "eml")
+            );
+            assert!(
+                error_of(&progress).starts_with("Failed to read file"),
+                "{progress:?}"
+            );
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn an_unreadable_mbox_file_fails_the_import() {
+            init_globals();
+            let progress = missing_file(process_mbox_file).await;
+            assert_eq!(
+                (&progress.status, progress.format.as_str()),
+                (&ImportStatus::Failed, "mbox")
+            );
+            assert!(
+                error_of(&progress).starts_with("Failed to open MBOX file"),
+                "{progress:?}"
+            );
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn an_oversized_message_is_a_failed_item() {
+            init_globals();
+            let (counts, failed) = tokio::task::spawn_blocking(|| {
+                process_single_eml(&vec![b'x'; MAX_SINGLE_EML_BYTES + 1], 3, unique_id(), 1)
+            })
+            .await
+            .unwrap();
+            assert_eq!(counts, OutcomeCounts::default());
+            assert_eq!(failed.len(), 1);
+            assert_eq!(failed[0].index, 3);
+            assert!(
+                failed[0].error_message.contains("limit 100 MB"),
+                "{failed:?}"
+            );
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn an_unparsable_message_is_a_failed_item() {
+            init_globals();
+            let account_id = retained_account();
+            let (counts, failed) =
+                tokio::task::spawn_blocking(move || process_single_eml(b"", 4, account_id, 1))
+                    .await
+                    .unwrap();
+            assert_eq!(counts, OutcomeCounts::default());
+            assert_eq!(failed.len(), 1);
+            assert_eq!(failed[0].index, 4);
+        }
+    }
 }

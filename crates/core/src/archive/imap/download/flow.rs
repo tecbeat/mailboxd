@@ -38,6 +38,7 @@ use crate::{
             compress_uid_list, generate_uid_sequence_hashset, slow_server_message, ImapExecutor,
             DEFAULT_BATCH_SIZE,
         },
+        retention,
         store::tantivy::envelope::ENVELOPE_MANAGER,
     },
 };
@@ -78,10 +79,13 @@ pub async fn fetch_and_save_by_date(
         }
     };
 
-    let search_criteria = match direction {
-        FetchDirection::Since => format!("SINCE {date}"),
-        FetchDirection::Before => format!("BEFORE {date}"),
-    };
+    let search_criteria = retention::imap_search_criteria(
+        account,
+        &match direction {
+            FetchDirection::Since => format!("SINCE {date}"),
+            FetchDirection::Before => format!("BEFORE {date}"),
+        },
+    );
 
     let uid_list =
         match ImapExecutor::uid_search(&mut session, &mailbox.encoded_name(), &search_criteria)
@@ -136,6 +140,12 @@ pub async fn fetch_and_save_by_date(
     )?;
 
     let mut current_processed = 0u64;
+    // Messages skipped because they could not be parsed (not archived). They
+    // do not fail the folder — the watermark advances past them so scheduled
+    // syncs do not re-fetch a permanently broken message — but the total is
+    // reported so the running state carries a warning (they stay "missing"
+    // locally, so gap-fill keeps detecting them).
+    let mut parse_skipped = 0u64;
     let mut has_error_or_cancel = false;
     for (index, batch) in uid_batches.into_iter().enumerate() {
         if token.is_cancelled() {
@@ -181,7 +191,7 @@ pub async fn fetch_and_save_by_date(
             )
             .await
             {
-                Ok((processed, _throttled)) => break Ok(processed),
+                Ok(outcome) => break Ok(outcome),
                 Err(e) if retries < MAX_NETWORK_RETRIES && e.code() == ErrorCode::NetworkError => {
                     retries += 1;
                     warn!(
@@ -218,8 +228,9 @@ pub async fn fetch_and_save_by_date(
             }
         };
         match batch_result {
-            Ok(processed) => {
-                current_processed += processed;
+            Ok(outcome) => {
+                current_processed += outcome.stored;
+                parse_skipped += outcome.parse_skipped;
                 DownloadState::update_folder_progress(
                     account_id,
                     mailbox.name.clone(),
@@ -246,6 +257,19 @@ pub async fn fetch_and_save_by_date(
         }
     }
     if !has_error_or_cancel {
+        if parse_skipped > 0 {
+            // Folder-level summary of the per-message warnings the batch
+            // fetch already recorded, so the running state's error list
+            // carries the total as well.
+            let _ = DownloadState::append_session_error(
+                account_id,
+                format!(
+                    "Mailbox '{}': {} email(s) could not be parsed and were skipped \
+                     (not archived); gap-fill will keep detecting them",
+                    mailbox.name, parse_skipped
+                ),
+            );
+        }
         DownloadState::update_folder_progress(
             account_id,
             mailbox.name.clone(),
@@ -256,7 +280,10 @@ pub async fn fetch_and_save_by_date(
         )?;
     }
     session.logout().await.ok();
-    Ok(max_uid)
+    // Only hand back a watermark when the whole folder completed: the caller
+    // persists it as the incremental-sync cursor, and a mid-download failure
+    // must not move it past UIDs that were never fetched (#377).
+    Ok(if has_error_or_cancel { None } else { max_uid })
 }
 
 /// Fetches all messages from a mailbox.
@@ -291,24 +318,29 @@ pub async fn fetch_and_save_full_mailbox(
         }
     };
 
-    let uid_list =
-        match ImapExecutor::uid_search_all_mailbox(&mut session, &mailbox.encoded_name()).await {
-            Ok(list) => list,
-            Err(e) => {
-                let err_msg = format!("UID SEARCH failed in [{}]: {:#?}", mailbox.name, e);
-                DownloadState::update_folder_progress(
-                    account_id,
-                    mailbox.name.clone(),
-                    0,
-                    0,
-                    FolderStatus::Failed,
-                    Some(err_msg.clone()),
-                )?;
-                DownloadState::append_session_error(account_id, err_msg)?;
-                session.logout().await.ok();
-                return Err(e);
-            }
-        };
+    let uid_list = match ImapExecutor::uid_search_all_mailbox(
+        &mut session,
+        &mailbox.encoded_name(),
+        &retention::imap_search_criteria(account, "ALL"),
+    )
+    .await
+    {
+        Ok(list) => list,
+        Err(e) => {
+            let err_msg = format!("UID SEARCH failed in [{}]: {:#?}", mailbox.name, e);
+            DownloadState::update_folder_progress(
+                account_id,
+                mailbox.name.clone(),
+                0,
+                0,
+                FolderStatus::Failed,
+                Some(err_msg.clone()),
+            )?;
+            DownloadState::append_session_error(account_id, err_msg)?;
+            session.logout().await.ok();
+            return Err(e);
+        }
+    };
 
     let planned = uid_list.len() as u64;
     if planned == 0 {
@@ -339,6 +371,12 @@ pub async fn fetch_and_save_full_mailbox(
     );
 
     let mut current_processed = 0u64;
+    // Messages skipped because they could not be parsed (not archived). They
+    // do not fail the folder — the watermark advances past them so scheduled
+    // syncs do not re-fetch a permanently broken message — but the total is
+    // reported so the running state carries a warning (they stay "missing"
+    // locally, so gap-fill keeps detecting them).
+    let mut parse_skipped = 0u64;
     let mut has_error_or_cancel = false;
 
     for (index, batch) in uid_batches.into_iter().enumerate() {
@@ -393,7 +431,7 @@ pub async fn fetch_and_save_full_mailbox(
             )
             .await
             {
-                Ok((count, _throttled)) => break Ok(count),
+                Ok(outcome) => break Ok(outcome),
                 Err(e) if retries < MAX_NETWORK_RETRIES && e.code() == ErrorCode::NetworkError => {
                     retries += 1;
                     warn!(
@@ -432,8 +470,9 @@ pub async fn fetch_and_save_full_mailbox(
             }
         };
         match batch_result {
-            Ok(count) => {
-                current_processed += count as u64;
+            Ok(outcome) => {
+                current_processed += outcome.stored;
+                parse_skipped += outcome.parse_skipped;
                 DownloadState::update_folder_progress(
                     account_id,
                     mailbox.name.clone(),
@@ -461,6 +500,19 @@ pub async fn fetch_and_save_full_mailbox(
     }
 
     if !has_error_or_cancel {
+        if parse_skipped > 0 {
+            // Folder-level summary of the per-message warnings the batch
+            // fetch already recorded, so the running state's error list
+            // carries the total as well.
+            let _ = DownloadState::append_session_error(
+                account_id,
+                format!(
+                    "Mailbox '{}': {} email(s) could not be parsed and were skipped \
+                     (not archived); gap-fill will keep detecting them",
+                    mailbox.name, parse_skipped
+                ),
+            );
+        }
         DownloadState::update_folder_progress(
             account_id,
             mailbox.name.clone(),
@@ -471,7 +523,14 @@ pub async fn fetch_and_save_full_mailbox(
         )?;
     }
     session.logout().await.ok();
-    Ok(max_uid.into())
+    // Only hand back a watermark when the whole folder completed: the caller
+    // persists it as the incremental-sync cursor, and a mid-download failure
+    // must not move it past UIDs that were never fetched (#377).
+    if has_error_or_cancel {
+        Ok(None)
+    } else {
+        Ok(Some(max_uid))
+    }
 }
 
 /// Generates a synthetic UIDVALIDITY for IMAP servers that don't provide it.
@@ -569,28 +628,18 @@ async fn reconcile_uid_validity_change(
         .await
         .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
-    // Phase 2: collect remote UIDs, respecting date constraints
-    let remote_uid_list: Vec<u32> = if let Some(date_since) = &account.date_since {
-        let date = date_since.since_date()?;
-        let results = session
-            .uid_search(&format!("SINCE {date}"))
-            .await
-            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-        let mut v: Vec<u32> = results.into_iter().collect();
-        v.sort();
-        v
+    // Phase 2: collect remote UIDs, respecting date constraints and the
+    // retention window
+    let criteria = if let Some(date_since) = &account.date_since {
+        format!("SINCE {}", date_since.since_date()?)
     } else if let Some(date_before) = &account.date_before {
-        let date = date_before.calculate_date()?;
-        let results = session
-            .uid_search(&format!("BEFORE {date}"))
-            .await
-            .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
-        let mut v: Vec<u32> = results.into_iter().collect();
-        v.sort();
-        v
+        format!("BEFORE {}", date_before.calculate_date()?)
     } else {
+        "ALL".to_string()
+    };
+    let remote_uid_list: Vec<u32> = {
         let results = session
-            .uid_search("ALL")
+            .uid_search(&retention::imap_search_criteria(account, &criteria))
             .await
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         let mut v: Vec<u32> = results.into_iter().collect();
@@ -682,6 +731,9 @@ async fn reconcile_uid_validity_change(
         let batches = generate_uid_sequence_hashset(missing_uids, batch_size);
 
         let mut downloaded = 0u64;
+        // Messages skipped because they could not be parsed (not archived);
+        // reported as a folder-level warning once the batch loop ends.
+        let mut parse_skipped = 0u64;
         for (index, batch) in batches.into_iter().enumerate() {
             if token.is_cancelled() {
                 DownloadState::update_folder_progress(
@@ -719,8 +771,9 @@ async fn reconcile_uid_validity_change(
             )
             .await
             {
-                Ok((processed, _throttled)) => {
-                    downloaded += processed;
+                Ok(outcome) => {
+                    downloaded += outcome.stored;
+                    parse_skipped += outcome.parse_skipped;
                     DownloadState::update_folder_progress(
                         account_id,
                         remote_mailbox.name.clone(),
@@ -747,6 +800,16 @@ async fn reconcile_uid_validity_change(
             }
         }
 
+        if parse_skipped > 0 {
+            let _ = DownloadState::append_session_error(
+                account_id,
+                format!(
+                    "Mailbox '{}': {} email(s) could not be parsed and were skipped \
+                     (not archived); gap-fill will keep detecting them",
+                    remote_mailbox.name, parse_skipped
+                ),
+            );
+        }
         DownloadState::update_folder_progress(
             account_id,
             remote_mailbox.name.clone(),
@@ -770,6 +833,10 @@ pub async fn reconcile_mailboxes(
     let start_time = Instant::now();
     let existing_mailboxes = find_intersecting_mailboxes(local_mailboxes, remote_mailboxes);
     let account_id = account.id;
+    // Folders whose sync failed this round. A failed folder must fail the
+    // session (so it is not reported as Success), but must not stop the other
+    // folders from being attempted (#377).
+    let mut failed_folders = 0u32;
     if !existing_mailboxes.is_empty() {
         let mut mailboxes_to_update = Vec::with_capacity(existing_mailboxes.len());
 
@@ -847,10 +914,23 @@ pub async fn reconcile_mailboxes(
                 );
 
                 reconcile_uid_validity_change(account, local_mailbox, remote_mailbox, token.clone())
-                    .await?
+                    .await
             } else {
                 perform_incremental_sync(account, local_mailbox, remote_mailbox, token.clone())
-                    .await?
+                    .await
+            };
+            // A folder failure must not abort the remaining folders: record
+            // it, keep the session honest (reconcile returns Err at the end so
+            // the session is not reported as Success), and move on.
+            let new_highest_uid = match new_highest_uid {
+                Ok(v) => v,
+                Err(e) => {
+                    failed_folders += 1;
+                    let err_msg = format!("Folder '{}' sync failed: {:#?}", remote_mailbox.name, e);
+                    warn!(account_id, "{}", err_msg);
+                    DownloadState::append_session_error(account.id, err_msg)?;
+                    continue;
+                }
             };
             info!(
                 account_id,
@@ -860,7 +940,12 @@ pub async fn reconcile_mailboxes(
                 "reconcile: computed highest_uid for mailbox"
             );
             let mut updated = remote_mailbox.clone();
-            updated.highest_uid = new_highest_uid;
+            // Preserve the stored watermark when this round produced none
+            // (folder failed / empty): None must never clear it, or the
+            // un-downloaded range would be skipped forever. Note
+            // `remote_mailbox.highest_uid` comes from a fresh remote listing
+            // and is not the local value.
+            updated.highest_uid = new_highest_uid.or(local_mailbox.highest_uid);
             // Update uid_validity with the resolved value (either from server or synthetic)
             if updated.uid_validity.is_none() {
                 updated.uid_validity = Some(remote_uid_validity);
@@ -969,6 +1054,15 @@ pub async fn reconcile_mailboxes(
                 ErrorCode::InternalError
             ));
         }
+    }
+    // Folders that failed mid-sync must fail the whole session: a Success
+    // session here would tell the user everything was archived when part of
+    // a folder was skipped (#377).
+    if failed_folders > 0 {
+        return Err(raise_error!(
+            format!("{failed_folders} folder(s) failed to sync"),
+            ErrorCode::InternalError
+        ));
     }
     Ok(())
 }
@@ -1679,5 +1773,417 @@ mod tests {
         assert_eq!(result.get(&2).unwrap().as_deref(), None);
 
         session.logout().await.ok();
+    }
+
+    // ============================================================
+    // Download flows against a scripted IMAP server
+    // ============================================================
+
+    use crate::account::state::FolderProgress;
+    use crate::imap::mock_server::{malformed_response, mock_mails, register_mock_account};
+
+    /// A run-unique mailbox id, so no envelope indexed by an earlier test
+    /// run belongs to the mailbox.
+    fn fresh_mailbox(account_id: u64, name: &str) -> MailBox {
+        MailBox {
+            id: 1_000_000 + (uuid::Uuid::new_v4().as_u128() % 1_000_000_000) as u64,
+            account_id,
+            name: name.into(),
+            uid_validity: Some(42),
+            ..Default::default()
+        }
+    }
+
+    /// Registers an account on `server` with a fresh active download session.
+    async fn account_on(
+        account_id: u64,
+        server: MockImapServer,
+    ) -> (AccountModel, MockImapServerHandle) {
+        let handle = server.start().await;
+        let account = register_mock_account(&handle, account_id);
+        DownloadState::init(account_id).await.unwrap();
+        (account, handle)
+    }
+
+    fn folder(account_id: u64, name: &str) -> FolderProgress {
+        DownloadState::get(account_id)
+            .unwrap()
+            .and_then(|state| state.active_session)
+            .and_then(|session| session.folder_details.get(name).cloned())
+            .expect("folder progress recorded")
+    }
+
+    fn session_errors(account_id: u64) -> Vec<String> {
+        DownloadState::get(account_id)
+            .unwrap()
+            .and_then(|state| state.active_session)
+            .map(|session| session.errors.into_iter().map(|e| e.error).collect())
+            .unwrap_or_default()
+    }
+
+    fn has_error_starting_with(account_id: u64, prefix: &str) -> bool {
+        session_errors(account_id)
+            .iter()
+            .any(|e| e.starts_with(prefix))
+    }
+
+    const PARSE_SKIP_SUMMARY: &str = "Mailbox 'INBOX': 1 email(s) could not be parsed";
+
+    #[tokio::test]
+    async fn date_download_warns_about_parse_skips_and_returns_the_watermark() {
+        let account_id = 59_342_401;
+        let mut mails = mock_mails(&[1, 2]);
+        mails[1].body = Vec::new(); // mail-parser refuses an empty body
+        let (account, _server) =
+            account_on(account_id, MockImapServer::new().serving(&mails)).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_by_date(
+            &account,
+            "01-Jan-2020",
+            &mailbox,
+            FetchDirection::Since,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(watermark, Some(2));
+        let progress = folder(account_id, "INBOX");
+        assert_eq!(progress.status, FolderStatus::Success);
+        assert_eq!((progress.planned, progress.current), (2, 1));
+        assert!(has_error_starting_with(account_id, PARSE_SKIP_SUMMARY));
+    }
+
+    #[tokio::test]
+    async fn date_download_with_a_failed_batch_returns_no_watermark() {
+        let account_id = 59_342_402;
+        let mails = mock_mails(&[1, 2]);
+        let server = MockImapServer::new().respond("BODY.PEEK[]", malformed_response());
+        let (account, _server) = account_on(account_id, server.serving(&mails)).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_by_date(
+            &account,
+            "01-Jan-2020",
+            &mailbox,
+            FetchDirection::Before,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(watermark, None);
+        assert_eq!(folder(account_id, "INBOX").status, FolderStatus::Failed);
+        assert!(has_error_starting_with(account_id, "Batch 0 failed"));
+    }
+
+    #[tokio::test]
+    async fn full_download_warns_about_parse_skips_and_returns_the_watermark() {
+        let account_id = 59_342_403;
+        let mut mails = mock_mails(&[1, 2, 3]);
+        mails[0].body = Vec::new();
+        let (account, _server) =
+            account_on(account_id, MockImapServer::new().serving(&mails)).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_full_mailbox(&account, &mailbox, CancellationToken::new())
+            .await
+            .unwrap();
+
+        assert_eq!(watermark, Some(3));
+        let progress = folder(account_id, "INBOX");
+        assert_eq!(progress.status, FolderStatus::Success);
+        assert_eq!((progress.planned, progress.current), (3, 2));
+        assert!(has_error_starting_with(account_id, PARSE_SKIP_SUMMARY));
+    }
+
+    #[tokio::test]
+    async fn full_download_with_a_failed_batch_returns_no_watermark() {
+        let account_id = 59_342_404;
+        let mails = mock_mails(&[1, 2]);
+        let server = MockImapServer::new().respond("BODY.PEEK[]", malformed_response());
+        let (account, _server) = account_on(account_id, server.serving(&mails)).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_full_mailbox(&account, &mailbox, CancellationToken::new())
+            .await
+            .unwrap();
+
+        assert_eq!(watermark, None);
+        assert_eq!(folder(account_id, "INBOX").status, FolderStatus::Failed);
+        assert!(has_error_starting_with(account_id, "Batch 0 failed"));
+    }
+
+    #[tokio::test]
+    async fn changed_uid_validity_downloads_missing_mail_and_warns_about_parse_skips() {
+        let account_id = 59_342_405;
+        let mut mails = mock_mails(&[1, 2]);
+        mails[1].body = Vec::new();
+        let (account, _server) =
+            account_on(account_id, MockImapServer::new().serving(&mails)).await;
+        let local = MailBox {
+            uid_validity: Some(1),
+            ..fresh_mailbox(account_id, "INBOX")
+        };
+        let remote = MailBox {
+            uid_validity: Some(42),
+            exists: 2,
+            ..local.clone()
+        };
+        MailBox::batch_upsert(std::slice::from_ref(&local)).unwrap();
+
+        reconcile_mailboxes(
+            &account,
+            &[remote],
+            std::slice::from_ref(&local),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        let stored = MailBox::get(local.id).unwrap();
+        assert_eq!(stored.uid_validity, Some(42));
+        assert_eq!(stored.highest_uid, Some(2));
+        let progress = folder(account_id, "INBOX");
+        assert_eq!(progress.status, FolderStatus::Success);
+        assert_eq!((progress.planned, progress.current), (2, 1));
+        assert!(has_error_starting_with(account_id, PARSE_SKIP_SUMMARY));
+    }
+
+    /// An account on `mails` that keeps 100 years of mail. Its UID SEARCH
+    /// carries a retention floor; the server answers that search with only
+    /// `in_window`, so the planned count shows whether the floor was sent.
+    /// (The mock serves every body whatever UID set is fetched, so only the
+    /// planned count is meaningful.)
+    async fn retained_account_on(
+        account_id: u64,
+        mails: &[crate::imap::mock_server::MockMail],
+        criteria: &str,
+        in_window: &[u32],
+    ) -> (AccountModel, MockImapServerHandle, String) {
+        constrained_account_on(account_id, mails, criteria, in_window, |_| {}).await
+    }
+
+    /// Like `retained_account_on`, with the account changed by `constrain`
+    /// (for example, given date constraints).
+    async fn constrained_account_on(
+        account_id: u64,
+        mails: &[crate::imap::mock_server::MockMail],
+        criteria: &str,
+        in_window: &[u32],
+        constrain: fn(&mut AccountModel),
+    ) -> (AccountModel, MockImapServerHandle, String) {
+        let mut probe = AccountModel {
+            retention_days: Some(36_500),
+            ..Default::default()
+        };
+        let search = retention::imap_search_criteria(&probe, criteria);
+        assert!(search.contains("SINCE"), "{search}");
+        let server = MockImapServer::new()
+            .respond(
+                format!("UID SEARCH {search}"),
+                crate::imap::mock_server::uid_search_response(in_window),
+            )
+            .serving(mails);
+        let (account, handle) = account_on(account_id, server).await;
+        probe = AccountModel {
+            retention_days: Some(36_500),
+            ..account
+        };
+        constrain(&mut probe);
+        crate::database::upsert_impl(crate::database::manager::DB_MANAGER.db(), probe.clone())
+            .unwrap();
+        (probe, handle, search)
+    }
+
+    #[tokio::test]
+    async fn a_full_download_only_searches_the_retention_window() {
+        let account_id = 59_342_407;
+        let mails = mock_mails(&[1, 2, 3]);
+        let (account, _server, _) = retained_account_on(account_id, &mails, "ALL", &[2, 3]).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let watermark = fetch_and_save_full_mailbox(&account, &mailbox, CancellationToken::new())
+            .await
+            .unwrap();
+
+        assert_eq!(watermark, Some(3));
+        assert_eq!(folder(account_id, "INBOX").planned, 2);
+    }
+
+    #[tokio::test]
+    async fn a_date_download_adds_the_retention_window_to_its_search() {
+        let account_id = 59_342_408;
+        let mails = mock_mails(&[1, 2, 3]);
+        let (account, _server, search) =
+            retained_account_on(account_id, &mails, "SINCE 01-Jan-2020", &[3]).await;
+        assert!(search.starts_with("SINCE 01-Jan-2020 SINCE "), "{search}");
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        fetch_and_save_by_date(
+            &account,
+            "01-Jan-2020",
+            &mailbox,
+            FetchDirection::Since,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(folder(account_id, "INBOX").planned, 1);
+    }
+
+    #[tokio::test]
+    async fn a_full_download_fails_the_folder_when_the_uid_search_fails() {
+        let account_id = 59_342_410;
+        let server = MockImapServer::new().respond("UID SEARCH", malformed_response());
+        let (account, _server) = account_on(account_id, server.serving(&mock_mails(&[1]))).await;
+        let mailbox = fresh_mailbox(account_id, "INBOX");
+
+        let result =
+            fetch_and_save_full_mailbox(&account, &mailbox, CancellationToken::new()).await;
+
+        assert!(result.is_err(), "{result:?}");
+        assert_eq!(folder(account_id, "INBOX").status, FolderStatus::Failed);
+        assert!(has_error_starting_with(
+            account_id,
+            "UID SEARCH failed in [INBOX]"
+        ));
+    }
+
+    /// Reconcile a changed UIDVALIDITY of INBOX for `account` and return how
+    /// many messages were planned.
+    async fn reconcile_planned(account: &AccountModel) -> u64 {
+        let local = MailBox {
+            uid_validity: Some(1),
+            ..fresh_mailbox(account.id, "INBOX")
+        };
+        let remote = MailBox {
+            uid_validity: Some(42),
+            exists: 3,
+            ..local.clone()
+        };
+        MailBox::batch_upsert(std::slice::from_ref(&local)).unwrap();
+
+        reconcile_mailboxes(
+            account,
+            &[remote],
+            std::slice::from_ref(&local),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        folder(account.id, "INBOX").planned
+    }
+
+    fn one_year() -> crate::account::since::RelativeDate {
+        crate::account::since::RelativeDate {
+            unit: crate::account::since::Unit::Years,
+            value: 1,
+        }
+    }
+
+    #[tokio::test]
+    async fn a_uid_validity_reconcile_keeps_the_date_since_constraint() {
+        let account_id = 59_342_411;
+        let criteria = format!("SINCE {}", one_year().calculate_date().unwrap());
+        let (account, _server, search) = constrained_account_on(
+            account_id,
+            &mock_mails(&[1, 2, 3]),
+            &criteria,
+            &[2, 3],
+            |account| {
+                account.date_since = Some(crate::account::since::DateSince {
+                    relative: Some(one_year()),
+                    ..Default::default()
+                })
+            },
+        )
+        .await;
+        assert!(search.starts_with(&criteria), "{search}");
+
+        assert_eq!(reconcile_planned(&account).await, 2);
+    }
+
+    #[tokio::test]
+    async fn a_uid_validity_reconcile_keeps_the_date_before_constraint() {
+        let account_id = 59_342_412;
+        let criteria = format!("BEFORE {}", one_year().calculate_date().unwrap());
+        let (account, _server, search) = constrained_account_on(
+            account_id,
+            &mock_mails(&[1, 2, 3]),
+            &criteria,
+            &[1],
+            |account| account.date_before = Some(one_year()),
+        )
+        .await;
+        assert!(search.starts_with(&criteria), "{search}");
+
+        assert_eq!(reconcile_planned(&account).await, 1);
+    }
+
+    #[tokio::test]
+    async fn a_uid_validity_reconcile_only_searches_the_retention_window() {
+        let account_id = 59_342_409;
+        let mails = mock_mails(&[1, 2, 3]);
+        let (account, _server, _) = retained_account_on(account_id, &mails, "ALL", &[3]).await;
+        assert_eq!(reconcile_planned(&account).await, 1);
+    }
+
+    #[tokio::test]
+    async fn failed_folder_fails_the_sync_but_the_other_folders_still_sync() {
+        let account_id = 59_342_406;
+        let server = MockImapServer::new().respond("Broken-Folder", "{TAG} NO no such mailbox\r\n");
+        let (account, _server) = account_on(account_id, server.serving(&[])).await;
+        let broken_local = MailBox {
+            highest_uid: Some(5),
+            uid_next: Some(6),
+            ..fresh_mailbox(account_id, "Broken-Folder")
+        };
+        let broken_remote = MailBox {
+            exists: 3,
+            uid_next: Some(9),
+            ..broken_local.clone()
+        };
+        let inbox_local = MailBox {
+            highest_uid: Some(7),
+            uid_next: Some(8),
+            ..fresh_mailbox(account_id, "INBOX")
+        };
+        // The remote INBOX is empty now, and the fresh listing carries no
+        // watermark of its own.
+        let inbox_remote = MailBox {
+            exists: 0,
+            uid_next: Some(99),
+            highest_uid: None,
+            ..inbox_local.clone()
+        };
+        MailBox::batch_upsert(&[broken_local.clone(), inbox_local.clone()]).unwrap();
+
+        let err = reconcile_mailboxes(
+            &account,
+            &[broken_remote, inbox_remote],
+            &[broken_local.clone(), inbox_local.clone()],
+            CancellationToken::new(),
+        )
+        .await
+        .expect_err("a failed folder fails the sync");
+
+        assert!(
+            format!("{err:?}").contains("1 folder(s) failed to sync"),
+            "{err:?}"
+        );
+        assert!(has_error_starting_with(
+            account_id,
+            "Folder 'Broken-Folder' sync failed"
+        ));
+        // INBOX was still synced: it takes the fresh listing but keeps its
+        // stored watermark.
+        let inbox = MailBox::get(inbox_local.id).unwrap();
+        assert_eq!((inbox.uid_next, inbox.highest_uid), (Some(99), Some(7)));
+        // The failed folder's stored state is left untouched.
+        assert_eq!(MailBox::get(broken_local.id).unwrap(), broken_local);
     }
 }

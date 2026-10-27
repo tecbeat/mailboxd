@@ -23,6 +23,8 @@ use crate::rest::api::ApiTags;
 use crate::rest::ApiResult;
 use mailboxd_core::account::migration::AccountModel;
 use mailboxd_core::common::paginated::DataPage;
+use mailboxd_core::envelope::extractor::{repair_envelope_blobs, BlobRepairReport};
+use mailboxd_core::envelope::repair::BlobRepairRecord;
 use mailboxd_core::error::code::ErrorCode;
 use mailboxd_core::ext::event_bus::{emit, Event};
 use mailboxd_core::message::append::restore_emails;
@@ -32,7 +34,7 @@ use mailboxd_core::message::attachment::retrieve_nested_attachment_content;
 use mailboxd_core::message::content::retrieve_nested_eml_content;
 use mailboxd_core::message::content::FullNestedMessageContent;
 use mailboxd_core::message::content::{retrieve_email_content, FullMessageContent};
-use mailboxd_core::message::delete::delete_messages_impl;
+use mailboxd_core::message::delete::{delete_messages_impl, DeleteMessagesResult};
 use mailboxd_core::message::list::get_thread_messages;
 use mailboxd_core::message::search::{search_messages_impl, EmailSearchRequest};
 use mailboxd_core::message::tags::TagCount;
@@ -54,7 +56,10 @@ pub struct MessageApi;
 
 #[OpenApi(prefix_path = "/api/v1", tag = "ApiTags::Message")]
 impl MessageApi {
-    /// Deletes messages from a mailbox or moves them to the trash for the specified account.
+    /// Deletes messages and returns how many were deleted.
+    ///
+    /// The request maps an **account id** (not a mailbox id) to the envelope
+    /// ids to delete. Returns a not-found error when none of the messages exist.
     #[oai(
         path = "/delete-messages",
         method = "post",
@@ -62,17 +67,16 @@ impl MessageApi {
     )]
     async fn delete_messages(
         &self,
-        /// specifying the mailbox and messages to delete.
+        /// Map of account id to the envelope ids to delete.
         payload: Json<HashMap<u64, Vec<String>>>,
         context: WrappedContext,
-    ) -> ApiResult<()> {
+    ) -> ApiResult<Json<DeleteMessagesResult>> {
         let request = payload.0;
         for account_id in request.keys() {
             context.require_permission(Some(*account_id), Permission::DATA_DELETE)?;
         }
         let user = context.user.username.clone();
-        let result = delete_messages_impl(request.clone()).await;
-        result?;
+        let result = delete_messages_impl(request.clone()).await?;
         for (account_id, envelope_ids) in &request {
             for envelope_id in envelope_ids {
                 emit(Event::EmailDeleted {
@@ -81,7 +85,7 @@ impl MessageApi {
                 });
             }
         }
-        Ok(())
+        Ok(Json(result))
     }
 
     /// Searches messages across all mailboxes using various filter criteria.
@@ -256,6 +260,53 @@ impl MessageApi {
         Ok(attachment)
     }
 
+    /// Re-fetches a message from IMAP and restores its missing email or
+    /// attachment blobs. Content is only stored when it matches the archived
+    /// hash. A repair that could not fix the message still returns 200, with
+    /// status `partial` or `failed` in the report.
+    #[oai(
+        path = "/repair-message/:account_id/:envelope_id",
+        method = "post",
+        operation_id = "repair_message"
+    )]
+    async fn repair_message(
+        &self,
+        /// The ID of the account.
+        account_id: Path<u64>,
+        /// The ID of the message to repair.
+        envelope_id: Path<String>,
+        context: WrappedContext,
+    ) -> ApiResult<Json<BlobRepairReport>> {
+        let account_id = account_id.0;
+        AccountModel::check_account_exists(account_id)?;
+        context.require_permission(Some(account_id), Permission::DATA_MANAGE)?;
+        let report = repair_envelope_blobs(account_id, &envelope_id.0).await?;
+        BlobRepairRecord::record_attempt(context.user.id, &context.user.username, &report);
+        Ok(Json(report))
+    }
+
+    /// Lists the most recent repair attempts, newest first. Repairs that
+    /// found nothing to repair are not recorded.
+    #[oai(
+        path = "/repair-reports",
+        method = "get",
+        operation_id = "list_repair_reports"
+    )]
+    async fn list_repair_reports(
+        &self,
+        /// Maximum number of reports (default 50, at most 200).
+        limit: Query<Option<usize>>,
+        /// Only reports of this account.
+        account_id: Query<Option<u64>>,
+        context: WrappedContext,
+    ) -> ApiResult<Json<Vec<BlobRepairRecord>>> {
+        let limit = repair_report_limit(limit.0);
+        let records = BlobRepairRecord::visible(limit, account_id.0, |id| {
+            context.has_permission(Some(id), Permission::DATA_MANAGE)
+        })?;
+        Ok(Json(records))
+    }
+
     /// Restore an email to an account's IMAP server.
     #[oai(
         path = "/restore-messages/:account_id",
@@ -421,5 +472,180 @@ impl MessageApi {
                 Some(context.user.account_access_map.keys().cloned().collect())
             };
         Ok(Json(ENVELOPE_MANAGER.get_all_contacts(authorized_ids)?))
+    }
+}
+
+/// The number of repair reports to list: 50 unless asked otherwise, at most
+/// the size of the history.
+fn repair_report_limit(requested: Option<usize>) -> usize {
+    requested.unwrap_or(50).min(BlobRepairRecord::HISTORY_LIMIT)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::repair_report_limit;
+    use crate::tests::{admin_token, build_api_route, login, setup};
+    use mailboxd_core::account::migration::AccountModel;
+    use mailboxd_core::database::{manager::DB_MANAGER, upsert_impl};
+    use mailboxd_core::envelope::extractor::BlobRepairReport;
+    use mailboxd_core::envelope::repair::BlobRepairRecord;
+    use poem::test::TestClient;
+
+    /// Ids used by no other test.
+    const REPAIR_ACCOUNT_A: u64 = 61_332_003;
+    const REPAIR_ACCOUNT_B: u64 = 61_332_004;
+
+    fn client() -> TestClient<impl poem::Endpoint> {
+        TestClient::new(build_api_route()).default_header("X-Forwarded-For", "127.0.0.1")
+    }
+
+    fn store_account(id: u64) {
+        upsert_impl(
+            DB_MANAGER.db(),
+            AccountModel {
+                id,
+                email: format!("repair-{id}@example.com"),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    }
+
+    /// A member with no access to any account.
+    async fn member_token(username: &str) -> String {
+        let resp = client()
+            .post("/api/v1/users")
+            .header("Authorization", format!("Bearer {}", admin_token().await))
+            .body_json(&serde_json::json!({
+                "username": username,
+                "email": format!("{username}@example.com"),
+                "password": "member-pass-123",
+                "global_roles": [mailboxd_core::users::role::DEFAULT_MEMBER_ROLE_ID],
+                "account_access_map": {},
+            }))
+            .send()
+            .await;
+        resp.assert_status_is_ok();
+        login(username, "member-pass-123").await
+    }
+
+    async fn list_reports(token: &str, query: &str) -> Vec<BlobRepairRecord> {
+        let resp = client()
+            .get(format!("/api/v1/repair-reports{query}"))
+            .header("Authorization", format!("Bearer {}", token))
+            .send()
+            .await;
+        resp.assert_status_is_ok();
+        resp.json().await.value().deserialize()
+    }
+
+    #[test]
+    fn repair_report_limit_defaults_to_50_and_is_capped_at_the_history() {
+        assert_eq!(repair_report_limit(None), 50);
+        assert_eq!(repair_report_limit(Some(3)), 3);
+        assert_eq!(
+            repair_report_limit(Some(10_000)),
+            BlobRepairRecord::HISTORY_LIMIT
+        );
+    }
+
+    #[tokio::test]
+    async fn repairing_a_message_of_an_unknown_account_is_not_found() {
+        setup().await;
+        let resp = client()
+            .post("/api/v1/repair-message/61332005/some-envelope")
+            .header("Authorization", format!("Bearer {}", admin_token().await))
+            .send()
+            .await;
+        resp.assert_status(http::StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn repairing_an_unknown_message_is_not_found() {
+        setup().await;
+        store_account(REPAIR_ACCOUNT_A);
+        let resp = client()
+            .post(format!(
+                "/api/v1/repair-message/{REPAIR_ACCOUNT_A}/no-such-envelope"
+            ))
+            .header("Authorization", format!("Bearer {}", admin_token().await))
+            .send()
+            .await;
+        resp.assert_status(http::StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn repair_reports_are_listed_per_account_and_permission() {
+        setup().await;
+        store_account(REPAIR_ACCOUNT_A);
+        store_account(REPAIR_ACCOUNT_B);
+        for (account_id, envelope_id) in [
+            (REPAIR_ACCOUNT_A, "a-old"),
+            (REPAIR_ACCOUNT_B, "b"),
+            (REPAIR_ACCOUNT_A, "a-new"),
+        ] {
+            let report = BlobRepairReport {
+                envelope_id: envelope_id.into(),
+                account_id,
+                status: "failed".into(),
+                ..Default::default()
+            };
+            assert!(BlobRepairRecord::persist(1, "admin", &report).unwrap());
+            // Distinct millisecond timestamps keep the order deterministic.
+            tokio::time::sleep(std::time::Duration::from_millis(2)).await;
+        }
+        let admin = admin_token().await;
+        let ids = |records: Vec<BlobRepairRecord>| -> Vec<String> {
+            records
+                .into_iter()
+                .filter(|r| [REPAIR_ACCOUNT_A, REPAIR_ACCOUNT_B].contains(&r.account_id))
+                .map(|r| r.report.envelope_id)
+                .collect()
+        };
+
+        assert_eq!(ids(list_reports(&admin, "").await), ["a-new", "b", "a-old"]);
+        assert_eq!(
+            ids(list_reports(&admin, &format!("?account_id={REPAIR_ACCOUNT_A}")).await),
+            ["a-new", "a-old"]
+        );
+        assert_eq!(
+            ids(list_reports(&admin, &format!("?account_id={REPAIR_ACCOUNT_A}&limit=1")).await),
+            ["a-new"]
+        );
+
+        let member = member_token("member-repair-reports").await;
+        assert!(list_reports(&member, "").await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn a_member_without_data_manage_cannot_repair() {
+        setup().await;
+        store_account(REPAIR_ACCOUNT_B);
+        let member = member_token("member-repair").await;
+        let resp = client()
+            .post(format!(
+                "/api/v1/repair-message/{REPAIR_ACCOUNT_B}/some-envelope"
+            ))
+            .header("Authorization", format!("Bearer {}", member))
+            .send()
+            .await;
+        resp.assert_status(http::StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn deleting_unknown_messages_is_reported_as_not_found() {
+        setup().await;
+        let token = admin_token().await;
+        let cli = TestClient::new(build_api_route()).default_header("X-Forwarded-For", "127.0.0.1");
+
+        // Account id used by no other test.
+        let resp = cli
+            .post("/api/v1/delete-messages")
+            .header("Authorization", format!("Bearer {}", token))
+            .body_json(&serde_json::json!({ "61332002": ["no-such-envelope"] }))
+            .send()
+            .await;
+
+        resp.assert_status(http::StatusCode::NOT_FOUND);
     }
 }

@@ -24,9 +24,11 @@ use chrono::Local;
 use std::process;
 use tracing::Level;
 use tracing_log::LogTracer;
-use tracing_subscriber::fmt::{format::Writer, time::FormatTime};
+use tracing_subscriber::fmt::{format::Writer, time::FormatTime, MakeWriter};
 
 mod file;
+#[cfg(test)]
+mod test_writer;
 
 struct LocalTimer;
 
@@ -49,21 +51,50 @@ pub fn initialize_logging() {
 }
 
 fn setup_stdout_logger(level: Level) -> Result<(), tracing::dispatcher::SetGlobalDefaultError> {
-    let with_ansi = SETTINGS.mailboxd_ansi_logs;
+    tracing::subscriber::set_global_default(stdout_subscriber(
+        level,
+        SETTINGS.mailboxd_ansi_logs,
+        SETTINGS.mailboxd_json_logs,
+        std::io::stdout,
+    ))
+}
 
-    let format = tracing_subscriber::fmt::format()
-        .with_level(true)
-        .with_target(true)
-        .with_timer(LocalTimer);
+/// The stdout subscriber: one JSON object per event when `json` is set,
+/// human-readable lines otherwise.
+fn stdout_subscriber<W>(
+    level: Level,
+    with_ansi: bool,
+    json: bool,
+    writer: W,
+) -> Box<dyn tracing::Subscriber + Send + Sync>
+where
+    W: for<'writer> MakeWriter<'writer> + Send + Sync + 'static,
+{
+    if json {
+        Box::new(
+            tracing_subscriber::fmt()
+                .with_max_level(level)
+                .with_ansi(with_ansi)
+                .with_writer(writer)
+                .json()
+                .with_timer(LocalTimer)
+                .finish(),
+        )
+    } else {
+        let format = tracing_subscriber::fmt::format()
+            .with_level(true)
+            .with_target(true)
+            .with_timer(LocalTimer);
 
-    let subscriber = tracing_subscriber::fmt()
-        .with_max_level(level)
-        .with_ansi(with_ansi)
-        .with_writer(std::io::stdout)
-        .event_format(format)
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber)
+        Box::new(
+            tracing_subscriber::fmt()
+                .with_max_level(level)
+                .with_ansi(with_ansi)
+                .with_writer(writer)
+                .event_format(format)
+                .finish(),
+        )
+    }
 }
 
 fn validate_log_level(value: &String) -> Level {
@@ -77,5 +108,44 @@ fn validate_log_level(value: &String) -> Level {
             );
             process::exit(1);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::logger::test_writer::CapturedLogs;
+
+    fn log_through_stdout_subscriber(json: bool) -> Vec<String> {
+        let logs = CapturedLogs::default();
+        let subscriber = stdout_subscriber(Level::INFO, false, json, logs.clone());
+        tracing::subscriber::with_default(subscriber, || {
+            tracing::info!(account = 7, "stdout log line");
+            tracing::debug!("below the configured level");
+        });
+        logs.lines()
+    }
+
+    #[test]
+    fn stdout_subscriber_writes_one_json_object_per_event_when_json_is_enabled() {
+        let lines = log_through_stdout_subscriber(true);
+        assert_eq!(lines.len(), 1, "debug event must be filtered: {lines:?}");
+        let event: serde_json::Value = serde_json::from_str(&lines[0]).unwrap();
+        assert_eq!(event["level"], "INFO");
+        assert_eq!(event["target"], "mailboxd_core::logger::tests");
+        assert_eq!(event["fields"]["message"], "stdout log line");
+        assert_eq!(event["fields"]["account"], 7);
+        assert!(event["timestamp"].is_string());
+    }
+
+    #[test]
+    fn stdout_subscriber_writes_text_lines_when_json_is_disabled() {
+        let lines = log_through_stdout_subscriber(false);
+        assert_eq!(lines.len(), 1, "debug event must be filtered: {lines:?}");
+        let line = &lines[0];
+        assert!(serde_json::from_str::<serde_json::Value>(line).is_err());
+        assert!(line.contains(" INFO "), "{line}");
+        assert!(line.contains("mailboxd_core::logger::tests:"), "{line}");
+        assert!(line.ends_with("stdout log line account=7"), "{line}");
     }
 }

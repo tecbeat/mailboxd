@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "Emails maiores do que isso serão ignorados. Deixe vazio para usar o padrão (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Padrão: 100 MB",
     "maxEmailSizeBytesUnlimited": "Padrão: 100 MB",
+    "retentionDays": "Período de retenção (dias)",
+    "retentionDaysDescription": "Os e-mails arquivados com mais do que este número de dias são excluídos, e e-mails mais antigos deixam de ser arquivados. Deixe vazio para manter todos os e-mails.",
+    "retentionOff": "Manter para sempre",
+    "retentionWarning": "Os e-mails mais antigos que o período de retenção serão excluídos permanentemente do arquivo nas próximas 6 horas. Esta ação não pode ser desfeita.",
     "minutes": "minutos",
     "months": "Meses",
     "mustBeAtLeast1": "Deve ser pelo menos 1",
@@ -331,6 +335,8 @@
       "generalDesc": "Informações básicas da conta e status.",
       "newAccount": "Nova conta",
       "performance": "Desempenho",
+      "retention": "Retenção",
+      "retentionDesc": "Escolha por quanto tempo os e-mails arquivados são mantidos.",
       "schedule": "Cronograma",
       "scope": "Escopo",
       "server": "Servidor",
@@ -541,10 +547,21 @@
     "login": "Login",
     "loginFailed": "Falha no Login",
     "logout": "Sair",
+    "mfa": {
+      "back": "Voltar ao início de sessão",
+      "challengeExpired": "O início de sessão expirou. Inicie sessão novamente.",
+      "code": "Código de verificação",
+      "codeFormat": "Introduza o código de 6 dígitos da sua aplicação de autenticação ou um código de recuperação.",
+      "invalidCode": "Código de verificação inválido. Tente novamente.",
+      "prompt": "Introduza o código de 6 dígitos da sua aplicação de autenticação. Se já não tiver acesso a ela, introduza um dos seus códigos de recuperação.",
+      "tooManyCodes": "Demasiados códigos inválidos. Inicie sessão novamente.",
+      "verify": "Verificar"
+    },
     "password": "Senha",
     "sessionExpired": "Sessão Expirada!",
     "sessionExpiredDesc": "Sua sessão terminou devido à inatividade. Por favor, faça login novamente para continuar.",
     "somethingWentWrong": "Algo deu errado",
+    "tooManyAttempts": "Muitas tentativas de login. Aguarde alguns minutos e tente novamente.",
     "username": "Nome de Usuário",
     "welcome": "Bem-vindo ao mailboxd",
     "youWillNeedToLogInAgain": "Você precisará fazer login novamente para acessar sua conta.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Detectado",
     "detectedFrom": "Detectado de",
     "dropHere": "Solte arquivos .eml / .mbox / .pst aqui",
+    "duplicateCount": "{{count}} duplicados ignorados",
     "failed": "Falha na importação",
     "failedCount": "{{count}} falharam",
     "failedDetails": "Itens com falha",
@@ -734,6 +752,7 @@
     "noMailboxFound": "Nenhuma caixa de correio encontrada.",
     "noMailboxes": "Nenhuma caixa de correio encontrada nesta conta.",
     "orClick": "ou clique para navegar",
+    "outsideRetentionCount": "{{count}} fora do período de retenção",
     "processed": "{{current}} / {{total}} processados",
     "processing": "Processando…",
     "pstFolderDesc": "O arquivo PST contém sua própria estrutura de pastas (por exemplo, Caixa de entrada, Itens enviados, etc.). As pastas serão criadas automaticamente durante a importação.",
@@ -747,6 +766,7 @@
     "source": "origem",
     "startImport": "Importar",
     "successCount": "{{count}} importados",
+    "summaryOutsideRetention": "{{count}} fora da retenção",
     "target": "1. Selecionar conta de destino",
     "title": "Importar",
     "uploading": "Enviando…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "Uma chave secreta fornecida pelo provedor OAuth para autenticar sua aplicação.",
+    "accessToken": "Token de acesso",
+    "accessTokenCannotBeEmpty": "O token de acesso não pode estar vazio",
+    "accountIsRequired": "Selecione uma conta.",
     "actions": {
       "authorize": "Autorizar",
       "delete": "Excluir",
       "edit": "Editar",
+      "importTokens": "Importar tokens",
       "openMenu": "Abrir Menu"
     },
     "addConfiguration": "Adicionar Configuração",
@@ -867,8 +891,8 @@
     "addScope": "Adicionar Escopo",
     "areYouSureYouWantTo": "Tem certeza que deseja {{action}} este Cliente OAuth2?",
     "areYouSureYouWantToDelete": "Tem certeza que deseja excluir",
-    "authAtatus": "Status de Autenticação OAuth2",
     "authFailed": "Falha na Autenticação OAuth2",
+    "authStatus": "Status de Autenticação OAuth2",
     "authSuccess": "Autenticação OAuth2 Bem-Sucedida",
     "authUrlLabel": "URL de Autorização:",
     "authorizationUrlCannotBeEmpty": "A URL de Autorização não pode estar vazia",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "Ativar Cliente OAuth2",
     "enabled": "Ativo",
     "enterIdToConfirmDeletion": "Insira o ID para confirmar a exclusão.",
+    "enterTheAccessTokenHere": "Cole o token de acesso aqui.",
     "enterTheAuthorizationUrl": "Insira a URL de Autorização",
     "enterTheKeyHere": "Insira a chave aqui.",
+    "enterTheRefreshTokenHere": "Cole o token de atualização aqui.",
     "enterTheScopeHere": "Insira o escopo aqui.",
     "enterTheTokenUrl": "Insira a URL do Token",
     "enterTheValueHere": "Insira o valor aqui.",
@@ -922,6 +948,15 @@
     "goHome": "Ir para o Início",
     "goToAccounts": "Ir para Contas",
     "id": "ID",
+    "importTokensDescription": "Use isto quando o cliente OAuth2 não conseguir concluir a autorização no mailboxd, por exemplo quando os tokens foram obtidos com uma ferramenta externa como o email-oauth2-proxy. A conta selecionada já deve usar OAuth2 como tipo de autenticação IMAP.",
+    "importTokensFailed": "Falha ao importar os tokens",
+    "importTokensSuccess": "Tokens importados",
+    "importTokensSuccessDesc": "Os tokens foram armazenados e serão renovados automaticamente.",
+    "importTokensTitle": "Importar tokens externos",
+    "importTokensWarningClientMustMatch": "O Client ID e o Client Secret desta configuração devem ser idênticos aos do cliente que emitiu o token de atualização; caso contrário, a renovação falhará.",
+    "importTokensWarningLongLivedCredential": "Um token de atualização é uma credencial de longa duração. Ele será criptografado e armazenado neste servidor.",
+    "importTokensWarningStopExternalTool": "Pare a ferramenta externa que obteve estes tokens. Se ambas as ferramentas renovarem o mesmo token de atualização, os tokens entrarão em conflito e o arquivamento será interrompido.",
+    "importing": "Importando...",
     "information": "Informação",
     "invalidAuthorizationUrlFormat": "Formato de URL de Autorização inválido",
     "invalidRedirectUriFormat": "Formato de URI de Redirecionamento inválido",
@@ -935,6 +970,8 @@
     "noConfigurations": "Nenhuma Configuração OAuth2",
     "noConfigurationsDesc": "Você ainda não adicionou nenhuma configuração OAuth2. Adicione uma para utilizar a funcionalidade.",
     "noEmailAccountsRegistered": "Nenhuma conta de email registrada. Por favor, crie uma.",
+    "noOAuth2Accounts": "Nenhuma das suas contas usa autenticação OAuth2. Crie primeiro uma conta com OAuth2 como tipo de autenticação.",
+    "noProxy": "Sem proxy",
     "noProxyAvailable": "Nenhum Proxy disponível",
     "noStatus": "Esta página exibe o resultado da autenticação OAuth2. Nenhum status específico está disponível no momento. Por favor, tente novamente se necessário.",
     "oauth2ClientHasBeenSuccessfully": "O Cliente OAuth2 foi {{action}} com sucesso.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "O URI de Redirecionamento não pode estar vazio",
     "redirectUriIsRequired": "O URI de Redirecionamento é obrigatório",
     "redirectUrlLabel": "URI de Redirecionamento:",
+    "refreshToken": "Token de atualização",
+    "refreshTokenCannotBeEmpty": "O token de atualização não pode estar vazio",
     "save": "Salvar",
     "saveChanges": "Salvar Alterações",
     "saving": "Salvando...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Tentar Novamente",
     "warningDesc": "Por favor, tenha cuidado, esta ação é irreversível.",
     "warningTitle": "Aviso!"
+  },
+  "repair_message": {
+    "confirm": "Reparar",
+    "desc": "Obtém novamente esta mensagem do servidor IMAP e guarda o conteúdo em falta. O conteúdo só é guardado se corresponder ao hash arquivado.",
+    "emailMissing": "O conteúdo da mensagem continua em falta",
+    "emailRestored": "Conteúdo da mensagem restaurado",
+    "failedHint": "Não foi possível obter ou verificar a mensagem. Consulte o erro abaixo.",
+    "hideDetails": "Ocultar detalhes",
+    "history": "Histórico de reparações",
+    "historyEmpty": "Ainda não há reparações.",
+    "historyFailed": "Não foi possível carregar o histórico de reparações.",
+    "historyHint": "As {{limit}} tentativas de reparação mais recentes.",
+    "missingAfter": "Anexos ainda em falta",
+    "missingBefore": "Anexos em falta antes da reparação",
+    "operator": "Operador",
+    "partialHint": "Não foi possível restaurar parte do conteúdo. O conteúdo que não corresponde ao hash arquivado nunca é guardado.",
+    "repairAction": "Reparar mensagem",
+    "repairing": "A reparar…",
+    "repairingHint": "A obter a mensagem do servidor IMAP. Isto pode demorar algum tempo.",
+    "reportDesc": "Resultado da tentativa de reparação.",
+    "reportTitle": "Relatório de reparação",
+    "requestFailed": "O pedido de reparação falhou",
+    "result": "Resultado",
+    "showDetails": "Mostrar detalhes",
+    "statusComplete": "Nada estava em falta",
+    "statusFailed": "Falhou",
+    "statusPartial": "Reparado parcialmente",
+    "statusRepaired": "Reparado",
+    "title": "Reparar mensagem",
+    "wholeMessageNote": "Isto repara a mensagem inteira: o corpo e todos os anexos."
   },
   "restore_message": {
     "accountsInvolved": "Contas envolvidas",
@@ -1307,6 +1376,7 @@
     "body": "Corpo da mensagem",
     "button": "Pesquisar",
     "clear_history": "Limpar histórico",
+    "hint": "Todas as palavras devem corresponder. Use OR para ampliar, \"aspas\" para uma frase, -palavra para excluir.",
     "no_history": "Nenhum histórico de pesquisa",
     "placeholder": "Pesquisar e-mails (use \" \" para pesquisa de frases)",
     "recent_title": "Pesquisas recentes",
@@ -1350,9 +1420,17 @@
     "label": "Redefinir",
     "tooltip": "Limpar todos os filtros"
   },
+  "search_sort": {
+    "relevance": "Relevância",
+    "relevance_needs_text": "Digite um termo de pesquisa para ordenar por relevância",
+    "relevance_tooltip": "Ordenar pela melhor correspondência"
+  },
   "search_view": {
+    "absolute": "Absoluta",
     "button_label": "Visualização",
-    "menu_title": "Configurações de colunas"
+    "date_display": "Exibição da data",
+    "menu_title": "Configurações de colunas",
+    "relative": "Relativa"
   },
   "settings": {
     "accounts": "Contas",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Senha Inválida",
     "lastAccess": "Último Acesso",
     "manageRootTokenAndPassword": "Gerencie o token e a senha root com segurança.",
+    "mfa": {
+      "copied": "Copiado para a área de transferência",
+      "description": "Proteja o início de sessão com palavra-passe com um código de utilização única de uma aplicação de autenticação.",
+      "disabled": {
+        "description": "Quando ativada, o início de sessão com palavra-passe também exige um código de 6 dígitos de uma aplicação de autenticação como Aegis, Google Authenticator ou 1Password.",
+        "enable": "Ativar a autenticação de dois fatores",
+        "title": "A autenticação de dois fatores está desativada"
+      },
+      "enabled": {
+        "codesLeft": "Códigos de recuperação por utilizar: {{remaining}}",
+        "codesLow": "Está a ficar sem códigos de recuperação. Desative e volte a ativar a autenticação de dois fatores para obter novos códigos.",
+        "confirmDisable": "Desativar",
+        "description": "O início de sessão com palavra-passe exige um código da sua aplicação de autenticação.",
+        "disable": "Desativar a autenticação de dois fatores",
+        "disableCode": "Código da sua aplicação de autenticação ou código de recuperação",
+        "disabledToast": "Autenticação de dois fatores desativada",
+        "title": "A autenticação de dois fatores está ativada"
+      },
+      "enrol": {
+        "code": "Código da aplicação",
+        "confirm": "Confirmar e ativar",
+        "copySecret": "Copiar chave secreta",
+        "description": "Leia o código QR com a sua aplicação de autenticação ou introduza a chave secreta manualmente. Depois, introduza o código de 6 dígitos apresentado pela aplicação.",
+        "qrAlt": "Código QR para a sua aplicação de autenticação",
+        "qrFailed": "Não foi possível gerar o código QR. Introduza a chave secreta manualmente.",
+        "secret": "Chave secreta para introdução manual",
+        "title": "Configure a sua aplicação de autenticação"
+      },
+      "errors": {
+        "enrolFailed": "Não foi possível iniciar a configuração",
+        "invalidCode": "Código de verificação inválido. Tente novamente.",
+        "tooManyAttempts": "Demasiadas tentativas. Aguarde alguns minutos e tente novamente."
+      },
+      "loadError": "Não foi possível carregar o estado da autenticação de dois fatores.",
+      "recovery": {
+        "copy": "Copiar códigos",
+        "description": "Cada código permite-lhe iniciar sessão uma vez se perder o acesso à sua aplicação de autenticação.",
+        "done": "Concluído",
+        "download": "Transferir como .txt",
+        "leaveWarning": "Ainda não confirmou que guardou os seus códigos de recuperação. Não voltarão a ser apresentados. Sair mesmo assim?",
+        "onlyOnce": "Estes códigos só são apresentados uma vez. Guarde-os já num local seguro.",
+        "saved": "Guardei os meus códigos de recuperação num local seguro",
+        "title": "Guarde os seus códigos de recuperação"
+      },
+      "ssoNote": "Inicia sessão através de início de sessão único (SSO). A autenticação de dois fatores da sua conta é gerida pelo seu fornecedor de identidade, pelo que não pode ser configurada aqui.",
+      "title": "Autenticação de dois fatores"
+    },
     "name": "Nome",
     "noProxies": "Nenhum Proxy",
     "noProxiesDesc": "Você ainda não adicionou nenhuma configuração de proxy. Adicione uma para utilizar a funcionalidade.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "Tokens API",
       "backup": "Backup",
       "configurations": "Configurações do sistema",
+      "mfa": "Autenticação de dois fatores",
       "profile": "Perfil",
       "proxy": "Proxy de rede"
     },
@@ -1517,6 +1643,12 @@
     "title": "Sair"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Alterar senha",
+      "badge": "Segurança",
+      "message": "A conta admin integrada ainda aceita a senha inicial. Altere-a no perfil com sessão iniciada como admin ou em Usuários.",
+      "title": "Senha de administrador padrão em uso"
+    },
     "notifications": "Notificações do sistema"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Buscar usuários..."
       },
+      "reset_mfa": {
+        "button_confirm": "Repor 2FA",
+        "confirm_msg": "A autenticação de dois fatores do utilizador {{name}} (ID: {{id}}) será desativada e os seus códigos de recuperação eliminados. Até voltar a configurá-la, basta a palavra-passe para iniciar sessão.",
+        "failed_title": "Falha ao repor",
+        "menu": "Repor 2FA",
+        "success_desc": "A autenticação de dois fatores de \"{{name}}\" foi desativada.",
+        "success_title": "2FA reposta",
+        "title": "Repor a autenticação de dois fatores"
+      },
       "schema": {
         "account_required": "Selecione uma conta",
         "description_max": "Máximo 256 caracteres na descrição",
@@ -1767,6 +1908,7 @@
       "created_at": "Criado em",
       "email": "E-mail",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Funções e permissões",
       "updated_at": "Atualizado em",
       "username": "Nome de usuário"
@@ -1775,6 +1917,7 @@
       "description": "Clique no botão abaixo para adicionar seu primeiro usuário.",
       "title": "Nenhum usuário encontrado"
     },
+    "mfa_enabled": "Ativa",
     "nav": {
       "api_tokens": "Tokens de API",
       "roles": "Funções",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Por favor, insira a senha",
     "pleaseEnterUsernameOrEmail": "Por favor, digite seu nome de usuário ou e-mail",
     "required": "Este campo é obrigatório",
+    "retentionDaysRange": "Informe um número inteiro de dias entre 1 e 36500 ou deixe o campo vazio.",
     "singleRequestBatchSizeMustBeNumber": "O tamanho do lote deve ser um número",
     "singleRequestBatchSizeTooLarge": "O tamanho do lote deve ser no máximo 200",
     "singleRequestBatchSizeTooSmall": "O tamanho do lote deve ser pelo menos 10"

@@ -196,6 +196,8 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   function handleSuccess() {
     toast({ title: isEdit ? t('users.actions.toast.updated') : t('users.actions.toast.created') })
     queryClient.invalidateQueries({ queryKey: ['user-list'] })
+    // A new admin password can clear the default admin password reminder.
+    queryClient.invalidateQueries({ queryKey: ['system-notifications'] })
     onOpenChange(false)
     form.reset()
   }

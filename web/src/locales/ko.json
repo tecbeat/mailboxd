@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "이보다 큰 이메일은 건너뜁니다. 기본값(100 MB)을 사용하려면 비워두세요.",
     "maxEmailSizeBytesPlaceholder": "기본값: 100 MB",
     "maxEmailSizeBytesUnlimited": "기본값: 100 MB",
+    "retentionDays": "보존 기간(일)",
+    "retentionDaysDescription": "이 일수보다 오래된 보관 이메일은 삭제되며, 더 오래된 이메일은 더 이상 보관되지 않습니다. 모든 이메일을 보존하려면 비워두세요.",
+    "retentionOff": "영구 보존",
+    "retentionWarning": "보존 기간보다 오래된 이메일은 앞으로 6시간 이내에 보관함에서 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     "minutes": "분",
     "months": "개월",
     "mustBeAtLeast1": "최소 1 이상이어야 합니다",
@@ -331,6 +335,8 @@
       "generalDesc": "기본 계정 정보 및 상태입니다.",
       "newAccount": "새 계정",
       "performance": "성능",
+      "retention": "보존",
+      "retentionDesc": "보관된 이메일을 얼마나 오래 보존할지 선택합니다.",
       "schedule": "시간 계획",
       "scope": "동기화 범위",
       "server": "서버 설정",
@@ -541,10 +547,21 @@
     "login": "로그인",
     "loginFailed": "로그인 실패",
     "logout": "로그아웃",
+    "mfa": {
+      "back": "로그인으로 돌아가기",
+      "challengeExpired": "로그인이 만료되었습니다. 다시 로그인하세요.",
+      "code": "인증 코드",
+      "codeFormat": "인증 앱의 6자리 코드 또는 복구 코드를 입력하세요.",
+      "invalidCode": "인증 코드가 올바르지 않습니다. 다시 시도하세요.",
+      "prompt": "인증 앱에 표시된 6자리 코드를 입력하세요. 앱에 접근할 수 없다면 복구 코드 중 하나를 대신 입력하세요.",
+      "tooManyCodes": "잘못된 코드가 너무 많습니다. 다시 로그인하세요.",
+      "verify": "확인"
+    },
     "password": "비밀번호",
     "sessionExpired": "세션이 만료되었습니다!",
     "sessionExpiredDesc": "비활성화로 인해 세션이 종료되었습니다. 계속하려면 다시 로그인하십시오.",
     "somethingWentWrong": "문제가 발생했습니다",
+    "tooManyAttempts": "로그인 시도 횟수가 너무 많습니다. 몇 분 후에 다시 시도하세요.",
     "username": "사용자 이름",
     "welcome": "mailboxd에 오신 것을 환영합니다",
     "youWillNeedToLogInAgain": "계정에 접근하려면 다시 로그인해야 합니다.",
@@ -714,6 +731,7 @@
     "detectedFolder": "감지됨",
     "detectedFrom": "감지 대상:",
     "dropHere": "여기에 .eml / .mbox / .pst 파일 끌어놓기",
+    "duplicateCount": "{{count}}개 중복 건너뜀",
     "failed": "가져오기 실패",
     "failedCount": "{{count}}개 실패",
     "failedDetails": "실패한 항목",
@@ -734,6 +752,7 @@
     "noMailboxFound": "편지함을 찾을 수 없습니다.",
     "noMailboxes": "이 계정에서 편지함을 찾을 수 없습니다.",
     "orClick": "또는 클릭하여 찾아보기",
+    "outsideRetentionCount": "{{count}}개 보존 기간 외",
     "processed": "{{current}} / {{total}} 처리됨",
     "processing": "처리 중…",
     "pstFolderDesc": "PST 파일은 자체 폴더 구조(예: 받은 편지함, 보낸 편지함 등)를 포함하고 있습니다. 가져오기 중에 폴더가 자동으로 생성됩니다.",
@@ -747,6 +766,7 @@
     "source": "소스",
     "startImport": "가져오기",
     "successCount": "{{count}}개 가져옴",
+    "summaryOutsideRetention": "{{count}}개 보존 기간 외",
     "target": "1. 대상 계정 선택",
     "title": "가져오기",
     "uploading": "업로드 중…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "OAuth 공급자가 애플리케이션을 인증하기 위해 제공하는 비밀 키입니다.",
+    "accessToken": "액세스 토큰",
+    "accessTokenCannotBeEmpty": "액세스 토큰은 비워 둘 수 없습니다",
+    "accountIsRequired": "계정을 선택하세요.",
     "actions": {
       "authorize": "인증",
       "delete": "삭제",
       "edit": "편집",
+      "importTokens": "토큰 가져오기",
       "openMenu": "메뉴 열기"
     },
     "addConfiguration": "구성 추가",
@@ -867,8 +891,8 @@
     "addScope": "스코프 추가",
     "areYouSureYouWantTo": "이 OAuth2 클라이언트를 {{action}}하시겠습니까?",
     "areYouSureYouWantToDelete": "삭제하시겠습니까",
-    "authAtatus": "OAuth2 인증 상태",
     "authFailed": "OAuth2 인증 실패",
+    "authStatus": "OAuth2 인증 상태",
     "authSuccess": "OAuth2 인증 성공",
     "authUrlLabel": "인증 URL:",
     "authorizationUrlCannotBeEmpty": "인증 URL은 비워 둘 수 없습니다",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "OAuth2 클라이언트 활성화",
     "enabled": "활성화됨",
     "enterIdToConfirmDeletion": "삭제를 확인하려면 ID를 입력하십시오.",
+    "enterTheAccessTokenHere": "여기에 액세스 토큰을 붙여 넣으세요.",
     "enterTheAuthorizationUrl": "인증 URL을 입력하십시오",
     "enterTheKeyHere": "여기에 키를 입력하십시오.",
+    "enterTheRefreshTokenHere": "여기에 리프레시 토큰을 붙여 넣으세요.",
     "enterTheScopeHere": "여기에 스코프를 입력하십시오.",
     "enterTheTokenUrl": "토큰 URL을 입력하십시오",
     "enterTheValueHere": "여기에 값을 입력하십시오.",
@@ -922,6 +948,15 @@
     "goHome": "홈으로 이동",
     "goToAccounts": "계정으로 이동",
     "id": "ID",
+    "importTokensDescription": "OAuth2 클라이언트가 mailboxd 안에서 인증을 완료할 수 없을 때 사용합니다. 예를 들어 email-oauth2-proxy 같은 외부 도구로 토큰을 얻은 경우입니다. 선택한 계정은 이미 IMAP 인증 방식으로 OAuth2를 사용하고 있어야 합니다.",
+    "importTokensFailed": "토큰을 가져오지 못했습니다",
+    "importTokensSuccess": "토큰을 가져왔습니다",
+    "importTokensSuccessDesc": "토큰이 저장되었으며 자동으로 갱신됩니다.",
+    "importTokensTitle": "외부 토큰 가져오기",
+    "importTokensWarningClientMustMatch": "이 구성의 클라이언트 ID와 클라이언트 시크릿은 리프레시 토큰을 발급한 클라이언트와 동일해야 합니다. 그렇지 않으면 갱신에 실패합니다.",
+    "importTokensWarningLongLivedCredential": "리프레시 토큰은 오래 유효한 자격 증명입니다. 암호화되어 이 서버에 저장됩니다.",
+    "importTokensWarningStopExternalTool": "이 토큰을 얻은 외부 도구를 중지하세요. 두 도구가 같은 리프레시 토큰을 갱신하면 토큰이 충돌하여 보관이 중단됩니다.",
+    "importing": "가져오는 중...",
     "information": "정보",
     "invalidAuthorizationUrlFormat": "유효하지 않은 인증 URL 형식",
     "invalidRedirectUriFormat": "유효하지 않은 리디렉션 URI 형식",
@@ -935,6 +970,8 @@
     "noConfigurations": "OAuth2 구성 없음",
     "noConfigurationsDesc": "아직 OAuth2 구성을 추가하지 않았습니다. 기능을 사용하려면 추가하십시오.",
     "noEmailAccountsRegistered": "등록된 이메일 계정이 없습니다. 하나를 생성하십시오.",
+    "noOAuth2Accounts": "OAuth2 인증을 사용하는 계정이 없습니다. 먼저 인증 방식이 OAuth2인 계정을 만드세요.",
+    "noProxy": "프록시 미사용",
     "noProxyAvailable": "사용 가능한 프록시 없음",
     "noStatus": "이 페이지에는 OAuth2 인증 결과가 표시됩니다. 현재 특정 상태를 사용할 수 없습니다. 필요한 경우 다시 시도하십시오.",
     "oauth2ClientHasBeenSuccessfully": "OAuth2 클라이언트가 성공적으로 {{action}}되었습니다.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "리디렉션 URI는 비워 둘 수 없습니다",
     "redirectUriIsRequired": "리디렉션 URI는 필수입니다",
     "redirectUrlLabel": "리디렉션 URI:",
+    "refreshToken": "리프레시 토큰",
+    "refreshTokenCannotBeEmpty": "리프레시 토큰은 비워 둘 수 없습니다",
     "save": "저장",
     "saveChanges": "변경 사항 저장",
     "saving": "저장 중...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "다시 시도",
     "warningDesc": "주의하십시오. 이 작업은 되돌릴 수 없습니다.",
     "warningTitle": "경고!"
+  },
+  "repair_message": {
+    "confirm": "복구",
+    "desc": "IMAP 서버에서 이 메시지를 다시 가져와 누락된 콘텐츠를 저장합니다. 콘텐츠는 보관된 해시와 일치하는 경우에만 저장됩니다.",
+    "emailMissing": "메시지 내용이 여전히 누락되어 있습니다",
+    "emailRestored": "메시지 내용이 복원되었습니다",
+    "failedHint": "메시지를 가져오거나 확인할 수 없습니다. 아래 오류를 확인하세요.",
+    "hideDetails": "세부 정보 숨기기",
+    "history": "복구 기록",
+    "historyEmpty": "아직 복구 기록이 없습니다.",
+    "historyFailed": "복구 기록을 불러오지 못했습니다.",
+    "historyHint": "최근 {{limit}}개의 복구 시도입니다.",
+    "missingAfter": "여전히 누락된 첨부 파일",
+    "missingBefore": "복구 전에 누락되었던 첨부 파일",
+    "operator": "실행자",
+    "partialHint": "일부 콘텐츠를 복원할 수 없습니다. 보관된 해시와 일치하지 않는 콘텐츠는 저장되지 않습니다.",
+    "repairAction": "메시지 복구",
+    "repairing": "복구 중…",
+    "repairingHint": "IMAP 서버에서 메시지를 가져오는 중입니다. 시간이 걸릴 수 있습니다.",
+    "reportDesc": "복구 시도 결과입니다.",
+    "reportTitle": "복구 보고서",
+    "requestFailed": "복구 요청에 실패했습니다",
+    "result": "결과",
+    "showDetails": "세부 정보 보기",
+    "statusComplete": "누락된 항목 없음",
+    "statusFailed": "실패",
+    "statusPartial": "일부 복구됨",
+    "statusRepaired": "복구됨",
+    "title": "메시지 복구",
+    "wholeMessageNote": "본문과 모든 첨부 파일을 포함한 메시지 전체를 복구합니다."
   },
   "restore_message": {
     "accountsInvolved": "관련 계정",
@@ -1307,6 +1376,7 @@
     "body": "본문",
     "button": "검색",
     "clear_history": "기록 지우기",
+    "hint": "모든 단어가 일치해야 합니다. OR로 범위를 넓히고, \"따옴표\"로 구문을 찾고, -단어로 제외합니다.",
     "no_history": "검색 기록 없음",
     "placeholder": "이메일 검색 (구문 검색은 \" \" 사용)",
     "recent_title": "최근 검색",
@@ -1350,9 +1420,17 @@
     "label": "초기화",
     "tooltip": "모든 필터 조건 지우기"
   },
+  "search_sort": {
+    "relevance": "관련성",
+    "relevance_needs_text": "관련성으로 정렬하려면 검색어를 입력하세요",
+    "relevance_tooltip": "가장 일치하는 순으로 정렬"
+  },
   "search_view": {
+    "absolute": "절대",
     "button_label": "보기",
-    "menu_title": "표시 열 설정"
+    "date_display": "날짜 표시",
+    "menu_title": "표시 열 설정",
+    "relative": "상대"
   },
   "settings": {
     "accounts": "계정",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "유효하지 않은 비밀번호",
     "lastAccess": "최종 접근",
     "manageRootTokenAndPassword": "루트 토큰과 비밀번호를 안전하게 관리합니다.",
+    "mfa": {
+      "copied": "클립보드에 복사됨",
+      "description": "인증 앱의 일회용 코드로 비밀번호 로그인을 보호하세요.",
+      "disabled": {
+        "description": "사용하면 비밀번호로 로그인할 때 Aegis, Google Authenticator, 1Password 같은 인증 앱의 6자리 코드도 필요합니다.",
+        "enable": "2단계 인증 사용",
+        "title": "2단계 인증이 꺼져 있습니다"
+      },
+      "enabled": {
+        "codesLeft": "사용하지 않은 복구 코드: {{remaining}}",
+        "codesLow": "복구 코드가 얼마 남지 않았습니다. 새 코드를 받으려면 2단계 인증을 끈 후 다시 켜세요.",
+        "confirmDisable": "끄기",
+        "description": "비밀번호로 로그인하려면 인증 앱의 코드가 필요합니다.",
+        "disable": "2단계 인증 끄기",
+        "disableCode": "인증 앱의 코드 또는 복구 코드",
+        "disabledToast": "2단계 인증을 껐습니다",
+        "title": "2단계 인증이 켜져 있습니다"
+      },
+      "enrol": {
+        "code": "앱의 코드",
+        "confirm": "확인 후 사용",
+        "copySecret": "비밀 키 복사",
+        "description": "인증 앱으로 QR 코드를 스캔하거나 비밀 키를 직접 입력하세요. 그런 다음 앱에 표시된 6자리 코드를 입력하세요.",
+        "qrAlt": "인증 앱용 QR 코드",
+        "qrFailed": "QR 코드를 생성할 수 없습니다. 비밀 키를 직접 입력하세요.",
+        "secret": "직접 입력용 비밀 키",
+        "title": "인증 앱 설정"
+      },
+      "errors": {
+        "enrolFailed": "설정을 시작할 수 없습니다",
+        "invalidCode": "인증 코드가 올바르지 않습니다. 다시 시도하세요.",
+        "tooManyAttempts": "시도 횟수가 너무 많습니다. 몇 분 후에 다시 시도하세요."
+      },
+      "loadError": "2단계 인증 상태를 불러오지 못했습니다.",
+      "recovery": {
+        "copy": "코드 복사",
+        "description": "인증 앱에 접근할 수 없게 되면 각 코드로 한 번씩 로그인할 수 있습니다.",
+        "done": "완료",
+        "download": ".txt로 다운로드",
+        "leaveWarning": "복구 코드를 저장했는지 확인하지 않았습니다. 코드는 다시 표시되지 않습니다. 그래도 나가시겠습니까?",
+        "onlyOnce": "이 코드는 한 번만 표시됩니다. 지금 안전한 곳에 보관하세요.",
+        "saved": "복구 코드를 안전한 곳에 저장했습니다",
+        "title": "복구 코드 저장"
+      },
+      "ssoNote": "싱글 사인온(SSO)으로 로그인합니다. 계정의 2단계 인증은 ID 공급자가 관리하므로 여기에서 설정할 수 없습니다.",
+      "title": "2단계 인증"
+    },
     "name": "이름",
     "noProxies": "프록시 없음",
     "noProxiesDesc": "아직 프록시 구성을 추가하지 않았습니다. 기능을 사용하려면 추가하십시오.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "API 토큰",
       "backup": "백업",
       "configurations": "시스템 설정",
+      "mfa": "2단계 인증",
       "profile": "프로필",
       "proxy": "네트워크 프록시"
     },
@@ -1517,6 +1643,12 @@
     "title": "로그아웃"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "비밀번호 변경",
+      "badge": "보안",
+      "message": "기본 제공 admin 계정이 아직 초기 비밀번호를 허용합니다. admin으로 로그인한 상태에서 프로필에서, 또는 사용자 메뉴에서 변경하세요.",
+      "title": "기본 관리자 비밀번호 사용 중"
+    },
     "notifications": "시스템 알림"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "사용자 검색..."
       },
+      "reset_mfa": {
+        "button_confirm": "2FA 재설정",
+        "confirm_msg": "사용자 {{name}}(ID: {{id}})의 2단계 인증이 꺼지고 복구 코드가 삭제됩니다. 다시 설정할 때까지는 비밀번호만으로 로그인할 수 있습니다.",
+        "failed_title": "재설정 실패",
+        "menu": "2FA 재설정",
+        "success_desc": "\"{{name}}\"의 2단계 인증을 껐습니다.",
+        "success_title": "2FA 재설정됨",
+        "title": "2단계 인증 재설정"
+      },
       "schema": {
         "account_required": "계정을 선택하세요",
         "description_max": "설명은 256자를 초과할 수 없습니다",
@@ -1767,6 +1908,7 @@
       "created_at": "생성일",
       "email": "이메일 주소",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "역할 및 권한",
       "updated_at": "수정일",
       "username": "사용자 이름"
@@ -1775,6 +1917,7 @@
       "description": "아래 버튼을 클릭하여 첫 번째 사용자를 추가하세요.",
       "title": "사용자를 찾을 수 없음"
     },
+    "mfa_enabled": "켜짐",
     "nav": {
       "api_tokens": "API 토큰",
       "roles": "역할",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "비밀번호를 입력하십시오",
     "pleaseEnterUsernameOrEmail": "사용자 이름 또는 이메일을 입력하세요",
     "required": "이 필드는 필수입니다",
+    "retentionDaysRange": "1에서 36500 사이의 정수 일수를 입력하거나 비워두세요.",
     "singleRequestBatchSizeMustBeNumber": "배치 크기는 숫자여야 합니다",
     "singleRequestBatchSizeTooLarge": "배치 크기는 최대 200이어야 합니다",
     "singleRequestBatchSizeTooSmall": "배치 크기는 최소 10이어야 합니다"

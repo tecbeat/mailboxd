@@ -2,16 +2,14 @@ use std::{path::PathBuf, time::Instant};
 
 use bytes::Bytes;
 use mailboxd_core::{
-    envelope::{
-        extractor::extract_references,
-        utils::{attachment_parts, part_contents},
-    },
+    envelope::{extractor::extract_references, utils::attachment_parts},
     message::content::AttachmentInfo,
-    store::tantivy::tokenizers::EuroTokenizer, utils::compute_content_hash,
+    store::tantivy::tokenizers::register_tokenizers,
+    utils::compute_content_hash,
 };
 
-use mailboxd_blob::{Codec, Config, Engine};
 use mail_parser::MessageParser;
+use mailboxd_blob::{Codec, Config, Engine};
 use tantivy::{indexer::NoMergePolicy, Index, IndexWriter, TantivyDocument};
 use uuid::Uuid;
 
@@ -22,6 +20,7 @@ use mailboxd_core::{
     raise_error,
     store::envelope::Envelope,
     store::tantivy::{
+        format::write_index_format_version,
         model::{AttachmentModel, EnvelopeWithAttachments},
         schema::SchemaTools,
     },
@@ -78,56 +77,19 @@ pub fn detach_attachments_standalone(
     original_body: &[u8],
     message: &mail_parser::Message<'_>,
 ) -> (Vec<u8>, DetachOutput) {
-    let mut stripped_eml = original_body.to_vec();
-    let mut infos = Vec::new();
-    let mut blobs = Vec::new();
-
-    let mut ranges: Vec<_> = attachment_parts(message)
-        .map(|att| (att.offset_body() as usize, att.offset_end() as usize, att))
-        .collect();
-    ranges.sort_by(|a, b| b.0.cmp(&a.0));
-
-    for (raw_start, raw_end, att) in ranges {
-        let contents = part_contents(&att);
-        let content_hash = compute_content_hash(&contents);
-        let body_len = original_body.len();
-        let raw_start = raw_start.min(body_len);
-        let raw_end = raw_end.min(body_len);
-        let range_valid = raw_start < raw_end;
-
-        if range_valid {
-            blobs.push((
-                content_hash.clone(),
-                Bytes::copy_from_slice(&original_body[raw_start..raw_end]),
-            ));
-        }
-
-        if range_valid {
-            let placeholder = format!("<<MAILBOXD_DETACH_HASH:{}>>", &content_hash);
-            stripped_eml.splice(raw_start..raw_end, placeholder.as_bytes().iter().cloned());
-        }
-
-        infos.push(AttachmentInfo {
-            filename: att.attachment_name().map(|n| n.to_string()),
-            size: contents.len(),
-            inline: att
-                .content_disposition()
-                .map(|d| d.is_inline())
-                .unwrap_or_else(|| att.content_id().is_some()),
-            file_type: att
-                .content_type()
-                .map(|ct| format!("{}/{}", ct.ctype(), ct.subtype().unwrap_or("")))
-                .unwrap_or_else(|| "application/octet-stream".to_string()),
-            content_id: att.content_id().map(|id| id.to_string()),
-            content_hash,
-            is_message: att.is_message(),
-            extracted_text: None,
-            extracted_page_count: None,
-            extracted_is_ocr: false,
-        });
-    }
-
-    (stripped_eml, DetachOutput { infos, blobs })
+    // Delegate to the single canonical implementation shared with the live
+    // ingest path, so a migrated store always matches what the runtime
+    // writes and reads back. No extraction filter: offline migration does
+    // not run text extraction.
+    let detached =
+        mailboxd_core::envelope::extractor::strip_attachment_bodies(original_body, message, None);
+    (
+        detached.stripped_eml,
+        DetachOutput {
+            infos: detached.infos,
+            blobs: detached.blobs,
+        },
+    )
 }
 
 pub struct NewIndexWriterV2 {
@@ -150,16 +112,17 @@ impl NewIndexWriterV2 {
             .map(|mut d| d.next().is_none())
             .unwrap_or(true)
         {
-            Index::create_in_dir(&dirs.envelope_dir, SchemaTools::email_schema())
-                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
+            let index = Index::create_in_dir(&dirs.envelope_dir, SchemaTools::email_schema())
+                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+            write_index_format_version(&dirs.envelope_dir)
+                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+            index
         } else {
             Index::open_in_dir(&dirs.envelope_dir)
                 .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
         };
 
-        envelope_index
-            .tokenizers()
-            .register("euro", EuroTokenizer::new());
+        register_tokenizers(&envelope_index);
 
         let envelope_writer = envelope_index
             .writer_with_num_threads(3, 256 * 1024 * 1024)
@@ -175,16 +138,18 @@ impl NewIndexWriterV2 {
             .map(|mut d| d.next().is_none())
             .unwrap_or(true)
         {
-            Index::create_in_dir(&dirs.attachment_dir, SchemaTools::attachment_schema())
-                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
+            let index =
+                Index::create_in_dir(&dirs.attachment_dir, SchemaTools::attachment_schema())
+                    .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+            write_index_format_version(&dirs.attachment_dir)
+                .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
+            index
         } else {
             Index::open_in_dir(&dirs.attachment_dir)
                 .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?
         };
 
-        attachment_index
-            .tokenizers()
-            .register("euro", EuroTokenizer::new());
+        register_tokenizers(&attachment_index);
         let attachment_writer = attachment_index
             .writer_with_num_threads(3, 256 * 1024 * 1024)
             .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
@@ -300,8 +265,7 @@ impl NewIndexWriterV2 {
 
         // Buffer for bulk write — sorted + flushed later.
         // Key is the raw 32-byte hash (not the hex string).
-        self.email_buf
-            .push((email_raw_key, stripped_eml));
+        self.email_buf.push((email_raw_key, stripped_eml));
         for (hash, data) in &attachment_output.blobs {
             let raw_key = hex_to_raw_key(hash)?;
             self.attachment_buf.push((raw_key, data.to_vec()));

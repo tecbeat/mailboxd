@@ -36,6 +36,7 @@ import { TabGeneral } from "./components/tab-general";
 import { TabServer } from "./components/tab-server";
 import { TabDownload } from "./components/tab-download";
 import { TabFilters } from "./components/tab-filters";
+import { RetentionField } from "./components/retention-field";
 import { create_account, autoconfig } from "@/api/account/api";
 import { getAccountSchema, type AccountFormValues } from "./components/schema";
 import axios, { type AxiosError } from "axios";
@@ -61,6 +62,7 @@ const defaultValues: AccountFormValues = {
   auto_download_new_mailboxes: true,
   download_schedule: undefined,
   archive_rules: undefined,
+  retention_days: undefined,
 };
 
 function SectionHeader({ title, description }: { title: string; description?: string }) {
@@ -138,6 +140,7 @@ export function AccountNewPage() {
         download_schedule: data.download_schedule || null,
         account_type: "IMAP",
         archive_rules: data.archive_rules || null,
+        retention_days: data.retention_days,
       });
     },
     [createAccount]
@@ -247,6 +250,16 @@ export function AccountNewPage() {
                       description={t('accounts.settings.filtersDesc')}
                     />
                     <TabFilters />
+                  </section>
+
+                  <hr />
+
+                  <section>
+                    <SectionHeader
+                      title={t('accounts.settings.retention')}
+                      description={t('accounts.settings.retentionDesc')}
+                    />
+                    <RetentionField />
                   </section>
 
                   <div className="flex items-center justify-between pt-4 border-t">

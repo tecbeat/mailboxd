@@ -314,7 +314,7 @@ mod tests {
     use crate::store::tantivy::fields::AttachmentFields;
     use crate::store::tantivy::fields::EmailFields;
     use crate::store::tantivy::schema::SchemaTools;
-    use crate::store::tantivy::tokenizers::EuroTokenizer;
+    use crate::store::tantivy::tokenizers::register_tokenizers;
     use std::collections::HashSet;
     use std::fmt::Write;
     use std::fs;
@@ -332,7 +332,7 @@ mod tests {
 
     fn make_index(dir: &std::path::Path, schema: tantivy::schema::Schema) -> Index {
         let index = Index::create_in_dir(dir, schema).unwrap();
-        index.tokenizers().register("euro", EuroTokenizer::new());
+        register_tokenizers(&index);
         index
     }
 
@@ -624,6 +624,7 @@ mod tests {
     ///
     /// This test is read-only — it does not modify the index.
     #[test]
+    #[ignore = "diagnostic for a local production index; run explicitly with --ignored"]
     fn inspect_production_duplicates() {
         let index_path = r"E:\mailboxd-data\mailboxd-indices\mail_metadata";
         let report_path = std::path::PathBuf::from(r"E:\mailboxd\dedup_report.txt");

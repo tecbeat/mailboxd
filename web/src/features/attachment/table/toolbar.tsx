@@ -10,6 +10,8 @@ import { MailboxPopover } from '@/features/mail-list/mailbox-popover'
 import { AccountPopover } from '@/features/mail-list/account-popover'
 import { MetadataFilter } from '../attachment-metadata-filter'
 import { FilterBar } from '@/features/mail-list/filter-bar'
+import { RelevanceSortButton } from '@/features/mail-list/relevance-sort'
+import { RepairHistoryButton } from '@/features/repair/repair-history-button'
 import { FileType, Laptop, Tag } from 'lucide-react'
 
 const ATTACHMENT_TEXT_CONFIG: TextSearchConfig = {
@@ -22,6 +24,9 @@ const ATTACHMENT_TEXT_CONFIG: TextSearchConfig = {
     { value: 'body', labelKey: 'attachment.name' },
   ],
 }
+
+// The backend scores relevance only for these (search_attachment_impl).
+const ATTACHMENT_RELEVANCE_FIELDS = ['text', 'subject']
 
 type DataTableToolbarProps<TData extends RowData> = {
   table: Table<MailTableFeatures, TData>
@@ -51,7 +56,9 @@ export function DataTableToolbar<TData extends RowData>({
       />
       <MoreFiltersPopover />
       <TimePopover />
+      <RelevanceSortButton textFields={ATTACHMENT_RELEVANCE_FIELDS} />
       <DataTableViewOptions table={table} />
+      <RepairHistoryButton />
     </FilterBar>
   )
 }

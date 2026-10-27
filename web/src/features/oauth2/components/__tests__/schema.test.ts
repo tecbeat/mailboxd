@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getOAuth2Schema } from '../schema'
+import { getImportTokensSchema, getOAuth2Schema } from '../schema'
 
 const t = (key: string) => key
 
@@ -184,6 +184,55 @@ describe('OAuth2 Form Schema', () => {
     it('accepts numeric use_proxy', () => {
       const result = schema.safeParse({ ...validData, use_proxy: 1 })
       expect(result.success).toBe(true)
+    })
+  })
+})
+
+describe('Import Tokens Form Schema', () => {
+  const schema = getImportTokensSchema(t)
+
+  const validData = {
+    account_id: 42,
+    access_token: 'ya29.a0AfH6SMBexample',
+    refresh_token: '1//0exampleRefreshToken',
+  }
+
+  const firstMessage = (result: ReturnType<typeof schema.safeParse>) =>
+    result.success ? undefined : result.error.issues[0].message
+
+  it('accepts a complete payload', () => {
+    expect(schema.safeParse(validData).success).toBe(true)
+  })
+
+  it.each([
+    ['missing', { access_token: 'a', refresh_token: 'r' }],
+    ['non-numeric', { ...validData, account_id: '42' }],
+  ])('rejects a %s account_id', (_, data) => {
+    const result = schema.safeParse(data)
+    expect(result.success).toBe(false)
+    expect(firstMessage(result)).toBe('oauth2.accountIsRequired')
+  })
+
+  it.each([
+    ['access_token', 'oauth2.accessTokenCannotBeEmpty'],
+    ['refresh_token', 'oauth2.refreshTokenCannotBeEmpty'],
+  ] as const)('rejects an empty or blank %s', (field, message) => {
+    for (const value of ['', '  \n\t ']) {
+      const result = schema.safeParse({ ...validData, [field]: value })
+      expect(result.success).toBe(false)
+      expect(firstMessage(result)).toBe(message)
+    }
+  })
+
+  it('trims surrounding whitespace off the tokens', () => {
+    const result = schema.safeParse({
+      ...validData,
+      access_token: '  ya29.token  ',
+      refresh_token: '\n1//0token\n',
+    })
+    expect(result.success && result.data).toMatchObject({
+      access_token: 'ya29.token',
+      refresh_token: '1//0token',
     })
   })
 })

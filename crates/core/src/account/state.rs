@@ -140,6 +140,32 @@ pub struct DownloadSession {
     pub errors: Vec<AccountError>,
 }
 
+impl DownloadSession {
+    /// Final status for a session whose download phases all returned without
+    /// error: a run in which any folder failed must not be reported as
+    /// `Success`, since those folders were not fully archived.
+    pub fn completed_outcome(&self) -> (DownloadStatus, Option<String>) {
+        let failed: Vec<&str> = self
+            .folder_details
+            .values()
+            .filter(|folder| folder.status == FolderStatus::Failed)
+            .map(|folder| folder.folder_name.as_str())
+            .collect();
+        if failed.is_empty() {
+            (DownloadStatus::Success, None)
+        } else {
+            (
+                DownloadStatus::Failed,
+                Some(format!(
+                    "Download finished, but {} folder(s) failed: {}",
+                    failed.len(),
+                    failed.join(", ")
+                )),
+            )
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
 #[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
 pub struct DownloadState {
@@ -251,6 +277,16 @@ impl DownloadState {
             }
             Ok(updated)
         })
+    }
+
+    /// Close the active session after all download phases returned without
+    /// error, as `Failed` when any folder failed and `Success` otherwise.
+    pub fn finish_completed_session(account_id: u64) -> MailboxdResult<()> {
+        let (status, message) = Self::get(account_id)?
+            .and_then(|state| state.active_session)
+            .map(|session| session.completed_outcome())
+            .unwrap_or((DownloadStatus::Success, None));
+        Self::update_session_status(account_id, status, message)
     }
 
     /// Moves a stale Running session into history as Cancelled.
@@ -567,5 +603,102 @@ impl GapFillState {
             update_impl(DB_MANAGER.db(), &account_id.to_string(), updater)?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn session_with(folders: &[(&str, FolderStatus)]) -> DownloadSession {
+        DownloadSession {
+            folder_details: folders
+                .iter()
+                .map(|(name, status)| {
+                    (
+                        name.to_string(),
+                        FolderProgress {
+                            folder_name: name.to_string(),
+                            status: status.clone(),
+                            ..Default::default()
+                        },
+                    )
+                })
+                .collect(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn completed_outcome_is_success_when_no_folder_failed() {
+        let session = session_with(&[
+            ("INBOX", FolderStatus::Success),
+            ("Sent", FolderStatus::Success),
+        ]);
+        assert_eq!(session.completed_outcome(), (DownloadStatus::Success, None));
+    }
+
+    #[test]
+    fn completed_outcome_is_failed_and_names_failed_folders() {
+        let session = session_with(&[
+            ("Archive", FolderStatus::Failed),
+            ("INBOX", FolderStatus::Success),
+            ("Sent", FolderStatus::Failed),
+        ]);
+        assert_eq!(
+            session.completed_outcome(),
+            (
+                DownloadStatus::Failed,
+                Some("Download finished, but 2 folder(s) failed: Archive, Sent".to_string())
+            )
+        );
+    }
+
+    fn progress(account_id: u64, folder: &str, status: FolderStatus) {
+        DownloadState::update_folder_progress(account_id, folder.into(), 1, 1, status, None)
+            .unwrap();
+    }
+
+    fn finished_session(account_id: u64) -> DownloadSession {
+        let state = DownloadState::get(account_id).unwrap().unwrap();
+        assert!(state.active_session.is_none(), "session must be closed");
+        state
+            .history
+            .last()
+            .cloned()
+            .expect("closed session in history")
+    }
+
+    #[tokio::test]
+    async fn finish_completed_session_records_failed_folders_as_failed() {
+        // Account id used by no other test.
+        let account_id = 74_201_001;
+        DownloadState::init(account_id).await.unwrap();
+        progress(account_id, "INBOX", FolderStatus::Success);
+        progress(account_id, "Junk", FolderStatus::Failed);
+
+        DownloadState::finish_completed_session(account_id).unwrap();
+
+        let session = finished_session(account_id);
+        assert_eq!(session.status, DownloadStatus::Failed);
+        assert_eq!(
+            session.message.as_deref(),
+            Some("Download finished, but 1 folder(s) failed: Junk")
+        );
+        assert!(session.end_time.is_some());
+    }
+
+    #[tokio::test]
+    async fn finish_completed_session_records_success_without_failed_folders() {
+        // Account id used by no other test.
+        let account_id = 74_201_002;
+        DownloadState::init(account_id).await.unwrap();
+        progress(account_id, "INBOX", FolderStatus::Success);
+
+        DownloadState::finish_completed_session(account_id).unwrap();
+
+        let session = finished_session(account_id);
+        assert_eq!(session.status, DownloadStatus::Success);
+        assert_eq!(session.message, None);
     }
 }

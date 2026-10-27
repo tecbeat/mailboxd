@@ -52,7 +52,7 @@ export function AccountDetailDrawer({ open, onOpenChange, currentRow }: Props) {
       })}`;
     }
 
-    return t('accounts.syncAll');
+    return t('accounts.downloadAll');
   })();
 
   const hasSince = !!currentRow.date_since;
@@ -103,6 +103,10 @@ export function AccountDetailDrawer({ open, onOpenChange, currentRow }: Props) {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-muted-foreground">{t('accounts.maxEmailSizeBytes')}:</span>
                         <span>{currentRow.max_email_size_bytes ? `${(currentRow.max_email_size_bytes / 1024 / 1024).toFixed(0)} MB` : t('accounts.maxEmailSizeBytesUnlimited')}</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-muted-foreground">{t('accounts.retentionDays')}:</span>
+                        <span>{currentRow.retention_days || t('accounts.retentionOff')}</span>
                       </div>
                       <div className="flex flex-col gap-2">
                         <span className="text-muted-foreground">{t('accounts.capabilities')}:</span>

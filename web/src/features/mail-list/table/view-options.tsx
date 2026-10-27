@@ -8,8 +8,11 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
+import { type DateDisplayMode, useDateDisplay } from '@/hooks/use-date-display'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { FilterLabel } from '@/features/mail-list/filter-bar'
@@ -34,7 +37,7 @@ export function DataTableViewOptions<TData extends RowData>({
   table,
 }: DataTableViewOptionsProps<TData>) {
   const { t } = useTranslation()
-
+  const { dateDisplay, setDateDisplay } = useDateDisplay()
 
   const columnLabels = React.useMemo(() => {
     return Object.fromEntries(
@@ -77,6 +80,19 @@ export function DataTableViewOptions<TData extends RowData>({
               </DropdownMenuCheckboxItem>
             )
           })}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className='text-xs'>{t('search_view.date_display')}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={dateDisplay}
+          onValueChange={(value) => setDateDisplay(value as DateDisplayMode)}
+        >
+          <DropdownMenuRadioItem value='relative' className='text-xs'>
+            {t('search_view.relative')}
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value='absolute' className='text-xs'>
+            {t('search_view.absolute')}
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -76,6 +76,8 @@ async fn role_crud() {
     let role: UserRole = resp.json().await.value().deserialize();
     assert_eq!(role.name, "test-role");
     assert!(!role.is_builtin);
+    assert_eq!(role.role_type, "Global");
+    assert_eq!(role.permissions, BTreeSet::from(["user:view".to_string()]));
     let role_id = role.id;
 
     // Update custom role

@@ -92,9 +92,15 @@ pub async fn rebuild_cache(
 
         match fetch_and_save_full_mailbox(&account, &mailbox, token.clone()).await {
             Ok(new_highest_uid) => {
-                let mut updated = mailbox.clone();
-                updated.highest_uid = new_highest_uid;
-                MailBox::batch_upsert(&[updated])?;
+                // Only persist a watermark when the folder actually
+                // completed: Ok(None) means the download broke mid-way (or
+                // the folder is empty), and writing it would clear the row
+                // and hide the un-downloaded range from later syncs (#377).
+                if let Some(uid) = new_highest_uid {
+                    let mut updated = mailbox.clone();
+                    updated.highest_uid = Some(uid);
+                    MailBox::batch_upsert(&[updated])?;
+                }
             }
             Err(err) => {
                 has_error = true;
@@ -176,9 +182,15 @@ pub async fn rebuild_cache_by_date(
             .await
         {
             Ok(new_highest_uid) => {
-                let mut updated = mailbox.clone();
-                updated.highest_uid = new_highest_uid;
-                MailBox::batch_upsert(&[updated])?;
+                // Only persist a watermark when the folder actually
+                // completed: Ok(None) means the download broke mid-way (or
+                // the folder is empty), and writing it would clear the row
+                // and hide the un-downloaded range from later syncs (#377).
+                if let Some(uid) = new_highest_uid {
+                    let mut updated = mailbox.clone();
+                    updated.highest_uid = Some(uid);
+                    MailBox::batch_upsert(&[updated])?;
+                }
             }
             Err(err) => {
                 has_error = true;
@@ -267,4 +279,73 @@ pub async fn rebuild_mailbox_cache_by_date(
 
     let result = fetch_and_save_by_date(account, date, remote, direction, token).await?;
     Ok(result)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::imap::mock_server::{
+        malformed_response, mock_mails, register_mock_account, uid_fetch_body_response,
+        MockImapServer, MockImapServerHandle,
+    };
+
+    /// Two non-empty folders: the first downloads completely, the body fetch
+    /// of the second fails.
+    async fn first_folder_completes_second_breaks(
+        account_id: u64,
+    ) -> (AccountModel, [MailBox; 2], MockImapServerHandle) {
+        let mails = mock_mails(&[1, 2]);
+        let bodies: Vec<(u32, &[u8])> = mails.iter().map(|m| (m.uid, m.body.as_slice())).collect();
+        let handle = MockImapServer::new()
+            .respond_times("BODY.PEEK[]", uid_fetch_body_response(&bodies), 1)
+            .respond("BODY.PEEK[]", malformed_response())
+            .serving(&mails)
+            .start()
+            .await;
+        let account = register_mock_account(&handle, account_id);
+        DownloadState::init(account_id).await.unwrap();
+        let folder = |name: &str| MailBox {
+            id: 1_000_000 + (uuid::Uuid::new_v4().as_u128() % 1_000_000_000) as u64,
+            account_id,
+            name: name.into(),
+            exists: 2,
+            uid_validity: Some(42),
+            ..Default::default()
+        };
+        (account, [folder("INBOX"), folder("Archive")], handle)
+    }
+
+    fn stored_highest_uid(mailbox: &MailBox) -> Option<u32> {
+        MailBox::get(mailbox.id).unwrap().highest_uid
+    }
+
+    #[tokio::test]
+    async fn rebuild_persists_the_watermark_of_completed_folders_only() {
+        let (account, folders, _server) = first_folder_completes_second_breaks(59_342_451).await;
+
+        rebuild_cache(&account, &folders, CancellationToken::new())
+            .await
+            .unwrap();
+
+        assert_eq!(stored_highest_uid(&folders[0]), Some(2));
+        assert_eq!(stored_highest_uid(&folders[1]), None);
+    }
+
+    #[tokio::test]
+    async fn date_rebuild_persists_the_watermark_of_completed_folders_only() {
+        let (account, folders, _server) = first_folder_completes_second_breaks(59_342_452).await;
+
+        rebuild_cache_by_date(
+            &account,
+            &folders,
+            "01-Jan-2020",
+            FetchDirection::Since,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(stored_highest_uid(&folders[0]), Some(2));
+        assert_eq!(stored_highest_uid(&folders[1]), None);
+    }
 }

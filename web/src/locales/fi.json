@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "Tätä suuremmat sähköpostit ohitetaan. Jätä tyhjäksi käyttääksesi oletusarvoa (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Oletus: 100 MB",
     "maxEmailSizeBytesUnlimited": "Oletus: 100 MB",
+    "retentionDays": "Säilytysaika (päivää)",
+    "retentionDaysDescription": "Tätä useamman päivän ikäiset arkistoidut sähköpostit poistetaan, eikä vanhempia sähköposteja enää arkistoida. Jätä tyhjäksi säilyttääksesi kaikki sähköpostit.",
+    "retentionOff": "Säilytä pysyvästi",
+    "retentionWarning": "Säilytysaikaa vanhemmat sähköpostit poistetaan arkistosta pysyvästi seuraavien 6 tunnin aikana. Tätä ei voi perua.",
     "minutes": "minuuttia",
     "months": "Kuukautta",
     "mustBeAtLeast1": "Täytyy olla vähintään 1",
@@ -331,6 +335,8 @@
       "generalDesc": "Tilin perustiedot ja tila.",
       "newAccount": "Uusi tili",
       "performance": "Suorituskyky",
+      "retention": "Säilytys",
+      "retentionDesc": "Valitse, kuinka kauan arkistoituja sähköposteja säilytetään.",
       "schedule": "Aikataulu",
       "scope": "Laajuus",
       "server": "Palvelin",
@@ -541,10 +547,21 @@
     "login": "Kirjaudu sisään",
     "loginFailed": "Kirjautuminen epäonnistui",
     "logout": "Kirjaudu ulos",
+    "mfa": {
+      "back": "Takaisin kirjautumiseen",
+      "challengeExpired": "Kirjautuminen on vanhentunut. Kirjaudu uudelleen.",
+      "code": "Vahvistuskoodi",
+      "codeFormat": "Anna todennussovelluksen 6-numeroinen koodi tai palautuskoodi.",
+      "invalidCode": "Virheellinen vahvistuskoodi. Yritä uudelleen.",
+      "prompt": "Anna todennussovelluksesi näyttämä 6-numeroinen koodi. Jos et enää pääse sovellukseen, anna sen sijaan jokin palautuskoodeistasi.",
+      "tooManyCodes": "Liian monta virheellistä koodia. Kirjaudu uudelleen.",
+      "verify": "Vahvista"
+    },
     "password": "Salasana",
     "sessionExpired": "Istunto vanhentunut!",
     "sessionExpiredDesc": "Istuntosi on päättynyt toimettomuuden vuoksi. Kirjaudu sisään jatkaaksesi.",
     "somethingWentWrong": "Jotain meni vikaan",
+    "tooManyAttempts": "Liian monta kirjautumisyritystä. Odota muutama minuutti ja yritä uudelleen.",
     "username": "Käyttäjänimi",
     "welcome": "Tervetuloa mailboxdiin",
     "youWillNeedToLogInAgain": "Sinun on kirjauduttava sisään uudelleen päästäksesi tilillesi.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Tunnistettu",
     "detectedFrom": "Tunnistettu lähteestä",
     "dropHere": "Pudota .eml / .mbox / .pst -tiedostot tähän",
+    "duplicateCount": "{{count}} kaksoiskappaletta ohitettu",
     "failed": "Tuonti epäonnistui",
     "failedCount": "{{count}} epäonnistui",
     "failedDetails": "Epäonnistuneet kohteet",
@@ -734,6 +752,7 @@
     "noMailboxFound": "Postilaatikkoa ei löytynyt.",
     "noMailboxes": "Tältä tililtä ei löytynyt postilaatikoita.",
     "orClick": "tai napsauta selataksesi",
+    "outsideRetentionCount": "{{count}} säilytysajan ulkopuolella",
     "processed": "{{current}} / {{total}} käsitelty",
     "processing": "Käsitellään…",
     "pstFolderDesc": "PST-tiedosto sisältää oman kansionrakenneensa (esim. Saapuneet, Lähetetyt jne.). Kansiot luodaan automaattisesti tuonnin aikana.",
@@ -747,6 +766,7 @@
     "source": "lähde",
     "startImport": "Tuo",
     "successCount": "{{count}} tuotu",
+    "summaryOutsideRetention": "{{count}} säilytysajan ulkopuolella",
     "target": "1. Valitse kohdetili",
     "title": "Tuonti",
     "uploading": "Ladataan…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "OAuth-palveluntarjoajan tarjoama salainen avain sovelluksesi todentamiseksi.",
+    "accessToken": "Käyttötunnus",
+    "accessTokenCannotBeEmpty": "Käyttötunnus ei voi olla tyhjä",
+    "accountIsRequired": "Valitse tili.",
     "actions": {
       "authorize": "Valtuuta",
       "delete": "Poista",
       "edit": "Muokkaa",
+      "importTokens": "Tuo tunnukset",
       "openMenu": "Avaa valikko"
     },
     "addConfiguration": "Lisää määritys",
@@ -867,8 +891,8 @@
     "addScope": "Lisää valtuusalue",
     "areYouSureYouWantTo": "Oletko varma, että haluat {{action}} tämän OAuth2-asiakasohjelman?",
     "areYouSureYouWantToDelete": "Oletko varma, että haluat poistaa",
-    "authAtatus": "OAuth2-todennuksen tila",
     "authFailed": "OAuth2-todennus epäonnistui",
+    "authStatus": "OAuth2-todennuksen tila",
     "authSuccess": "OAuth2-todennus onnistui",
     "authUrlLabel": "Valtuutus-URL:",
     "authorizationUrlCannotBeEmpty": "Valtuutus-URL ei voi olla tyhjä",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "Ota OAuth2-asiakasohjelma käyttöön",
     "enabled": "Käytössä",
     "enterIdToConfirmDeletion": "Syötä ID vahvistaaksesi poiston.",
+    "enterTheAccessTokenHere": "Liitä käyttötunnus tähän.",
     "enterTheAuthorizationUrl": "Syötä valtuutus-URL",
     "enterTheKeyHere": "Syötä avain tähän.",
+    "enterTheRefreshTokenHere": "Liitä päivitystunnus tähän.",
     "enterTheScopeHere": "Syötä valtuusalue tähän.",
     "enterTheTokenUrl": "Syötä tunnus-URL",
     "enterTheValueHere": "Syötä arvo tähän.",
@@ -922,6 +948,15 @@
     "goHome": "Siirry kotiin",
     "goToAccounts": "Siirry tileihin",
     "id": "ID",
+    "importTokensDescription": "Käytä tätä, kun OAuth2-asiakas ei pysty suorittamaan valtuutusta mailboxdissa, esimerkiksi kun tunnukset on hankittu ulkoisella työkalulla, kuten email-oauth2-proxyllä. Valitun tilin on jo käytettävä OAuth2:ta IMAP-todennustapana.",
+    "importTokensFailed": "Tunnusten tuonti epäonnistui",
+    "importTokensSuccess": "Tunnukset tuotu",
+    "importTokensSuccessDesc": "Tunnukset on tallennettu, ja ne uusitaan automaattisesti.",
+    "importTokensTitle": "Tuo ulkoiset tunnukset",
+    "importTokensWarningClientMustMatch": "Tämän määrityksen asiakastunnuksen ja asiakassalaisuuden on oltava samat kuin päivitystunnuksen myöntäneellä asiakkaalla, muuten uusiminen epäonnistuu.",
+    "importTokensWarningLongLivedCredential": "Päivitystunnus on pitkäikäinen tunnistetieto. Se salataan ja tallennetaan tälle palvelimelle.",
+    "importTokensWarningStopExternalTool": "Pysäytä ulkoinen työkalu, joka hankki nämä tunnukset. Jos molemmat työkalut uusivat saman päivitystunnuksen, tunnukset joutuvat ristiriitaan ja arkistointi pysähtyy.",
+    "importing": "Tuodaan...",
     "information": "Tiedot",
     "invalidAuthorizationUrlFormat": "Virheellinen valtuutus-URL-muoto",
     "invalidRedirectUriFormat": "Virheellinen uudelleenohjaus-URI-muoto",
@@ -935,6 +970,8 @@
     "noConfigurations": "Ei OAuth2-määrityksiä",
     "noConfigurationsDesc": "Et ole vielä lisännyt OAuth2-määrityksiä. Lisää yksi aloittaaksesi OAuth2-toimintojen käytön.",
     "noEmailAccountsRegistered": "Ei rekisteröityjä sähköpostitilejä. Ole hyvä ja luo sellainen.",
+    "noOAuth2Accounts": "Mikään tileistäsi ei käytä OAuth2-todennusta. Luo ensin tili, jonka todennustapa on OAuth2.",
+    "noProxy": "Ei välityspalvelinta",
     "noProxyAvailable": "Ei välityspalvelinta saatavilla",
     "noStatus": "Tämä sivu näyttää OAuth2-todennuksesi tuloksen. Tällä hetkellä ei ole saatavilla erityistä tilaa. Yritä uudelleen tarvittaessa.",
     "oauth2ClientHasBeenSuccessfully": "OAuth2-asiakasohjelma on {{action}} onnistuneesti.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "Uudelleenohjaus-URI ei voi olla tyhjä",
     "redirectUriIsRequired": "Uudelleenohjaus-URI on pakollinen",
     "redirectUrlLabel": "Uudelleenohjaus-URI:",
+    "refreshToken": "Päivitystunnus",
+    "refreshTokenCannotBeEmpty": "Päivitystunnus ei voi olla tyhjä",
     "save": "Tallenna",
     "saveChanges": "Tallenna muutokset",
     "saving": "Tallennetaan...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Yritä uudelleen",
     "warningDesc": "Ole varovainen, tätä toimenpidettä ei voi kumota.",
     "warningTitle": "Varoitus!"
+  },
+  "repair_message": {
+    "confirm": "Korjaa",
+    "desc": "Hakee tämän viestin uudelleen IMAP-palvelimelta ja tallentaa puuttuvan sisällön. Sisältö tallennetaan vain, jos se vastaa arkistoitua tiivistettä.",
+    "emailMissing": "Viestin sisältö puuttuu edelleen",
+    "emailRestored": "Viestin sisältö palautettu",
+    "failedHint": "Viestiä ei voitu hakea tai tarkistaa. Katso virhe alta.",
+    "hideDetails": "Piilota tiedot",
+    "history": "Korjaushistoria",
+    "historyEmpty": "Ei vielä korjauksia.",
+    "historyFailed": "Korjaushistorian lataaminen epäonnistui.",
+    "historyHint": "Viimeisimmät {{limit}} korjausyritystä.",
+    "missingAfter": "Edelleen puuttuvat liitteet",
+    "missingBefore": "Ennen korjausta puuttuneet liitteet",
+    "operator": "Suorittaja",
+    "partialHint": "Osaa sisällöstä ei voitu palauttaa. Sisältöä, joka ei vastaa arkistoitua tiivistettä, ei koskaan tallenneta.",
+    "repairAction": "Korjaa viesti",
+    "repairing": "Korjataan…",
+    "repairingHint": "Haetaan viestiä IMAP-palvelimelta. Tämä voi kestää hetken.",
+    "reportDesc": "Korjausyrityksen tulos.",
+    "reportTitle": "Korjausraportti",
+    "requestFailed": "Korjauspyyntö epäonnistui",
+    "result": "Tulos",
+    "showDetails": "Näytä tiedot",
+    "statusComplete": "Mitään ei puuttunut",
+    "statusFailed": "Epäonnistui",
+    "statusPartial": "Osittain korjattu",
+    "statusRepaired": "Korjattu",
+    "title": "Korjaa viesti",
+    "wholeMessageNote": "Tämä korjaa koko viestin: sen sisällön ja kaikki liitteet."
   },
   "restore_message": {
     "accountsInvolved": "Osalliset tilit",
@@ -1307,6 +1376,7 @@
     "body": "Viestiosa",
     "button": "Hae",
     "clear_history": "Tyhjennä historia",
+    "hint": "Kaikkien sanojen on täsmättävä. OR laajentaa hakua, \"lainausmerkit\" hakevat fraasia, -sana sulkee pois.",
     "no_history": "Ei hakuhistoriaa",
     "placeholder": "Hae sähköposteja (käytä \" \" lausehakuun)",
     "recent_title": "Viimeisimmät haut",
@@ -1350,9 +1420,17 @@
     "label": "Palauta",
     "tooltip": "Poista kaikki suodattimet"
   },
+  "search_sort": {
+    "relevance": "Osuvuus",
+    "relevance_needs_text": "Kirjoita hakusana lajitellaksesi osuvuuden mukaan",
+    "relevance_tooltip": "Lajittele parhaan osuman mukaan"
+  },
   "search_view": {
+    "absolute": "Absoluuttinen",
     "button_label": "Näkymä",
-    "menu_title": "Sarakeasetukset"
+    "date_display": "Päivämäärän näyttö",
+    "menu_title": "Sarakeasetukset",
+    "relative": "Suhteellinen"
   },
   "settings": {
     "accounts": "Tilit",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Virheellinen salasana",
     "lastAccess": "Viimeisin pääsy",
     "manageRootTokenAndPassword": "Hallinnoi pääkäyttäjän tunnusta ja salasanaa turvallisesti.",
+    "mfa": {
+      "copied": "Kopioitu leikepöydälle",
+      "description": "Suojaa salasanalla kirjautuminen todennussovelluksen kertakäyttöisellä koodilla.",
+      "disabled": {
+        "description": "Kun se on käytössä, salasanalla kirjautuminen vaatii myös 6-numeroisen koodin todennussovelluksesta, kuten Aegis, Google Authenticator tai 1Password.",
+        "enable": "Ota kaksivaiheinen tunnistautuminen käyttöön",
+        "title": "Kaksivaiheinen tunnistautuminen ei ole käytössä"
+      },
+      "enabled": {
+        "codesLeft": "Käyttämättömiä palautuskoodeja: {{remaining}}",
+        "codesLow": "Palautuskoodisi ovat loppumassa. Poista kaksivaiheinen tunnistautuminen käytöstä ja ota se uudelleen käyttöön saadaksesi uudet koodit.",
+        "confirmDisable": "Poista käytöstä",
+        "description": "Salasanalla kirjautuminen vaatii koodin todennussovelluksestasi.",
+        "disable": "Poista kaksivaiheinen tunnistautuminen käytöstä",
+        "disableCode": "Todennussovelluksen koodi tai palautuskoodi",
+        "disabledToast": "Kaksivaiheinen tunnistautuminen poistettu käytöstä",
+        "title": "Kaksivaiheinen tunnistautuminen on käytössä"
+      },
+      "enrol": {
+        "code": "Sovelluksen koodi",
+        "confirm": "Vahvista ja ota käyttöön",
+        "copySecret": "Kopioi salainen avain",
+        "description": "Skannaa QR-koodi todennussovelluksellasi tai syötä salainen avain käsin. Anna sitten sovelluksen näyttämä 6-numeroinen koodi.",
+        "qrAlt": "QR-koodi todennussovellustasi varten",
+        "qrFailed": "QR-koodia ei voitu luoda. Syötä salainen avain käsin.",
+        "secret": "Salainen avain käsin syöttämistä varten",
+        "title": "Määritä todennussovelluksesi"
+      },
+      "errors": {
+        "enrolFailed": "Määrityksen aloittaminen epäonnistui",
+        "invalidCode": "Virheellinen vahvistuskoodi. Yritä uudelleen.",
+        "tooManyAttempts": "Liian monta yritystä. Odota muutama minuutti ja yritä uudelleen."
+      },
+      "loadError": "Kaksivaiheisen tunnistautumisen tilaa ei voitu ladata.",
+      "recovery": {
+        "copy": "Kopioi koodit",
+        "description": "Kullakin koodilla voit kirjautua kerran, jos menetät pääsyn todennussovellukseesi.",
+        "done": "Valmis",
+        "download": "Lataa .txt-tiedostona",
+        "leaveWarning": "Et ole vahvistanut tallentaneesi palautuskoodeja. Niitä ei näytetä uudelleen. Poistutaanko silti?",
+        "onlyOnce": "Nämä koodit näytetään vain kerran. Säilytä ne nyt turvallisessa paikassa.",
+        "saved": "Olen tallentanut palautuskoodini turvalliseen paikkaan",
+        "title": "Tallenna palautuskoodisi"
+      },
+      "ssoNote": "Kirjaudut kertakirjautumisella (SSO). Tilisi kaksivaiheisesta tunnistautumisesta huolehtii identiteetintarjoajasi, joten sitä ei voi määrittää täällä.",
+      "title": "Kaksivaiheinen tunnistautuminen"
+    },
     "name": "Nimi",
     "noProxies": "Ei välityspalvelimia",
     "noProxiesDesc": "Et ole vielä lisännyt välityspalvelinmäärityksiä. Lisää yksi käyttääksesi välityspalvelin-toimintoja.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "API-tunnukset",
       "backup": "Varmuuskopiot",
       "configurations": "Järjestelmäasetukset",
+      "mfa": "Kaksivaiheinen tunnistautuminen",
       "profile": "Profiili",
       "proxy": "Verkkovälityspalvelin"
     },
@@ -1517,6 +1643,12 @@
     "title": "Kirjaudu ulos"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Vaihda salasana",
+      "badge": "Tietoturva",
+      "message": "Sisäänrakennettu admin-tili hyväksyy yhä alkuperäisen salasanansa. Vaihda se profiilissa admin-tunnuksella kirjautuneena tai kohdassa Käyttäjät.",
+      "title": "Oletusarvoinen ylläpitäjän salasana käytössä"
+    },
     "notifications": "Järjestelmäilmoitukset"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Hae käyttäjiä..."
       },
+      "reset_mfa": {
+        "button_confirm": "Nollaa 2FA",
+        "confirm_msg": "Käyttäjän {{name}} (ID: {{id}}) kaksivaiheinen tunnistautuminen poistetaan käytöstä ja hänen palautuskoodinsa poistetaan. Kunnes hän määrittää sen uudelleen, kirjautumiseen riittää salasana.",
+        "failed_title": "Nollaus epäonnistui",
+        "menu": "Nollaa 2FA",
+        "success_desc": "Käyttäjän \"{{name}}\" kaksivaiheinen tunnistautuminen on poistettu käytöstä.",
+        "success_title": "2FA nollattu",
+        "title": "Nollaa kaksivaiheinen tunnistautuminen"
+      },
       "schema": {
         "account_required": "Valitse tili",
         "description_max": "Kuvaus enintään 256 merkkiä",
@@ -1767,6 +1908,7 @@
       "created_at": "Luotu",
       "email": "Sähköposti",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roolit & käyttöoikeudet",
       "updated_at": "Päivitetty",
       "username": "Käyttäjänimi"
@@ -1775,6 +1917,7 @@
       "description": "Lisää ensimmäinen käyttäjä napsauttamalla alla olevaa painiketta.",
       "title": "Käyttäjiä ei löytynyt"
     },
+    "mfa_enabled": "Käytössä",
     "nav": {
       "api_tokens": "API-avaimet",
       "roles": "Roolit",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Syötä salasanasi",
     "pleaseEnterUsernameOrEmail": "Ole hyvä ja anna käyttäjänimesi tai sähköpostiosoitteesi",
     "required": "Tämä kenttä on pakollinen",
+    "retentionDaysRange": "Anna kokonainen päivien määrä väliltä 1–36500 tai jätä kenttä tyhjäksi.",
     "singleRequestBatchSizeMustBeNumber": "Eräkoko tulee olla numero",
     "singleRequestBatchSizeTooLarge": "Eräkoko tulee olla enintään 200",
     "singleRequestBatchSizeTooSmall": "Eräkoko tulee olla vähintään 10"

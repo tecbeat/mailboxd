@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "E-mails større end dette vil blive oversprunget. Lad være tom for at bruge standarden (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Standard: 100 MB",
     "maxEmailSizeBytesUnlimited": "Standard: 100 MB",
+    "retentionDays": "Opbevaringsperiode (dage)",
+    "retentionDaysDescription": "Arkiverede e-mails, der er ældre end dette antal dage, slettes, og ældre e-mails arkiveres ikke længere. Lad være tom for at beholde alle e-mails.",
+    "retentionOff": "Behold for altid",
+    "retentionWarning": "E-mails, der er ældre end opbevaringsperioden, slettes permanent fra arkivet inden for de næste 6 timer. Dette kan ikke fortrydes.",
     "minutes": "minutter",
     "months": "Måneder",
     "mustBeAtLeast1": "Skal være mindst 1",
@@ -331,6 +335,8 @@
       "generalDesc": "Generelle kontooplysninger og status.",
       "newAccount": "Ny konto",
       "performance": "Ydeevne",
+      "retention": "Opbevaring",
+      "retentionDesc": "Vælg, hvor længe arkiverede e-mails opbevares.",
       "schedule": "Tidsplan",
       "scope": "Omfang",
       "server": "Server",
@@ -541,10 +547,21 @@
     "login": "Log ind",
     "loginFailed": "Login mislykkedes",
     "logout": "Log ud",
+    "mfa": {
+      "back": "Tilbage til login",
+      "challengeExpired": "Login er udløbet. Log ind igen.",
+      "code": "Bekræftelseskode",
+      "codeFormat": "Indtast den 6-cifrede kode fra din godkendelsesapp eller en gendannelseskode.",
+      "invalidCode": "Ugyldig bekræftelseskode. Prøv igen.",
+      "prompt": "Indtast den 6-cifrede kode fra din godkendelsesapp. Hvis du ikke længere har adgang til den, kan du i stedet indtaste en af dine gendannelseskoder.",
+      "tooManyCodes": "For mange ugyldige koder. Log ind igen.",
+      "verify": "Bekræft"
+    },
     "password": "Adgangskode",
     "sessionExpired": "Session udløbet!",
     "sessionExpiredDesc": "Din session er afsluttet på grund af inaktivitet. Log venligst ind igen for at fortsætte.",
     "somethingWentWrong": "Noget gik galt",
+    "tooManyAttempts": "For mange loginforsøg. Vent et par minutter, og prøv igen.",
     "username": "Brugernavn",
     "welcome": "Velkommen til mailboxd",
     "youWillNeedToLogInAgain": "Du skal logge ind igen for at få adgang til din konto.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Registreret",
     "detectedFrom": "Registreret fra",
     "dropHere": "Slip .eml / .mbox / .pst-filer her",
+    "duplicateCount": "{{count}} dubletter sprunget over",
     "failed": "Import mislykkedes",
     "failedCount": "{{count}} fejlet",
     "failedDetails": "Fejlede elementer",
@@ -734,6 +752,7 @@
     "noMailboxFound": "Ingen postkasse fundet.",
     "noMailboxes": "Ingen postkasser fundet på denne konto.",
     "orClick": "eller klik for at gennemse",
+    "outsideRetentionCount": "{{count}} uden for opbevaringsperioden",
     "processed": "{{current}} / {{total}} behandlet",
     "processing": "Behandler…",
     "pstFolderDesc": "PST-filen indeholder sin egen mappestruktur (f.eks. Indbakke, Sendt post osv.). Mapper oprettes automatisk under importen.",
@@ -747,6 +766,7 @@
     "source": "kilde",
     "startImport": "Importer",
     "successCount": "{{count}} importeret",
+    "summaryOutsideRetention": "{{count}} uden for opbevaring",
     "target": "1. Vælg målkonto",
     "title": "Import",
     "uploading": "Uploader…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "En hemmelig nøgle leveret af OAuth-udbyderen for at godkende din applikation.",
+    "accessToken": "Adgangstoken",
+    "accessTokenCannotBeEmpty": "Adgangstoken må ikke være tomt",
+    "accountIsRequired": "Vælg en konto.",
     "actions": {
       "authorize": "Godkend",
       "delete": "Slet",
       "edit": "Rediger",
+      "importTokens": "Importér tokens",
       "openMenu": "Åbn menu"
     },
     "addConfiguration": "Tilføj konfiguration",
@@ -867,8 +891,8 @@
     "addScope": "Tilføj omfang",
     "areYouSureYouWantTo": "Er du sikker på, at du vil {{action}} denne OAuth2-klient?",
     "areYouSureYouWantToDelete": "Er du sikker på, at du vil slette",
-    "authAtatus": "OAuth2-godkendelsesstatus",
     "authFailed": "OAuth2-godkendelse mislykkedes",
+    "authStatus": "OAuth2-godkendelsesstatus",
     "authSuccess": "OAuth2-godkendelse lykkedes",
     "authUrlLabel": "Godkendelses-URL:",
     "authorizationUrlCannotBeEmpty": "Godkendelses-URL kan ikke være tom",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "Aktiver OAuth2-klient",
     "enabled": "Aktiveret",
     "enterIdToConfirmDeletion": "Indtast ID for at bekræfte sletning.",
+    "enterTheAccessTokenHere": "Indsæt adgangstokenet her.",
     "enterTheAuthorizationUrl": "Indtast godkendelses-URL",
     "enterTheKeyHere": "Indtast nøglen her.",
+    "enterTheRefreshTokenHere": "Indsæt opdateringstokenet her.",
     "enterTheScopeHere": "Indtast omfang her.",
     "enterTheTokenUrl": "Indtast Token-URL",
     "enterTheValueHere": "Indtast værdien her.",
@@ -922,6 +948,15 @@
     "goHome": "Gå til Hjem",
     "goToAccounts": "Gå til Konti",
     "id": "ID",
+    "importTokensDescription": "Brug dette, når OAuth2-klienten ikke kan gennemføre godkendelsen i mailboxd, for eksempel når tokens er hentet med et eksternt værktøj som email-oauth2-proxy. Den valgte konto skal allerede bruge OAuth2 som IMAP-godkendelsestype.",
+    "importTokensFailed": "Import af tokens mislykkedes",
+    "importTokensSuccess": "Tokens importeret",
+    "importTokensSuccessDesc": "Tokens er gemt og fornyes automatisk.",
+    "importTokensTitle": "Importér eksterne tokens",
+    "importTokensWarningClientMustMatch": "Klient-id og klienthemmelighed for denne konfiguration skal være identiske med den klient, der udstedte opdateringstokenet, ellers mislykkes fornyelsen.",
+    "importTokensWarningLongLivedCredential": "Et opdateringstoken er en langtidsgyldig adgangsoplysning. Det krypteres og gemmes på denne server.",
+    "importTokensWarningStopExternalTool": "Stop det eksterne værktøj, der hentede disse tokens. Hvis begge værktøjer fornyer det samme opdateringstoken, kommer de i konflikt, og arkiveringen stopper.",
+    "importing": "Importerer...",
     "information": "Information",
     "invalidAuthorizationUrlFormat": "Ugyldigt format på godkendelses-URL",
     "invalidRedirectUriFormat": "Ugyldigt format på omdirigerings-URI",
@@ -935,6 +970,8 @@
     "noConfigurations": "Ingen OAuth2-konfigurationer",
     "noConfigurationsDesc": "Du har ikke tilføjet nogen OAuth2-konfigurationer endnu. Tilføj en for at begynde at bruge OAuth2-funktionalitet.",
     "noEmailAccountsRegistered": "Ingen e-mailkonti registreret. Opret venligst én.",
+    "noOAuth2Accounts": "Ingen af dine konti bruger OAuth2-godkendelse. Opret først en konto med OAuth2 som godkendelsestype.",
+    "noProxy": "Ingen proxy",
     "noProxyAvailable": "Ingen proxy tilgængelig",
     "noStatus": "Denne side viser resultatet af din OAuth2-godkendelse. Der er i øjeblikket ingen specifik status tilgængelig. Prøv venligst igen, hvis det er nødvendigt.",
     "oauth2ClientHasBeenSuccessfully": "OAuth2-klienten er blevet {{action}}.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "Omdirigerings-URI kan ikke være tom",
     "redirectUriIsRequired": "Omdirigerings-URI er påkrævet",
     "redirectUrlLabel": "Omdirigerings-URL:",
+    "refreshToken": "Opdateringstoken",
+    "refreshTokenCannotBeEmpty": "Opdateringstoken må ikke være tomt",
     "save": "Gem",
     "saveChanges": "Gem ændringer",
     "saving": "Gemmer...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Prøv igen",
     "warningDesc": "Vær forsigtig, denne handling kan ikke fortrydes.",
     "warningTitle": "Advarsel!"
+  },
+  "repair_message": {
+    "confirm": "Reparer",
+    "desc": "Henter denne meddelelse igen fra IMAP-serveren og gemmer manglende indhold. Indhold gemmes kun, hvis det matcher den arkiverede hash.",
+    "emailMissing": "Meddelelsens indhold mangler stadig",
+    "emailRestored": "Meddelelsens indhold er gendannet",
+    "failedHint": "Meddelelsen kunne ikke hentes eller verificeres. Se fejlen nedenfor.",
+    "hideDetails": "Skjul detaljer",
+    "history": "Reparationshistorik",
+    "historyEmpty": "Ingen reparationer endnu.",
+    "historyFailed": "Reparationshistorikken kunne ikke indlæses.",
+    "historyHint": "De seneste {{limit}} reparationsforsøg.",
+    "missingAfter": "Vedhæftede filer, der stadig mangler",
+    "missingBefore": "Vedhæftede filer, der manglede før reparationen",
+    "operator": "Udført af",
+    "partialHint": "Noget indhold kunne ikke gendannes. Indhold, der ikke matcher den arkiverede hash, gemmes aldrig.",
+    "repairAction": "Reparer meddelelse",
+    "repairing": "Reparerer…",
+    "repairingHint": "Henter meddelelsen fra IMAP-serveren. Det kan tage et stykke tid.",
+    "reportDesc": "Resultat af reparationsforsøget.",
+    "reportTitle": "Reparationsrapport",
+    "requestFailed": "Reparationsanmodningen mislykkedes",
+    "result": "Resultat",
+    "showDetails": "Vis detaljer",
+    "statusComplete": "Intet manglede",
+    "statusFailed": "Mislykkedes",
+    "statusPartial": "Delvist repareret",
+    "statusRepaired": "Repareret",
+    "title": "Reparer meddelelse",
+    "wholeMessageNote": "Dette reparerer hele meddelelsen: dens indhold og alle vedhæftede filer."
   },
   "restore_message": {
     "accountsInvolved": "Involverede konti",
@@ -1307,6 +1376,7 @@
     "body": "Indhold",
     "button": "Søg",
     "clear_history": "Ryd historik",
+    "hint": "Alle ord skal matche. Brug OR for at udvide, \"anførselstegn\" for en frase, -ord for at udelukke.",
     "no_history": "Ingen søgehistorik",
     "placeholder": "Søg efter e-mails (brug \" \" til frasesøgning)",
     "recent_title": "Seneste søgninger",
@@ -1350,9 +1420,17 @@
     "label": "Nulstil",
     "tooltip": "Ryd alle filtre"
   },
+  "search_sort": {
+    "relevance": "Relevans",
+    "relevance_needs_text": "Indtast et søgeord for at sortere efter relevans",
+    "relevance_tooltip": "Sortér efter bedste match"
+  },
   "search_view": {
+    "absolute": "Absolut",
     "button_label": "Visning",
-    "menu_title": "Indstillinger for kolonner"
+    "date_display": "Datovisning",
+    "menu_title": "Indstillinger for kolonner",
+    "relative": "Relativ"
   },
   "settings": {
     "accounts": "Konti",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Ugyldig adgangskode",
     "lastAccess": "Sidste adgang",
     "manageRootTokenAndPassword": "Administrer sikkert root-token og adgangskode.",
+    "mfa": {
+      "copied": "Kopieret til udklipsholderen",
+      "description": "Beskyt login med adgangskode med en engangskode fra en godkendelsesapp.",
+      "disabled": {
+        "description": "Når den er slået til, kræver login med adgangskode også en 6-cifret kode fra en godkendelsesapp som Aegis, Google Authenticator eller 1Password.",
+        "enable": "Slå totrinsgodkendelse til",
+        "title": "Totrinsgodkendelse er slået fra"
+      },
+      "enabled": {
+        "codesLeft": "Ubrugte gendannelseskoder: {{remaining}}",
+        "codesLow": "Du er ved at løbe tør for gendannelseskoder. Slå totrinsgodkendelse fra og til igen for at få nye.",
+        "confirmDisable": "Slå fra",
+        "description": "Login med adgangskode kræver en kode fra din godkendelsesapp.",
+        "disable": "Slå totrinsgodkendelse fra",
+        "disableCode": "Kode fra din godkendelsesapp eller en gendannelseskode",
+        "disabledToast": "Totrinsgodkendelse slået fra",
+        "title": "Totrinsgodkendelse er slået til"
+      },
+      "enrol": {
+        "code": "Kode fra appen",
+        "confirm": "Bekræft og slå til",
+        "copySecret": "Kopiér hemmelig nøgle",
+        "description": "Scan QR-koden med din godkendelsesapp, eller indtast den hemmelige nøgle manuelt. Indtast derefter den 6-cifrede kode, som appen viser.",
+        "qrAlt": "QR-kode til din godkendelsesapp",
+        "qrFailed": "QR-koden kunne ikke oprettes. Indtast den hemmelige nøgle manuelt.",
+        "secret": "Hemmelig nøgle til manuel indtastning",
+        "title": "Konfigurer din godkendelsesapp"
+      },
+      "errors": {
+        "enrolFailed": "Opsætningen kunne ikke startes",
+        "invalidCode": "Ugyldig bekræftelseskode. Prøv igen.",
+        "tooManyAttempts": "For mange forsøg. Vent et par minutter, og prøv igen."
+      },
+      "loadError": "Status for totrinsgodkendelse kunne ikke indlæses.",
+      "recovery": {
+        "copy": "Kopiér koder",
+        "description": "Hver kode giver dig ét login, hvis du mister adgangen til din godkendelsesapp.",
+        "done": "Færdig",
+        "download": "Download som .txt",
+        "leaveWarning": "Du har ikke bekræftet, at du har gemt dine gendannelseskoder. De vises ikke igen. Vil du forlade siden alligevel?",
+        "onlyOnce": "Disse koder vises kun én gang. Opbevar dem et sikkert sted nu.",
+        "saved": "Jeg har gemt mine gendannelseskoder et sikkert sted",
+        "title": "Gem dine gendannelseskoder"
+      },
+      "ssoNote": "Du logger ind med single sign-on (SSO). Totrinsgodkendelse for din konto håndteres af din identitetsudbyder, så den kan ikke konfigureres her.",
+      "title": "Totrinsgodkendelse"
+    },
     "name": "Navn",
     "noProxies": "Ingen proxyer",
     "noProxiesDesc": "Du har ikke tilføjet nogen proxy-konfigurationer endnu. Tilføj en for at begynde at bruge proxy-funktionalitet.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "API-tokens",
       "backup": "Sikkerhedskopi",
       "configurations": "Systemkonfigurationer",
+      "mfa": "Totrinsgodkendelse",
       "profile": "Profil",
       "proxy": "Netværksproxy"
     },
@@ -1517,6 +1643,12 @@
     "title": "Log ud"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Skift adgangskode",
+      "badge": "Sikkerhed",
+      "message": "Den indbyggede admin-konto accepterer stadig sin oprindelige adgangskode. Skift den i profilen, mens du er logget ind som admin, eller under Brugere.",
+      "title": "Standard-adminadgangskode i brug"
+    },
     "notifications": "Systemmeddelelser"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Søg efter brugere..."
       },
+      "reset_mfa": {
+        "button_confirm": "Nulstil 2FA",
+        "confirm_msg": "Totrinsgodkendelse for brugeren {{name}} (ID: {{id}}) slås fra, og brugerens gendannelseskoder slettes. Indtil den konfigureres igen, er adgangskoden nok til at logge ind.",
+        "failed_title": "Nulstilling mislykkedes",
+        "menu": "Nulstil 2FA",
+        "success_desc": "Totrinsgodkendelse for \"{{name}}\" er slået fra.",
+        "success_title": "2FA nulstillet",
+        "title": "Nulstil totrinsgodkendelse"
+      },
       "schema": {
         "account_required": "Vælg venligst en konto",
         "description_max": "Beskrivelse maks 256 tegn",
@@ -1767,6 +1908,7 @@
       "created_at": "Oprettet",
       "email": "E-mail",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roller & rettigheder",
       "updated_at": "Opdateret",
       "username": "Brugernavn"
@@ -1775,6 +1917,7 @@
       "description": "Klik på knappen nedenfor for at tilføje din første bruger.",
       "title": "Ingen brugere fundet"
     },
+    "mfa_enabled": "Til",
     "nav": {
       "api_tokens": "API-tokens",
       "roles": "Roller",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Indtast venligst din adgangskode",
     "pleaseEnterUsernameOrEmail": "Indtast dit brugernavn eller din e-mailadresse",
     "required": "Dette felt er påkrævet",
+    "retentionDaysRange": "Indtast et helt antal dage fra 1 til 36500, eller lad feltet være tomt.",
     "singleRequestBatchSizeMustBeNumber": "Batch‑størrelse skal være et tal",
     "singleRequestBatchSizeTooLarge": "Batch‑størrelse skal være højst 200",
     "singleRequestBatchSizeTooSmall": "Batch‑størrelse skal være mindst 10"

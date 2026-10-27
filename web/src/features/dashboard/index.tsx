@@ -19,6 +19,7 @@ import { Mail, Users, Inbox, Zap, Paperclip } from 'lucide-react';
 import { cn, formatBytes, formatNumber } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { get_dashboard_stats, INITIAL_DASHBOARD_STATS, TimeBucket } from '@/api/system/api';
+import { resolveTopAccount } from './top-account';
 import { Main } from '@/components/layout/main';
 import { PageHeader } from '@/components/layout/page-header';
 import { FixedHeader } from '@/components/layout/fixed-header';
@@ -136,17 +137,6 @@ export default function MailArchiveDashboard() {
   const hasTopAccounts = stats1.top_accounts && stats1.top_accounts.length > 0;
 
   const { minimalList } = useMinimalAccountList();
-  const getAccountIdByEmail = (email: string): number | null => {
-    if (!minimalList) return null;
-    const account = minimalList.find(a => a.email === email);
-    return account ? account.id : null;
-  };
-
-  const getAccountNameByEmail = (email: string): string | null => {
-    if (!minimalList) return null;
-    const account = minimalList.find(a => a.email === email);
-    return account?.name || null;
-  };
 
   const handleQuickSearch = (filter: Record<string, unknown>) => {
     navigate({
@@ -604,7 +594,7 @@ export default function MailArchiveDashboard() {
                     </TableHeader>
                     <TableBody>
                       {stats1.top_accounts.map((acc) => (
-                        <TableRow key={acc.key}>
+                        <TableRow key={acc.account_id ?? acc.key}>
                           <TableCell>
                             <div className="group relative flex items-center w-full min-w-0 h-full px-2 overflow-hidden">
                               <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -612,20 +602,20 @@ export default function MailArchiveDashboard() {
                                 <span className="flex items-center">
                                   <LongText className="max-w-[180px] md:max-w-[160px] lg:max-w-[200px] xl:max-w-[220px]">
                                     {(() => {
-                                      const name = getAccountNameByEmail(acc.key);
+                                      const account = resolveTopAccount(acc, minimalList);
                                       const btn = (
                                         <button
                                           type="button"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleQuickSearch({ account_ids: [getAccountIdByEmail(acc.key) || 0] })
+                                            handleQuickSearch({ account_ids: [account?.id || 0] })
                                           }}
                                           className="hover:text-primary hover:underline transition-colors"
                                         >
-                                          {name || acc.key}
+                                          {account?.name || acc.key}
                                         </button>
                                       );
-                                      if (name) {
+                                      if (account?.name) {
                                         return (
                                           <TooltipUI>
                                             <TooltipTrigger asChild>{btn}</TooltipTrigger>

@@ -21,7 +21,7 @@
 //use poem_openapi::Object;
 use serde::{Deserialize, Serialize};
 
-use crate::error::MailboxdResult;
+use crate::{error::MailboxdResult, users::UserModel};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
@@ -51,9 +51,13 @@ pub struct Release {
 #[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
 pub struct Notifications {
     pub release: ReleaseNotification,
+    /// The default administrator still accepts its initial password. Only
+    /// ever `true` for users who may manage users, so nobody else learns
+    /// that the admin password is the public default.
+    pub default_admin_password: bool,
 }
 
-pub async fn fetch_notifications() -> MailboxdResult<Notifications> {
+pub async fn fetch_notifications(may_manage_users: bool) -> MailboxdResult<Notifications> {
     // TODO: wire release check to git.teccave.de/tecbeat/mailboxd (GitLab API).
     // The old GitHub-based check against rustmailer/bichon has been disabled
     // for the fork. See tracking issue for the GitLab-native implementation.
@@ -62,7 +66,15 @@ pub async fn fetch_notifications() -> MailboxdResult<Notifications> {
         is_newer: false,
         error_message: None,
     };
-    Ok(Notifications { release })
+    // argon2 verification is blocking work; keep it off the async workers.
+    let default_admin_password = may_manage_users
+        && tokio::task::spawn_blocking(UserModel::default_admin_password_in_use)
+            .await
+            .unwrap_or(false);
+    Ok(Notifications {
+        release,
+        default_admin_password,
+    })
 }
 
 #[allow(dead_code)]

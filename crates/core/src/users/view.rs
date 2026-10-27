@@ -59,4 +59,8 @@ pub struct UserView {
     pub sso_id: Option<String>,
     /// SSO provider identifier: `"oidc"` or future `"saml"` / `"ldap"`.
     pub sso_provider: Option<String>,
+    /// Whether TOTP two-factor authentication is on. The secret and the
+    /// recovery codes never leave the server.
+    #[serde(default)]
+    pub totp_enabled: bool,
 }

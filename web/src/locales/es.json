@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "Se omitirán los correos más grandes. Déjelo vacío para usar el valor predeterminado (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Predeterminado: 100 MB",
     "maxEmailSizeBytesUnlimited": "Predeterminado: 100 MB",
+    "retentionDays": "Período de retención (días)",
+    "retentionDaysDescription": "Los correos archivados con más de este número de días se eliminan y los correos más antiguos ya no se archivan. Déjelo vacío para conservar todos los correos.",
+    "retentionOff": "Conservar siempre",
+    "retentionWarning": "Los correos más antiguos que el período de retención se eliminarán permanentemente del archivo en las próximas 6 horas. Esta acción no se puede deshacer.",
     "minutes": "minutos",
     "months": "Meses",
     "mustBeAtLeast1": "Debe ser al menos 1",
@@ -331,6 +335,8 @@
       "generalDesc": "Información básica de la cuenta y estado.",
       "newAccount": "Nueva cuenta",
       "performance": "Rendimiento",
+      "retention": "Retención",
+      "retentionDesc": "Elija cuánto tiempo se conservan los correos archivados.",
       "schedule": "Planificación",
       "scope": "Alcance",
       "server": "Servidor",
@@ -541,10 +547,21 @@
     "login": "Iniciar sesión",
     "loginFailed": "Error al iniciar sesión",
     "logout": "Cerrar sesión",
+    "mfa": {
+      "back": "Volver al inicio de sesión",
+      "challengeExpired": "El inicio de sesión ha caducado. Vuelva a iniciar sesión.",
+      "code": "Código de verificación",
+      "codeFormat": "Introduzca el código de 6 dígitos de su aplicación de autenticación o un código de recuperación.",
+      "invalidCode": "Código de verificación no válido. Inténtelo de nuevo.",
+      "prompt": "Introduzca el código de 6 dígitos de su aplicación de autenticación. Si ya no tiene acceso a ella, introduzca uno de sus códigos de recuperación.",
+      "tooManyCodes": "Demasiados códigos no válidos. Vuelva a iniciar sesión.",
+      "verify": "Verificar"
+    },
     "password": "Contraseña",
     "sessionExpired": "¡Sesión caducada!",
     "sessionExpiredDesc": "Tu sesión ha caducado debido a la inactividad. Inicia sesión para continuar.",
     "somethingWentWrong": "Algo salió mal",
+    "tooManyAttempts": "Demasiados intentos de inicio de sesión. Espere unos minutos e inténtelo de nuevo.",
     "username": "Nombre de usuario",
     "welcome": "Bienvenido a mailboxd",
     "youWillNeedToLogInAgain": "Necesitarás iniciar sesión de nuevo para acceder a tu cuenta.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Detectado",
     "detectedFrom": "Detectado de",
     "dropHere": "Arrastre archivos .eml / .mbox / .pst aquí",
+    "duplicateCount": "{{count}} duplicados omitidos",
     "failed": "Error al importar",
     "failedCount": "{{count}} fallidos",
     "failedDetails": "Elementos fallidos",
@@ -734,6 +752,7 @@
     "noMailboxFound": "No se encontró ningún buzón.",
     "noMailboxes": "No se encontraron buzones en esta cuenta.",
     "orClick": "o haga clic para buscar",
+    "outsideRetentionCount": "{{count}} fuera del período de retención",
     "processed": "{{current}} / {{total}} procesados",
     "processing": "Procesando…",
     "pstFolderDesc": "El archivo PST contiene su propia estructura de carpetas (por ejemplo, Bandeja de entrada, Elementos enviados, etc.). Las carpetas se crearán automáticamente durante la importación.",
@@ -747,6 +766,7 @@
     "source": "origen",
     "startImport": "Importar",
     "successCount": "{{count}} importados",
+    "summaryOutsideRetention": "{{count}} fuera de retención",
     "target": "1. Seleccionar cuenta de destino",
     "title": "Importar",
     "uploading": "Subiendo…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "Una clave secreta proporcionada por el proveedor OAuth para autenticar tu aplicación.",
+    "accessToken": "Token de acceso",
+    "accessTokenCannotBeEmpty": "El token de acceso no puede estar vacío",
+    "accountIsRequired": "Selecciona una cuenta.",
     "actions": {
       "authorize": "Autorizar",
       "delete": "Eliminar",
       "edit": "Editar",
+      "importTokens": "Importar tokens",
       "openMenu": "Abrir menú"
     },
     "addConfiguration": "Añadir configuración",
@@ -867,8 +891,8 @@
     "addScope": "Añadir ámbito",
     "areYouSureYouWantTo": "¿Estás seguro de que quieres {{action}} este cliente OAuth2?",
     "areYouSureYouWantToDelete": "¿Estás seguro de que quieres eliminar",
-    "authAtatus": "Estado de la autenticación OAuth2",
     "authFailed": "Autenticación OAuth2 fallida",
+    "authStatus": "Estado de la autenticación OAuth2",
     "authSuccess": "Autenticación OAuth2 exitosa",
     "authUrlLabel": "URL de autorización:",
     "authorizationUrlCannotBeEmpty": "La URL de autorización no puede estar vacía",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "Habilitar cliente OAuth2",
     "enabled": "Habilitado",
     "enterIdToConfirmDeletion": "Introduce el ID para confirmar la eliminación.",
+    "enterTheAccessTokenHere": "Pega aquí el token de acceso.",
     "enterTheAuthorizationUrl": "Introduce la URL de autorización",
     "enterTheKeyHere": "Introduce la clave aquí.",
+    "enterTheRefreshTokenHere": "Pega aquí el token de actualización.",
     "enterTheScopeHere": "Introduce el ámbito aquí.",
     "enterTheTokenUrl": "Introduce la URL de token",
     "enterTheValueHere": "Introduce el valor aquí.",
@@ -922,6 +948,15 @@
     "goHome": "Ir a inicio",
     "goToAccounts": "Ir a Cuentas",
     "id": "ID",
+    "importTokensDescription": "Úsalo cuando el cliente OAuth2 no pueda completar la autorización dentro de mailboxd, por ejemplo cuando los tokens se obtuvieron con una herramienta externa como email-oauth2-proxy. La cuenta seleccionada ya debe usar OAuth2 como tipo de autenticación IMAP.",
+    "importTokensFailed": "Error al importar los tokens",
+    "importTokensSuccess": "Tokens importados",
+    "importTokensSuccessDesc": "Los tokens se han guardado y se renovarán automáticamente.",
+    "importTokensTitle": "Importar tokens externos",
+    "importTokensWarningClientMustMatch": "El ID de cliente y el secreto de cliente de esta configuración deben ser idénticos a los del cliente que emitió el token de actualización; de lo contrario, la renovación fallará.",
+    "importTokensWarningLongLivedCredential": "Un token de actualización es una credencial de larga duración. Se cifrará y se guardará en este servidor.",
+    "importTokensWarningStopExternalTool": "Detén la herramienta externa que obtuvo estos tokens. Si ambas herramientas renuevan el mismo token de actualización, los tokens entrarán en conflicto y el archivado se detendrá.",
+    "importing": "Importando...",
     "information": "Información",
     "invalidAuthorizationUrlFormat": "Formato de URL de autorización inválido",
     "invalidRedirectUriFormat": "Formato de URI de redirección inválido",
@@ -935,6 +970,8 @@
     "noConfigurations": "Sin configuraciones OAuth2",
     "noConfigurationsDesc": "Aún no has añadido configuraciones OAuth2. Añade una para empezar a usar las funcionalidades OAuth2.",
     "noEmailAccountsRegistered": "No hay cuentas de correo electrónico registradas. Por favor, crea una.",
+    "noOAuth2Accounts": "Ninguna de tus cuentas usa autenticación OAuth2. Crea primero una cuenta con OAuth2 como tipo de autenticación.",
+    "noProxy": "Sin proxy",
     "noProxyAvailable": "No hay proxy disponible",
     "noStatus": "Esta página muestra el resultado de tu autenticación OAuth2. Actualmente no hay un estado específico disponible. Por favor, vuelve a intentarlo si es necesario.",
     "oauth2ClientHasBeenSuccessfully": "Tu cliente OAuth2 ha sido {{action}} con éxito.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "El URI de redirección no puede estar vacío",
     "redirectUriIsRequired": "El URI de redirección es obligatorio",
     "redirectUrlLabel": "URI de redirección:",
+    "refreshToken": "Token de actualización",
+    "refreshTokenCannotBeEmpty": "El token de actualización no puede estar vacío",
     "save": "Guardar",
     "saveChanges": "Guardar cambios",
     "saving": "Guardando...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Intentar de nuevo",
     "warningDesc": "Por favor, ten cuidado, esta acción no se puede deshacer.",
     "warningTitle": "¡Advertencia!"
+  },
+  "repair_message": {
+    "confirm": "Reparar",
+    "desc": "Vuelve a obtener este mensaje del servidor IMAP y guarda el contenido que falte. El contenido solo se guarda si coincide con el hash archivado.",
+    "emailMissing": "El contenido del mensaje sigue faltando",
+    "emailRestored": "Contenido del mensaje restaurado",
+    "failedHint": "No se pudo obtener ni verificar el mensaje. Consulte el error a continuación.",
+    "hideDetails": "Ocultar detalles",
+    "history": "Historial de reparaciones",
+    "historyEmpty": "Aún no hay reparaciones.",
+    "historyFailed": "No se pudo cargar el historial de reparaciones.",
+    "historyHint": "Los {{limit}} intentos de reparación más recientes.",
+    "missingAfter": "Archivos adjuntos que siguen faltando",
+    "missingBefore": "Archivos adjuntos que faltaban antes de la reparación",
+    "operator": "Operador",
+    "partialHint": "No se pudo restaurar parte del contenido. El contenido que no coincide con el hash archivado nunca se guarda.",
+    "repairAction": "Reparar mensaje",
+    "repairing": "Reparando…",
+    "repairingHint": "Obteniendo el mensaje del servidor IMAP. Esto puede tardar un poco.",
+    "reportDesc": "Resultado del intento de reparación.",
+    "reportTitle": "Informe de reparación",
+    "requestFailed": "La solicitud de reparación falló",
+    "result": "Resultado",
+    "showDetails": "Mostrar detalles",
+    "statusComplete": "No faltaba nada",
+    "statusFailed": "Fallido",
+    "statusPartial": "Reparado parcialmente",
+    "statusRepaired": "Reparado",
+    "title": "Reparar mensaje",
+    "wholeMessageNote": "Esto repara el mensaje completo: su cuerpo y todos los archivos adjuntos."
   },
   "restore_message": {
     "accountsInvolved": "Cuentas involucradas",
@@ -1307,6 +1376,7 @@
     "body": "Cuerpo del mensaje",
     "button": "Buscar",
     "clear_history": "Borrar historial",
+    "hint": "Deben coincidir todas las palabras. Usa OR para ampliar, \"comillas\" para una frase, -palabra para excluir.",
     "no_history": "Sin historial de búsqueda",
     "placeholder": "Buscar correos (use \" \" para búsqueda de frases)",
     "recent_title": "Búsquedas recientes",
@@ -1350,9 +1420,17 @@
     "label": "Restablecer",
     "tooltip": "Eliminar todos los filtros"
   },
+  "search_sort": {
+    "relevance": "Relevancia",
+    "relevance_needs_text": "Introduce un término de búsqueda para ordenar por relevancia",
+    "relevance_tooltip": "Ordenar por mejor coincidencia"
+  },
   "search_view": {
+    "absolute": "Absoluta",
     "button_label": "Vista",
-    "menu_title": "Configuración de columnas"
+    "date_display": "Visualización de fecha",
+    "menu_title": "Configuración de columnas",
+    "relative": "Relativa"
   },
   "settings": {
     "accounts": "Cuentas",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Contraseña inválida",
     "lastAccess": "Último acceso",
     "manageRootTokenAndPassword": "Gestiona de forma segura el token y la contraseña del usuario raíz.",
+    "mfa": {
+      "copied": "Copiado al portapapeles",
+      "description": "Proteja el inicio de sesión con contraseña mediante un código de un solo uso de una aplicación de autenticación.",
+      "disabled": {
+        "description": "Cuando está activada, iniciar sesión con contraseña también requiere un código de 6 dígitos de una aplicación de autenticación como Aegis, Google Authenticator o 1Password.",
+        "enable": "Activar la autenticación de dos factores",
+        "title": "La autenticación de dos factores está desactivada"
+      },
+      "enabled": {
+        "codesLeft": "Códigos de recuperación sin usar: {{remaining}}",
+        "codesLow": "Le quedan pocos códigos de recuperación. Desactive y vuelva a activar la autenticación de dos factores para obtener otros nuevos.",
+        "confirmDisable": "Desactivar",
+        "description": "Iniciar sesión con contraseña requiere un código de su aplicación de autenticación.",
+        "disable": "Desactivar la autenticación de dos factores",
+        "disableCode": "Código de su aplicación de autenticación o código de recuperación",
+        "disabledToast": "Autenticación de dos factores desactivada",
+        "title": "La autenticación de dos factores está activada"
+      },
+      "enrol": {
+        "code": "Código de la aplicación",
+        "confirm": "Confirmar y activar",
+        "copySecret": "Copiar clave secreta",
+        "description": "Escanee el código QR con su aplicación de autenticación o introduzca la clave secreta manualmente. Después introduzca el código de 6 dígitos que muestra la aplicación.",
+        "qrAlt": "Código QR para su aplicación de autenticación",
+        "qrFailed": "No se pudo generar el código QR. Introduzca la clave secreta manualmente.",
+        "secret": "Clave secreta para introducción manual",
+        "title": "Configure su aplicación de autenticación"
+      },
+      "errors": {
+        "enrolFailed": "No se pudo iniciar la configuración",
+        "invalidCode": "Código de verificación no válido. Inténtelo de nuevo.",
+        "tooManyAttempts": "Demasiados intentos. Espere unos minutos e inténtelo de nuevo."
+      },
+      "loadError": "No se pudo cargar el estado de la autenticación de dos factores.",
+      "recovery": {
+        "copy": "Copiar códigos",
+        "description": "Cada código le permite iniciar sesión una vez si pierde el acceso a su aplicación de autenticación.",
+        "done": "Listo",
+        "download": "Descargar como .txt",
+        "leaveWarning": "No ha confirmado que guardó sus códigos de recuperación. No se volverán a mostrar. ¿Salir de todos modos?",
+        "onlyOnce": "Estos códigos solo se muestran una vez. Guárdelos ahora en un lugar seguro.",
+        "saved": "He guardado mis códigos de recuperación en un lugar seguro",
+        "title": "Guarde sus códigos de recuperación"
+      },
+      "ssoNote": "Usted inicia sesión mediante inicio de sesión único (SSO). La autenticación de dos factores de su cuenta la gestiona su proveedor de identidad, por lo que no se puede configurar aquí.",
+      "title": "Autenticación de dos factores"
+    },
     "name": "Nombre",
     "noProxies": "Sin proxies",
     "noProxiesDesc": "Aún no has añadido configuraciones de proxy. Añade una para usar las funcionalidades de proxy.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "Tokens API",
       "backup": "Copia de seguridad",
       "configurations": "Configuraciones del sistema",
+      "mfa": "Autenticación de dos factores",
       "profile": "Perfil",
       "proxy": "Proxy de red"
     },
@@ -1517,6 +1643,12 @@
     "title": "Cerrar sesión"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Cambiar contraseña",
+      "badge": "Seguridad",
+      "message": "La cuenta admin integrada aún acepta su contraseña inicial. Cámbiala en el perfil con la sesión iniciada como admin o en Usuarios.",
+      "title": "Contraseña de administrador predeterminada en uso"
+    },
     "notifications": "Notificaciones del sistema"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Buscar usuarios..."
       },
+      "reset_mfa": {
+        "button_confirm": "Restablecer 2FA",
+        "confirm_msg": "Se desactivará la autenticación de dos factores del usuario {{name}} (ID: {{id}}) y se eliminarán sus códigos de recuperación. Hasta que vuelva a configurarla, bastará con su contraseña para iniciar sesión.",
+        "failed_title": "Error al restablecer",
+        "menu": "Restablecer 2FA",
+        "success_desc": "Se ha desactivado la autenticación de dos factores de \"{{name}}\".",
+        "success_title": "2FA restablecida",
+        "title": "Restablecer la autenticación de dos factores"
+      },
       "schema": {
         "account_required": "Seleccione una cuenta",
         "description_max": "Descripción máx 256 caracteres",
@@ -1767,6 +1908,7 @@
       "created_at": "Creado el",
       "email": "Correo electrónico",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roles y permisos",
       "updated_at": "Actualizado el",
       "username": "Nombre de usuario"
@@ -1775,6 +1917,7 @@
       "description": "Haga clic en el botón de abajo para añadir su primer usuario.",
       "title": "No se encontraron usuarios"
     },
+    "mfa_enabled": "Activada",
     "nav": {
       "api_tokens": "Tokens de API",
       "roles": "Roles",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Por favor, introduce tu contraseña",
     "pleaseEnterUsernameOrEmail": "Por favor, introduzca su nombre de usuario o correo electrónico",
     "required": "Este campo es obligatorio",
+    "retentionDaysRange": "Introduzca un número entero de días entre 1 y 36500, o deje el campo vacío.",
     "singleRequestBatchSizeMustBeNumber": "El tamaño del lote debe ser un número",
     "singleRequestBatchSizeTooLarge": "El tamaño del lote debe ser como máximo 200",
     "singleRequestBatchSizeTooSmall": "El tamaño del lote debe ser al menos 10"

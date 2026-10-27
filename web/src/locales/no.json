@@ -250,6 +250,10 @@
     "maxEmailSizeBytesDescription": "E-poster større enn dette vil bli hoppet over. La stå tom for å bruke standarden (100 MB).",
     "maxEmailSizeBytesPlaceholder": "Standard: 100 MB",
     "maxEmailSizeBytesUnlimited": "Standard: 100 MB",
+    "retentionDays": "Oppbevaringsperiode (dager)",
+    "retentionDaysDescription": "Arkiverte e-poster som er eldre enn dette antallet dager, slettes, og eldre e-poster arkiveres ikke lenger. La stå tom for å beholde alle e-poster.",
+    "retentionOff": "Behold for alltid",
+    "retentionWarning": "E-poster som er eldre enn oppbevaringsperioden, slettes permanent fra arkivet i løpet av de neste 6 timene. Dette kan ikke angres.",
     "minutes": "minutter",
     "months": "Måneder",
     "mustBeAtLeast1": "Må være minst 1",
@@ -331,6 +335,8 @@
       "generalDesc": "Grunnleggende kontoinformasjon og status.",
       "newAccount": "Ny konto",
       "performance": "Ytelse",
+      "retention": "Oppbevaring",
+      "retentionDesc": "Velg hvor lenge arkiverte e-poster skal oppbevares.",
       "schedule": "Tidsplan",
       "scope": "Omfang",
       "server": "Server",
@@ -541,10 +547,21 @@
     "login": "Logg inn",
     "loginFailed": "Innlogging mislyktes",
     "logout": "Logg ut",
+    "mfa": {
+      "back": "Tilbake til pålogging",
+      "challengeExpired": "Påloggingen har utløpt. Logg inn på nytt.",
+      "code": "Bekreftelseskode",
+      "codeFormat": "Skriv inn den 6-sifrede koden fra autentiseringsappen eller en gjenopprettingskode.",
+      "invalidCode": "Ugyldig bekreftelseskode. Prøv igjen.",
+      "prompt": "Skriv inn den 6-sifrede koden fra autentiseringsappen. Hvis du ikke lenger har tilgang til den, kan du i stedet skrive inn en av gjenopprettingskodene dine.",
+      "tooManyCodes": "For mange ugyldige koder. Logg inn på nytt.",
+      "verify": "Bekreft"
+    },
     "password": "Passord",
     "sessionExpired": "Sesjonen er utløpt!",
     "sessionExpiredDesc": "Sesjonen din er avsluttet på grunn av inaktivitet. Vennligst logg inn på nytt for å fortsette.",
     "somethingWentWrong": "Noe gikk galt",
+    "tooManyAttempts": "For mange påloggingsforsøk. Vent noen minutter og prøv igjen.",
     "username": "Brukernavn",
     "welcome": "Velkommen til mailboxd",
     "youWillNeedToLogInAgain": "Du må logge inn på nytt for å få tilgang til kontoen din.",
@@ -714,6 +731,7 @@
     "detectedFolder": "Registrert",
     "detectedFrom": "Registrert fra",
     "dropHere": "Slipp .eml / .mbox / .pst-filer her",
+    "duplicateCount": "{{count}} duplikater hoppet over",
     "failed": "Import mislyktes",
     "failedCount": "{{count}} feilet",
     "failedDetails": "Feilede elementer",
@@ -734,6 +752,7 @@
     "noMailboxFound": "Ingen postboks funnet.",
     "noMailboxes": "Ingen postbokser funnet på denne kontoen.",
     "orClick": "eller klikk for å bla gjennom",
+    "outsideRetentionCount": "{{count}} utenfor oppbevaringsperioden",
     "processed": "{{current}} / {{total}} behandlet",
     "processing": "Behandler…",
     "pstFolderDesc": "PST-filen inneholder sin egen mappestruktur (f.eks. Innboks, Sendte elementer osv.). Mapper opprettes automatisk under importen.",
@@ -747,6 +766,7 @@
     "source": "kilde",
     "startImport": "Importer",
     "successCount": "{{count}} importert",
+    "summaryOutsideRetention": "{{count}} utenfor oppbevaring",
     "target": "1. Velg målkonto",
     "title": "Import",
     "uploading": "Laster opp…",
@@ -855,10 +875,14 @@
   },
   "oauth2": {
     "aSecretKeyProvidedByTheOAuthProvider": "En hemmelig nøkkel levert av OAuth-leverandøren for å autentisere applikasjonen din.",
+    "accessToken": "Tilgangstoken",
+    "accessTokenCannotBeEmpty": "Tilgangstoken kan ikke være tomt",
+    "accountIsRequired": "Velg en konto.",
     "actions": {
       "authorize": "Autoriser",
       "delete": "Slett",
       "edit": "Rediger",
+      "importTokens": "Importer tokener",
       "openMenu": "Åpne meny"
     },
     "addConfiguration": "Legg til konfigurasjon",
@@ -867,8 +891,8 @@
     "addScope": "Legg til omfang",
     "areYouSureYouWantTo": "Er du sikker på at du vil {{action}} denne OAuth2-klienten?",
     "areYouSureYouWantToDelete": "Er du sikker på at du vil slette",
-    "authAtatus": "OAuth2-autentiseringsstatus",
     "authFailed": "OAuth2-autentisering mislyktes",
+    "authStatus": "OAuth2-autentiseringsstatus",
     "authSuccess": "OAuth2-autentisering vellykket",
     "authUrlLabel": "Auth-URL:",
     "authorizationUrlCannotBeEmpty": "Autorisasjons-URL kan ikke være tom",
@@ -907,8 +931,10 @@
     "enableOAuth2Client": "Aktiver OAuth2-klient",
     "enabled": "Aktivert",
     "enterIdToConfirmDeletion": "Skriv inn id for å bekrefte sletting.",
+    "enterTheAccessTokenHere": "Lim inn tilgangstokenet her.",
     "enterTheAuthorizationUrl": "Skriv inn autorisasjons-URL-en",
     "enterTheKeyHere": "Skriv inn nøkkelen her.",
+    "enterTheRefreshTokenHere": "Lim inn oppdateringstokenet her.",
     "enterTheScopeHere": "Skriv inn omfang her.",
     "enterTheTokenUrl": "Skriv inn token-URL-en",
     "enterTheValueHere": "Skriv inn verdien her.",
@@ -922,6 +948,15 @@
     "goHome": "Gå hjem",
     "goToAccounts": "Gå til Kontoer",
     "id": "ID",
+    "importTokensDescription": "Bruk dette når OAuth2-klienten ikke kan fullføre autorisasjonen i mailboxd, for eksempel når tokenene ble hentet med et eksternt verktøy som email-oauth2-proxy. Den valgte kontoen må allerede bruke OAuth2 som IMAP-autentiseringstype.",
+    "importTokensFailed": "Kunne ikke importere tokener",
+    "importTokensSuccess": "Tokener importert",
+    "importTokensSuccessDesc": "Tokenene er lagret og fornyes automatisk.",
+    "importTokensTitle": "Importer eksterne tokener",
+    "importTokensWarningClientMustMatch": "Klient-ID og klienthemmelighet i denne konfigurasjonen må være identiske med klienten som utstedte oppdateringstokenet, ellers vil fornyelsen mislykkes.",
+    "importTokensWarningLongLivedCredential": "Et oppdateringstoken er en langvarig påloggingsopplysning. Det krypteres og lagres på denne serveren.",
+    "importTokensWarningStopExternalTool": "Stopp det eksterne verktøyet som hentet disse tokenene. Hvis begge verktøyene fornyer det samme oppdateringstokenet, kommer de i konflikt og arkiveringen stopper.",
+    "importing": "Importerer...",
     "information": "Informasjon",
     "invalidAuthorizationUrlFormat": "Ugyldig format på Autorisasjons-URL",
     "invalidRedirectUriFormat": "Ugyldig format på Omdirigerings-URI",
@@ -935,6 +970,8 @@
     "noConfigurations": "Ingen OAuth2-konfigurasjoner",
     "noConfigurationsDesc": "Du har ikke lagt til noen OAuth2-konfigurasjoner ennå. Legg til en for å begynne å bruke OAuth2-funksjoner.",
     "noEmailAccountsRegistered": "Ingen e-postkontoer registrert. Vennligst opprett en.",
+    "noOAuth2Accounts": "Ingen av kontoene dine bruker OAuth2-autentisering. Opprett først en konto med OAuth2 som autentiseringstype.",
+    "noProxy": "Ingen proxy",
     "noProxyAvailable": "Ingen proxy tilgjengelig",
     "noStatus": "Denne siden viser resultatet av din OAuth2-autentisering. For øyeblikket er ingen spesifikk status tilgjengelig. Vennligst prøv igjen ved behov.",
     "oauth2ClientHasBeenSuccessfully": "OAuth2-klient har blitt {{action}}.",
@@ -950,6 +987,8 @@
     "redirectUriCannotBeEmpty": "Omdirigerings-URI kan ikke være tom",
     "redirectUriIsRequired": "Omdirigerings-URI er påkrevd",
     "redirectUrlLabel": "Omdirigerings-URL:",
+    "refreshToken": "Oppdateringstoken",
+    "refreshTokenCannotBeEmpty": "Oppdateringstoken kan ikke være tomt",
     "save": "Lagre",
     "saveChanges": "Lagre endringer",
     "saving": "Lagrer...",
@@ -1058,6 +1097,36 @@
     "tryAgain": "Prøv igjen",
     "warningDesc": "Vennligst vær forsiktig, denne operasjonen kan ikke angres.",
     "warningTitle": "Advarsel!"
+  },
+  "repair_message": {
+    "confirm": "Reparer",
+    "desc": "Henter denne meldingen på nytt fra IMAP-serveren og lagrer manglende innhold. Innhold lagres bare hvis det samsvarer med den arkiverte hashen.",
+    "emailMissing": "Meldingsinnholdet mangler fortsatt",
+    "emailRestored": "Meldingsinnholdet er gjenopprettet",
+    "failedHint": "Meldingen kunne ikke hentes eller verifiseres. Se feilen nedenfor.",
+    "hideDetails": "Skjul detaljer",
+    "history": "Reparasjonshistorikk",
+    "historyEmpty": "Ingen reparasjoner ennå.",
+    "historyFailed": "Kunne ikke laste reparasjonshistorikken.",
+    "historyHint": "De siste {{limit}} reparasjonsforsøkene.",
+    "missingAfter": "Vedlegg som fortsatt mangler",
+    "missingBefore": "Vedlegg som manglet før reparasjonen",
+    "operator": "Utført av",
+    "partialHint": "Noe innhold kunne ikke gjenopprettes. Innhold som ikke samsvarer med den arkiverte hashen, lagres aldri.",
+    "repairAction": "Reparer melding",
+    "repairing": "Reparerer…",
+    "repairingHint": "Henter meldingen fra IMAP-serveren. Dette kan ta litt tid.",
+    "reportDesc": "Resultatet av reparasjonsforsøket.",
+    "reportTitle": "Reparasjonsrapport",
+    "requestFailed": "Reparasjonsforespørselen mislyktes",
+    "result": "Resultat",
+    "showDetails": "Vis detaljer",
+    "statusComplete": "Ingenting manglet",
+    "statusFailed": "Mislyktes",
+    "statusPartial": "Delvis reparert",
+    "statusRepaired": "Reparert",
+    "title": "Reparer melding",
+    "wholeMessageNote": "Dette reparerer hele meldingen: innholdet og alle vedlegg."
   },
   "restore_message": {
     "accountsInvolved": "Involverte kontoer",
@@ -1307,6 +1376,7 @@
     "body": "Innhold",
     "button": "Søk",
     "clear_history": "Tøm historikk",
+    "hint": "Alle ord må samsvare. Bruk OR for å utvide, \"anførselstegn\" for en frase, -ord for å utelate.",
     "no_history": "Ingen søkehistorikk",
     "placeholder": "Søk etter e-poster (bruk \" \" for frasesøk)",
     "recent_title": "Nylige søk",
@@ -1350,9 +1420,17 @@
     "label": "Tilbakestill",
     "tooltip": "Fjern alle filtre"
   },
+  "search_sort": {
+    "relevance": "Relevans",
+    "relevance_needs_text": "Skriv inn et søkeord for å sortere etter relevans",
+    "relevance_tooltip": "Sorter etter beste treff"
+  },
   "search_view": {
+    "absolute": "Absolutt",
     "button_label": "Visning",
-    "menu_title": "Kolonneinnstillinger"
+    "date_display": "Datovisning",
+    "menu_title": "Kolonneinnstillinger",
+    "relative": "Relativ"
   },
   "settings": {
     "accounts": "Kontoer",
@@ -1420,6 +1498,53 @@
     "invalidPassword": "Ugyldig passord",
     "lastAccess": "Siste tilgang",
     "manageRootTokenAndPassword": "Administrer root-token og passord sikkert.",
+    "mfa": {
+      "copied": "Kopiert til utklippstavlen",
+      "description": "Beskytt pålogging med passord med en engangskode fra en autentiseringsapp.",
+      "disabled": {
+        "description": "Når den er på, krever pålogging med passord også en 6-sifret kode fra en autentiseringsapp som Aegis, Google Authenticator eller 1Password.",
+        "enable": "Slå på tofaktorautentisering",
+        "title": "Tofaktorautentisering er av"
+      },
+      "enabled": {
+        "codesLeft": "Ubrukte gjenopprettingskoder: {{remaining}}",
+        "codesLow": "Du er i ferd med å gå tom for gjenopprettingskoder. Slå tofaktorautentisering av og på igjen for å få nye.",
+        "confirmDisable": "Slå av",
+        "description": "Pålogging med passord krever en kode fra autentiseringsappen din.",
+        "disable": "Slå av tofaktorautentisering",
+        "disableCode": "Kode fra autentiseringsappen eller en gjenopprettingskode",
+        "disabledToast": "Tofaktorautentisering slått av",
+        "title": "Tofaktorautentisering er på"
+      },
+      "enrol": {
+        "code": "Kode fra appen",
+        "confirm": "Bekreft og slå på",
+        "copySecret": "Kopier hemmelig nøkkel",
+        "description": "Skann QR-koden med autentiseringsappen, eller skriv inn den hemmelige nøkkelen manuelt. Skriv deretter inn den 6-sifrede koden appen viser.",
+        "qrAlt": "QR-kode for autentiseringsappen din",
+        "qrFailed": "QR-koden kunne ikke genereres. Skriv inn den hemmelige nøkkelen manuelt.",
+        "secret": "Hemmelig nøkkel for manuell inntasting",
+        "title": "Konfigurer autentiseringsappen din"
+      },
+      "errors": {
+        "enrolFailed": "Kunne ikke starte konfigurasjonen",
+        "invalidCode": "Ugyldig bekreftelseskode. Prøv igjen.",
+        "tooManyAttempts": "For mange forsøk. Vent noen minutter og prøv igjen."
+      },
+      "loadError": "Kunne ikke laste inn statusen for tofaktorautentisering.",
+      "recovery": {
+        "copy": "Kopier koder",
+        "description": "Hver kode lar deg logge inn én gang hvis du mister tilgangen til autentiseringsappen.",
+        "done": "Ferdig",
+        "download": "Last ned som .txt",
+        "leaveWarning": "Du har ikke bekreftet at du har lagret gjenopprettingskodene. De vises ikke igjen. Vil du forlate siden likevel?",
+        "onlyOnce": "Disse kodene vises bare én gang. Oppbevar dem på et trygt sted nå.",
+        "saved": "Jeg har lagret gjenopprettingskodene mine på et trygt sted",
+        "title": "Lagre gjenopprettingskodene dine"
+      },
+      "ssoNote": "Du logger inn med enkel pålogging (SSO). Tofaktorautentisering for kontoen din håndteres av identitetsleverandøren din, så den kan ikke konfigureres her.",
+      "title": "Tofaktorautentisering"
+    },
     "name": "Navn",
     "noProxies": "Ingen proxyer",
     "noProxiesDesc": "Du har ikke lagt til noen proxy-konfigurasjoner ennå. Legg til en for å begynne å bruke proxy-funksjoner.",
@@ -1490,6 +1615,7 @@
       "apiTokens": "API-tokener",
       "backup": "Sikkerhetskopi",
       "configurations": "Systemkonfigurasjoner",
+      "mfa": "Tofaktorautentisering",
       "profile": "Profil",
       "proxy": "Nettverksproxy"
     },
@@ -1517,6 +1643,12 @@
     "title": "Logg ut"
   },
   "system": {
+    "defaultAdminPassword": {
+      "action": "Endre passord",
+      "badge": "Sikkerhet",
+      "message": "Den innebygde admin-kontoen godtar fortsatt det opprinnelige passordet. Endre det i profilen mens du er logget inn som admin, eller under Brukere.",
+      "title": "Standard administratorpassord i bruk"
+    },
     "notifications": "Systemvarsler"
   },
   "systemConfig": {
@@ -1674,6 +1806,15 @@
       "placeholder": {
         "filter": "Søk etter brukere..."
       },
+      "reset_mfa": {
+        "button_confirm": "Tilbakestill 2FA",
+        "confirm_msg": "Tofaktorautentisering for brukeren {{name}} (ID: {{id}}) slås av, og gjenopprettingskodene slettes. Inntil den konfigureres på nytt, holder passordet for å logge inn.",
+        "failed_title": "Tilbakestilling mislyktes",
+        "menu": "Tilbakestill 2FA",
+        "success_desc": "Tofaktorautentisering for «{{name}}» er slått av.",
+        "success_title": "2FA tilbakestilt",
+        "title": "Tilbakestill tofaktorautentisering"
+      },
       "schema": {
         "account_required": "Vennligst velg en konto",
         "description_max": "Beskrivelse maks 256 tegn",
@@ -1767,6 +1908,7 @@
       "created_at": "Opprettet",
       "email": "E-postadresse",
       "id": "ID",
+      "mfa": "2FA",
       "roles": "Roller og tillatelser",
       "updated_at": "Oppdatert",
       "username": "Brukernavn"
@@ -1775,6 +1917,7 @@
       "description": "Klikk på knappen nedenfor for å legge til din første bruker.",
       "title": "Ingen brukere funnet"
     },
+    "mfa_enabled": "På",
     "nav": {
       "api_tokens": "API-tokens",
       "roles": "Roller",
@@ -1813,6 +1956,7 @@
     "pleaseEnterPassword": "Vennligst skriv inn passordet ditt",
     "pleaseEnterUsernameOrEmail": "Skriv inn brukernavn eller e-postadresse",
     "required": "Dette feltet er påkrevd",
+    "retentionDaysRange": "Skriv inn et helt antall dager fra 1 til 36500, eller la feltet stå tomt.",
     "singleRequestBatchSizeMustBeNumber": "Batchstørrelse må være et tall",
     "singleRequestBatchSizeTooLarge": "Batchstørrelse må være maksimalt 200",
     "singleRequestBatchSizeTooSmall": "Batchstørrelse må være minst 10"

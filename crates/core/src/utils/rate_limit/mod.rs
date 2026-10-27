@@ -23,9 +23,10 @@ use governor::{
     clock::{QuantaClock, QuantaInstant},
     middleware::NoOpMiddleware,
     state::{InMemoryState, NotKeyed},
-    NotUntil, Quota, RateLimiter,
+    DefaultKeyedRateLimiter, NotUntil, Quota, RateLimiter,
 };
 use std::{
+    net::IpAddr,
     num::NonZero,
     sync::{Arc, LazyLock},
     time::Duration,
@@ -100,5 +101,93 @@ impl UserRateLimiter {
             .value()
             .0
             .clone()
+    }
+}
+
+/// Attempts per client IP before login requests are rejected.
+const LOGIN_BURST: u32 = 10;
+/// Time for one spent login attempt to be replenished.
+const LOGIN_REPLENISH_PERIOD: Duration = Duration::from_secs(600);
+/// Tracked clients above which idle entries are evicted.
+const LOGIN_LIMITER_EVICT_THRESHOLD: usize = 1024;
+
+pub static LOGIN_RATE_LIMITER: LazyLock<LoginRateLimiter> =
+    LazyLock::new(|| LoginRateLimiter::with_quota(LOGIN_BURST, LOGIN_REPLENISH_PERIOD));
+
+/// Per-client-IP limiter for second-factor codes: the second login step,
+/// confirming an enrolment and disabling 2FA. Kept apart from
+/// [`LOGIN_RATE_LIMITER`] so password attempts do not use up code attempts.
+pub static MFA_RATE_LIMITER: LazyLock<LoginRateLimiter> =
+    LazyLock::new(|| LoginRateLimiter::with_quota(LOGIN_BURST, LOGIN_REPLENISH_PERIOD));
+
+/// Per-client-IP limiter for password login attempts.
+pub struct LoginRateLimiter {
+    limiter: DefaultKeyedRateLimiter<IpAddr>,
+}
+
+impl LoginRateLimiter {
+    pub fn with_quota(burst: u32, replenish_period: Duration) -> Self {
+        let quota = Quota::with_period(replenish_period)
+            .expect("login replenish period must be non-zero")
+            .allow_burst(NonZero::new(burst).expect("login burst must be non-zero"));
+        LoginRateLimiter {
+            limiter: RateLimiter::keyed(quota),
+        }
+    }
+
+    /// Record a login attempt from `ip`; returns `false` when it exceeds the
+    /// quota and must be rejected.
+    pub fn check(&self, ip: IpAddr) -> bool {
+        if self.limiter.len() > LOGIN_LIMITER_EVICT_THRESHOLD {
+            self.limiter.retain_recent();
+        }
+        self.limiter.check_key(&ip).is_ok()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::Ipv4Addr;
+
+    const CLIENT_A: IpAddr = IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1));
+    const CLIENT_B: IpAddr = IpAddr::V4(Ipv4Addr::new(192, 0, 2, 2));
+
+    #[test]
+    fn login_limiter_rejects_attempts_beyond_the_burst() {
+        let limiter = LoginRateLimiter::with_quota(3, Duration::from_secs(600));
+        for _ in 0..3 {
+            assert!(limiter.check(CLIENT_A));
+        }
+        assert!(!limiter.check(CLIENT_A));
+    }
+
+    #[test]
+    fn login_limiter_tracks_clients_independently() {
+        let limiter = LoginRateLimiter::with_quota(1, Duration::from_secs(600));
+        assert!(limiter.check(CLIENT_A));
+        assert!(!limiter.check(CLIENT_A));
+        assert!(limiter.check(CLIENT_B));
+    }
+
+    #[test]
+    fn login_limiter_evicts_idle_clients_beyond_the_threshold() {
+        let limiter = LoginRateLimiter::with_quota(1, Duration::from_millis(1));
+        let clients = (0..=LOGIN_LIMITER_EVICT_THRESHOLD as u32)
+            .map(|n| IpAddr::V4(Ipv4Addr::from(0x0a00_0000 + n)))
+            .collect::<Vec<_>>();
+        for client in &clients {
+            assert!(limiter.check(*client));
+        }
+        assert_eq!(limiter.limiter.len(), LOGIN_LIMITER_EVICT_THRESHOLD + 1);
+
+        // Every attempt is replenished, so all tracked clients are idle.
+        std::thread::sleep(Duration::from_millis(20));
+        assert!(limiter.check(CLIENT_A));
+        assert!(
+            limiter.limiter.len() <= 1,
+            "idle clients must be evicted, {} still tracked",
+            limiter.limiter.len()
+        );
     }
 }

@@ -318,6 +318,10 @@ pub struct Account {
     /// `None` = extract everything (backward compatible).
     #[serde(default)]
     pub extraction_rules: Option<ExtractionRules>,
+    /// Archived mail older than this many days is deleted by the retention
+    /// sweep. `None` keeps everything.
+    #[serde(default)]
+    pub retention_days: Option<u64>,
 }
 
 impl MemDbModel for Account {
@@ -359,6 +363,7 @@ impl Account {
             deleting: false,
             archive_rules: request.archive_rules,
             extraction_rules: request.extraction_rules,
+            retention_days: request.retention_days.filter(|&days| days > 0),
         })
     }
 
@@ -583,6 +588,7 @@ impl Account {
                 id: account.id,
                 email: account.email,
                 name: account.account_name,
+                auth_type: account.imap.map(|imap| imap.auth.auth_type),
             })
             .collect::<Vec<MinimalAccount>>();
         Ok(result)
@@ -699,6 +705,9 @@ impl Account {
         }
         if request.archive_rules.is_some() {
             new.archive_rules = request.archive_rules;
+        }
+        if let Some(days) = request.retention_days {
+            new.retention_days = (days > 0).then_some(days);
         }
         new.updated_at = utc_now!();
         Ok(new)
@@ -988,5 +997,97 @@ mod tests {
             ..Default::default()
         };
         assert!(rules.validate().is_err());
+    }
+
+    // ── minimal_list ────────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn minimal_list_reports_the_imap_auth_type() {
+        use crate::account::entity::{AuthConfig, AuthType};
+        use crate::database::upsert_impl;
+
+        // Ids used by no other test.
+        let oauth_account = Account {
+            id: 52_700_000_000_001,
+            email: "minimal-oauth@example.com".into(),
+            imap: Some(ImapConfig {
+                auth: AuthConfig {
+                    auth_type: AuthType::OAuth2,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let nosync_account = Account {
+            id: 52_700_000_000_002,
+            email: "minimal-nosync@example.com".into(),
+            account_type: AccountType::NoSync,
+            imap: None,
+            ..Default::default()
+        };
+        // The database survives between runs.
+        upsert_impl(DB_MANAGER.db(), oauth_account).unwrap();
+        upsert_impl(DB_MANAGER.db(), nosync_account).unwrap();
+
+        let listed = Account::minimal_list(false).unwrap();
+        let auth_type_of = |id: u64| {
+            listed
+                .iter()
+                .find(|a| a.id == id)
+                .expect("account is listed")
+                .auth_type
+                .clone()
+        };
+        assert_eq!(auth_type_of(52_700_000_000_001), Some(AuthType::OAuth2));
+        assert_eq!(auth_type_of(52_700_000_000_002), None);
+    }
+
+    #[test]
+    fn update_sets_changes_and_clears_the_retention_window() {
+        let account = Account {
+            account_type: AccountType::NoSync,
+            ..Default::default()
+        };
+        let update = |current: &Account, days: Option<u64>| {
+            Account::apply_update_fields(
+                current,
+                AccountUpdateRequest {
+                    retention_days: days,
+                    ..Default::default()
+                },
+            )
+            .unwrap()
+        };
+
+        let set = update(&account, Some(30));
+        assert_eq!(set.retention_days, Some(30));
+        let unchanged = update(&set, None);
+        assert_eq!(unchanged.retention_days, Some(30));
+        let cleared = update(&unchanged, Some(0));
+        assert_eq!(cleared.retention_days, None);
+
+        let imap = Account {
+            account_type: AccountType::IMAP,
+            ..Default::default()
+        };
+        assert_eq!(update(&imap, Some(7)).retention_days, Some(7));
+    }
+
+    #[test]
+    fn accounts_stored_without_retention_keep_everything() {
+        let stored = serde_json::json!({
+            "id": 1, "imap": null, "enabled": true, "email": "old@example.com",
+            "account_name": null, "login_name": null, "capabilities": null,
+            "date_since": null, "date_before": null, "download_folders": null,
+            "account_type": "NoSync", "download_interval_min": null,
+            "download_batch_size": null, "max_email_size_bytes": null,
+            "known_folders": null, "created_at": 0, "updated_at": 0,
+            "created_by": 0, "use_dangerous": false, "pgp_key": null,
+            "imap_quota_bytes": null, "imap_quota_window": null,
+            "auto_download_new_mailboxes": null, "download_schedule": null
+        });
+        let account: Account = serde_json::from_value(stored).unwrap();
+        assert_eq!(account.retention_days, None);
     }
 }
