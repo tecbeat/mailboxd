@@ -3147,7 +3147,7 @@ mod manager_tests {
         init_globals, register_mailbox, store_email_blob, unique_id,
     };
     use super::*;
-    use crate::store::tantivy::format::{read_index_format_version, CURRENT_INDEX_FORMAT_VERSION};
+    use crate::store::tantivy::format::read_index_format_version;
 
     struct Fixture {
         _dir: tempfile::TempDir,
@@ -3230,18 +3230,21 @@ mod manager_tests {
         }
     }
 
+    /// The schema cannot tell which analyzer built the index, so a lost
+    /// marker is healed as version 2 and the index asks for a rebuild.
     #[test]
-    fn reopening_an_index_heals_a_lost_format_marker() {
+    fn reopening_an_index_with_a_lost_format_marker_asks_for_a_rebuild() {
         let dir = tempfile::tempdir().unwrap();
         drop(envelope_manager_at(dir.path()));
         std::fs::remove_file(dir.path().join("INDEX_FORMAT")).unwrap();
 
-        drop(envelope_manager_at(dir.path()));
+        let reopened = std::panic::catch_unwind(|| drop(envelope_manager_at(dir.path())));
 
-        assert_eq!(
-            read_index_format_version(dir.path()),
-            Some(CURRENT_INDEX_FORMAT_VERSION)
+        assert!(
+            reopened.is_err(),
+            "an index with a healed marker must not open"
         );
+        assert_eq!(read_index_format_version(dir.path()), Some(2));
     }
 
     #[test]

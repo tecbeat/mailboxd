@@ -31,7 +31,7 @@ use crate::store::tantivy::{
         },
         ENVELOPE_MANAGER,
     },
-    format::{read_index_format_version, CURRENT_INDEX_FORMAT_VERSION},
+    format::read_index_format_version,
 };
 
 /// An attachment index manager on `dir`, opened (or created) the way the
@@ -177,18 +177,21 @@ fn has_text() -> AttachmentSearchFilter {
     }
 }
 
+/// The schema cannot tell which analyzer built the index, so a lost
+/// marker is healed as version 2 and the index asks for a rebuild.
 #[test]
-fn reopening_an_index_heals_a_lost_format_marker() {
+fn reopening_an_index_with_a_lost_format_marker_asks_for_a_rebuild() {
     let dir = tempfile::tempdir().unwrap();
     drop(attachment_manager_at(dir.path()));
     std::fs::remove_file(dir.path().join("INDEX_FORMAT")).unwrap();
 
-    drop(attachment_manager_at(dir.path()));
+    let reopened = std::panic::catch_unwind(|| drop(attachment_manager_at(dir.path())));
 
-    assert_eq!(
-        read_index_format_version(dir.path()),
-        Some(CURRENT_INDEX_FORMAT_VERSION)
+    assert!(
+        reopened.is_err(),
+        "an index with a healed marker must not open"
     );
+    assert_eq!(read_index_format_version(dir.path()), Some(2));
 }
 
 #[test]
