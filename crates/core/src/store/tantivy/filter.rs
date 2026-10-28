@@ -21,6 +21,8 @@
 use deunicode::deunicode;
 use tantivy::tokenizer::{Token, TokenFilter, TokenStream, Tokenizer};
 
+use crate::store::tantivy::tokenizers::is_cjk;
+
 #[derive(Clone, Debug, Default)]
 pub struct DeunicodeFilter;
 
@@ -58,8 +60,9 @@ impl<S: TokenStream> TokenStream for DeunicodeTokenStream<S> {
         }
         let token: &mut Token = self.inner.token_mut();
         // Only allocate a new String when the text actually contains
-        // non-ASCII characters to avoid unnecessary overhead.
-        if !token.text.is_ascii() {
+        // non-ASCII characters to avoid unnecessary overhead. CJK stays as it
+        // is: as pinyin, characters that sound alike would match each other.
+        if !token.text.is_ascii() && !token.text.chars().any(is_cjk) {
             token.text = deunicode(&token.text);
         }
         true

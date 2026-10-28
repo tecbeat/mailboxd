@@ -26,14 +26,23 @@ use tantivy::{Index, Term};
 
 use crate::store::tantivy::filter::DeunicodeFilter;
 
-/// Deterministic pipeline: SimpleTokenizer → RemoveLongFilter(40) → LowerCaser
-/// → DeunicodeFilter.
+/// Deterministic, script-aware word tokenizer.
+///
+/// Text is split into runs of CJK and of other characters:
+/// - Other runs go through SimpleTokenizer → RemoveLongFilter(40) →
+///   LowerCaser → DeunicodeFilter.
+/// - CJK runs have no word spaces. Every character becomes a unigram and every
+///   adjacent pair a bigram at the position of its first character, as in
+///   Lucene's CJK analyzer. They are not transliterated, so characters that
+///   sound alike in pinyin stay apart.
+///
+/// The query parser runs the same tokenizer, so a CJK query term becomes a
+/// phrase over these tokens: an exact substring match.
 ///
 /// No stemming and no language detection: the same word produces the same token
 /// whether it arrives as part of a whole message or as a single query term, so
 /// the index side and the query side always agree (the root fix for
 /// rustmailer/bichon#361).
-/// CJK is out of scope (deunicode transliterates; there is no CJK segmentation).
 #[derive(Clone)]
 pub struct EuroTokenizer {
     analyzer: TextAnalyzer,
@@ -49,6 +58,95 @@ impl EuroTokenizer {
                 .build(),
         }
     }
+
+    fn tokenize(&mut self, text: &str) -> Vec<Token> {
+        let mut tokens = Vec::new();
+        let mut position = 0;
+        for (start, run) in script_runs(text) {
+            if run.starts_with(is_cjk) {
+                position = push_cjk_grams(&mut tokens, start, run, position);
+            } else {
+                let mut stream = self.analyzer.token_stream(run);
+                let mut next_position = position;
+                while stream.advance() {
+                    let token = stream.token();
+                    next_position = position + token.position + 1;
+                    tokens.push(Token {
+                        offset_from: start + token.offset_from,
+                        offset_to: start + token.offset_to,
+                        position: position + token.position,
+                        text: token.text.clone(),
+                        position_length: token.position_length,
+                    });
+                }
+                position = next_position;
+            }
+        }
+        tokens
+    }
+}
+
+/// Push the unigrams and bigrams of a CJK run and return the next position.
+fn push_cjk_grams(tokens: &mut Vec<Token>, start: usize, run: &str, position: usize) -> usize {
+    let chars: Vec<(usize, char)> = run.char_indices().collect();
+    for (i, &(offset, c)) in chars.iter().enumerate() {
+        let unigram_end = offset + c.len_utf8();
+        let bigram_end = chars.get(i + 1).map(|&(next, n)| next + n.len_utf8());
+        for end in std::iter::once(unigram_end).chain(bigram_end) {
+            tokens.push(Token {
+                offset_from: start + offset,
+                offset_to: start + end,
+                position: position + i,
+                text: run[offset..end].to_string(),
+                position_length: 1,
+            });
+        }
+    }
+    position + chars.len()
+}
+
+/// Split text into maximal runs that are either all CJK or all other
+/// characters, with the byte offset of each run.
+fn script_runs(text: &str) -> impl Iterator<Item = (usize, &str)> {
+    let mut rest = text.char_indices().peekable();
+    std::iter::from_fn(move || {
+        let (start, first) = rest.next()?;
+        let cjk = is_cjk(first);
+        let mut end = start + first.len_utf8();
+        while let Some(&(offset, c)) = rest.peek() {
+            if is_cjk(c) != cjk {
+                break;
+            }
+            end = offset + c.len_utf8();
+            rest.next();
+        }
+        Some((start, &text[start..end]))
+    })
+}
+
+/// Han ideographs, Japanese kana and Korean Hangul. CJK punctuation is not
+/// included, so it separates runs like a space.
+pub(crate) fn is_cjk(c: char) -> bool {
+    matches!(
+        c as u32,
+        0x1100..=0x11FF // Hangul Jamo
+            | 0x3005..=0x3007 // ideographic iteration mark, closing mark, number zero
+            | 0x3041..=0x3096 // Hiragana
+            | 0x309D..=0x309F // Hiragana iteration marks, digraph
+            | 0x30A1..=0x30FA // Katakana
+            | 0x30FC..=0x30FF // Katakana prolonged sound mark, iteration marks, digraph
+            | 0x3131..=0x318E // Hangul Compatibility Jamo
+            | 0x31F0..=0x31FF // Katakana Phonetic Extensions
+            | 0x3400..=0x4DBF // CJK Unified Ideographs Extension A
+            | 0x4E00..=0x9FFF // CJK Unified Ideographs
+            | 0xA960..=0xA97F // Hangul Jamo Extended-A
+            | 0xAC00..=0xD7A3 // Hangul Syllables
+            | 0xD7B0..=0xD7FF // Hangul Jamo Extended-B
+            | 0xF900..=0xFAFF // CJK Compatibility Ideographs
+            | 0xFF66..=0xFF9F // Halfwidth Katakana
+            | 0xFFA0..=0xFFDC // Halfwidth Hangul
+            | 0x20000..=0x3FFFF // CJK Unified Ideographs Extensions B and later
+    )
 }
 
 impl Default for EuroTokenizer {
@@ -57,11 +155,36 @@ impl Default for EuroTokenizer {
     }
 }
 
+/// The tokens of one text, computed up front.
+pub struct EuroTokenStream {
+    tokens: Vec<Token>,
+    current: Option<usize>,
+}
+
+impl TokenStream for EuroTokenStream {
+    fn advance(&mut self) -> bool {
+        let next = self.current.map_or(0, |i| i + 1);
+        self.current = Some(next);
+        next < self.tokens.len()
+    }
+
+    fn token(&self) -> &Token {
+        &self.tokens[self.current.unwrap_or(0)]
+    }
+
+    fn token_mut(&mut self) -> &mut Token {
+        &mut self.tokens[self.current.unwrap_or(0)]
+    }
+}
+
 impl Tokenizer for EuroTokenizer {
-    type TokenStream<'a> = BoxTokenStream<'a>;
+    type TokenStream<'a> = EuroTokenStream;
 
     fn token_stream<'a>(&'a mut self, text: &'a str) -> Self::TokenStream<'a> {
-        self.analyzer.token_stream(text)
+        EuroTokenStream {
+            tokens: self.tokenize(text),
+            current: None,
+        }
     }
 }
 
@@ -86,10 +209,13 @@ pub fn tri_analyzer() -> TextAnalyzer {
 /// Compute the 3-grams of a query term exactly as [`tri_analyzer`] would
 /// (lowercase + deunicode). Fewer than 3 characters yields an empty vector — the
 /// caller falls back to a pure word-level query in that case.
+///
+/// A term with CJK characters has no grams either: the word level already
+/// matches any CJK substring exactly, and grams would only add noise.
 pub fn trigrams(term: &str) -> Vec<String> {
     let chars: Vec<char> = term.chars().collect();
     let mut out = Vec::new();
-    if chars.len() < 3 {
+    if chars.len() < 3 || chars.iter().any(|c| is_cjk(*c)) {
         return out;
     }
     for w in chars.windows(3) {
@@ -235,6 +361,83 @@ mod tests {
         );
     }
 
+    fn positioned(text: &str) -> Vec<(usize, String)> {
+        let mut tokenizer = EuroTokenizer::new();
+        let mut stream = tokenizer.token_stream(text);
+        let mut out = Vec::new();
+        while stream.advance() {
+            let token = stream.token();
+            out.push((token.position, token.text.clone()));
+        }
+        out
+    }
+
+    fn at(position: usize, text: &str) -> (usize, String) {
+        (position, text.to_string())
+    }
+
+    /// A CJK run has no word spaces, so every character is a unigram and
+    /// every adjacent pair a bigram at the position of its first character.
+    /// The characters stay as they are instead of becoming pinyin.
+    #[test]
+    fn cjk_run_becomes_unigrams_and_bigrams() {
+        assert_eq!(
+            positioned("对讲机"),
+            vec![
+                at(0, "对"),
+                at(0, "对讲"),
+                at(1, "讲"),
+                at(1, "讲机"),
+                at(2, "机"),
+            ]
+        );
+    }
+
+    /// Latin and CJK runs each keep their own processing, positions run on
+    /// across them, and no bigram spans a script change or CJK punctuation.
+    #[test]
+    fn mixed_text_keeps_each_script_and_counts_positions_on() {
+        assert_eq!(
+            positioned("Re: 回复：灯泡 Été&对讲"),
+            vec![
+                at(0, "re"),
+                at(1, "回"),
+                at(1, "回复"),
+                at(2, "复"),
+                at(3, "灯"),
+                at(3, "灯泡"),
+                at(4, "泡"),
+                at(5, "ete"),
+                at(6, "对"),
+                at(6, "对讲"),
+                at(7, "讲"),
+            ]
+        );
+    }
+
+    /// Kana and Hangul are CJK runs as well; a single character is a unigram.
+    #[test]
+    fn kana_hangul_and_single_characters_are_grams() {
+        assert_eq!(
+            tokens("メール 한국 字"),
+            ["メ", "メー", "ー", "ール", "ル", "한", "한국", "국", "字"]
+        );
+    }
+
+    /// Byte offsets point at the original text, so highlighting lines up.
+    #[test]
+    fn offsets_point_into_the_original_text() {
+        let text = "Re 灯泡";
+        let mut tokenizer = EuroTokenizer::new();
+        let mut stream = tokenizer.token_stream(text);
+        let mut spans = Vec::new();
+        while stream.advance() {
+            let token = stream.token();
+            spans.push(&text[token.offset_from..token.offset_to]);
+        }
+        assert_eq!(spans, ["Re", "灯", "灯泡", "泡"]);
+    }
+
     /// Tokens longer than 40 characters are dropped by RemoveLongFilter.
     #[test]
     fn removes_long_tokens() {
@@ -261,6 +464,21 @@ mod tests {
             vec!["kro", "roa", "oat", "ati", "tie", "ien", "ens"]
         );
         assert_eq!(trigrams("Été"), vec!["ete"]);
+    }
+
+    /// CJK in the trigram fields stays as written instead of pinyin, and a
+    /// CJK query term has no grams.
+    #[test]
+    fn trigram_layer_does_not_transliterate_cjk() {
+        let mut analyzer = tri_analyzer();
+        let mut stream = analyzer.token_stream("对讲机é");
+        let mut grams = Vec::new();
+        while stream.advance() {
+            grams.push(stream.token().text.clone());
+        }
+        assert_eq!(grams, ["对讲机", "讲机é"]);
+        assert!(trigrams("对讲机").is_empty());
+        assert!(trigrams("Re对讲").is_empty());
     }
 
     #[test]

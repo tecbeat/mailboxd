@@ -235,6 +235,35 @@ async fn text_search_finds_fragments_through_trigram_fields() {
     assert_eq!(fx.ids(text("bluepri")), ["c"]);
 }
 
+/// CJK words are found inside unspaced attachment text, subjects and file
+/// names, as exact substrings.
+#[tokio::test]
+async fn search_finds_cjk_words_in_text_subject_and_name() {
+    let fx = Fixture::new();
+    let mut t = fx.attachment("t");
+    t.text = Some("洗澡间灯泡更换&对讲机故障沟通".into());
+    let mut s = fx.attachment("s");
+    s.subject = "回复：维修报价".into();
+    let mut n = fx.attachment("n");
+    n.name = Some("灯泡发票2024.pdf".into());
+    fx.add(vec![t, s, n]).await;
+
+    let subject = |v: &str| AttachmentSearchFilter {
+        subject: Some(v.into()),
+        ..Default::default()
+    };
+    let name = |v: &str| AttachmentSearchFilter {
+        attachment_name: Some(v.into()),
+        ..Default::default()
+    };
+    assert_eq!(fx.ids(text("对讲机")), ["t"]);
+    assert_eq!(fx.ids(text("灯泡")), ["n", "t"]);
+    assert_eq!(fx.ids(text("报价")), ["s"]);
+    assert!(fx.ids(text("灯泡沟通")).is_empty(), "not a substring");
+    assert_eq!(fx.ids(subject("维修")), ["s"]);
+    assert_eq!(fx.ids(name("发票")), ["n"]);
+}
+
 #[tokio::test]
 async fn subject_from_and_name_filters_look_only_at_their_field() {
     let fx = Fixture::new();
