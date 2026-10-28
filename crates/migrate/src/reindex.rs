@@ -1286,6 +1286,69 @@ mod tests {
         }
     }
 
+    /// Format 2 has today's schema but kept a CJK run as one token, so
+    /// `灯泡` inside `洗澡间灯泡更换` only becomes findable after the rebuild.
+    #[test]
+    fn rebuilds_a_format_2_index_so_cjk_words_are_found() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().to_path_buf();
+        write_storage_version(&root, CURRENT_STORAGE_VERSION).unwrap();
+        let dirs = resolve_dirs(&root, None, None);
+        let f = SchemaTools::email_fields();
+        let format_2_index = |dir: &Path, schema: Schema, docs: Vec<TantivyDocument>| {
+            std::fs::create_dir_all(dir).unwrap();
+            let index = Index::create_in_dir(dir, schema).unwrap();
+            register_tokenizers(&index);
+            index.tokenizers().register(
+                "euro",
+                tantivy::tokenizer::TextAnalyzer::builder(
+                    tantivy::tokenizer::SimpleTokenizer::default(),
+                )
+                .build(),
+            );
+            let mut writer: IndexWriter = index.writer_with_num_threads(1, 15_000_000).unwrap();
+            for doc in docs {
+                writer.add_document(doc).unwrap();
+            }
+            writer.commit().unwrap();
+            std::fs::write(dir.join("INDEX_FORMAT"), "2\n").unwrap();
+        };
+        let email = SchemaTools::email_schema();
+        let doc = legacy_doc(
+            &email,
+            &[
+                ("id", text("eid-1")),
+                ("account_id", OwnedValue::U64(1)),
+                ("subject", text("洗澡间灯泡更换")),
+                ("content_hash", text(&hash("ab"))),
+            ],
+        );
+        format_2_index(&dirs.envelope_dir, email, vec![doc]);
+        format_2_index(
+            &dirs.attachment_dir,
+            SchemaTools::attachment_schema(),
+            vec![],
+        );
+        drop(BlobGuard::open(&dirs.blobs_dir).unwrap());
+        let paths = AutoMigratePaths {
+            root_dir: root,
+            index_dir: None,
+            data_dir: None,
+        };
+        let (index, s) = searcher(&dirs.envelope_dir);
+        assert_eq!(hits(&index, &s, f.f_subject, "灯泡"), 0, "before");
+        drop((index, s));
+
+        assert!(reindex_required(&paths));
+        reindex(&paths, false)
+            .unwrap()
+            .expect("format 2 is rebuilt");
+
+        let (index, s) = searcher(&dirs.envelope_dir);
+        assert_eq!(hits(&index, &s, f.f_subject, "灯泡"), 1);
+        assert_eq!(hits(&index, &s, f.f_subject, "洗澡间灯泡更换"), 1);
+    }
+
     #[test]
     fn a_current_index_is_only_rebuilt_when_forced() {
         let (_tmp, paths) = seed_legacy_root();
@@ -1792,7 +1855,7 @@ mod tests {
 
         let message = format!("{error:?}");
         assert!(message.contains("validation of the rebuilt email index"));
-        assert!(message.contains("not marked as format v2"), "{message}");
+        assert!(message.contains("not marked as format v3"), "{message}");
     }
 
     #[test]

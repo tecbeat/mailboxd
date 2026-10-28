@@ -39,10 +39,15 @@ use crate::store::tantivy::fields::F_SUBJECT_TRI;
 /// - 1 = legacy: language-guessing stemmed word tokenizer, no trigram fields
 ///   (a missing marker counts as 1)
 /// - 2 = deterministic word tokenizer and trigram sibling fields
+/// - 3 = CJK text as unigrams and bigrams, not transliterated
 ///
 /// Bump this whenever the schema or the analyzers change; older indexes are
 /// then rebuilt on the next start.
-pub const CURRENT_INDEX_FORMAT_VERSION: u32 = 2;
+pub const CURRENT_INDEX_FORMAT_VERSION: u32 = 3;
+
+/// The first version with trigram fields. A schema with them proves no more:
+/// later versions change only the analyzers.
+const TRIGRAM_SCHEMA_VERSION: u32 = 2;
 
 const INDEX_FORMAT_FILE: &str = "INDEX_FORMAT";
 
@@ -59,10 +64,11 @@ pub enum IndexFormatStatus {
 
 /// Write the current index format version to `dir/INDEX_FORMAT`.
 pub fn write_index_format_version(dir: &Path) -> std::io::Result<()> {
-    std::fs::write(
-        dir.join(INDEX_FORMAT_FILE),
-        format!("{CURRENT_INDEX_FORMAT_VERSION}\n"),
-    )
+    write_version(dir, CURRENT_INDEX_FORMAT_VERSION)
+}
+
+fn write_version(dir: &Path, version: u32) -> std::io::Result<()> {
+    std::fs::write(dir.join(INDEX_FORMAT_FILE), format!("{version}\n"))
 }
 
 /// Format version of an index directory; `None` without a readable marker.
@@ -74,7 +80,9 @@ pub fn read_index_format_version(dir: &Path) -> Option<u32> {
 /// Stamp an index whose marker write was lost, e.g. by a crash between
 /// creating the index and writing the marker. Only an index whose schema
 /// already has the trigram fields is stamped, so a legacy index still goes
-/// through the reindex. Returns `true` when a marker was written.
+/// through the reindex. The stamp is version 2, the most the schema proves:
+/// an index of an older analyzer is rebuilt, never served as current.
+/// Returns `true` when a marker was written.
 pub fn heal_index_format_marker(dir: &Path) -> bool {
     if read_index_format_version(dir).is_some() {
         return false;
@@ -85,7 +93,7 @@ pub fn heal_index_format_marker(dir: &Path) -> bool {
     if index.schema().get_field(F_SUBJECT_TRI).is_err() {
         return false;
     }
-    match write_index_format_version(dir) {
+    match write_version(dir, TRIGRAM_SCHEMA_VERSION) {
         Ok(()) => true,
         Err(error) => {
             tracing::warn!(%error, "Failed to write INDEX_FORMAT marker for {:?}", dir);
@@ -165,11 +173,20 @@ mod tests {
     fn older_marker_needs_upgrade() {
         let tmp = TempDir::new().unwrap();
         tantivy_index_fixture(tmp.path());
-        fs::write(tmp.path().join(INDEX_FORMAT_FILE), "1\n").unwrap();
-        assert_eq!(
-            check_index_format(tmp.path()),
-            IndexFormatStatus::NeedsUpgrade
-        );
+        for older in ["1\n", "2\n"] {
+            fs::write(tmp.path().join(INDEX_FORMAT_FILE), older).unwrap();
+            assert_eq!(
+                check_index_format(tmp.path()),
+                IndexFormatStatus::NeedsUpgrade,
+                "marker {older:?}"
+            );
+        }
+    }
+
+    /// Version 3 indexes CJK text as unigrams and bigrams.
+    #[test]
+    fn current_version_is_the_cjk_aware_tokenizer() {
+        assert_eq!(CURRENT_INDEX_FORMAT_VERSION, 3);
     }
 
     #[test]
@@ -179,15 +196,18 @@ mod tests {
         assert_eq!(check_index_format(tmp.path()), IndexFormatStatus::Fresh);
     }
 
+    /// The schema with trigram fields proves version 2, not the tokenizer
+    /// of version 3, so a healed index is still rebuilt.
     #[test]
-    fn heals_a_missing_marker_only_for_the_current_schema() {
+    fn heals_a_missing_marker_as_version_2_only_for_the_trigram_schema() {
         let current = TempDir::new().unwrap();
         let index =
             tantivy::Index::create_in_dir(current.path(), SchemaTools::email_schema()).unwrap();
         assert!(heal_index_format_marker(current.path()));
+        assert_eq!(read_index_format_version(current.path()), Some(2));
         assert_eq!(
-            read_index_format_version(current.path()),
-            Some(CURRENT_INDEX_FORMAT_VERSION)
+            check_index_format(current.path()),
+            IndexFormatStatus::NeedsUpgrade
         );
         assert!(!heal_index_format_marker(current.path()), "already marked");
         drop(index);
