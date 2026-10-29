@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 # Stage 1: build the React web UI with pnpm
 # ---------------------------------------------------------------------------
-FROM node:24-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS web-builder
+FROM node:24-alpine3.24@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS web-builder
 
 WORKDIR /build
 
@@ -25,7 +25,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 # ---------------------------------------------------------------------------
 # Stage 2: build the Rust server, cli and admin binaries
 # ---------------------------------------------------------------------------
-FROM rust:1.99.1-slim-bookworm@sha256:86234e857a413004348b471d11a4ebe1aa92d2eae2b6b143cac68fd1ac3c48be AS rust-builder
+FROM rust:1.99.1-slim-bookworm@sha256:24707e70a4f1e23d9a7b25202ec43126d28a52294b96aad5c670df1fd1f1d400 AS rust-builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -60,7 +60,7 @@ RUN --mount=type=cache,id=cargo-registry,target=/usr/local/cargo/registry \
 # ---------------------------------------------------------------------------
 # Stage 3: minimal runtime image
 # ---------------------------------------------------------------------------
-FROM debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b2032f4d2cff2078bea43f78efe3f8 AS runtime
+FROM debian:bookworm-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3 AS runtime
 
 ARG VERSION=v0.0.0-dev
 ENV VERSION=${VERSION}
