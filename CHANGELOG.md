@@ -2,6 +2,98 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.10.1) - 2026-11-03
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency typescript-eslint to v8.72.1 - ([126125b](https://git.teccave.de/tecbeat/mailboxd/commit/126125b501faae93b45967dd38a8bb8f4597527a))
+
+## [1.10.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.10.0) - 2026-10-27
+
+### ⛰️  Features
+
+- *(admin)* Add a menu entry to rebuild the search index - ([7e4efaa](https://git.teccave.de/tecbeat/mailboxd/commit/7e4efaa38054202d6ea836d942ca5756a4e413d8))
+- *(auth)* Add optional TOTP two-factor authentication - ([971cb44](https://git.teccave.de/tecbeat/mailboxd/commit/971cb44f61530e2da84d8e3a90714d1a22f5f64f))
+- *(notifications)* Remind admins while the default admin password works - ([944ef9c](https://git.teccave.de/tecbeat/mailboxd/commit/944ef9cb516f8f9c5e6a394aae31cd5a7282382b))
+- *(oauth2)* Import externally obtained access and refresh tokens - ([ecf2dd4](https://git.teccave.de/tecbeat/mailboxd/commit/ecf2dd46ea54aa22ba471e86c4169ca70fa676c6))
+- *(repair)* Restore missing message blobs from IMAP - ([4fd7ffb](https://git.teccave.de/tecbeat/mailboxd/commit/4fd7ffb7d7c39611c1c8628085c8669ac04c72d7))
+- *(retention)* Delete archived mail past a per-account retention window - ([400ba96](https://git.teccave.de/tecbeat/mailboxd/commit/400ba960e2cd7b28e0a7fabbccef1af7a68adac8))
+- *(search)* Sort message and attachment search by relevance - ([d423709](https://git.teccave.de/tecbeat/mailboxd/commit/d423709d639900dca6a0f03c3a9f4d509d7e1f18))
+- *(search)* Require all words of a search to match - ([3a1b30d](https://git.teccave.de/tecbeat/mailboxd/commit/3a1b30d290f161f9541ff2f4c3c3f5fe9cb09627))
+- *(search)* Rebuild outdated search indexes on startup - ([c645aa7](https://git.teccave.de/tecbeat/mailboxd/commit/c645aa7e61fd4676e506d23b1032813235902ac0))
+- *(server)* Serve the maintenance page when the index rebuild fails - ([198636c](https://git.teccave.de/tecbeat/mailboxd/commit/198636c208eec90306817692033f95033c828fde))
+- *(server)* Serve a maintenance page when startup checks fail - ([ca94d9d](https://git.teccave.de/tecbeat/mailboxd/commit/ca94d9d5dd82e3627b67ec5a2d60fbc68b9325c3))
+- *(web)* Set a per-account retention period - ([6a2df1b](https://git.teccave.de/tecbeat/mailboxd/commit/6a2df1b4e4a26940680c5b62b9d24b59910cfccb))
+- *(web)* Add two-factor authentication UI - ([3d567c9](https://git.teccave.de/tecbeat/mailboxd/commit/3d567c997ecb4b7904d67d8296d643a33f0d3129))
+- *(web)* Repair a message's missing blobs from the search views - ([be64e9f](https://git.teccave.de/tecbeat/mailboxd/commit/be64e9f2372113d493a7fd4fcbd7ed27b4d238c3))
+- *(web)* Toggle between relative and absolute dates in list views - ([685ec05](https://git.teccave.de/tecbeat/mailboxd/commit/685ec05e8e1ea5ccacc41801269b879f605cfe6f))
+
+### 🐛 Bug Fixes
+
+- *(api)* Report deleted count and not-found from delete-messages - ([4936da3](https://git.teccave.de/tecbeat/mailboxd/commit/4936da34c29270d8146cb53b3d8f64e7729b8a7a))
+- *(attachment)* Reset text flags when a tag rebuild finds no text - ([3e18124](https://git.teccave.de/tecbeat/mailboxd/commit/3e18124535bede77469c11bee05cc4c9005317a7))
+- *(attachments)* Recover mixed-format detached EMLs during reattach - ([75c03be](https://git.teccave.de/tecbeat/mailboxd/commit/75c03bee4c22d534c216c84f49ffe485aea57e98))
+- *(attachments)* Isolate empty MIME storage records - ([5224350](https://git.teccave.de/tecbeat/mailboxd/commit/5224350ed2d8f0c549fd9fcfe175a753f77cbfd1))
+- *(attachments)* Isolate raw MIME keys from legacy blobs - ([9d8fd7b](https://git.teccave.de/tecbeat/mailboxd/commit/9d8fd7bbbfb6f54dd243db9891aded77c405ee48))
+- *(attachments)* Preserve encoded MIME bodies during reconstruction - ([34dd76f](https://git.teccave.de/tecbeat/mailboxd/commit/34dd76fcd8528a8a0d379057112f2ea481c47279))
+- *(dashboard)* List the top accounts again - ([f2bf375](https://git.teccave.de/tecbeat/mailboxd/commit/f2bf375e3cf4231ccbcb7e5be880bae21715bb0c))
+- *(dashboard)* Resolve top accounts by account id - ([dec0ddd](https://git.teccave.de/tecbeat/mailboxd/commit/dec0ddd58b715505102bd482a68e2d588a902422))
+- *(envelope)* Fall back to internal date or Received when Date is unusable - ([323e093](https://git.teccave.de/tecbeat/mailboxd/commit/323e093f1eabd3746e25540852c5e9168e8b2a06))
+- *(i18n)* Show translated labels instead of raw keys - ([4c9b319](https://git.teccave.de/tecbeat/mailboxd/commit/4c9b3197010df95e872ecabcc7ebc276f153c75b))
+- *(imap)* Parse Message-ID headers with mail-parser for gap-fill - ([8a3079d](https://git.teccave.de/tecbeat/mailboxd/commit/8a3079de7cf2ebd25c4b2df9590e2e0830adfdfa))
+- *(imap)* Treat an empty tail fetch as purged mail instead of an error - ([8223991](https://git.teccave.de/tecbeat/mailboxd/commit/8223991bbb51b395159f127f104744e8db667871))
+- *(imap)* Report a download session as failed when a folder failed - ([5ef0f87](https://git.teccave.de/tecbeat/mailboxd/commit/5ef0f87678f781a237e02f7f60ff2fa73622a819))
+- *(imap)* Skip unparseable emails and only advance the watermark on completed folders - ([c0ac00a](https://git.teccave.de/tecbeat/mailboxd/commit/c0ac00a02558f55bdf1ce853679e2f3e8a745f3c))
+- *(import)* Check free space on the temp directory's own mount - ([deb79cf](https://git.teccave.de/tecbeat/mailboxd/commit/deb79cf08e919c1358d733436f931e2884e66ff7))
+- *(import)* Recognise localized Gmail system labels - ([c11a8a9](https://git.teccave.de/tecbeat/mailboxd/commit/c11a8a9e53f4968f7c6a80f8a9ee8fb56bdb4d87))
+- *(logger)* Honour MAILBOXD_JSON_LOGS for stdout and file logs - ([8ba5c6b](https://git.teccave.de/tecbeat/mailboxd/commit/8ba5c6b76f854b44c5b84ee640a5e87a7bedad74))
+- *(message)* Fall back to a guessed type for attachments without Content-Type - ([9f2dd0c](https://git.teccave.de/tecbeat/mailboxd/commit/9f2dd0c97c39442fef13aa7ae9445fdc78e37202))
+- *(oauth2)* Keep tokens encrypted on a partial external token update - ([df79f7f](https://git.teccave.de/tecbeat/mailboxd/commit/df79f7f096f1a1ffb6be7c2b8c3abb79ca57a543))
+- *(oauth2)* Allow clearing the proxy of an existing config - ([96ec30a](https://git.teccave.de/tecbeat/mailboxd/commit/96ec30a6226694861d275a919b50c15667644468))
+- *(search)* Index words without stemming and add trigram fields - ([8366b35](https://git.teccave.de/tecbeat/mailboxd/commit/8366b351e24a67978588d56a979d3ab7b3f6685c))
+- *(server)* Rate-limit password login per client IP - ([fe618a2](https://git.teccave.de/tecbeat/mailboxd/commit/fe618a2218d20d9fb97be1543f18c54ee7be55a3))
+- *(store)* Retry tantivy commits on OpenWriteError - ([b5e3383](https://git.teccave.de/tecbeat/mailboxd/commit/b5e338349df3669a8ab765f01e607881c7fdfd69))
+- *(store)* Keep blobs still referenced through the other hash field - ([af32f8d](https://git.teccave.de/tecbeat/mailboxd/commit/af32f8d4cf179f892d7322bc393c901c0e18ca44))
+- *(tags)* Keep tagged attachments searchable by text, name and sender - ([b3e474c](https://git.teccave.de/tecbeat/mailboxd/commit/b3e474c8aab9a9ab220d4dfd1a981b0fc929e81d))
+- *(tags)* Decode stored tags before updating them - ([f3885ff](https://git.teccave.de/tecbeat/mailboxd/commit/f3885ff5b8cbf5e3254db53ed02e0f0cd12afc93))
+- *(test)* Ignore local production-index dedup inspector by default - ([4c773a4](https://git.teccave.de/tecbeat/mailboxd/commit/4c773a455dfd0ae46b3ce1efff91622802b01dbf))
+- *(users)* Store login passwords as argon2id hashes - ([9de80d9](https://git.teccave.de/tecbeat/mailboxd/commit/9de80d9579c44b4a5647f59bf09709ab56f6e71f))
+- *(web)* Show the status of email repair audit entries - ([31508dc](https://git.teccave.de/tecbeat/mailboxd/commit/31508dc981a5d5a661be4e74a2c983051ade336a))
+- *(web)* Import all selected files and show skipped duplicates - ([cf496ab](https://git.teccave.de/tecbeat/mailboxd/commit/cf496abba915e3a8ddfbb0991aa462fd236aca2a))
+- *(web)* Enable the import button for PST files - ([3f3937c](https://git.teccave.de/tecbeat/mailboxd/commit/3f3937c638c14575350692fe89636b79999acd01))
+- *(web)* Add a No proxy option to the OAuth2 proxy select - ([1caf42f](https://git.teccave.de/tecbeat/mailboxd/commit/1caf42f26adc6bf7272352ec5dc25c3c1a83a77a))
+- *(web)* Accept null date range halves in account settings - ([3180d13](https://git.teccave.de/tecbeat/mailboxd/commit/3180d1316e7d82748e0c353d46888309c3171547))
+- *(web)* Show a rate-limit message when login returns 429 - ([6733d57](https://git.teccave.de/tecbeat/mailboxd/commit/6733d5787b53eb917e61526a625b776e0b6841e2))
+
+### 🚜 Refactor
+
+- *(attachments)* Share one detach implementation between core and migrate - ([ab25f37](https://git.teccave.de/tecbeat/mailboxd/commit/ab25f379cb6319c54b7d10798172d7f3ae9f2973))
+
+### 🎨 Styling
+
+- Rustfmt the lines added on this branch - ([9adaf90](https://git.teccave.de/tecbeat/mailboxd/commit/9adaf9091585935bbd13cb8adc625e69c03cfbbe))
+- Fix clippy warnings in code added on this branch - ([df659e0](https://git.teccave.de/tecbeat/mailboxd/commit/df659e0f67f7414852968c658aa3b159499e462e))
+
+### 🧪 Testing
+
+- *(accounts)* Cover session results, the minimal list and token updates - ([41da602](https://git.teccave.de/tecbeat/mailboxd/commit/41da6023ef97b463c3e44c18ee671e68b66063a6))
+- *(admin)* Cover the password reset and its display - ([28ae1aa](https://git.teccave.de/tecbeat/mailboxd/commit/28ae1aaed0133875d7f300d9fb7d2e016dca7f7c))
+- *(auth)* Cover password storage, SSO linking and the login limits - ([9c15553](https://git.teccave.de/tecbeat/mailboxd/commit/9c155531652c6536121a4dce0fd8a0a6e9c3e381))
+- *(auth)* Cover the rate-limit message on login - ([5b5b383](https://git.teccave.de/tecbeat/mailboxd/commit/5b5b383aecf7f768975fa870624cfb2136bd7fb1))
+- *(download)* Cover the IMAP download, gap fill and extraction changes - ([4ab718d](https://git.teccave.de/tecbeat/mailboxd/commit/4ab718d344780d5b07ab655760f7c8dab0a17020))
+- *(envelope)* Cover Cp1253 subject and body decoding - ([b6677fd](https://git.teccave.de/tecbeat/mailboxd/commit/b6677fd217523609c73febe30c162da147791cbf))
+- *(import)* Cover label decoding, upload errors and skipped duplicates - ([c1590d6](https://git.teccave.de/tecbeat/mailboxd/commit/c1590d6f4c6f3f7bb43e98c979f92b2e00a44ad2))
+- *(logger)* Cover JSON and text output of the stdout and file logs - ([6ef1fca](https://git.teccave.de/tecbeat/mailboxd/commit/6ef1fca7c1aa611aa482f6f35852d4fa190e09f3))
+- *(messages)* Cover reading and deleting an imported message - ([b154514](https://git.teccave.de/tecbeat/mailboxd/commit/b154514f3fcad94f64756d6748f53a7af52c2129))
+- *(oauth2)* Cover clearing and choosing the proxy of a config - ([8d2f836](https://git.teccave.de/tecbeat/mailboxd/commit/8d2f836a1c35f30034d41ad5cbad5f89de15cf6a))
+- *(reindex)* Cover the index rebuild, its validation and the admin reports - ([6436a4d](https://git.teccave.de/tecbeat/mailboxd/commit/6436a4d9d70c7454dcdfe0e7edb80b0fc0130f88))
+- *(search)* Cover the search, sort and tagging changes of the index - ([fc02e14](https://git.teccave.de/tecbeat/mailboxd/commit/fc02e14d42cd693f6f05d4d04c479990b1aea995))
+- *(server)* Compile and run the server API tests again - ([e4b5af2](https://git.teccave.de/tecbeat/mailboxd/commit/e4b5af23e44b63d9a93ad9cc3c6d794c66628161))
+
+### ⚙️ Miscellaneous Tasks
+
+- Report Rust and web test coverage - ([f998310](https://git.teccave.de/tecbeat/mailboxd/commit/f998310f6fccc2f0c935cea96ce1fb84f75256f4))
+
 ## [1.9.14](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.9.14) - 2026-10-26
 
 ### 🐛 Bug Fixes
