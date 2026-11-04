@@ -610,15 +610,49 @@ where
     Ok(None)
 }
 
-/// Handle uid_validity change without deleting local data.
-/// Compares remote Message-IDs with local Tantivy index, downloads only
-/// truly missing emails. DedupCache catches any remaining duplicates.
-async fn reconcile_uid_validity_change(
+/// Why a mailbox is reconciled by Message-ID instead of by UID watermark.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ReconcileReason {
+    UidValidityChanged,
+    /// The server now exposes messages below the stored watermark, e.g. after
+    /// the user widened a provider-side IMAP time window (126/163 Mail).
+    OlderMessagesAppeared,
+}
+
+impl ReconcileReason {
+    fn describe(self) -> &'static str {
+        match self {
+            Self::UidValidityChanged => "UIDVALIDITY changed",
+            Self::OlderMessagesAppeared => "Older emails appeared on the server",
+        }
+    }
+}
+
+/// True when the folder holds more messages than the UIDs the server assigned
+/// since the last sync can explain. New mail always gets a new UID, so the
+/// surplus are messages that appeared with old UIDs, below the watermark an
+/// incremental `{highest+1}:*` fetch starts at. Expunges can hide a small
+/// surplus; a manual gap-fill still catches those.
+fn messages_appeared_below_watermark(local: &MailBox, remote: &MailBox) -> bool {
+    let (Some(local_next), Some(remote_next)) = (local.uid_next, remote.uid_next) else {
+        return false;
+    };
+    let growth = remote.exists.saturating_sub(local.exists);
+    let new_uids = remote_next.saturating_sub(local_next);
+    growth > new_uids
+}
+
+/// Reconciles a mailbox without deleting local data: compares remote
+/// Message-IDs with the local Tantivy index and downloads only truly missing
+/// emails. DedupCache catches any remaining duplicates.
+async fn reconcile_by_message_id(
     account: &AccountModel,
     local_mailbox: &MailBox,
     remote_mailbox: &MailBox,
+    reason: ReconcileReason,
     token: CancellationToken,
 ) -> MailboxdResult<Option<u32>> {
+    let reason = reason.describe();
     let account_id = account.id;
 
     // Phase 1: connect + examine
@@ -654,7 +688,7 @@ async fn reconcile_uid_validity_change(
             0,
             0,
             FolderStatus::Success,
-            Some("UIDVALIDITY changed but remote mailbox is empty.".into()),
+            Some(format!("{reason} but remote mailbox is empty.")),
         )?;
         session.logout().await.ok();
         return Ok(None);
@@ -692,7 +726,8 @@ async fn reconcile_uid_validity_change(
         info!(
             account_id,
             mailbox = remote_mailbox.name,
-            "UIDVALIDITY changed but all {} emails already exist locally",
+            "{} but all {} emails already exist locally",
+            reason,
             remote_uid_list.len()
         );
         DownloadState::update_folder_progress(
@@ -710,7 +745,8 @@ async fn reconcile_uid_validity_change(
             mailbox = remote_mailbox.name,
             total = remote_uid_list.len(),
             missing = planned,
-            "UIDVALIDITY changed, downloading missing emails"
+            "{}, downloading missing emails",
+            reason
         );
         DownloadState::update_folder_progress(
             account_id,
@@ -718,7 +754,7 @@ async fn reconcile_uid_validity_change(
             planned,
             0,
             FolderStatus::Downloading,
-            Some("UIDVALIDITY changed, downloading missing emails...".into()),
+            Some(format!("{reason}, downloading missing emails...")),
         )?;
 
         let mut session2 = ImapExecutor::create_connection(account_id).await?;
@@ -913,8 +949,33 @@ pub async fn reconcile_mailboxes(
                     account_id, local_mailbox.name, &local_mailbox.uid_validity, &remote_uid_validity
                 );
 
-                reconcile_uid_validity_change(account, local_mailbox, remote_mailbox, token.clone())
-                    .await
+                reconcile_by_message_id(
+                    account,
+                    local_mailbox,
+                    remote_mailbox,
+                    ReconcileReason::UidValidityChanged,
+                    token.clone(),
+                )
+                .await
+            } else if messages_appeared_below_watermark(local_mailbox, remote_mailbox) {
+                info!(
+                    account_id,
+                    mailbox = %local_mailbox.name,
+                    local_exists = local_mailbox.exists,
+                    remote_exists = remote_mailbox.exists,
+                    local_uid_next = local_mailbox.uid_next,
+                    remote_uid_next = remote_mailbox.uid_next,
+                    "Mailbox grew by more messages than new UIDs; comparing by Message-ID to find older emails"
+                );
+                reconcile_by_message_id(
+                    account,
+                    local_mailbox,
+                    remote_mailbox,
+                    ReconcileReason::OlderMessagesAppeared,
+                    token.clone(),
+                )
+                .await
+                .map(|highest| highest.max(local_mailbox.highest_uid))
             } else {
                 perform_incremental_sync(account, local_mailbox, remote_mailbox, token.clone())
                     .await
@@ -1913,6 +1974,62 @@ mod tests {
         assert_eq!(watermark, None);
         assert_eq!(folder(account_id, "INBOX").status, FolderStatus::Failed);
         assert!(has_error_starting_with(account_id, "Batch 0 failed"));
+    }
+
+    fn listed(exists: u32, uid_next: Option<u32>) -> MailBox {
+        MailBox {
+            exists,
+            uid_next,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn growth_without_new_uids_means_older_messages_appeared() {
+        assert!(messages_appeared_below_watermark(
+            &listed(2, Some(1753)),
+            &listed(1752, Some(1753))
+        ));
+    }
+
+    #[test]
+    fn growth_covered_by_new_uids_is_ordinary_new_mail() {
+        assert!(!messages_appeared_below_watermark(
+            &listed(2, Some(1753)),
+            &listed(5, Some(1756))
+        ));
+    }
+
+    #[test]
+    fn growth_beyond_new_uids_means_older_messages_appeared_too() {
+        assert!(messages_appeared_below_watermark(
+            &listed(2, Some(1753)),
+            &listed(10, Some(1755))
+        ));
+    }
+
+    #[test]
+    fn shrinking_or_unchanged_mailbox_needs_no_reconcile() {
+        assert!(!messages_appeared_below_watermark(
+            &listed(5, Some(10)),
+            &listed(5, Some(10))
+        ));
+        assert!(!messages_appeared_below_watermark(
+            &listed(5, Some(10)),
+            &listed(3, Some(10))
+        ));
+    }
+
+    #[test]
+    fn missing_uid_next_disables_the_check() {
+        assert!(!messages_appeared_below_watermark(
+            &listed(2, None),
+            &listed(1752, Some(1753))
+        ));
+        assert!(!messages_appeared_below_watermark(
+            &listed(2, Some(1753)),
+            &listed(1752, None)
+        ));
     }
 
     #[tokio::test]
