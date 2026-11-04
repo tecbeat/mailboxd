@@ -223,6 +223,9 @@ export default function ServerConfigurationsPage() {
             <SettingRow label="MAILBOXD_JSON_LOGS" value={<BooleanBadge value={data!.mailboxd_json_logs} />} />
             <SettingRow label="MAILBOXD_LOG_TO_FILE" value={<BooleanBadge value={data!.mailboxd_log_to_file} />} />
             <SettingRow label="MAILBOXD_MAX_SERVER_LOG_FILES" value={data!.mailboxd_max_server_log_files} />
+            <SettingRow label="MAILBOXD_METRICS_ENABLED" value={<BooleanBadge value={data!.mailboxd_metrics_enabled} />} />
+            <SettingRow label="MAILBOXD_METRICS_PASSWORD_SET" value={<BooleanBadge value={data!.mailboxd_metrics_password_set} />} />
+            <SettingRow label="MAILBOXD_METRICS_REFRESH_SECONDS" value={`${data!.mailboxd_metrics_refresh_seconds}s`} />
           </SettingsCard>
         </div>
       )}

@@ -138,6 +138,10 @@ export type ServerConfigurations = {
     mailboxd_json_logs: boolean
     mailboxd_max_server_log_files: number
 
+    mailboxd_metrics_enabled: boolean
+    mailboxd_metrics_password_set: boolean
+    mailboxd_metrics_refresh_seconds: number
+
     mailboxd_encrypt_password_set: boolean
     mailboxd_webui_token_expiration_hours: number
 
