@@ -62,7 +62,9 @@ pub async fn dedup_task(
     let mut total_deleted = 0u64;
 
     for account_id in account_ids {
-        total_deleted += dedup_account(email_reader, email_writer, attachment_writer, account_id)?;
+        let removed = dedup_account(email_reader, email_writer, attachment_writer, account_id)?;
+        crate::metrics::record_dedup_removed(removed);
+        total_deleted += removed;
     }
 
     tracing::info!("dedup: finished, total removed={}", total_deleted);
@@ -81,7 +83,7 @@ pub struct DedupTask;
 
 impl MailboxdTask for DedupTask {
     fn start() -> TaskHandle {
-        let periodic_task = PeriodicTask::new("index-dedup");
+        let periodic_task = PeriodicTask::new("index-dedup").tracked();
 
         let task = move |_: Option<u64>| {
             Box::pin(async move {

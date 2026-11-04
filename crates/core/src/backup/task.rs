@@ -35,7 +35,7 @@ pub struct BackupTask;
 
 impl MailboxdTask for BackupTask {
     fn start() -> TaskHandle {
-        let periodic_task = PeriodicTask::new("scheduled-backup");
+        let periodic_task = PeriodicTask::new("scheduled-backup").tracked();
 
         // Baseline for the very first schedule evaluation before any archive
         // exists, so a fresh instance does not immediately fire on boot.

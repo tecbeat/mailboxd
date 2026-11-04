@@ -122,6 +122,18 @@ repo:
         default: 5
         description: "Maximum log files to retain."
 
+    Metrics:
+      MAILBOXD_METRICS_ENABLED:
+        default: false
+        description: "Serve Prometheus metrics at `<MAILBOXD_BASE_URL>/metrics` on the HTTP port, including per-account series labelled with the account email address."
+      MAILBOXD_METRICS_PASSWORD:
+        description: "Password required to scrape `/metrics`, sent as `Authorization: Bearer <password>` or as Basic auth with any username. Unset leaves the endpoint open; a warning is logged at startup. Alternative: `MAILBOXD_METRICS_PASSWORD_FILE`."
+      MAILBOXD_METRICS_PASSWORD_FILE:
+        description: "Read the metrics password from a file. If both are set, `MAILBOXD_METRICS_PASSWORD` takes precedence. An unreadable or empty file stops the server from starting."
+      MAILBOXD_METRICS_REFRESH_SECONDS:
+        default: 60
+        description: "Seconds between refreshes of the cached storage, index and per-account gauges. Counters and histograms are always live."
+
     CORS:
       MAILBOXD_CORS_ORIGINS:
         description: "Comma-separated list of allowed origins. If unset, all origins are allowed; if set, only exact matches pass (no wildcards, no trailing slash)."

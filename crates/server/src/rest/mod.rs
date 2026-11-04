@@ -24,6 +24,7 @@ use crate::common::log::Tracing;
 use crate::common::tls::rustls_config;
 use crate::common::timeout::{Timeout, TIMEOUT_HEADER};
 use crate::error::handler::error_handler;
+use crate::rest::metrics::{HttpMetrics, MetricsConfig, MetricsEndpoint, RouteTemplates};
 use crate::rest::public::login::login;
 use crate::rest::public::mfa::mfa_verify;
 use crate::rest::public::oidc::{oidc_callback, oidc_handoff, oidc_login};
@@ -55,17 +56,19 @@ use {
 pub mod api;
 pub mod assets;
 pub mod maintenance;
+pub mod metrics;
 pub mod public;
 
 pub type ApiResult<T, E = ApiErrorResponse> = std::result::Result<T, E>;
 
 use super::error::ApiErrorResponse;
 
-/// Build the route tree. Callers can add their own routes before passing
-/// the tree to the server.
-pub fn build_routes() -> impl Endpoint {
+/// Build the route tree, mounted under `base_url`. Callers can add their
+/// own routes before passing the tree to the server.
+pub fn build_routes(base_url: &str, metrics: MetricsConfig) -> impl Endpoint {
     let api_service = create_openapi_service()
         .summary("A lightweight, high-performance Rust email archiver with WebUI");
+    let route_templates = RouteTemplates::from_openapi_spec(&api_service.spec());
 
     let swagger = api_service.swagger_ui();
     let redoc = api_service.redoc();
@@ -123,12 +126,13 @@ pub fn build_routes() -> impl Endpoint {
         .nest("/api/auth/oidc/callback", get(oidc_callback))
         .nest("/api/auth/oidc/handoff", post(oidc_handoff))
         .nest("/api/auth/oidc/config", get(get_oidc_config))
+        .at("/metrics", MetricsEndpoint::new(metrics))
         .nest_no_strip("/api/v1", open_api_route);
 
-    let app_logic = add_web_assets(app_logic);
+    let app_logic = add_web_assets(app_logic).with(HttpMetrics::new(route_templates));
 
     Route::new()
-        .nest(&SETTINGS.mailboxd_base_url, app_logic)
+        .nest(base_url, app_logic)
         .with(cors)
         .with_if(SETTINGS.mailboxd_http_compression_enabled, Compression::new())
         .with(CatchPanic::new())
@@ -192,7 +196,7 @@ pub async fn start_http_server() -> MailboxdResult<()> {
         listener.boxed()
     };
 
-    let route = build_routes();
+    let route = build_routes(&SETTINGS.mailboxd_base_url, MetricsConfig::from_settings()?);
 
     let mut rx = SIGNAL_MANAGER.subscribe();
     let shutdown_fut = async move {

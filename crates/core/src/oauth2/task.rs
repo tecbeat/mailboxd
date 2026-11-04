@@ -32,7 +32,7 @@ pub struct OAuth2CleanTask;
 
 impl MailboxdTask for OAuth2CleanTask {
     fn start() -> TaskHandle {
-        let periodic_task = PeriodicTask::new("oauth2-pending-task-cleaner");
+        let periodic_task = PeriodicTask::new("oauth2-pending-task-cleaner").tracked();
 
         let task = move |_: Option<u64>| {
             Box::pin(async move {

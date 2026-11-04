@@ -33,7 +33,7 @@ pub struct OAuth2RefreshTask;
 
 impl MailboxdTask for OAuth2RefreshTask {
     fn start() -> TaskHandle {
-        let periodic_task = PeriodicTask::new("oauth2-token-refresh-task");
+        let periodic_task = PeriodicTask::new("oauth2-token-refresh-task").tracked();
 
         let task = move |_: Option<u64>| {
             Box::pin(async move {
@@ -61,7 +61,9 @@ impl MailboxdTask for OAuth2RefreshTask {
                             for token in need_refresh {
                                 tokio::spawn(async move {
                                     let flow = OAuth2Flow::new(token.oauth2_id.clone());
-                                    if let Err(error) = flow.refresh_access_token(&token).await {
+                                    let result = flow.refresh_access_token(&token).await;
+                                    crate::metrics::record_oauth2_refresh(result.is_ok());
+                                    if let Err(error) = result {
                                         error!(
                                             "Failed to refresh access token for {}: {}",
                                             token.account_id, error

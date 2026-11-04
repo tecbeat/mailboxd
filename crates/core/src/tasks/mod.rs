@@ -22,9 +22,11 @@ use crate::audit::task::AuditCleanTask;
 use crate::backup::{ops as backup_ops, task::BackupTask};
 use crate::common::periodic::TaskHandle;
 use crate::context::MailboxdTask;
+use crate::metrics::refresh::MetricsRefreshTask;
 use crate::oauth2::{refresh::OAuth2RefreshTask, task::OAuth2CleanTask};
 use crate::oidc::task::OidcCleanTask;
 use crate::retention::task::RetentionSweepTask;
+use crate::settings::cli::SETTINGS;
 use crate::store::tantivy::dedup::DedupTask;
 
 pub struct PeriodicTasks {
@@ -44,6 +46,9 @@ impl PeriodicTasks {
         // configured; otherwise it would tick uselessly every minute.
         if backup_ops::scheduled_enabled() {
             tasks.push(BackupTask::start());
+        }
+        if SETTINGS.mailboxd_metrics_enabled {
+            tasks.push(MetricsRefreshTask::start());
         }
         Self { tasks }
     }

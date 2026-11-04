@@ -133,6 +133,39 @@ pub struct Settings {
     )]
     pub mailboxd_json_logs: bool,
 
+    /// Serve Prometheus metrics at `<base url>/metrics` (default: false)
+    #[clap(
+        long,
+        default_value = "false",
+        env,
+        help = "Enable the Prometheus metrics endpoint at <base url>/metrics"
+    )]
+    pub mailboxd_metrics_enabled: bool,
+
+    #[clap(
+        long,
+        env,
+        help = "Password required to scrape /metrics (Bearer token or Basic auth with any username). Alternatively, use --mailboxd-metrics-password-file. If both are set, this parameter takes precedence over the file. Unset leaves the endpoint open."
+    )]
+    pub mailboxd_metrics_password: Option<String>,
+
+    #[clap(
+        long,
+        env,
+        help = "The file containing the metrics password. An alternative to --mailboxd-metrics-password."
+    )]
+    pub mailboxd_metrics_password_file: Option<String>,
+
+    /// Interval for refreshing the cached storage, index and account gauges
+    #[clap(
+        long,
+        default_value = "60",
+        env,
+        value_parser = clap::value_parser!(u64).range(1..),
+        help = "Seconds between refreshes of the cached metrics (storage, index and per-account counts)"
+    )]
+    pub mailboxd_metrics_refresh_seconds: u64,
+
     /// Maximum number of log files (default: 5)
     #[clap(
         long,
