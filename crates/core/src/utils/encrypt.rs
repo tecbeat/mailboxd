@@ -32,19 +32,27 @@ use crate::raise_error;
 use crate::settings::cli::SETTINGS;
 
 pub static ENCRYPT_PASSWORD: LazyLock<String> = LazyLock::new(|| {
-    if let Some(file_path) = &SETTINGS.mailboxd_encrypt_password_file {
+    resolve_encrypt_password(
+        SETTINGS.mailboxd_encrypt_password.as_deref(),
+        SETTINGS.mailboxd_encrypt_password_file.as_deref(),
+    )
+});
+
+/// The password wins over the file when both are set.
+fn resolve_encrypt_password(password: Option<&str>, file: Option<&str>) -> String {
+    if let Some(p) = password {
+        return p.to_string();
+    }
+
+    if let Some(file_path) = file {
         return fs::read_to_string(file_path)
             .expect("failed to read the file with the encrypt password")
             .trim()
             .to_string();
     }
 
-    if let Some(p) = &SETTINGS.mailboxd_encrypt_password {
-        return p.clone();
-    }
-
     panic!("Neither encrypt_password nor encrypt_password_file is set. This should have been validated by SETTINGS.");
-});
+}
 
 struct SingleNonceSequence([u8; 12]);
 
@@ -139,6 +147,17 @@ pub fn internal_decrypt_string(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn password_takes_precedence_over_the_file() {
+        let file = tempfile::NamedTempFile::new().unwrap();
+        fs::write(file.path(), "from-file\n").unwrap();
+        let path = file.path().to_str().unwrap();
+
+        assert_eq!(resolve_encrypt_password(Some("from-env"), Some(path)), "from-env");
+        assert_eq!(resolve_encrypt_password(None, Some(path)), "from-file");
+        assert_eq!(resolve_encrypt_password(Some("from-env"), None), "from-env");
+    }
 
     #[test]
     fn test_encrypt_decrypt_roundtrip() {
