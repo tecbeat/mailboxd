@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.10.2) - 2026-11-04
+
+### 🐛 Bug Fixes
+
+- *(ci)* Drop the playwright image's global yarn before installing corepack - ([1a18b3e](https://git.teccave.de/tecbeat/mailboxd/commit/1a18b3ea99a65577e632e4341ba35a3a7f263b53))
+- *(deps)* Adapt disk listing to sysinfo 0.40 fallible api - ([4685fab](https://git.teccave.de/tecbeat/mailboxd/commit/4685fab1489429d0918a0d03cae785d43a7ec1e3))
+- *(deps)* Regenerate pnpm lockfile after renovate fold-in - ([98ba41a](https://git.teccave.de/tecbeat/mailboxd/commit/98ba41a4d3fb229ebf85ea957c7d322b914fc06c))
+- *(deps)* Install corepack explicitly since node 26 no longer bundles it - ([dca0a75](https://git.teccave.de/tecbeat/mailboxd/commit/dca0a75fe85344a79a59cfd62b94a4fff89e304e))
+- *(deps)* Update node.js to v26 - ([3957608](https://git.teccave.de/tecbeat/mailboxd/commit/39576086bce3fcf0372c0d6bbf2a2b8dbafbe36b))
+- *(deps)* Update dependency @hookform/resolvers to v7 - ([8c394dd](https://git.teccave.de/tecbeat/mailboxd/commit/8c394dd55bfcfd49458a59c04f864756ebb8bf0a))
+- *(deps)* Update tanstack-query monorepo to v5.105.1 - ([ba3632f](https://git.teccave.de/tecbeat/mailboxd/commit/ba3632f7c0d38f8700a5a23fc9273ebd6538153c))
+- *(deps)* Update dependency eslint to v10.14.0 - ([ca5dd13](https://git.teccave.de/tecbeat/mailboxd/commit/ca5dd13ca823bb63c3464ed95111c1d5ea2f841d))
+- *(deps)* Update mcr.microsoft.com/playwright:v1.64.1-noble docker digest to 2f05f8a - ([88def39](https://git.teccave.de/tecbeat/mailboxd/commit/88def39498929b8d97a9d2d53002c4bd01cdfb78))
+- *(deps)* Update all non-major dependencies - ([7eabb28](https://git.teccave.de/tecbeat/mailboxd/commit/7eabb2877f3c95f1d48dcff63a252f407fc92f5e))
+
 ## [1.10.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.10.1) - 2026-11-03
 
 ### 🐛 Bug Fixes
