@@ -162,6 +162,8 @@ migration_tests:
       - .xdg-data
     policy: pull
   before_script:
+    # https://github.com/nodejs/corepack#install-corepack-using-npm
+    - npm uninstall --global yarn
     - npm install --global corepack@0.36.0
     - corepack enable
     - corepack prepare pnpm@12.3.4 --activate
