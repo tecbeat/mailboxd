@@ -47,7 +47,7 @@ use mailboxd_migrate::{reindex::reindex, run_auto_migrate, AutoMigratePaths};
 use mailboxd_smtp::server::{start_smtp_server, SmtpServer};
 use rest::maintenance::serve_maintenance;
 use startup::{prepare_storage, StorageSteps};
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 pub async fn run() -> MailboxdResult<()> {
     logger::initialize_logging();
@@ -86,6 +86,17 @@ pub async fn run() -> MailboxdResult<()> {
     if let Err(error) = initialize().await {
         eprintln!("{:?}", error);
         return Err(error);
+    }
+
+    if SETTINGS.mailboxd_metrics_enabled {
+        if matches!(mailboxd_core::metrics::configured_password(), Ok(None)) {
+            warn!(
+                "Prometheus metrics are enabled without MAILBOXD_METRICS_PASSWORD; \
+                 /metrics is open and exposes account email addresses"
+            );
+        } else {
+            info!("Prometheus metrics are enabled and require a password");
+        }
     }
 
     let periodic_tasks = PeriodicTasks::setup();
