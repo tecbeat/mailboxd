@@ -43,6 +43,10 @@ pub struct SystemConfigurations {
     pub mailboxd_json_logs: bool,
     pub mailboxd_max_server_log_files: usize,
 
+    pub mailboxd_metrics_enabled: bool,
+    pub mailboxd_metrics_password_set: bool,
+    pub mailboxd_metrics_refresh_seconds: u64,
+
     pub mailboxd_encrypt_password_set: bool,
     pub mailboxd_webui_token_expiration_hours: u32,
 
@@ -93,6 +97,10 @@ impl From<&Settings> for SystemConfigurations {
             mailboxd_log_to_file: s.mailboxd_log_to_file,
             mailboxd_json_logs: s.mailboxd_json_logs,
             mailboxd_max_server_log_files: s.mailboxd_max_server_log_files,
+            mailboxd_metrics_enabled: s.mailboxd_metrics_enabled,
+            mailboxd_metrics_password_set: s.mailboxd_metrics_password.is_some()
+                || s.mailboxd_metrics_password_file.is_some(),
+            mailboxd_metrics_refresh_seconds: s.mailboxd_metrics_refresh_seconds,
             mailboxd_encrypt_password_set: s.mailboxd_encrypt_password.is_some()
                 || s.mailboxd_encrypt_password_file.is_some(),
             mailboxd_webui_token_expiration_hours: s.mailboxd_webui_token_expiration_hours,

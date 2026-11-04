@@ -245,6 +245,12 @@ fn newest_backup_mtime(dir: &Path) -> Option<SystemTime> {
     scheduled_backups(dir).last().map(|(_, mtime)| *mtime)
 }
 
+/// Path and modified time of the newest scheduled archive in the configured
+/// backup directory, if any.
+pub fn newest_scheduled_backup() -> Option<(PathBuf, SystemTime)> {
+    scheduled_backups(&backup_dir()?).pop()
+}
+
 /// Whether the cron `schedule_str` has a fire time strictly after `last` that is
 /// at or before now. An unparseable expression is logged and treated as "not
 /// due" so a bad value disables scheduling rather than crashing the task.

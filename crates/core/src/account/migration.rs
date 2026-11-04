@@ -513,6 +513,7 @@ impl Account {
             .delete_account_attachments(account.id)
             .await?;
         Self::delete_account(account)?;
+        crate::metrics::remove_account(account.id);
         info!("Sequential cleanup completed for account: {}", account.id);
         Ok(())
     }
