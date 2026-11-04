@@ -22,7 +22,7 @@ include:
 .rust_job:
   extends: .skip_on_default_branch
   stage: unittest
-  image: rust:1.99.1-slim-bookworm@sha256:86234e857a413004348b471d11a4ebe1aa92d2eae2b6b143cac68fd1ac3c48be
+  image: rust:1.99.1-slim-bookworm@sha256:24707e70a4f1e23d9a7b25202ec43126d28a52294b96aad5c670df1fd1f1d400
   variables:
     CARGO_HOME: ${CI_PROJECT_DIR}/.cargo
     CARGO_TERM_COLOR: always
@@ -147,7 +147,7 @@ migration_tests:
 .web_check:
   extends: .skip_on_default_branch
   stage: unittest
-  image: node:24-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
+  image: node:26-alpine3.24@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94
   needs:
     - web_deps
   variables:
@@ -162,6 +162,9 @@ migration_tests:
       - .xdg-data
     policy: pull
   before_script:
+    # https://github.com/nodejs/corepack#install-corepack-using-npm
+    - npm uninstall --global yarn
+    - npm install --global corepack@0.36.0
     - corepack enable
     - corepack prepare pnpm@12.3.4 --activate
     - cd web
@@ -212,7 +215,7 @@ web_lint:
 # from a bad code-splitting config) only surfaces in the built `dist/`.
 web_e2e:
   extends: .web_check
-  image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+  image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
   script:
     - pnpm run build
     - pnpm test:e2e
@@ -230,7 +233,7 @@ web_e2e:
 # `web_e2e` proves the bundle boots; this proves the server ships and serves it.
 image_e2e:
   extends: [.web_check, .test_image]
-  image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+  image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
   services:
     - name: ${CI_REGISTRY_IMAGE}:${VERSION}
       alias: mailboxd

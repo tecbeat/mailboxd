@@ -96,5 +96,5 @@ tar = "0.4.46"
 zstd = "0.14"
 
 [dev-dependencies]
-aws-lc-rs = "=1.18.2"
+aws-lc-rs = "=1.19.0"
 tempfile = "=3.27.0"
