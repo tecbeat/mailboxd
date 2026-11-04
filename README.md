@@ -149,6 +149,19 @@ Every setting is available as a CLI flag and as the environment variable shown b
 </details>
 
 <details>
+<summary><strong>Metrics</strong></summary>
+<br/>
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `MAILBOXD_METRICS_ENABLED` | — | `false` | Serve Prometheus metrics at `<MAILBOXD_BASE_URL>/metrics` on the HTTP port, including per-account series labelled with the account email address. |
+| `MAILBOXD_METRICS_PASSWORD` | — | — | Password required to scrape `/metrics`, sent as `Authorization: Bearer <password>` or as Basic auth with any username. Unset leaves the endpoint open; a warning is logged at startup. Alternative: `MAILBOXD_METRICS_PASSWORD_FILE`. |
+| `MAILBOXD_METRICS_PASSWORD_FILE` | — | — | Read the metrics password from a file. If both are set, `MAILBOXD_METRICS_PASSWORD` takes precedence. An unreadable or empty file stops the server from starting. |
+| `MAILBOXD_METRICS_REFRESH_SECONDS` | — | `60` | Seconds between refreshes of the cached storage, index and per-account gauges. Counters and histograms are always live. |
+
+</details>
+
+<details>
 <summary><strong>CORS</strong></summary>
 <br/>
 
@@ -299,6 +312,7 @@ On first start, mailboxd creates a built-in admin user with username `admin` and
 
 ## Roadmap
 
+- **Prometheus metrics** — Expose operational metrics for Prometheus/Grafana monitoring.
 - **CJK search support** — Make message and attachment search work for Chinese, Japanese and Korean text, which is written without spaces between words.
 - **Upstream sync (bichon 2.0.2 – 2.1.1+)** — Port relevant bug fixes and features from upstream rustmailer/bichon released after 2.0.1 (our last port).
 - **JMAP Support** — Add JMAP (RFC 8620 / RFC 8621) as a second mail source alongside IMAP, via a reusable MailSource abstraction. Tracks epic #44.
