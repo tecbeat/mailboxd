@@ -30,7 +30,7 @@ pub struct AuditCleanTask;
 
 impl MailboxdTask for AuditCleanTask {
     fn start() -> TaskHandle {
-        let periodic_task = PeriodicTask::new("audit-cleanup");
+        let periodic_task = PeriodicTask::new("audit-cleanup").tracked();
 
         let task = move |_: Option<u64>| {
             Box::pin(async move {

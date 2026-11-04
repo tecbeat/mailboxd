@@ -19,7 +19,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-    database::{delete_impl, find_impl, manager::DB_MANAGER, update_impl, upsert_impl, MemDbModel},
+    database::{
+        delete_impl, find_impl, manager::DB_MANAGER, update_atomic_impl, update_impl, upsert_impl,
+        MemDbModel,
+    },
     error::MailboxdResult,
     utc_now,
 };
@@ -214,7 +217,9 @@ impl DownloadState {
             history: Default::default(),
             last_finished_at: Default::default(),
         };
-        upsert_impl(DB_MANAGER.db(), state)
+        upsert_impl(DB_MANAGER.db(), state)?;
+        crate::metrics::record_download_started(account_id);
+        Ok(())
     }
 
     pub fn get(account_id: u64) -> MailboxdResult<Option<DownloadState>> {
@@ -222,15 +227,17 @@ impl DownloadState {
     }
 
     pub fn start_new_session(account_id: u64, trigger: TriggerType) -> MailboxdResult<()> {
-        Self::update_state(account_id, move |current| {
-            let mut updated = current.clone();
+        let interrupted = Self::update_state_returning(account_id, move |current| {
+            let mut updated = current;
             updated.last_trigger_at = utc_now!();
+            let mut interrupted = None;
 
             if let Some(mut old_session) = updated.active_session.take() {
                 if old_session.status == DownloadStatus::Running {
                     old_session.status = DownloadStatus::Cancelled;
                     old_session.end_time = Some(utc_now!());
                     old_session.message = Some("Interrupted by a new download session.".into());
+                    interrupted = Some(old_session.clone());
                 }
                 updated.history.push(old_session);
                 if updated.history.len() > 30 {
@@ -246,8 +253,17 @@ impl DownloadState {
             };
 
             updated.active_session = Some(new_session);
-            Ok(updated)
-        })
+            (updated, interrupted)
+        })?;
+        match interrupted {
+            Some(Some(session)) => {
+                crate::metrics::record_download_finished(account_id, &session);
+                crate::metrics::record_download_started(account_id);
+            }
+            Some(None) => crate::metrics::record_download_started(account_id),
+            None => {}
+        }
+        Ok(())
     }
 
     pub fn update_session_status(
@@ -255,8 +271,9 @@ impl DownloadState {
         status: DownloadStatus,
         message: Option<String>,
     ) -> MailboxdResult<()> {
-        Self::update_state(account_id, move |current| {
-            let mut updated = current.clone();
+        let finished = Self::update_state_returning(account_id, move |current| {
+            let mut updated = current;
+            let mut finished = None;
             if let Some(mut session) = updated.active_session.take() {
                 session.status = status.clone();
                 if message.is_some() {
@@ -268,6 +285,7 @@ impl DownloadState {
                     let now = utc_now!();
                     session.end_time = Some(now);
                     updated.last_finished_at = Some(now);
+                    finished = Some(session.clone());
                     updated.history.push(session);
                     let to_remove = updated.history.len().saturating_sub(10);
                     if to_remove > 0 {
@@ -275,8 +293,12 @@ impl DownloadState {
                     }
                 }
             }
-            Ok(updated)
-        })
+            (updated, finished)
+        })?;
+        if let Some(Some(session)) = finished {
+            crate::metrics::record_download_finished(account_id, &session);
+        }
+        Ok(())
     }
 
     /// Close the active session after all download phases returned without
@@ -305,8 +327,9 @@ impl DownloadState {
             .and_then(|s| s.active_session)
             .map_or(false, |s| s.status == DownloadStatus::Running);
         if stale {
-            Self::update_state(account_id, move |current| {
-                let mut updated = current.clone();
+            let finished = Self::update_state_returning(account_id, move |current| {
+                let mut updated = current;
+                let mut finished = None;
                 if updated
                     .active_session
                     .as_ref()
@@ -319,13 +342,17 @@ impl DownloadState {
                             "Previous sync did not finish cleanly; marked as cancelled on startup."
                                 .into(),
                         );
+                        finished = Some(session.clone());
                         updated.history.push(session);
                         updated.last_finished_at = Some(utc_now!());
                         updated.active_session = None;
                     }
                 }
-                Ok(updated)
+                (updated, finished)
             })?;
+            if let Some(Some(session)) = finished {
+                crate::metrics::record_download_finished(account_id, &session);
+            }
         }
         Ok(stale)
     }
@@ -437,6 +464,15 @@ impl DownloadState {
             update_impl(DB_MANAGER.db(), &account_id.to_string(), updater)?;
         }
         Ok(())
+    }
+
+    /// Like [`Self::update_state`], but hands back a value computed by
+    /// `updater`. `None` when the account has no download state.
+    fn update_state_returning<R>(
+        account_id: u64,
+        updater: impl FnOnce(DownloadState) -> (DownloadState, R),
+    ) -> MailboxdResult<Option<R>> {
+        update_atomic_impl(DB_MANAGER.db(), &account_id.to_string(), updater)
     }
 
     pub fn delete(account_id: u64) -> MailboxdResult<()> {
@@ -558,7 +594,9 @@ impl GapFillState {
                 }
             }
             Ok(updated)
-        })
+        })?;
+        crate::metrics::record_gap_fill_finished(account_id, downloaded, failed);
+        Ok(())
     }
 
     /// Moves a stale Running active run into history as Cancelled.

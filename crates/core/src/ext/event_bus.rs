@@ -205,6 +205,7 @@ pub fn set_event_bus(bus: Box<dyn EventBus>) {
 
 /// Fire-and-forget. Called by the server at security-relevant points.
 pub fn emit(event: Event) {
+    crate::metrics::observe_event(&event);
     if is_duplicate_view(&event) {
         return;
     }

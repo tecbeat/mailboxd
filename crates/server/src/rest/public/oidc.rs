@@ -175,6 +175,7 @@ pub async fn oidc_callback(Query(params): Query<OidcCallbackParams>) -> Result<R
         }
     };
 
+    mailboxd_core::metrics::record_oidc_login(true);
     Ok(redirect_to_ui(&format!(
         "/sso-callback?handoff={}",
         urlencoding::encode(&handoff.id),
@@ -252,6 +253,8 @@ fn sanitize_redirect(input: Option<String>) -> Option<String> {
     })
 }
 
+/// Every failed callback ends here, so it also counts the failed login.
 fn redirect_login_error(message: &str) -> Response {
+    mailboxd_core::metrics::record_oidc_login(false);
     redirect_to_ui(&format!("/sign-in?sso_error={}", urlencoding::encode(message)))
 }

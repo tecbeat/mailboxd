@@ -34,7 +34,7 @@ pub struct OidcCleanTask;
 
 impl MailboxdTask for OidcCleanTask {
     fn start() -> TaskHandle {
-        let periodic_task = PeriodicTask::new("oidc-cleanup");
+        let periodic_task = PeriodicTask::new("oidc-cleanup").tracked();
 
         let task = move |_: Option<u64>| {
             Box::pin(async move {

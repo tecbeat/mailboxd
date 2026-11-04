@@ -19,12 +19,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{common::signal::SIGNAL_MANAGER, error::MailboxdResult};
-use std::{future::Future, time::Duration};
+use std::{
+    future::Future,
+    time::{Duration, Instant},
+};
 use tokio::{sync::oneshot, task::JoinHandle, time::MissedTickBehavior};
 use tracing::{info, warn};
 
 pub struct PeriodicTask {
     name: String,
+    tracked: bool,
 }
 
 pub struct TaskHandle {
@@ -49,7 +53,17 @@ impl PeriodicTask {
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_owned(),
+            tracked: false,
         }
+    }
+
+    /// Record runs, duration and last success in the task metrics, labelled
+    /// with the task name. Only for tasks with a fixed name, so the label
+    /// stays bounded.
+    pub fn tracked(mut self) -> Self {
+        self.tracked = true;
+        crate::metrics::register_task(&self.name);
+        self
     }
 
     /// If `enable_cancel` is true, allows cancellation through TaskHandle::cancel
@@ -75,6 +89,7 @@ impl PeriodicTask {
         };
 
         let name_clone = self.name.clone();
+        let tracked = self.tracked;
 
         let join_handle = tokio::spawn(async move {
             let mut interval = tokio::time::interval(interval);
@@ -97,11 +112,17 @@ impl PeriodicTask {
 
                 tokio::select! {
                     _ = interval.tick() => {
-                        match task(param).await {
-                            Ok(()) => {},
-                            Err(e) => {
-                                warn!("Task '{}' failed: {:?}", name_clone, e);
-                            },
+                        let started = Instant::now();
+                        let result = task(param).await;
+                        if tracked {
+                            crate::metrics::record_task_run(
+                                &name_clone,
+                                result.is_ok(),
+                                started.elapsed(),
+                            );
+                        }
+                        if let Err(e) = result {
+                            warn!("Task '{}' failed: {:?}", name_clone, e);
                         }
                     }
                     // only enabled if cancel_receiver is Some

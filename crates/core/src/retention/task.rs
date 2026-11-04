@@ -38,7 +38,7 @@ impl MailboxdTask for RetentionSweepTask {
 
 fn start_every(interval: Duration) -> TaskHandle {
     let task = |_: Option<u64>| Box::pin(retention::run_sweep());
-    PeriodicTask::new("retention-sweep").start(task, None, interval, false, false)
+    PeriodicTask::new("retention-sweep").tracked().start(task, None, interval, false, false)
 }
 
 #[cfg(test)]
