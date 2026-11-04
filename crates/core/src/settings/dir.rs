@@ -114,11 +114,16 @@ pub fn resolve_dirs(
 pub fn available_space(dir: &Path) -> u64 {
     use sysinfo::Disks;
     let canonical = std::fs::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf());
-    let disks = Disks::new_with_refreshed_list();
+    let disks = match Disks::new_with_refreshed_list() {
+        Ok(disks) => disks,
+        Err(e) => {
+            tracing::warn!("Failed to list disks for {}: {e}", dir.display());
+            return u64::MAX;
+        }
+    };
     space_on(
         &canonical,
         disks
-            .list()
             .iter()
             .map(|disk| (disk.mount_point(), disk.available_space())),
     )
