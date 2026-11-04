@@ -7,7 +7,8 @@ FROM node:26-alpine3.24@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3b
 
 WORKDIR /build
 
-RUN corepack enable \
+RUN npm install --global corepack@0.36.0 \
+    && corepack enable \
     && corepack prepare pnpm@12.3.4 --activate
 
 COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./

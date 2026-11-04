@@ -162,6 +162,7 @@ migration_tests:
       - .xdg-data
     policy: pull
   before_script:
+    - npm install --global corepack@0.36.0
     - corepack enable
     - corepack prepare pnpm@12.3.4 --activate
     - cd web
