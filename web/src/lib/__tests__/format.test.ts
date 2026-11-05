@@ -20,7 +20,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { de, enUS } from 'date-fns/locale';
 
-import { DATE_FORMAT_STORAGE_KEY } from '@/hooks/use-date-format';
+import { DATE_PATTERN_STORAGE_KEYS } from '@/hooks/use-date-format';
 
 import { formatBytes, formatDate, formatDateTime, formatRelativeTime } from '../utils';
 
@@ -84,26 +84,29 @@ describe('formatDateTime', () => {
   });
 });
 
-describe('ISO 8601 date format', () => {
+describe('custom date patterns', () => {
   const reference = new Date(2023, 0, 5, 14, 30);
 
   afterEach(() => localStorage.clear());
 
-  it('renders dates and date-times as ISO 8601 in every locale once chosen', () => {
-    localStorage.setItem(DATE_FORMAT_STORAGE_KEY, 'iso');
+  it('renders dates and date-times with the stored patterns in every locale', () => {
+    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.date, 'YYYY-MM-DD');
+    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.dateTime, 'MM.DD.YYYY HH:mm');
     for (const locale of [enUS, de]) {
       expect(formatDate(reference, locale)).toBe('2023-01-05');
-      expect(formatDateTime(reference, locale)).toBe('2023-01-05 14:30');
+      expect(formatDateTime(reference, locale)).toBe('01.05.2023 14:30');
     }
   });
 
-  it('keeps the locale format by default', () => {
+  it('keeps the locale format without a pattern or with an invalid one', () => {
     expect(formatDate(reference, de)).toBe('05.01.2023');
-    expect(formatDateTime(reference, enUS)).not.toBe('2023-01-05 14:30');
+    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.date, 'JJ.MM');
+    expect(formatDate(reference, de)).toBe('05.01.2023');
   });
 
   it('returns an empty string for an invalid date', () => {
-    localStorage.setItem(DATE_FORMAT_STORAGE_KEY, 'iso');
+    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.date, 'YYYY-MM-DD');
+    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.dateTime, 'YYYY-MM-DD HH:mm');
     expect(formatDate(NaN, enUS)).toBe('');
     expect(formatDateTime('not-a-date', enUS)).toBe('');
   });

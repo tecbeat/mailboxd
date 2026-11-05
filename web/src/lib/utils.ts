@@ -24,7 +24,7 @@ import type { Locale } from 'date-fns';
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import i18n from '@/i18n'
-import { readDateFormat } from '@/hooks/use-date-format'
+import { readDateFnsPattern } from '@/hooks/use-date-format'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -145,15 +145,12 @@ export function resolveLocale(locale?: Locale): Locale {
   return locale ?? dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS;
 }
 
-const ISO_DATE = 'yyyy-MM-dd';
-const ISO_DATE_TIME = 'yyyy-MM-dd HH:mm';
-
 export function formatDateTime(input: number | string | Date, locale?: Locale): string {
   const date = new Date(input);
   if (isNaN(date.getTime())) {
     return '';
   }
-  const pattern = readDateFormat() === 'iso' ? ISO_DATE_TIME : 'Pp';
+  const pattern = readDateFnsPattern('dateTime') ?? 'Pp';
   return format(date, pattern, { locale: resolveLocale(locale) });
 }
 
@@ -162,7 +159,7 @@ export function formatDate(input: number | string | Date, locale?: Locale): stri
   if (isNaN(date.getTime())) {
     return '';
   }
-  const pattern = readDateFormat() === 'iso' ? ISO_DATE : 'P';
+  const pattern = readDateFnsPattern('date') ?? 'P';
   return format(date, pattern, { locale: resolveLocale(locale) });
 }
 

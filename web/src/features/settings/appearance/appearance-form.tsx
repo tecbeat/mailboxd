@@ -14,7 +14,8 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { Input } from '@/components/ui/input'
 import { useTheme, Theme } from '@/context/theme-context'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
@@ -25,7 +26,8 @@ import { update_user } from '@/api/users/api'
 import { toast } from '@/hooks/use-toast'
 import { AxiosError } from 'axios'
 import { Card } from '@/components/ui/card'
-import { type DateFormat, useDateFormat } from '@/hooks/use-date-format'
+import { useDateFormat } from '@/hooks/use-date-format'
+import { isValidDatePattern, toDateFnsPattern } from '@/lib/date-pattern'
 
 const languages = [
     { value: 'ar', label: 'العربية' },
@@ -66,12 +68,18 @@ const DARK_THEMES = [
     { value: 'blue-dark', labelKey: 'theme.blue', background: '#172554', color: '#60a5fa', muted: '#1e3a8a' }
 ] as const
 
-const DATE_FORMATS: { value: DateFormat; labelKey: string; pattern: string }[] = [
-    { value: 'locale', labelKey: 'settings.appearance.date_format.locale', pattern: 'P' },
-    { value: 'iso', labelKey: 'settings.appearance.date_format.iso', pattern: 'yyyy-MM-dd' },
-]
+const DATE_PATTERN_FIELDS = [
+    { name: 'datePattern', key: 'date_pattern', fallback: 'P', placeholder: 'DD.MM.YYYY' },
+    { name: 'dateTimePattern', key: 'date_time_pattern', fallback: 'Pp', placeholder: 'DD.MM.YYYY HH:mm' },
+] as const
 
-const DATE_FORMAT_SAMPLE = new Date(2026, 0, 31)
+const DATE_PATTERN_SAMPLE = new Date(2026, 0, 31, 14, 30)
+
+/** `pattern` (Moment.js tokens) applied to the sample date, or `fallback` when it is empty. */
+function datePatternExample(pattern: string, fallback: string): string {
+    const converted = pattern.trim() === '' ? fallback : toDateFnsPattern(pattern)
+    return converted ? format(DATE_PATTERN_SAMPLE, converted, { locale: resolveLocale() }) : ''
+}
 
 const ALL_THEME_VALUES = [...LIGHT_THEMES.map(t => t.value), ...DARK_THEMES.map(t => t.value)] as [string, ...string[]]
 
@@ -82,7 +90,12 @@ const appearanceSchema = (t: (key: string) => string) => z.object({
     language: z.string({
         error: t('settings.appearance.validation.language.required'),
     }),
-    dateFormat: z.enum(['locale', 'iso']),
+    datePattern: z.string().refine(isValidDatePattern, {
+        message: t('settings.appearance.validation.date_pattern.invalid'),
+    }),
+    dateTimePattern: z.string().refine(isValidDatePattern, {
+        message: t('settings.appearance.validation.date_pattern.invalid'),
+    }),
 })
 
 type AppearanceFormValues = z.infer<ReturnType<typeof appearanceSchema>>
@@ -105,7 +118,7 @@ export function AppearanceForm() {
     const queryClient = useQueryClient()
     const { t, i18n } = useTranslation()
     const { theme, setTheme } = useTheme()
-    const { dateFormat, setDateFormat } = useDateFormat()
+    const { datePattern, dateTimePattern, setDatePatterns } = useDateFormat()
 
     const form = useForm<AppearanceFormValues>({
         resolver: zodResolver(appearanceSchema(t)),
@@ -113,7 +126,8 @@ export function AppearanceForm() {
         defaultValues: {
             theme: theme || 'light',
             language: i18n.language || 'en',
-            dateFormat,
+            datePattern,
+            dateTimePattern,
         },
     })
 
@@ -137,7 +151,7 @@ export function AppearanceForm() {
     function onSubmit(data: AppearanceFormValues) {
         i18n.changeLanguage(data.language)
         setTheme(data.theme as Theme)
-        setDateFormat(data.dateFormat)
+        setDatePatterns({ date: data.datePattern, dateTime: data.dateTimePattern })
         mutation.mutate(data)
     }
 
@@ -205,37 +219,44 @@ export function AppearanceForm() {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name='dateFormat'
-                        render={({ field }) => (
-                            <FormItem className='flex flex-col'>
-                                <FormLabel>{t('settings.appearance.field.date_format')}</FormLabel>
-                                <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        className='flex flex-col gap-2'
-                                    >
-                                        {DATE_FORMATS.map((item) => (
-                                            <label key={item.value} className='flex items-center gap-2 text-sm cursor-pointer'>
-                                                <RadioGroupItem value={item.value} />
-                                                {t(item.labelKey, {
-                                                    example: format(DATE_FORMAT_SAMPLE, item.pattern, {
-                                                        locale: resolveLocale(),
-                                                    }),
-                                                })}
-                                            </label>
-                                        ))}
-                                    </RadioGroup>
-                                </FormControl>
-                                <FormDescription>
-                                    {t('settings.appearance.description.date_format')}
-                                </FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <div className='flex flex-col gap-4'>
+                        <div>
+                            <p className='text-base font-medium'>{t('settings.appearance.field.date_format')}</p>
+                            <p className='text-[0.8rem] text-muted-foreground'>{t('settings.appearance.description.date_format')}</p>
+                        </div>
+                        {DATE_PATTERN_FIELDS.map((item) => (
+                            <FormField
+                                key={item.name}
+                                control={form.control}
+                                name={item.name}
+                                render={({ field, fieldState }) => (
+                                    <FormItem className='flex flex-col'>
+                                        <FormLabel>{t(`settings.appearance.field.${item.key}`)}</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                className='w-[400px] font-mono'
+                                                placeholder={item.placeholder}
+                                                autoComplete='off'
+                                                spellCheck={false}
+                                            />
+                                        </FormControl>
+                                        {!fieldState.invalid && (
+                                            <FormDescription>
+                                                {t(
+                                                    field.value.trim() === ''
+                                                        ? 'settings.appearance.date_pattern.default_example'
+                                                        : 'settings.appearance.date_pattern.example',
+                                                    { example: datePatternExample(field.value, item.fallback) },
+                                                )}
+                                            </FormDescription>
+                                        )}
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        ))}
+                    </div>
 
                     <FormField
                         control={form.control}
@@ -296,7 +317,7 @@ export function AppearanceForm() {
                     />
 
                     <div className="flex justify-end pt-4">
-                        <Button type='submit'>
+                        <Button type='submit' disabled={!form.formState.isValid}>
                             {t('settings.appearance.button.update')}
                         </Button>
                     </div>

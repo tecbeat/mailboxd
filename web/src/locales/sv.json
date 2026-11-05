@@ -1447,17 +1447,19 @@
         "no_results": "Inget språk hittades.",
         "search": "Sök språk..."
       },
-      "date_format": {
-        "iso": "ISO 8601 ({{example}})",
-        "locale": "Språkets standard ({{example}})"
+      "date_pattern": {
+        "default_example": "Språkets standard: {{example}}",
+        "example": "Exempel: {{example}}"
       },
       "description": {
-        "date_format": "Välj hur datum visas i listor och dialogrutor.",
+        "date_format": "Använd Moment.js-koder som DD, MM, YYYY, HH och mm. Text inom [hakparenteser] visas som den är. Lämna ett fält tomt för att använda språkets standard.",
         "language": "Välj språk för webbanvändargränssnittet.",
         "theme": "Välj mellan ljust eller mörkt läge för gränssnittet."
       },
       "field": {
         "date_format": "Datumformat",
+        "date_pattern": "Datum",
+        "date_time_pattern": "Datum och tid",
         "language": "Gränssnittsspråk",
         "theme": "Gränssnittstema"
       },
@@ -1470,6 +1472,9 @@
       },
       "title": "Utseende",
       "validation": {
+        "date_pattern": {
+          "invalid": "Ogiltigt format. Använd koder som DD.MM.YYYY och sätt annan text inom [hakparenteser]."
+        },
         "language": {
           "required": "Välj ett språk."
         },

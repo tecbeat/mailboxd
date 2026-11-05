@@ -1447,17 +1447,19 @@
         "no_results": "언어를 찾을 수 없습니다.",
         "search": "언어 검색..."
       },
-      "date_format": {
-        "iso": "ISO 8601 ({{example}})",
-        "locale": "언어 기본값 ({{example}})"
+      "date_pattern": {
+        "default_example": "언어 기본값: {{example}}",
+        "example": "예: {{example}}"
       },
       "description": {
-        "date_format": "목록과 대화 상자에서 날짜를 표시하는 방식을 선택합니다.",
+        "date_format": "DD, MM, YYYY, HH, mm 같은 Moment.js 토큰을 사용하세요. [대괄호] 안의 텍스트는 그대로 표시됩니다. 비워 두면 언어 기본 형식을 사용합니다.",
         "language": "웹 UI에서 사용할 언어를 선택하세요.",
         "theme": "라이트 모드와 다크 모드 중에서 선택하세요."
       },
       "field": {
         "date_format": "날짜 형식",
+        "date_pattern": "날짜",
+        "date_time_pattern": "날짜 및 시간",
         "language": "인터페이스 언어",
         "theme": "인터페이스 테마"
       },
@@ -1470,6 +1472,9 @@
       },
       "title": "외관",
       "validation": {
+        "date_pattern": {
+          "invalid": "잘못된 형식입니다. DD.MM.YYYY 같은 토큰을 사용하고 다른 텍스트는 [대괄호]로 묶으세요."
+        },
         "language": {
           "required": "언어를 선택해주세요."
         },

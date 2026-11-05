@@ -67,12 +67,12 @@ describe('DateCell', () => {
     expect(screen.getByText(formatRelativeTime(DATE))).toBeInTheDocument()
   })
 
-  it('switches to ISO 8601 when that format is chosen', () => {
+  it('follows a newly chosen date-time pattern', () => {
     localStorage.setItem(DATE_DISPLAY_STORAGE_KEY, 'absolute')
     const { result } = renderHook(() => useDateFormat())
     renderCell()
 
-    act(() => result.current.setDateFormat('iso'))
+    act(() => result.current.setDatePatterns({ date: '', dateTime: 'YYYY-MM-DD HH:mm' }))
 
     expect(screen.getByText(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)).toBeInTheDocument()
   })

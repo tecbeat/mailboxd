@@ -24,7 +24,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/server'
 import { renderWithProviders } from '@/test/utils'
-import { DATE_FORMAT_STORAGE_KEY } from '@/hooks/use-date-format'
+import { DATE_PATTERN_STORAGE_KEYS } from '@/hooks/use-date-format'
 
 import { AppearanceForm } from '../appearance-form'
 
@@ -38,13 +38,15 @@ vi.stubGlobal(
   },
 )
 
+const BASE = 'http://localhost:15630'
+
 describe('AppearanceForm date format', () => {
   afterEach(() => localStorage.clear())
 
-  it('stores the chosen format locally and sends only theme and language', async () => {
+  it('stores the typed patterns locally and sends only theme and language', async () => {
     let body: unknown
     server.use(
-      http.post('http://localhost:15630/api/v1/users/1', async ({ request }) => {
+      http.post(`${BASE}/api/v1/users/1`, async ({ request }) => {
         body = await request.json()
         return HttpResponse.json(null)
       }),
@@ -52,19 +54,37 @@ describe('AppearanceForm date format', () => {
     const { queryClient } = renderWithProviders(<AppearanceForm />)
     queryClient.setQueryData(['current-user'], { id: 1 })
 
-    await userEvent.click(screen.getByRole('radio', { name: 'ISO 8601 (2026-01-31)' }))
+    await userEvent.type(screen.getByRole('textbox', { name: 'Date' }), 'MM.YY')
+    expect(screen.getByText('Example: 01.26')).toBeInTheDocument()
+    await userEvent.type(screen.getByRole('textbox', { name: 'Date and time' }), 'MM.DD.YYYY HH:mm')
+    expect(screen.getByText('Example: 01.31.2026 14:30')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Update preferences' }))
 
     await waitFor(() => expect(body).toBeDefined())
-    expect(localStorage.getItem(DATE_FORMAT_STORAGE_KEY)).toBe('iso')
+    expect(localStorage.getItem(DATE_PATTERN_STORAGE_KEYS.date)).toBe('MM.YY')
+    expect(localStorage.getItem(DATE_PATTERN_STORAGE_KEYS.dateTime)).toBe('MM.DD.YYYY HH:mm')
     expect(Object.keys(body as object).sort()).toEqual(['language', 'theme'])
   })
 
-  it('preselects the stored format', () => {
-    localStorage.setItem(DATE_FORMAT_STORAGE_KEY, 'iso')
+  it('cannot be saved while a pattern is invalid', async () => {
     renderWithProviders(<AppearanceForm />)
 
-    expect(screen.getByRole('radio', { name: 'ISO 8601 (2026-01-31)' })).toBeChecked()
-    expect(screen.getByRole('radio', { name: /^Language default/ })).not.toBeChecked()
+    await userEvent.type(screen.getByRole('textbox', { name: 'Date' }), 'MM.JJ')
+
+    expect(await screen.findByText(/^Invalid format/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Update preferences' })).toBeDisabled()
+
+    await userEvent.clear(screen.getByRole('textbox', { name: 'Date' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Update preferences' })).toBeEnabled())
+    expect(screen.getAllByText(/^Language default: /)).toHaveLength(2)
+  })
+
+  it('fills in the stored patterns', () => {
+    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.date, 'YYYY-MM-DD')
+    renderWithProviders(<AppearanceForm />)
+
+    expect(screen.getByRole('textbox', { name: 'Date' })).toHaveValue('YYYY-MM-DD')
+    expect(screen.getByRole('textbox', { name: 'Date and time' })).toHaveValue('')
+    expect(screen.getByText('Example: 2026-01-31')).toBeInTheDocument()
   })
 })

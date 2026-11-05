@@ -1,7 +1,9 @@
 //
+// Copyright (c) 2025-2026 rustmailer.com (https://rustmailer.com)
 // Copyright (c) 2026 tecbeat
 //
-// This file is part of mailboxd, an email archiving project.
+// This file is part of mailboxd, a fork of the Bichon email archiving
+// project. Modifications by tecbeat, 2026.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,25 +16,28 @@
 // GNU Affero General Public License for more details.
 //
 // You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { useCallback, useSyncExternalStore } from 'react'
 
-/** `locale` follows the UI language, `iso` is ISO 8601 (YYYY-MM-DD). */
-export type DateFormat = 'locale' | 'iso'
+import { toDateFnsPattern } from '@/lib/date-pattern'
 
-export const DATE_FORMAT_STORAGE_KEY = 'mailboxd_date_format'
+/** `date` is used for plain dates, `dateTime` for dates with a time. */
+export type DatePatternKind = 'date' | 'dateTime'
 
-const DEFAULT_FORMAT: DateFormat = 'locale'
+export const DATE_PATTERN_STORAGE_KEYS: Record<DatePatternKind, string> = {
+  date: 'mailboxd_date_pattern',
+  dateTime: 'mailboxd_date_time_pattern',
+}
 
 const listeners = new Set<() => void>()
 
-let memoryFormat: DateFormat = DEFAULT_FORMAT
+const memoryPatterns: Record<DatePatternKind, string> = { date: '', dateTime: '' }
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener)
+  const keys = Object.values(DATE_PATTERN_STORAGE_KEYS)
   const onStorage = (event: StorageEvent) => {
-    if (event.key === DATE_FORMAT_STORAGE_KEY) listener()
+    if (event.key !== null && keys.includes(event.key)) listener()
   }
   window.addEventListener('storage', onStorage)
   return () => {
@@ -41,32 +46,51 @@ function subscribe(listener: () => void): () => void {
   }
 }
 
-/** The chosen date format, persisted in localStorage when available. */
-export function readDateFormat(): DateFormat {
+/**
+ * The pattern the user entered for `kind`, in Moment.js tokens, or an empty
+ * string for the language default.
+ */
+export function readDatePattern(kind: DatePatternKind): string {
   try {
-    const saved = localStorage.getItem(DATE_FORMAT_STORAGE_KEY)
-    return saved === 'iso' || saved === 'locale' ? saved : DEFAULT_FORMAT
+    return localStorage.getItem(DATE_PATTERN_STORAGE_KEYS[kind]) ?? ''
   } catch {
-    return memoryFormat
+    return memoryPatterns[kind]
+  }
+}
+
+/** The date-fns pattern for `kind`, or `null` for the language default. */
+export function readDateFnsPattern(kind: DatePatternKind): string | null {
+  const pattern = readDatePattern(kind)
+  return pattern.trim() === '' ? null : toDateFnsPattern(pattern)
+}
+
+function store(kind: DatePatternKind, pattern: string): void {
+  const value = pattern.trim()
+  memoryPatterns[kind] = value
+  try {
+    if (value === '') {
+      localStorage.removeItem(DATE_PATTERN_STORAGE_KEYS[kind])
+    } else {
+      localStorage.setItem(DATE_PATTERN_STORAGE_KEYS[kind], value)
+    }
+  } catch {
+    // localStorage unavailable; the choice lasts until the page is reloaded.
   }
 }
 
 /**
- * The date format of every absolute date in the UI. Every component using
- * this hook re-renders when the format changes.
+ * The date patterns of every absolute date in the UI. Every component using
+ * this hook re-renders when a pattern changes.
  */
 export function useDateFormat() {
-  const dateFormat = useSyncExternalStore(subscribe, readDateFormat, () => DEFAULT_FORMAT)
+  const datePattern = useSyncExternalStore(subscribe, () => readDatePattern('date'), () => '')
+  const dateTimePattern = useSyncExternalStore(subscribe, () => readDatePattern('dateTime'), () => '')
 
-  const setDateFormat = useCallback((format: DateFormat) => {
-    memoryFormat = format
-    try {
-      localStorage.setItem(DATE_FORMAT_STORAGE_KEY, format)
-    } catch {
-      // localStorage unavailable; the choice lasts until the page is reloaded.
-    }
+  const setDatePatterns = useCallback((patterns: Record<DatePatternKind, string>) => {
+    store('date', patterns.date)
+    store('dateTime', patterns.dateTime)
     listeners.forEach((listener) => listener())
   }, [])
 
-  return { dateFormat, setDateFormat }
+  return { datePattern, dateTimePattern, setDatePatterns }
 }

@@ -1447,17 +1447,19 @@
         "no_results": "未找到相關語言。",
         "search": "搜尋語言..."
       },
-      "date_format": {
-        "iso": "ISO 8601 ({{example}})",
-        "locale": "跟隨語言 ({{example}})"
+      "date_pattern": {
+        "default_example": "語言預設：{{example}}",
+        "example": "範例：{{example}}"
       },
       "description": {
-        "date_format": "選擇清單和對話框中日期的顯示方式。",
+        "date_format": "使用 Moment.js 格式符，例如 DD、MM、YYYY、HH 和 mm。[方括號] 中的文字按原樣顯示。留空則使用語言預設格式。",
         "language": "選擇網頁介面顯示的语言。",
         "theme": "為介面選擇淺色或深色顯示模式。"
       },
       "field": {
         "date_format": "日期格式",
+        "date_pattern": "日期",
+        "date_time_pattern": "日期和時間",
         "language": "介面语言",
         "theme": "介面主題"
       },
@@ -1470,6 +1472,9 @@
       },
       "title": "外觀設置",
       "validation": {
+        "date_pattern": {
+          "invalid": "格式無效。請使用 DD.MM.YYYY 等格式符，其他文字請放在 [方括號] 中。"
+        },
         "language": {
           "required": "請選擇一種語言。"
         },

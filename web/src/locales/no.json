@@ -1447,17 +1447,19 @@
         "no_results": "Fant ingen språk.",
         "search": "Søk etter språk..."
       },
-      "date_format": {
-        "iso": "ISO 8601 ({{example}})",
-        "locale": "Språkets standard ({{example}})"
+      "date_pattern": {
+        "default_example": "Språkets standard: {{example}}",
+        "example": "Eksempel: {{example}}"
       },
       "description": {
-        "date_format": "Velg hvordan datoer vises i lister og dialoger.",
+        "date_format": "Bruk Moment.js-koder som DD, MM, YYYY, HH og mm. Tekst i [hakeparenteser] vises som skrevet. La et felt stå tomt for å bruke språkets standard.",
         "language": "Velg språket som skal brukes i webgrensesnittet.",
         "theme": "Velg mellom lys eller mørk modus for grensesnittet."
       },
       "field": {
         "date_format": "Datoformat",
+        "date_pattern": "Dato",
+        "date_time_pattern": "Dato og klokkeslett",
         "language": "Grensesnittspråk",
         "theme": "Grensesnittema"
       },
@@ -1470,6 +1472,9 @@
       },
       "title": "Utseende",
       "validation": {
+        "date_pattern": {
+          "invalid": "Ugyldig format. Bruk koder som DD.MM.YYYY, og sett annen tekst i [hakeparenteser]."
+        },
         "language": {
           "required": "Vennligst velg et språk."
         },
