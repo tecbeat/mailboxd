@@ -21,6 +21,7 @@
 use crate::account::migration::AccountModel;
 use crate::base64_encode;
 use crate::envelope::extractor::{extract_envelope_from_nested_message, reattach_eml_content};
+use crate::envelope::header_text::attachment_name;
 use crate::envelope::utils::{attachment_parts, part_contents};
 use crate::error::code::ErrorCode;
 use crate::store::envelope::Envelope;
@@ -218,7 +219,7 @@ pub fn retrieve_email_content(
     let mut attachments = Vec::new();
     for attachment in attachment_parts(&message) {
         let contents = part_contents(&attachment);
-        let filename = attachment.attachment_name().map(|name| name.to_string());
+        let filename = attachment_name(&message, &attachment);
         let disposition = attachment.content_disposition();
         let file_type = attachment_file_type(&attachment);
 
@@ -349,10 +350,7 @@ pub fn retrieve_nested_eml_content(
         );
         let content_hash = compute_content_hash(&contents);
         attachments.push(AttachmentInfo {
-            filename: attachment
-                .attachment_name()
-                .map(|n| n.to_string())
-                .or(Some(content_hash.clone())),
+            filename: attachment_name(&nested_message, &attachment).or(Some(content_hash.clone())),
             size: contents.len(),
             inline: is_inline,
             file_type,

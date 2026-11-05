@@ -2,7 +2,9 @@ use std::{path::PathBuf, time::Instant};
 
 use bytes::Bytes;
 use mailboxd_core::{
-    envelope::{extractor::extract_references, utils::attachment_parts},
+    envelope::{
+        extractor::extract_references, header_text::message_subject, utils::attachment_parts,
+    },
     message::content::AttachmentInfo,
     store::tantivy::tokenizers::register_tokenizers,
     utils::compute_content_hash,
@@ -231,7 +233,7 @@ impl NewIndexWriterV2 {
         let references = extract_references(&message);
         let thread_id = compute_thread_id(in_reply_to, references, &message_id);
 
-        let subject = message.subject().map(String::from).unwrap_or_default();
+        let subject = message_subject(&message);
         let date = message.date().map(|d| d.to_timestamp() * 1000).unwrap_or(0);
         let internal_date = if internal_date == 0 {
             date

@@ -63,6 +63,7 @@ sysinfo = "0.40.0"
 num_cpus = "1.17.0"
 rand = "0.10.2"
 encoding_rs = "0.8.35"
+chardetng = "=1.0.0"
 webpki-roots = "1.0.8"
 rustls = { version = "0.23.41", default-features = false, features = ["ring"] }
 rustls-pki-types = "1.15.0"
