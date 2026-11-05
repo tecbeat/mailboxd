@@ -327,4 +327,42 @@ mod tests {
         );
         assert_eq!(inbox_highest_uid(account_id), Some(2));
     }
+
+    /// Messages the last finished session stored in INBOX.
+    fn inbox_downloaded_last_run(account_id: u64) -> u64 {
+        let state = DownloadState::get(account_id).unwrap().unwrap();
+        let session = state.history.last().expect("finished session");
+        session
+            .folder_details
+            .get("INBOX")
+            .map_or(0, |folder| folder.current)
+    }
+
+    /// Some providers (126/163 Mail) only expose recent mail over IMAP until
+    /// the user widens the window. Older messages then appear with UIDs below
+    /// the stored watermark, which a `{highest+1}:*` fetch never reaches.
+    #[tokio::test]
+    async fn older_messages_exposed_later_are_downloaded_by_the_next_run() {
+        let account_id = 59_342_503;
+        DownloadState::delete(account_id).unwrap();
+        MailBox::clean(account_id).unwrap();
+        let all = mock_mails(&[10, 11, 12, 1751, 1752]);
+        let recent = &all[3..];
+
+        let restricted = MockImapServer::new().serving(recent).start().await;
+        let account = register_mock_account(&restricted, account_id);
+        run_manual_download(&account).await;
+        assert_eq!(inbox_downloaded_last_run(account_id), 2);
+
+        let widened = MockImapServer::new().serving(&all).start().await;
+        let account = register_mock_account(&widened, account_id);
+        run_manual_download(&account).await;
+
+        assert_eq!(last_finished_session(account_id).0, DownloadStatus::Success);
+        // At least the three older messages. The Message-ID diff reads the
+        // committed index, which may not hold the first run's two messages
+        // yet (the writer commits periodically); the dedup cache drops those.
+        assert!(inbox_downloaded_last_run(account_id) >= 3);
+        assert_eq!(inbox_highest_uid(account_id), Some(1752));
+    }
 }
