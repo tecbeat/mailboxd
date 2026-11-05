@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.12.0) - 2026-11-05
+
+### ⛰️  Features
+
+- *(web)* Let users type their own date and date-time format - ([23bdb10](https://git.teccave.de/tecbeat/mailboxd/commit/23bdb10b81f5bdbb858e50098f3b29f4dc1e0893))
+- *(web)* Add an ISO 8601 date format option - ([f4595c9](https://git.teccave.de/tecbeat/mailboxd/commit/f4595c9c28fa137206a922181711be4975607961))
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update tailwindcss monorepo to v4.3.4 - ([dbbfabb](https://git.teccave.de/tecbeat/mailboxd/commit/dbbfabbf40244318ce0ccae911ab36c9a5e3b6a1))
+- *(deps)* Update tanstack-query monorepo to v5.105.3 - ([ed60a83](https://git.teccave.de/tecbeat/mailboxd/commit/ed60a83680d9990596ab9fd94663a1acd674f14d))
+- *(envelope)* Decode subjects and filenames sent in GBK and other legacy charsets - ([14cec0e](https://git.teccave.de/tecbeat/mailboxd/commit/14cec0eff5451e3d38572ccfb923d8af7c2a19b8))
+- *(reindex)* Repair subjects and filenames garbled by legacy charsets - ([8827595](https://git.teccave.de/tecbeat/mailboxd/commit/88275954f29986eea13dcafbca4cf5364115abb1))
+
 ## [1.11.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.11.1) - 2026-11-05
 
 ### ⛰️  Features
