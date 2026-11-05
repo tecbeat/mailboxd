@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.11.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.11.1) - 2026-11-05
+
+### 🐛 Bug Fixes
+
+- *(imap)* Download older emails that appear below the UID watermark - ([1c47dca](https://git.teccave.de/tecbeat/mailboxd/commit/1c47dcac9af5413a27d2a2b1582155e64379737a))
+
+## [1.11.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.11.0) - 2026-11-04
+
+### ⛰️  Features
+
+- *(metrics)* Instrument downloads, gap fill, tasks and logins - ([87660e6](https://git.teccave.de/tecbeat/mailboxd/commit/87660e6ffbc068049c09973d3f9f6c72013adbde))
+- *(metrics)* Serve /metrics with optional password and HTTP metrics - ([8bedc06](https://git.teccave.de/tecbeat/mailboxd/commit/8bedc0654a683c58d11b677b41a91575a95281ab))
+- *(metrics)* Add Prometheus registry, settings and cached gauges - ([320de60](https://git.teccave.de/tecbeat/mailboxd/commit/320de6039cc21901a3b371ccac9154a5f5addf5f))
+- *(web)* Show metrics settings in system configuration - ([d85e04b](https://git.teccave.de/tecbeat/mailboxd/commit/d85e04b8d1e88ac073d2a3f441102eec9a0547a5))
+
+### 🐛 Bug Fixes
+
+- *(encrypt)* Let MAILBOXD_ENCRYPT_PASSWORD take precedence over the file - ([04019b7](https://git.teccave.de/tecbeat/mailboxd/commit/04019b78030f50fd12894a045ecf234c1e318ea3))
+
+### 📚 Documentation
+
+- Document the metrics settings - ([d13d8b6](https://git.teccave.de/tecbeat/mailboxd/commit/d13d8b66063f488c658e0acffe8e3d11a1414c4d))
+
 ## [1.10.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.10.2) - 2026-11-04
 
 ### 🐛 Bug Fixes
