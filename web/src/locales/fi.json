@@ -1447,11 +1447,19 @@
         "no_results": "Kieltä ei löytynyt.",
         "search": "Hae kieltä..."
       },
+      "date_pattern": {
+        "default_example": "Kielen oletus: {{example}}",
+        "example": "Esimerkki: {{example}}"
+      },
       "description": {
+        "date_format": "Käytä Moment.js-merkkejä, kuten DD, MM, YYYY, HH ja mm. [Hakasulkeissa] oleva teksti näytetään sellaisenaan. Jätä kenttä tyhjäksi käyttääksesi kielen oletusta.",
         "language": "Valitse Web-käyttöliittymässä käytettävä kieli.",
         "theme": "Valitse käyttöliittymän vaalea tai tumma tila."
       },
       "field": {
+        "date_format": "Päivämäärän muoto",
+        "date_pattern": "Päivämäärä",
+        "date_time_pattern": "Päivämäärä ja aika",
         "language": "Käyttöliittymän kieli",
         "theme": "Käyttöliittymän teema"
       },
@@ -1464,6 +1472,9 @@
       },
       "title": "Ulkoasu",
       "validation": {
+        "date_pattern": {
+          "invalid": "Virheellinen muoto. Käytä merkkejä kuten DD.MM.YYYY ja laita muu teksti [hakasulkeisiin]."
+        },
         "language": {
           "required": "Valitse kieli."
         },

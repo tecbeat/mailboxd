@@ -1447,11 +1447,19 @@
         "no_results": "لم يتم العثور على لغة.",
         "search": "بحث عن لغة..."
       },
+      "date_pattern": {
+        "default_example": "تنسيق اللغة الافتراضي: {{example}}",
+        "example": "مثال: {{example}}"
+      },
       "description": {
+        "date_format": "استخدم رموز Moment.js مثل DD وMM وYYYY وHH وmm. يظهر النص بين [قوسين معقوفين] كما هو. اترك الحقل فارغًا لاستخدام تنسيق اللغة الافتراضي.",
         "language": "اختر اللغة المستخدمة في واجهة الويب.",
         "theme": "اختر بين الوضع الفاتح أو الداكن."
       },
       "field": {
+        "date_format": "تنسيق التاريخ",
+        "date_pattern": "التاريخ",
+        "date_time_pattern": "التاريخ والوقت",
         "language": "لغة الواجهة",
         "theme": "سمة الواجهة"
       },
@@ -1464,6 +1472,9 @@
       },
       "title": "المظهر",
       "validation": {
+        "date_pattern": {
+          "invalid": "تنسيق غير صالح. استخدم رموزًا مثل DD.MM.YYYY وضع أي نص آخر بين [قوسين معقوفين]."
+        },
         "language": {
           "required": "Please select a language."
         },

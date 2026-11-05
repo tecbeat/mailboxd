@@ -34,6 +34,7 @@ pub mod envelope;
 pub mod fields;
 pub mod filter;
 pub mod format;
+pub mod header_repair;
 pub mod model;
 pub mod rebuild;
 pub mod schema;

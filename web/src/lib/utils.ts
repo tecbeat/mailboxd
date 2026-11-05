@@ -24,6 +24,7 @@ import type { Locale } from 'date-fns';
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import i18n from '@/i18n'
+import { readDateFnsPattern } from '@/hooks/use-date-format'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -140,7 +141,7 @@ export const dateFnsLocaleMap: Record<string, Locale> = {
 };
 
 
-function resolveLocale(locale?: Locale): Locale {
+export function resolveLocale(locale?: Locale): Locale {
   return locale ?? dateFnsLocaleMap[i18n.language.toLowerCase()] ?? enUS;
 }
 
@@ -149,7 +150,8 @@ export function formatDateTime(input: number | string | Date, locale?: Locale): 
   if (isNaN(date.getTime())) {
     return '';
   }
-  return format(date, 'Pp', { locale: resolveLocale(locale) });
+  const pattern = readDateFnsPattern('dateTime') ?? 'Pp';
+  return format(date, pattern, { locale: resolveLocale(locale) });
 }
 
 export function formatDate(input: number | string | Date, locale?: Locale): string {
@@ -157,7 +159,8 @@ export function formatDate(input: number | string | Date, locale?: Locale): stri
   if (isNaN(date.getTime())) {
     return '';
   }
-  return format(date, 'P', { locale: resolveLocale(locale) });
+  const pattern = readDateFnsPattern('date') ?? 'P';
+  return format(date, pattern, { locale: resolveLocale(locale) });
 }
 
 export function formatRelativeTime(input: number | string | Date, locale?: Locale): string {

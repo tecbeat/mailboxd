@@ -1447,11 +1447,19 @@
         "no_results": "Nenhum idioma encontrado.",
         "search": "Pesquisar idioma..."
       },
+      "date_pattern": {
+        "default_example": "Padrão do idioma: {{example}}",
+        "example": "Exemplo: {{example}}"
+      },
       "description": {
+        "date_format": "Use tokens do Moment.js como DD, MM, YYYY, HH e mm. O texto entre [colchetes] é exibido como está. Deixe um campo vazio para usar o padrão do idioma.",
         "language": "Selecione o idioma da interface web.",
         "theme": "Escolha entre o modo claro ou escuro."
       },
       "field": {
+        "date_format": "Formato de data",
+        "date_pattern": "Data",
+        "date_time_pattern": "Data e hora",
         "language": "Idioma da interface",
         "theme": "Tema da interface"
       },
@@ -1464,6 +1472,9 @@
       },
       "title": "Aparência",
       "validation": {
+        "date_pattern": {
+          "invalid": "Formato inválido. Use tokens como DD.MM.YYYY e coloque outros textos entre [colchetes]."
+        },
         "language": {
           "required": "Por favor, selecione um idioma."
         },

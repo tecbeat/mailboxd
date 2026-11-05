@@ -143,6 +143,13 @@ pub fn reindex_outcome_lines(prefix: &str, outcome: &ReindexOutcome) -> Vec<Stri
             outcome.backup_dir.display()
         ),
     ];
+    if outcome.repaired_headers > 0 {
+        lines.push(format!(
+            "{prefix}{} emails had a subject or attachment names garbled by a legacy charset; \
+             they were decoded again",
+            outcome.repaired_headers
+        ));
+    }
     if let Some(report) = &outcome.report {
         lines.push(format!(
             "{prefix}documents not carried over completely are listed in {}",
@@ -166,6 +173,7 @@ mod tests {
             skipped: 1,
             missing_bodies: 4,
             missing_texts: 5,
+            repaired_headers: 0,
             backup_dir: PathBuf::from("/data/mailboxd-indices.old-1"),
             report,
             elapsed: Duration::from_millis(1500),
@@ -186,6 +194,19 @@ mod tests {
                 "> the previous index is kept in /data/mailboxd-indices.old-1; \
                  remove it once search works as expected",
             ]
+        );
+    }
+
+    #[test]
+    fn repaired_headers_are_reported() {
+        let mut outcome = outcome(None);
+        outcome.repaired_headers = 7;
+        let lines = reindex_outcome_lines("", &outcome);
+        assert_eq!(lines.len(), 3);
+        assert_eq!(
+            lines[2],
+            "7 emails had a subject or attachment names garbled by a legacy charset; \
+             they were decoded again"
         );
     }
 

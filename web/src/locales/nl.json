@@ -1447,11 +1447,19 @@
         "no_results": "Geen taal gevonden.",
         "search": "Taal zoeken..."
       },
+      "date_pattern": {
+        "default_example": "Standaard van de taal: {{example}}",
+        "example": "Voorbeeld: {{example}}"
+      },
       "description": {
+        "date_format": "Gebruik Moment.js-tokens zoals DD, MM, YYYY, HH en mm. Tekst tussen [vierkante haken] wordt letterlijk getoond. Laat een veld leeg voor de standaard van de taal.",
         "language": "Selecteer de taal voor de webinterface.",
         "theme": "Kies tussen de lichte of donkere modus voor de interface."
       },
       "field": {
+        "date_format": "Datumnotatie",
+        "date_pattern": "Datum",
+        "date_time_pattern": "Datum en tijd",
         "language": "Interfacetaal",
         "theme": "Interfacethema"
       },
@@ -1464,6 +1472,9 @@
       },
       "title": "Uiterlijk",
       "validation": {
+        "date_pattern": {
+          "invalid": "Ongeldige notatie. Gebruik tokens zoals DD.MM.YYYY en zet andere tekst tussen [vierkante haken]."
+        },
         "language": {
           "required": "Selecteer een taal."
         },

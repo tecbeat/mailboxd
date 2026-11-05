@@ -1447,11 +1447,19 @@
         "no_results": "Aucune langue trouvée.",
         "search": "Rechercher une langue..."
       },
+      "date_pattern": {
+        "default_example": "Format de la langue : {{example}}",
+        "example": "Exemple : {{example}}"
+      },
       "description": {
+        "date_format": "Utilisez les jetons Moment.js comme DD, MM, YYYY, HH et mm. Le texte entre [crochets] est affiché tel quel. Laissez un champ vide pour utiliser le format de la langue.",
         "language": "Choisissez la langue de l'interface web.",
         "theme": "Choisissez entre le mode clair ou sombre."
       },
       "field": {
+        "date_format": "Format de date",
+        "date_pattern": "Date",
+        "date_time_pattern": "Date et heure",
         "language": "Langue de l'interface",
         "theme": "Thème de l'interface"
       },
@@ -1464,6 +1472,9 @@
       },
       "title": "Apparence",
       "validation": {
+        "date_pattern": {
+          "invalid": "Format non valide. Utilisez des jetons comme DD.MM.YYYY et placez tout autre texte entre [crochets]."
+        },
         "language": {
           "required": "Veuillez sélectionner une langue."
         },

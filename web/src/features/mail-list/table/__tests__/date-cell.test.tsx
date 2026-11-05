@@ -23,6 +23,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { DATE_DISPLAY_STORAGE_KEY, useDateDisplay } from '@/hooks/use-date-display'
+import { useDateFormat } from '@/hooks/use-date-format'
 import { formatDateTime, formatRelativeTime } from '@/lib/utils'
 
 import { DateCell } from '../date-cell'
@@ -64,5 +65,15 @@ describe('DateCell', () => {
     localStorage.setItem(DATE_DISPLAY_STORAGE_KEY, 'bogus')
     renderCell()
     expect(screen.getByText(formatRelativeTime(DATE))).toBeInTheDocument()
+  })
+
+  it('follows a newly chosen date-time pattern', () => {
+    localStorage.setItem(DATE_DISPLAY_STORAGE_KEY, 'absolute')
+    const { result } = renderHook(() => useDateFormat())
+    renderCell()
+
+    act(() => result.current.setDatePatterns({ date: '', dateTime: 'YYYY-MM-DD HH:mm' }))
+
+    expect(screen.getByText(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)).toBeInTheDocument()
   })
 })

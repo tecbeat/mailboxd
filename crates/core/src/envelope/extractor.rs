@@ -19,7 +19,7 @@
 
 use async_imap::types::Fetch;
 use bytes::Bytes;
-use mail_parser::{AddressList, HeaderName, Message, MessageParser};
+use mail_parser::{AddressList, Message, MessageParser};
 use tantivy::{schema::Facet, TantivyDocument};
 use tracing::error;
 use uuid::Uuid;
@@ -29,8 +29,9 @@ use crate::{
     archive::imap::mailbox::MailBox,
     common::AddrVec,
     envelope::{
+        header_text::{attachment_name, message_subject},
         meta::parse_mailboxd_metadata,
-        utils::{attachment_parts, header_raw, normalize_subject, part_contents},
+        utils::{attachment_parts, header_raw, part_contents},
     },
     error::{code::ErrorCode, MailboxdResult},
     id,
@@ -153,10 +154,7 @@ async fn extract_envelope_core(
                     .next()
                     .and_then(|a| a.address)
             });
-            let subject = message
-                .subject()
-                .filter(|s| !s.is_empty())
-                .map(|s| s.to_string());
+            let subject = Some(message_subject(&message)).filter(|s| !s.is_empty());
 
             let is_spam = !rules.spam_headers.is_empty()
                 && rules.spam_headers.iter().any(|h| {
@@ -201,10 +199,7 @@ async fn extract_envelope_core(
     let references = extract_references(&message);
     let thread_id = compute_thread_id(in_reply_to, references, &message_id);
 
-    let mut subject = message.subject().map(String::from).unwrap_or_default();
-    if subject.contains('\u{FFFD}') {
-        subject = normalize_subject(header_raw(&message, HeaderName::Subject));
-    }
+    let subject = message_subject(&message);
 
     let date = resolve_message_date(&message, internal_date);
     let internal_date = if internal_date == 0 {
@@ -382,10 +377,7 @@ pub fn extract_envelope_from_nested_message(
     let references = extract_references(&message);
     let thread_id = compute_thread_id(in_reply_to, references, &message_id);
 
-    let mut subject = message.subject().map(String::from).unwrap_or_default();
-    if subject.contains('\u{FFFD}') {
-        subject = normalize_subject(header_raw(&message, HeaderName::Subject));
-    }
+    let subject = message_subject(&message);
 
     let date = resolve_message_date(&message, 0);
 
@@ -601,7 +593,7 @@ pub fn strip_attachment_bodies(
             .map(|ct| format!("{}/{}", ct.ctype(), ct.subtype().unwrap_or("")))
             .unwrap_or_else(|| "application/octet-stream".to_string());
         let has_cid = att.content_id().is_some();
-        let att_name = att.attachment_name().map(|n| n.to_string());
+        let att_name = attachment_name(message, &att);
         let ext = att_name
             .as_deref()
             .and_then(|n| {
@@ -639,7 +631,7 @@ pub fn strip_attachment_bodies(
         }
 
         infos.push(AttachmentInfo {
-            filename: att.attachment_name().map(|n| n.to_string()),
+            filename: att_name,
             size: contents.len(),
             inline,
             file_type,
@@ -1578,6 +1570,34 @@ mod test {
         let envelope = super::extract_envelope_from_nested_message(message, 7).unwrap();
         // Tue, 2 Jan 2024 10:00:00 UTC
         assert_eq!(envelope.date, 1_704_189_600_000);
+    }
+
+    #[test]
+    fn raw_gbk_subject_and_filename_are_decoded() {
+        let gbk = |text: &str| encoding_rs::GBK.encode(text).0.into_owned();
+        let mut raw = b"Subject: ".to_vec();
+        raw.extend(gbk("测试邮件主题"));
+        raw.extend_from_slice(
+            b"\r\nMIME-Version: 1.0\r\n\
+              Content-Type: multipart/mixed; boundary=\"bnd\"\r\n\r\n\
+              --bnd\r\nContent-Type: text/plain; charset=gbk\r\n\r\nHello\r\n\
+              --bnd\r\nContent-Type: application/octet-stream\r\n\
+              Content-Disposition: attachment; filename=\"",
+        );
+        raw.extend(gbk("附件名称.rar"));
+        raw.extend_from_slice(b"\"\r\n\r\nAAAA\r\n--bnd--\r\n");
+        let message = mail_parser::MessageParser::new().parse(&raw).unwrap();
+
+        let detached = super::strip_attachment_bodies(&raw, &message, None);
+        let names: Vec<_> = detached
+            .infos
+            .iter()
+            .map(|i| i.filename.as_deref())
+            .collect();
+        assert_eq!(names, [Some("附件名称.rar")]);
+
+        let envelope = super::extract_envelope_from_nested_message(message, 7).unwrap();
+        assert_eq!(envelope.subject, "测试邮件主题");
     }
 
     /// Two text attachments, `notes.txt` and `report.txt`, plus a body part.

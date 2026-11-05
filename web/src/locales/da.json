@@ -1447,11 +1447,19 @@
         "no_results": "Intet sprog fundet.",
         "search": "Søg efter sprog..."
       },
+      "date_pattern": {
+        "default_example": "Sprogets standard: {{example}}",
+        "example": "Eksempel: {{example}}"
+      },
       "description": {
+        "date_format": "Brug Moment.js-koder som DD, MM, YYYY, HH og mm. Tekst i [kantede parenteser] vises som skrevet. Lad et felt stå tomt for at bruge sprogets standard.",
         "language": "Vælg det sprog, der skal bruges i webbrugerfladen.",
         "theme": "Vælg mellem lys eller mørk tilstand for brugerfladen."
       },
       "field": {
+        "date_format": "Datoformat",
+        "date_pattern": "Dato",
+        "date_time_pattern": "Dato og klokkeslæt",
         "language": "Grænsefladesprog",
         "theme": "Grænsefladetema"
       },
@@ -1464,6 +1472,9 @@
       },
       "title": "Udseende",
       "validation": {
+        "date_pattern": {
+          "invalid": "Ugyldigt format. Brug koder som DD.MM.YYYY, og sæt anden tekst i [kantede parenteser]."
+        },
         "language": {
           "required": "Vælg venligst et sprog."
         },

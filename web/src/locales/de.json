@@ -1447,11 +1447,19 @@
         "no_results": "Keine Sprache gefunden.",
         "search": "Sprache suchen..."
       },
+      "date_pattern": {
+        "default_example": "Format der Sprache: {{example}}",
+        "example": "Beispiel: {{example}}"
+      },
       "description": {
+        "date_format": "Verwende Moment.js-Platzhalter wie DD, MM, YYYY, HH und mm. Text in [eckigen Klammern] wird unverändert angezeigt. Lass ein Feld leer, um das Format der Sprache zu verwenden.",
         "language": "Wählen Sie die Sprache für die Web-Oberfläche.",
         "theme": "Wählen Sie zwischen hellem oder dunklem Modus."
       },
       "field": {
+        "date_format": "Datumsformat",
+        "date_pattern": "Datum",
+        "date_time_pattern": "Datum und Uhrzeit",
         "language": "Sprache der Benutzeroberfläche",
         "theme": "Design"
       },
@@ -1464,6 +1472,9 @@
       },
       "title": "Erscheinungsbild",
       "validation": {
+        "date_pattern": {
+          "invalid": "Ungültiges Format. Verwende Platzhalter wie DD.MM.YYYY und setze anderen Text in [eckige Klammern]."
+        },
         "language": {
           "required": "Bitte wählen Sie eine Sprache aus."
         },

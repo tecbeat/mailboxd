@@ -1447,11 +1447,19 @@
         "no_results": "言語が見つかりません。",
         "search": "言語を検索..."
       },
+      "date_pattern": {
+        "default_example": "言語の既定: {{example}}",
+        "example": "例: {{example}}"
+      },
       "description": {
+        "date_format": "DD、MM、YYYY、HH、mm などの Moment.js トークンを使用します。[角かっこ] 内の文字はそのまま表示されます。空欄にすると言語の既定の形式を使用します。",
         "language": "Web UIで使用する言語を選択します。",
         "theme": "ライトモードまたはダークモードを選択します。"
       },
       "field": {
+        "date_format": "日付の形式",
+        "date_pattern": "日付",
+        "date_time_pattern": "日付と時刻",
         "language": "表示言語",
         "theme": "インターフェーステーマ"
       },
@@ -1464,6 +1472,9 @@
       },
       "title": "外観",
       "validation": {
+        "date_pattern": {
+          "invalid": "形式が無効です。DD.MM.YYYY などのトークンを使用し、その他の文字は [角かっこ] で囲んでください。"
+        },
         "language": {
           "required": "言語を選択してください。"
         },

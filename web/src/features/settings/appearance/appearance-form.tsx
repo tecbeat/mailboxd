@@ -2,7 +2,8 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { ChevronsUpDown as CaretSortIcon, Check as CheckIcon } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { cn, resolveLocale } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
     Form,
@@ -14,6 +15,7 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import { RadioGroup } from '@/components/ui/radio-group'
+import { Input } from '@/components/ui/input'
 import { useTheme, Theme } from '@/context/theme-context'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
@@ -24,6 +26,8 @@ import { update_user } from '@/api/users/api'
 import { toast } from '@/hooks/use-toast'
 import { AxiosError } from 'axios'
 import { Card } from '@/components/ui/card'
+import { useDateFormat } from '@/hooks/use-date-format'
+import { isValidDatePattern, toDateFnsPattern } from '@/lib/date-pattern'
 
 const languages = [
     { value: 'ar', label: 'العربية' },
@@ -64,6 +68,19 @@ const DARK_THEMES = [
     { value: 'blue-dark', labelKey: 'theme.blue', background: '#172554', color: '#60a5fa', muted: '#1e3a8a' }
 ] as const
 
+const DATE_PATTERN_FIELDS = [
+    { name: 'datePattern', key: 'date_pattern', fallback: 'P', placeholder: 'DD.MM.YYYY' },
+    { name: 'dateTimePattern', key: 'date_time_pattern', fallback: 'Pp', placeholder: 'DD.MM.YYYY HH:mm' },
+] as const
+
+const DATE_PATTERN_SAMPLE = new Date(2026, 0, 31, 14, 30)
+
+/** `pattern` (Moment.js tokens) applied to the sample date, or `fallback` when it is empty. */
+function datePatternExample(pattern: string, fallback: string): string {
+    const converted = pattern.trim() === '' ? fallback : toDateFnsPattern(pattern)
+    return converted ? format(DATE_PATTERN_SAMPLE, converted, { locale: resolveLocale() }) : ''
+}
+
 const ALL_THEME_VALUES = [...LIGHT_THEMES.map(t => t.value), ...DARK_THEMES.map(t => t.value)] as [string, ...string[]]
 
 const appearanceSchema = (t: (key: string) => string) => z.object({
@@ -72,7 +89,13 @@ const appearanceSchema = (t: (key: string) => string) => z.object({
     }),
     language: z.string({
         error: t('settings.appearance.validation.language.required'),
-    })
+    }),
+    datePattern: z.string().refine(isValidDatePattern, {
+        message: t('settings.appearance.validation.date_pattern.invalid'),
+    }),
+    dateTimePattern: z.string().refine(isValidDatePattern, {
+        message: t('settings.appearance.validation.date_pattern.invalid'),
+    }),
 })
 
 type AppearanceFormValues = z.infer<ReturnType<typeof appearanceSchema>>
@@ -95,6 +118,7 @@ export function AppearanceForm() {
     const queryClient = useQueryClient()
     const { t, i18n } = useTranslation()
     const { theme, setTheme } = useTheme()
+    const { datePattern, dateTimePattern, setDatePatterns } = useDateFormat()
 
     const form = useForm<AppearanceFormValues>({
         resolver: zodResolver(appearanceSchema(t)),
@@ -102,12 +126,14 @@ export function AppearanceForm() {
         defaultValues: {
             theme: theme || 'light',
             language: i18n.language || 'en',
+            datePattern,
+            dateTimePattern,
         },
     })
 
     const mutation = useMutation({
-        mutationFn: async (values: AppearanceFormValues) => {
-            return update_user(user!.id, values)
+        mutationFn: async ({ theme, language }: AppearanceFormValues) => {
+            return update_user(user!.id, { theme, language })
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['current-user'] })
@@ -125,6 +151,7 @@ export function AppearanceForm() {
     function onSubmit(data: AppearanceFormValues) {
         i18n.changeLanguage(data.language)
         setTheme(data.theme as Theme)
+        setDatePatterns({ date: data.datePattern, dateTime: data.dateTimePattern })
         mutation.mutate(data)
     }
 
@@ -192,6 +219,45 @@ export function AppearanceForm() {
                         )}
                     />
 
+                    <div className='flex flex-col gap-4'>
+                        <div>
+                            <p className='text-base font-medium'>{t('settings.appearance.field.date_format')}</p>
+                            <p className='text-[0.8rem] text-muted-foreground'>{t('settings.appearance.description.date_format')}</p>
+                        </div>
+                        {DATE_PATTERN_FIELDS.map((item) => (
+                            <FormField
+                                key={item.name}
+                                control={form.control}
+                                name={item.name}
+                                render={({ field, fieldState }) => (
+                                    <FormItem className='flex flex-col'>
+                                        <FormLabel>{t(`settings.appearance.field.${item.key}`)}</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                className='w-[400px] font-mono'
+                                                placeholder={item.placeholder}
+                                                autoComplete='off'
+                                                spellCheck={false}
+                                            />
+                                        </FormControl>
+                                        {!fieldState.invalid && (
+                                            <FormDescription>
+                                                {t(
+                                                    field.value.trim() === ''
+                                                        ? 'settings.appearance.date_pattern.default_example'
+                                                        : 'settings.appearance.date_pattern.example',
+                                                    { example: datePatternExample(field.value, item.fallback) },
+                                                )}
+                                            </FormDescription>
+                                        )}
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        ))}
+                    </div>
+
                     <FormField
                         control={form.control}
                         name='theme'
@@ -251,7 +317,7 @@ export function AppearanceForm() {
                     />
 
                     <div className="flex justify-end pt-4">
-                        <Button type='submit'>
+                        <Button type='submit' disabled={!form.formState.isValid}>
                             {t('settings.appearance.button.update')}
                         </Button>
                     </div>

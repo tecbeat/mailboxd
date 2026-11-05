@@ -170,7 +170,7 @@ pub fn extracted_text_of(attachments: &[AttachmentInfo], content_hash: &str) -> 
         .and_then(|att| att.extracted_text.clone())
 }
 
-fn copy_stored_fields(old: &TantivyDocument, skip: &[Field]) -> TantivyDocument {
+pub(crate) fn copy_stored_fields(old: &TantivyDocument, skip: &[Field]) -> TantivyDocument {
     let mut doc = TantivyDocument::new();
     for (field, value) in old.field_values() {
         if !skip.contains(&field) {

@@ -193,6 +193,7 @@ mod tests {
             skipped: 1,
             missing_bodies: 0,
             missing_texts: 0,
+            repaired_headers: 0,
             backup_dir: PathBuf::from("/data/mailboxd-indices.old-1"),
             report: None,
             elapsed: Duration::from_millis(1500),

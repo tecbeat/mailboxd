@@ -24,7 +24,9 @@
 //! of the index documents, so the indexes are rebuilt from the old indexes,
 //! not from the blobs: every stored value is carried over, and the indexed
 //! but not stored fields are derived again (the body from the EML blob, the
-//! attachment text from the envelope's attachment metadata).
+//! attachment text from the envelope's attachment metadata). Subjects and
+//! attachment filenames garbled by a legacy charset are decoded again from
+//! the EML on the way.
 //!
 //! The new indexes are built next to the live ones in `<index root>.new`,
 //! validated, and swapped in by renaming. The previous index root is kept as
@@ -34,7 +36,7 @@
 //! Adapted from upstream `bichon-admin reindex` (ee92a95a, 0da1620b).
 
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeSet, HashMap},
     io::Write,
     path::{Path, PathBuf},
     time::{Duration, Instant},
@@ -52,6 +54,7 @@ use mailboxd_core::{
             adopt_unstamped_index, check_index_format, write_index_format_version, CommitCurrent,
             IndexFormatStatus, CURRENT_INDEX_FORMAT_VERSION,
         },
+        header_repair::{repair_attachment_headers, repair_envelope_headers, HeaderRepair},
         rebuild::{
             document_tags, extracted_text_of, rebuild_attachment_document,
             rebuild_envelope_document, stored_attachments,
@@ -91,6 +94,9 @@ pub struct ReindexOutcome {
     pub missing_bodies: u64,
     /// Attachments carried over without text although they had some.
     pub missing_texts: u64,
+    /// Emails whose subject or attachment filenames were decoded again from
+    /// the EML because a legacy charset had garbled them.
+    pub repaired_headers: u64,
     /// The previous index root, kept for the operator to remove.
     pub backup_dir: PathBuf,
     /// The skip report, if any document was recorded in it.
@@ -206,6 +212,7 @@ pub fn reindex(paths: &AutoMigratePaths, force: bool) -> MailboxdResult<Option<R
         skipped: totals.skipped,
         missing_bodies: totals.missing_bodies,
         missing_texts: totals.missing_texts,
+        repaired_headers: totals.repaired_headers,
         backup_dir,
         report: (report.count > 0).then(|| report.path.clone()),
         elapsed: start.elapsed(),
@@ -216,6 +223,7 @@ pub fn reindex(paths: &AutoMigratePaths, force: bool) -> MailboxdResult<Option<R
         skipped = outcome.skipped,
         missing_bodies = outcome.missing_bodies,
         missing_texts = outcome.missing_texts,
+        repaired_headers = outcome.repaired_headers,
         "Search index rebuilt in {:.1}s; the previous index is kept in {:?}",
         outcome.elapsed.as_secs_f64(),
         outcome.backup_dir
@@ -242,6 +250,7 @@ struct Totals {
     skipped: u64,
     missing_bodies: u64,
     missing_texts: u64,
+    repaired_headers: u64,
 }
 
 /// Build and validate the new indexes. The old indexes are closed on return.
@@ -258,10 +267,11 @@ fn build(
     let old_email = has_email
         .then(|| OldIndex::open(&dirs.envelope_dir))
         .transpose()?;
+    let mut repairs = HashMap::new();
 
     if let Some(old) = &old_email {
         let target = NewIndex::create(new_envelope, SchemaTools::email_schema())?;
-        let phase = rebuild_emails(old, target, blobs, report)?;
+        let phase = rebuild_emails(old, target, blobs, report, &mut repairs)?;
         validate(
             new_envelope,
             phase.docs,
@@ -272,12 +282,13 @@ fn build(
         totals.emails = phase.docs;
         totals.skipped += phase.skipped;
         totals.missing_bodies = phase.missing;
+        totals.repaired_headers = phase.repaired;
     }
 
     if has_attachment {
         let old = OldIndex::open(&dirs.attachment_dir)?;
         let target = NewIndex::create(new_attachment, SchemaTools::attachment_schema())?;
-        let phase = rebuild_attachments(&old, old_email.as_ref(), target, report)?;
+        let phase = rebuild_attachments(&old, old_email.as_ref(), target, report, &repairs)?;
         validate(
             new_attachment,
             phase.docs,
@@ -441,6 +452,8 @@ struct PhaseStats {
     skipped: u64,
     /// Bodies (emails) or texts (attachments) that could not be restored.
     missing: u64,
+    /// Documents whose garbled subject or filenames were decoded again.
+    repaired: u64,
     /// Id of a written document, queried back by the validation.
     sample_id: Option<String>,
 }
@@ -504,11 +517,14 @@ fn for_each_document(
     Ok(())
 }
 
+/// `repairs` collects the header repairs by envelope id, for the
+/// attachments of the repaired envelopes.
 fn rebuild_emails(
     old: &OldIndex,
     mut target: NewIndex,
     blobs: &Engine,
     report: &mut SkipReport,
+    repairs: &mut HashMap<String, HeaderRepair>,
 ) -> MailboxdResult<PhaseStats> {
     let f = SchemaTools::email_fields();
     let mut stats = PhaseStats::default();
@@ -545,6 +561,20 @@ fn rebuild_emails(
                 );
             }
 
+            let doc = match eml
+                .as_deref()
+                .and_then(|eml| repair_envelope_headers(&doc, eml))
+            {
+                Some((repaired, repair)) => {
+                    stats.repaired += 1;
+                    if let Some(id) = repaired.get_first(f.f_id).and_then(|v| v.as_str()) {
+                        repairs.insert(id.to_string(), repair);
+                    }
+                    repaired
+                }
+                None => doc,
+            };
+
             let new_doc = rebuild_envelope_document(&doc, &tags, eml.as_deref());
             add(
                 &mut target,
@@ -570,6 +600,7 @@ fn rebuild_attachments(
     old_email: Option<&OldIndex>,
     mut target: NewIndex,
     report: &mut SkipReport,
+    repairs: &HashMap<String, HeaderRepair>,
 ) -> MailboxdResult<PhaseStats> {
     let f = SchemaTools::attachment_fields();
     let email_schema = SchemaTools::email_schema();
@@ -616,6 +647,14 @@ fn rebuild_attachments(
                     Some(old.describe(&old_doc)),
                 );
             }
+
+            let repaired = envelope_id
+                .and_then(|id| repairs.get(id))
+                .and_then(|repair| repair_attachment_headers(&doc, repair));
+            if repaired.is_some() {
+                stats.repaired += 1;
+            }
+            let doc = repaired.unwrap_or(doc);
 
             let new_doc = rebuild_attachment_document(&doc, &tags, text.as_deref());
             add(
@@ -1629,6 +1668,108 @@ mod tests {
             doc.get_first(af.f_has_text).and_then(|v| v.as_bool()),
             Some(false)
         );
+    }
+
+    #[test]
+    fn subjects_and_filenames_garbled_by_a_legacy_charset_are_repaired() {
+        use mail_parser::MessageParser;
+        use mailboxd_core::envelope::extractor::strip_attachment_bodies;
+
+        let (_tmp, paths, dirs) = v2_root();
+        // Raw GBK "测试邮件" and "附件.rar", as indexed before they were decoded.
+        let eml: &[u8] = b"Subject: \xb2\xe2\xca\xd4\xd3\xca\xbc\xfe\r\n\
+            MIME-Version: 1.0\r\n\
+            Content-Type: multipart/mixed; boundary=\"b\"\r\n\r\n\
+            --b\r\nContent-Type: text/plain; charset=gbk\r\n\r\nhi\r\n\
+            --b\r\nContent-Type: application/octet-stream\r\n\
+            Content-Disposition: attachment; filename=\"\xb8\xbd\xbc\xfe.rar\"\r\n\
+            Content-Transfer-Encoding: base64\r\n\r\nAAAA\r\n\
+            --b--\r\n";
+        let message = MessageParser::new().parse(eml).unwrap();
+        let detached = strip_attachment_bodies(eml, &message, None);
+        let mut infos = detached.infos;
+        infos[0].filename = Some("\u{FFFD}\u{FFFD}.rar".into());
+        let content_hash = infos[0].content_hash.clone();
+
+        write_legacy_index(
+            &dirs.envelope_dir,
+            legacy_schema(SchemaTools::email_schema()),
+            vec![
+                legacy_email(&[
+                    ("id", text("eid-1")),
+                    ("subject", text("")),
+                    ("content_hash", text(&hash("ab"))),
+                    ("attachments", text(&serde_json::to_string(&infos).unwrap())),
+                ]),
+                legacy_email(&[
+                    ("id", text("eid-2")),
+                    ("subject", text("Untouched")),
+                    ("content_hash", text(&hash("ab"))),
+                ]),
+            ],
+        );
+        write_legacy_index(
+            &dirs.attachment_dir,
+            legacy_schema(SchemaTools::attachment_schema()),
+            vec![legacy_attachment(&[
+                ("id", text("aid-1")),
+                ("eid", text("eid-1")),
+                ("subject", text("")),
+                ("content_hash", text(&content_hash)),
+                ("name_exact", text("\u{FFFD}\u{FFFD}.rar")),
+            ])],
+        );
+        let blobs = BlobGuard::open(&dirs.blobs_dir).unwrap();
+        let mut key = [0u8; 32];
+        hex::decode_to_slice(hash("ab"), &mut key).unwrap();
+        blobs
+            .engine()
+            .put(key, &detached.stripped_eml, Codec::Zstd)
+            .unwrap();
+        drop(blobs);
+
+        let outcome = reindex(&paths, true).unwrap().expect("rebuilt");
+        assert_eq!(outcome.repaired_headers, 1);
+
+        let f = SchemaTools::email_fields();
+        let (index, s) = searcher(&dirs.envelope_dir);
+        let doc = stored_doc(&s, f.f_id, "eid-1");
+        assert_eq!(
+            doc.get_first(f.f_subject).and_then(|v| v.as_str()),
+            Some("测试邮件")
+        );
+        let names: Vec<_> = stored_attachments(&doc)
+            .unwrap()
+            .into_iter()
+            .map(|att| att.filename)
+            .collect();
+        assert_eq!(names, [Some("附件.rar".to_string())]);
+        assert_eq!(hits(&index, &s, f.f_subject, "测试"), 1);
+        assert_eq!(
+            term_hits(
+                &s,
+                Term::from_field_text(f.f_attachment_name_exact, "附件.rar")
+            ),
+            1
+        );
+        let untouched = stored_doc(&s, f.f_id, "eid-2");
+        assert_eq!(
+            untouched.get_first(f.f_subject).and_then(|v| v.as_str()),
+            Some("Untouched")
+        );
+
+        let af = SchemaTools::attachment_fields();
+        let (index, s) = searcher(&dirs.attachment_dir);
+        let doc = stored_doc(&s, af.f_id, "aid-1");
+        assert_eq!(
+            doc.get_first(af.f_subject).and_then(|v| v.as_str()),
+            Some("测试邮件")
+        );
+        assert_eq!(
+            doc.get_first(af.f_name_exact).and_then(|v| v.as_str()),
+            Some("附件.rar")
+        );
+        assert_eq!(hits(&index, &s, af.f_name_text, "附件"), 1);
     }
 
     #[test]
