@@ -4,9 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [1.11.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.11.1) - 2026-11-05
 
+### ⛰️  Features
+
+- *(search)* Rebuild indexes for the CJK-aware tokenizer - ([bcc1bb5](https://git.teccave.de/tecbeat/mailboxd/commit/bcc1bb5ee95cc7828bb8f985b4026d43fa0f158f))
+- *(search)* Find CJK words in text without word spaces - ([911f756](https://git.teccave.de/tecbeat/mailboxd/commit/911f756199f30f6550d07d6d4edcb94bd358722b))
+
 ### 🐛 Bug Fixes
 
 - *(imap)* Download older emails that appear below the UID watermark - ([1c47dca](https://git.teccave.de/tecbeat/mailboxd/commit/1c47dcac9af5413a27d2a2b1582155e64379737a))
+- *(search)* Rebuild indexes an older mailboxd wrote to - ([cd83c48](https://git.teccave.de/tecbeat/mailboxd/commit/cd83c48a933b28560e4afe53f9607314564cf733))
 
 ## [1.11.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.11.0) - 2026-11-04
 
