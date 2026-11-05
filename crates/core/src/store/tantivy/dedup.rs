@@ -13,6 +13,7 @@ use crate::store::tantivy::envelope::ENVELOPE_MANAGER;
 use crate::store::tantivy::fields::{
     F_ACCOUNT_ID, F_CONTENT_HASH, F_ID, F_INGEST_AT, F_MAILBOX_ID,
 };
+use crate::store::tantivy::format::CommitCurrent;
 use crate::store::tantivy::schema::SchemaTools;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -297,10 +298,10 @@ fn dedup_account(
     // account can be reclaimed before the next account is processed.
     if deleted > 0 {
         email_writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         attachment_writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         tracing::info!("dedup: account={} removed={}", account_id, deleted);
     }

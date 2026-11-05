@@ -50,8 +50,8 @@ use crate::{
                 F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
             },
             format::{
-                check_index_format, heal_index_format_marker, write_index_format_version,
-                IndexFormatStatus,
+                adopt_unstamped_index, check_index_format, heal_index_format_marker,
+                write_index_format_version, CommitCurrent, IndexFormatStatus,
             },
             model::{extract_contacts, EnvelopeWithAttachments},
             rebuild::{document_tags, rebuild_envelope_document, stored_attachments},
@@ -280,6 +280,7 @@ impl IndexManager {
         } else {
             info!("Opening existing email index at {}", index_dir.display());
             heal_index_format_marker(index_dir);
+            adopt_unstamped_index(index_dir);
             if check_index_format(index_dir) == IndexFormatStatus::NeedsUpgrade {
                 panic!(
                     "The email index in {:?} has an outdated format and must be rebuilt; \
@@ -1020,7 +1021,7 @@ impl IndexManager {
             .delete_query(query)
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         ATTACHMENT_MANAGER
@@ -1069,7 +1070,7 @@ impl IndexManager {
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         }
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         if !eml_content_hashes.is_empty() || !attachments_content_hashes.is_empty() {
@@ -1217,7 +1218,7 @@ impl IndexManager {
             }
         }
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         if !eml_content_hash_triples.is_empty() || !attachments_content_hashes.is_empty() {
@@ -1426,7 +1427,7 @@ impl IndexManager {
 
         // commit
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         Ok(())

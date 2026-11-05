@@ -20,6 +20,8 @@
 
 use tantivy::{schema::Facet, IndexWriter};
 
+use self::format::CommitCurrent;
+
 use crate::{
     error::{code::ErrorCode, MailboxdResult},
     raise_error,
@@ -39,9 +41,10 @@ pub mod sort;
 pub mod tokenizers;
 
 pub fn fatal_commit(writer: &mut IndexWriter) {
-    if let Err(message) =
-        commit_with_retry(&mut || writer.commit().map(|_| ()), &std::thread::sleep)
-    {
+    if let Err(message) = commit_with_retry(
+        &mut || writer.commit_current().map(|_| ()),
+        &std::thread::sleep,
+    ) {
         eprintln!("[FATAL] {message}");
         std::process::exit(1);
     }
