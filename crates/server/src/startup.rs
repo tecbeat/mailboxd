@@ -139,6 +139,7 @@ mod tests {
             skipped: 0,
             missing_bodies: 0,
             missing_texts: 0,
+            repaired_headers: 0,
             backup_dir: PathBuf::from("mailboxd-indices.old-1"),
             report,
             elapsed: std::time::Duration::from_secs(1),
