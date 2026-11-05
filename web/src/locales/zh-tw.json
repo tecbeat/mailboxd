@@ -1447,11 +1447,17 @@
         "no_results": "未找到相關語言。",
         "search": "搜尋語言..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "跟隨語言 ({{example}})"
+      },
       "description": {
+        "date_format": "選擇清單和對話框中日期的顯示方式。",
         "language": "選擇網頁介面顯示的语言。",
         "theme": "為介面選擇淺色或深色顯示模式。"
       },
       "field": {
+        "date_format": "日期格式",
         "language": "介面语言",
         "theme": "介面主題"
       },

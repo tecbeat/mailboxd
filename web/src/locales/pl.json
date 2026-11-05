@@ -1447,11 +1447,17 @@
         "no_results": "Nie znaleziono języka.",
         "search": "Szukaj języka..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "Domyślny dla języka ({{example}})"
+      },
       "description": {
+        "date_format": "Wybierz sposób wyświetlania dat na listach i w oknach dialogowych.",
         "language": "Wybierz język interfejsu webowego.",
         "theme": "Wybierz tryb jasny lub ciemny."
       },
       "field": {
+        "date_format": "Format daty",
         "language": "Język interfejsu",
         "theme": "Motyw interfejsu"
       },

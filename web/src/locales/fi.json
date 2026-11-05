@@ -1447,11 +1447,17 @@
         "no_results": "Kieltä ei löytynyt.",
         "search": "Hae kieltä..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "Kielen oletus ({{example}})"
+      },
       "description": {
+        "date_format": "Valitse, miten päivämäärät näytetään luetteloissa ja valintaikkunoissa.",
         "language": "Valitse Web-käyttöliittymässä käytettävä kieli.",
         "theme": "Valitse käyttöliittymän vaalea tai tumma tila."
       },
       "field": {
+        "date_format": "Päivämäärän muoto",
         "language": "Käyttöliittymän kieli",
         "theme": "Käyttöliittymän teema"
       },

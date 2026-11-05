@@ -1447,11 +1447,17 @@
         "no_results": "Geen taal gevonden.",
         "search": "Taal zoeken..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "Standaard van de taal ({{example}})"
+      },
       "description": {
+        "date_format": "Kies hoe datums worden weergegeven in lijsten en dialogen.",
         "language": "Selecteer de taal voor de webinterface.",
         "theme": "Kies tussen de lichte of donkere modus voor de interface."
       },
       "field": {
+        "date_format": "Datumnotatie",
         "language": "Interfacetaal",
         "theme": "Interfacethema"
       },

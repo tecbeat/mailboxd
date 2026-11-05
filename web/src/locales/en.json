@@ -1483,11 +1483,17 @@
         "no_results": "No language found.",
         "search": "Search language..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "Language default ({{example}})"
+      },
       "description": {
+        "date_format": "Choose how dates are shown in lists and dialogs.",
         "language": "Select the language used in the Web UI.",
         "theme": "Choose between light or dark mode for the interface."
       },
       "field": {
+        "date_format": "Date format",
         "language": "Language",
         "theme": "Interface Theme"
       },

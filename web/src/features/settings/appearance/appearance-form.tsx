@@ -2,7 +2,8 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { ChevronsUpDown as CaretSortIcon, Check as CheckIcon } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { cn, resolveLocale } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
     Form,
@@ -13,7 +14,7 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form'
-import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useTheme, Theme } from '@/context/theme-context'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
@@ -24,6 +25,7 @@ import { update_user } from '@/api/users/api'
 import { toast } from '@/hooks/use-toast'
 import { AxiosError } from 'axios'
 import { Card } from '@/components/ui/card'
+import { type DateFormat, useDateFormat } from '@/hooks/use-date-format'
 
 const languages = [
     { value: 'ar', label: 'العربية' },
@@ -64,6 +66,13 @@ const DARK_THEMES = [
     { value: 'blue-dark', labelKey: 'theme.blue', background: '#172554', color: '#60a5fa', muted: '#1e3a8a' }
 ] as const
 
+const DATE_FORMATS: { value: DateFormat; labelKey: string; pattern: string }[] = [
+    { value: 'locale', labelKey: 'settings.appearance.date_format.locale', pattern: 'P' },
+    { value: 'iso', labelKey: 'settings.appearance.date_format.iso', pattern: 'yyyy-MM-dd' },
+]
+
+const DATE_FORMAT_SAMPLE = new Date(2026, 0, 31)
+
 const ALL_THEME_VALUES = [...LIGHT_THEMES.map(t => t.value), ...DARK_THEMES.map(t => t.value)] as [string, ...string[]]
 
 const appearanceSchema = (t: (key: string) => string) => z.object({
@@ -72,7 +81,8 @@ const appearanceSchema = (t: (key: string) => string) => z.object({
     }),
     language: z.string({
         error: t('settings.appearance.validation.language.required'),
-    })
+    }),
+    dateFormat: z.enum(['locale', 'iso']),
 })
 
 type AppearanceFormValues = z.infer<ReturnType<typeof appearanceSchema>>
@@ -95,6 +105,7 @@ export function AppearanceForm() {
     const queryClient = useQueryClient()
     const { t, i18n } = useTranslation()
     const { theme, setTheme } = useTheme()
+    const { dateFormat, setDateFormat } = useDateFormat()
 
     const form = useForm<AppearanceFormValues>({
         resolver: zodResolver(appearanceSchema(t)),
@@ -102,12 +113,13 @@ export function AppearanceForm() {
         defaultValues: {
             theme: theme || 'light',
             language: i18n.language || 'en',
+            dateFormat,
         },
     })
 
     const mutation = useMutation({
-        mutationFn: async (values: AppearanceFormValues) => {
-            return update_user(user!.id, values)
+        mutationFn: async ({ theme, language }: AppearanceFormValues) => {
+            return update_user(user!.id, { theme, language })
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['current-user'] })
@@ -125,6 +137,7 @@ export function AppearanceForm() {
     function onSubmit(data: AppearanceFormValues) {
         i18n.changeLanguage(data.language)
         setTheme(data.theme as Theme)
+        setDateFormat(data.dateFormat)
         mutation.mutate(data)
     }
 
@@ -186,6 +199,38 @@ export function AppearanceForm() {
                                 </Popover>
                                 <FormDescription>
                                     {t('settings.appearance.description.language')}
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name='dateFormat'
+                        render={({ field }) => (
+                            <FormItem className='flex flex-col'>
+                                <FormLabel>{t('settings.appearance.field.date_format')}</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        className='flex flex-col gap-2'
+                                    >
+                                        {DATE_FORMATS.map((item) => (
+                                            <label key={item.value} className='flex items-center gap-2 text-sm cursor-pointer'>
+                                                <RadioGroupItem value={item.value} />
+                                                {t(item.labelKey, {
+                                                    example: format(DATE_FORMAT_SAMPLE, item.pattern, {
+                                                        locale: resolveLocale(),
+                                                    }),
+                                                })}
+                                            </label>
+                                        ))}
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormDescription>
+                                    {t('settings.appearance.description.date_format')}
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>

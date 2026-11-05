@@ -19,11 +19,13 @@
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useDateDisplay } from '@/hooks/use-date-display'
+import { useDateFormat } from '@/hooks/use-date-format'
 import { formatDateTime, formatRelativeTime } from '@/lib/utils'
 
 /** A list date in the chosen display mode; the tooltip shows the other one. */
 export function DateCell({ date }: { date: number | string | Date }) {
   const { dateDisplay } = useDateDisplay()
+  useDateFormat()
   const absolute = formatDateTime(date)
   const relative = formatRelativeTime(date)
   const [shown, hint] = dateDisplay === 'absolute' ? [absolute, relative] : [relative, absolute]

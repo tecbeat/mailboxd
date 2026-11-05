@@ -1447,11 +1447,17 @@
         "no_results": "言語が見つかりません。",
         "search": "言語を検索..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "言語の既定 ({{example}})"
+      },
       "description": {
+        "date_format": "一覧やダイアログでの日付の表示方法を選択します。",
         "language": "Web UIで使用する言語を選択します。",
         "theme": "ライトモードまたはダークモードを選択します。"
       },
       "field": {
+        "date_format": "日付の形式",
         "language": "表示言語",
         "theme": "インターフェーステーマ"
       },

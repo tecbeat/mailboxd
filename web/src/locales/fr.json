@@ -1447,11 +1447,17 @@
         "no_results": "Aucune langue trouvée.",
         "search": "Rechercher une langue..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "Selon la langue ({{example}})"
+      },
       "description": {
+        "date_format": "Choisissez comment les dates sont affichées dans les listes et les boîtes de dialogue.",
         "language": "Choisissez la langue de l'interface web.",
         "theme": "Choisissez entre le mode clair ou sombre."
       },
       "field": {
+        "date_format": "Format de date",
         "language": "Langue de l'interface",
         "theme": "Thème de l'interface"
       },

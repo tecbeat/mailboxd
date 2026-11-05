@@ -1447,11 +1447,17 @@
         "no_results": "Inget språk hittades.",
         "search": "Sök språk..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "Språkets standard ({{example}})"
+      },
       "description": {
+        "date_format": "Välj hur datum visas i listor och dialogrutor.",
         "language": "Välj språk för webbanvändargränssnittet.",
         "theme": "Välj mellan ljust eller mörkt läge för gränssnittet."
       },
       "field": {
+        "date_format": "Datumformat",
         "language": "Gränssnittsspråk",
         "theme": "Gränssnittstema"
       },

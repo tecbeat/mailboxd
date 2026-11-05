@@ -1447,11 +1447,17 @@
         "no_results": "Keine Sprache gefunden.",
         "search": "Sprache suchen..."
       },
+      "date_format": {
+        "iso": "ISO 8601 ({{example}})",
+        "locale": "Wie die Sprache ({{example}})"
+      },
       "description": {
+        "date_format": "Lege fest, wie Datumsangaben in Listen und Dialogen angezeigt werden.",
         "language": "Wählen Sie die Sprache für die Web-Oberfläche.",
         "theme": "Wählen Sie zwischen hellem oder dunklem Modus."
       },
       "field": {
+        "date_format": "Datumsformat",
         "language": "Sprache der Benutzeroberfläche",
         "theme": "Design"
       },

@@ -17,10 +17,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { de, enUS } from 'date-fns/locale';
 
-import { formatBytes, formatDateTime, formatRelativeTime } from '../utils';
+import { DATE_FORMAT_STORAGE_KEY } from '@/hooks/use-date-format';
+
+import { formatBytes, formatDate, formatDateTime, formatRelativeTime } from '../utils';
 
 // Characterization tests for the single, shared formatting helpers.
 // formatBytes was unified by #13; formatDateTime and formatRelativeTime were
@@ -78,6 +80,31 @@ describe('formatDateTime', () => {
 
   it('returns an empty string for an invalid date', () => {
     expect(formatDateTime(NaN, enUS)).toBe('');
+    expect(formatDateTime('not-a-date', enUS)).toBe('');
+  });
+});
+
+describe('ISO 8601 date format', () => {
+  const reference = new Date(2023, 0, 5, 14, 30);
+
+  afterEach(() => localStorage.clear());
+
+  it('renders dates and date-times as ISO 8601 in every locale once chosen', () => {
+    localStorage.setItem(DATE_FORMAT_STORAGE_KEY, 'iso');
+    for (const locale of [enUS, de]) {
+      expect(formatDate(reference, locale)).toBe('2023-01-05');
+      expect(formatDateTime(reference, locale)).toBe('2023-01-05 14:30');
+    }
+  });
+
+  it('keeps the locale format by default', () => {
+    expect(formatDate(reference, de)).toBe('05.01.2023');
+    expect(formatDateTime(reference, enUS)).not.toBe('2023-01-05 14:30');
+  });
+
+  it('returns an empty string for an invalid date', () => {
+    localStorage.setItem(DATE_FORMAT_STORAGE_KEY, 'iso');
+    expect(formatDate(NaN, enUS)).toBe('');
     expect(formatDateTime('not-a-date', enUS)).toBe('');
   });
 });
