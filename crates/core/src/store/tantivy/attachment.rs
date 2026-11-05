@@ -45,8 +45,8 @@ use crate::{
             F_TAGS,
         },
         format::{
-            check_index_format, heal_index_format_marker, write_index_format_version,
-            IndexFormatStatus,
+            adopt_unstamped_index, check_index_format, heal_index_format_marker,
+            write_index_format_version, CommitCurrent, IndexFormatStatus,
         },
         model::{extract_senders, AttachmentModel},
         rebuild::{document_tags, extracted_text_of, rebuild_attachment_document},
@@ -247,6 +247,7 @@ impl IndexManager {
                 index_dir.display()
             );
             heal_index_format_marker(index_dir);
+            adopt_unstamped_index(index_dir);
             if check_index_format(index_dir) == IndexFormatStatus::NeedsUpgrade {
                 panic!(
                     "The attachment index in {:?} has an outdated format and must be rebuilt; \
@@ -639,7 +640,7 @@ impl IndexManager {
             .delete_query(query)
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         Ok(())
     }
@@ -664,7 +665,7 @@ impl IndexManager {
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         }
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         Ok(())
     }
@@ -692,7 +693,7 @@ impl IndexManager {
             }
         }
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         Ok(())
     }
@@ -842,7 +843,7 @@ impl IndexManager {
 
         // commit
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         Ok(())

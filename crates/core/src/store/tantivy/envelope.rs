@@ -50,8 +50,8 @@ use crate::{
                 F_SIZE, F_TAGS, F_THREAD_ID, F_UID,
             },
             format::{
-                check_index_format, heal_index_format_marker, write_index_format_version,
-                IndexFormatStatus,
+                adopt_unstamped_index, check_index_format, heal_index_format_marker,
+                write_index_format_version, CommitCurrent, IndexFormatStatus,
             },
             model::{extract_contacts, EnvelopeWithAttachments},
             rebuild::{document_tags, rebuild_envelope_document, stored_attachments},
@@ -280,6 +280,7 @@ impl IndexManager {
         } else {
             info!("Opening existing email index at {}", index_dir.display());
             heal_index_format_marker(index_dir);
+            adopt_unstamped_index(index_dir);
             if check_index_format(index_dir) == IndexFormatStatus::NeedsUpgrade {
                 panic!(
                     "The email index in {:?} has an outdated format and must be rebuilt; \
@@ -1020,7 +1021,7 @@ impl IndexManager {
             .delete_query(query)
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         ATTACHMENT_MANAGER
@@ -1069,7 +1070,7 @@ impl IndexManager {
                 .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
         }
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         if !eml_content_hashes.is_empty() || !attachments_content_hashes.is_empty() {
@@ -1217,7 +1218,7 @@ impl IndexManager {
             }
         }
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         if !eml_content_hash_triples.is_empty() || !attachments_content_hashes.is_empty() {
@@ -1426,7 +1427,7 @@ impl IndexManager {
 
         // commit
         writer
-            .commit()
+            .commit_current()
             .map_err(|e| raise_error!(format!("{:#?}", e), ErrorCode::InternalError))?;
 
         Ok(())
@@ -3147,7 +3148,7 @@ mod manager_tests {
         init_globals, register_mailbox, store_email_blob, unique_id,
     };
     use super::*;
-    use crate::store::tantivy::format::{read_index_format_version, CURRENT_INDEX_FORMAT_VERSION};
+    use crate::store::tantivy::format::read_index_format_version;
 
     struct Fixture {
         _dir: tempfile::TempDir,
@@ -3230,18 +3231,21 @@ mod manager_tests {
         }
     }
 
+    /// The schema cannot tell which analyzer built the index, so a lost
+    /// marker is healed as version 2 and the index asks for a rebuild.
     #[test]
-    fn reopening_an_index_heals_a_lost_format_marker() {
+    fn reopening_an_index_with_a_lost_format_marker_asks_for_a_rebuild() {
         let dir = tempfile::tempdir().unwrap();
         drop(envelope_manager_at(dir.path()));
         std::fs::remove_file(dir.path().join("INDEX_FORMAT")).unwrap();
 
-        drop(envelope_manager_at(dir.path()));
+        let reopened = std::panic::catch_unwind(|| drop(envelope_manager_at(dir.path())));
 
-        assert_eq!(
-            read_index_format_version(dir.path()),
-            Some(CURRENT_INDEX_FORMAT_VERSION)
+        assert!(
+            reopened.is_err(),
+            "an index with a healed marker must not open"
         );
+        assert_eq!(read_index_format_version(dir.path()), Some(2));
     }
 
     #[test]
@@ -3294,6 +3298,46 @@ mod manager_tests {
         assert_eq!(fx.ids(text("kroatiens")), ["a"]);
         assert_eq!(fx.ids(text("wonderla")), ["b"]);
         assert_eq!(fx.ids(text("bluepri")), ["c"]);
+    }
+
+    /// CJK text has no word spaces; any run of characters in it is found,
+    /// and only as an exact substring. `队奖鸡` is "dui jiang ji" in pinyin,
+    /// like `对讲机`, but other characters.
+    #[tokio::test]
+    async fn text_search_finds_cjk_words_inside_unspaced_text() {
+        let fx = Fixture::new();
+        let mut a = fx.envelope("a");
+        a.subject = "回复：Re: Re:Re: 回复：Re: 回复：Re: 洗澡间灯泡更换&对讲机故障沟通".into();
+        let mut b = fx.envelope("b");
+        b.subject = "天气".into();
+        let mut c = fx.envelope("c");
+        c.subject = "队奖鸡".into();
+        let mut j = fx.envelope("j");
+        j.subject = "会議のお知らせ".into();
+        let mut k = fx.envelope("k");
+        k.subject = "회의 안내입니다".into();
+        fx.add(vec![
+            (a, None, ""),
+            (b, None, "今天的风简直难以置信的强劲"),
+            (c, None, ""),
+            (j, None, ""),
+            (k, None, ""),
+        ])
+        .await;
+
+        assert_eq!(fx.ids(text("对讲机")), ["a"]);
+        assert_eq!(fx.ids(text("灯泡")), ["a"]);
+        assert_eq!(fx.ids(text("故障")), ["a"]);
+        assert_eq!(fx.ids(text("对讲机故障沟通")), ["a"]);
+        assert!(fx.ids(text("对讲沟通")).is_empty(), "not a substring");
+        assert_eq!(fx.ids(text("难以置信")), ["b"], "body");
+        assert_eq!(fx.ids(text("风")), ["b"], "single character");
+        assert_eq!(fx.ids(text("队奖鸡")), ["c"], "no pinyin collision");
+        assert!(fx.ids(text("dui jiang ji")).is_empty(), "no pinyin");
+        assert_eq!(fx.ids(text("お知らせ")), ["j"]);
+        assert_eq!(fx.ids(text("会議")), ["j"]);
+        assert_eq!(fx.ids(text("안내")), ["k"]);
+        assert_eq!(fx.ids(text("灯泡 Re")), ["a"], "mixed query");
     }
 
     #[tokio::test]
@@ -3379,6 +3423,34 @@ mod manager_tests {
         assert_eq!(fx.ids(name("holiday.png")), ["y"]);
         assert_eq!(fx.ids(name("invoic")), ["x"]);
         assert_eq!(fx.ids(name("holidays")), ["y"], "inflection");
+    }
+
+    #[tokio::test]
+    async fn attachment_name_filter_finds_cjk_words_in_names() {
+        let fx = Fixture::new();
+        let x = fx.envelope("x");
+        let y = fx.envelope("y");
+        fx.add(vec![
+            (
+                x,
+                Some(vec![attachment("灯泡发票2024.pdf", &blob_key(1))]),
+                "",
+            ),
+            (
+                y,
+                Some(vec![attachment("对讲机说明书.pdf", &blob_key(2))]),
+                "",
+            ),
+        ])
+        .await;
+
+        let name = |v: &str| EmailSearchFilter {
+            attachment_name: Some(v.into()),
+            ..Default::default()
+        };
+        assert_eq!(fx.ids(name("发票")), ["x"]);
+        assert_eq!(fx.ids(name("说明")), ["y"]);
+        assert_eq!(fx.ids(text("对讲机")), ["y"], "free text");
     }
 
     #[tokio::test]

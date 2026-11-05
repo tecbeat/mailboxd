@@ -20,7 +20,7 @@ use mailboxd_core::{
     raise_error,
     store::envelope::Envelope,
     store::tantivy::{
-        format::write_index_format_version,
+        format::{write_index_format_version, CommitCurrent},
         model::{AttachmentModel, EnvelopeWithAttachments},
         schema::SchemaTools,
     },
@@ -372,12 +372,12 @@ impl NewIndexWriterV2 {
         let start = Instant::now();
         if let Some(writer) = self.envelope_writer.as_mut() {
             writer
-                .commit()
+                .commit_current()
                 .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
         }
         if let Some(writer) = self.attachment_writer.as_mut() {
             writer
-                .commit()
+                .commit_current()
                 .map_err(|e| raise_error!(format!("{e:#?}"), ErrorCode::InternalError))?;
         }
         println!("tantivy commit elapsed: {:#?}", start.elapsed());

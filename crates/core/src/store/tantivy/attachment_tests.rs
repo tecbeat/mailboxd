@@ -31,7 +31,7 @@ use crate::store::tantivy::{
         },
         ENVELOPE_MANAGER,
     },
-    format::{read_index_format_version, CURRENT_INDEX_FORMAT_VERSION},
+    format::read_index_format_version,
 };
 
 /// An attachment index manager on `dir`, opened (or created) the way the
@@ -177,18 +177,21 @@ fn has_text() -> AttachmentSearchFilter {
     }
 }
 
+/// The schema cannot tell which analyzer built the index, so a lost
+/// marker is healed as version 2 and the index asks for a rebuild.
 #[test]
-fn reopening_an_index_heals_a_lost_format_marker() {
+fn reopening_an_index_with_a_lost_format_marker_asks_for_a_rebuild() {
     let dir = tempfile::tempdir().unwrap();
     drop(attachment_manager_at(dir.path()));
     std::fs::remove_file(dir.path().join("INDEX_FORMAT")).unwrap();
 
-    drop(attachment_manager_at(dir.path()));
+    let reopened = std::panic::catch_unwind(|| drop(attachment_manager_at(dir.path())));
 
-    assert_eq!(
-        read_index_format_version(dir.path()),
-        Some(CURRENT_INDEX_FORMAT_VERSION)
+    assert!(
+        reopened.is_err(),
+        "an index with a healed marker must not open"
     );
+    assert_eq!(read_index_format_version(dir.path()), Some(2));
 }
 
 #[test]
@@ -233,6 +236,35 @@ async fn text_search_finds_fragments_through_trigram_fields() {
     assert_eq!(fx.ids(text("kroatiens")), ["a"]);
     assert_eq!(fx.ids(text("wonderla")), ["b"]);
     assert_eq!(fx.ids(text("bluepri")), ["c"]);
+}
+
+/// CJK words are found inside unspaced attachment text, subjects and file
+/// names, as exact substrings.
+#[tokio::test]
+async fn search_finds_cjk_words_in_text_subject_and_name() {
+    let fx = Fixture::new();
+    let mut t = fx.attachment("t");
+    t.text = Some("洗澡间灯泡更换&对讲机故障沟通".into());
+    let mut s = fx.attachment("s");
+    s.subject = "回复：维修报价".into();
+    let mut n = fx.attachment("n");
+    n.name = Some("灯泡发票2024.pdf".into());
+    fx.add(vec![t, s, n]).await;
+
+    let subject = |v: &str| AttachmentSearchFilter {
+        subject: Some(v.into()),
+        ..Default::default()
+    };
+    let name = |v: &str| AttachmentSearchFilter {
+        attachment_name: Some(v.into()),
+        ..Default::default()
+    };
+    assert_eq!(fx.ids(text("对讲机")), ["t"]);
+    assert_eq!(fx.ids(text("灯泡")), ["n", "t"]);
+    assert_eq!(fx.ids(text("报价")), ["s"]);
+    assert!(fx.ids(text("灯泡沟通")).is_empty(), "not a substring");
+    assert_eq!(fx.ids(subject("维修")), ["s"]);
+    assert_eq!(fx.ids(name("发票")), ["n"]);
 }
 
 #[tokio::test]

@@ -49,8 +49,8 @@ use mailboxd_core::{
     settings::dir::{available_space, resolve_dirs, ResolvedDirs},
     store::tantivy::{
         format::{
-            check_index_format, write_index_format_version, IndexFormatStatus,
-            CURRENT_INDEX_FORMAT_VERSION,
+            adopt_unstamped_index, check_index_format, write_index_format_version, CommitCurrent,
+            IndexFormatStatus, CURRENT_INDEX_FORMAT_VERSION,
         },
         rebuild::{
             document_tags, extracted_text_of, rebuild_attachment_document,
@@ -119,6 +119,9 @@ pub fn reindex(paths: &AutoMigratePaths, force: bool) -> MailboxdResult<Option<R
     let has_attachment = is_index(&dirs.attachment_dir);
     if !has_email && !has_attachment {
         return Ok(None);
+    }
+    for dir in [&dirs.envelope_dir, &dirs.attachment_dir] {
+        adopt_unstamped_index(dir);
     }
     if !force && !reindex_required(paths) {
         return Ok(None);
@@ -408,7 +411,7 @@ impl NewIndex {
 
     fn commit(&mut self) -> MailboxdResult<()> {
         self.writer
-            .commit()
+            .commit_current()
             .map(|_| ())
             .map_err(|e| raise_error!(format!("commit failed: {e:#?}"), ErrorCode::InternalError))
     }
@@ -1028,6 +1031,7 @@ fn create_private_file(path: &Path) -> std::io::Result<std::fs::File> {
 mod tests {
     use super::*;
     use mailboxd_core::migrate::write_storage_version;
+    use mailboxd_core::store::tantivy::format::read_index_format_version;
     use tantivy::{
         query::QueryParser,
         schema::{Facet, OwnedValue},
@@ -1286,6 +1290,69 @@ mod tests {
         }
     }
 
+    /// Format 2 has today's schema but kept a CJK run as one token, so
+    /// `灯泡` inside `洗澡间灯泡更换` only becomes findable after the rebuild.
+    #[test]
+    fn rebuilds_a_format_2_index_so_cjk_words_are_found() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().to_path_buf();
+        write_storage_version(&root, CURRENT_STORAGE_VERSION).unwrap();
+        let dirs = resolve_dirs(&root, None, None);
+        let f = SchemaTools::email_fields();
+        let format_2_index = |dir: &Path, schema: Schema, docs: Vec<TantivyDocument>| {
+            std::fs::create_dir_all(dir).unwrap();
+            let index = Index::create_in_dir(dir, schema).unwrap();
+            register_tokenizers(&index);
+            index.tokenizers().register(
+                "euro",
+                tantivy::tokenizer::TextAnalyzer::builder(
+                    tantivy::tokenizer::SimpleTokenizer::default(),
+                )
+                .build(),
+            );
+            let mut writer: IndexWriter = index.writer_with_num_threads(1, 15_000_000).unwrap();
+            for doc in docs {
+                writer.add_document(doc).unwrap();
+            }
+            writer.commit().unwrap();
+            std::fs::write(dir.join("INDEX_FORMAT"), "2\n").unwrap();
+        };
+        let email = SchemaTools::email_schema();
+        let doc = legacy_doc(
+            &email,
+            &[
+                ("id", text("eid-1")),
+                ("account_id", OwnedValue::U64(1)),
+                ("subject", text("洗澡间灯泡更换")),
+                ("content_hash", text(&hash("ab"))),
+            ],
+        );
+        format_2_index(&dirs.envelope_dir, email, vec![doc]);
+        format_2_index(
+            &dirs.attachment_dir,
+            SchemaTools::attachment_schema(),
+            vec![],
+        );
+        drop(BlobGuard::open(&dirs.blobs_dir).unwrap());
+        let paths = AutoMigratePaths {
+            root_dir: root,
+            index_dir: None,
+            data_dir: None,
+        };
+        let (index, s) = searcher(&dirs.envelope_dir);
+        assert_eq!(hits(&index, &s, f.f_subject, "灯泡"), 0, "before");
+        drop((index, s));
+
+        assert!(reindex_required(&paths));
+        reindex(&paths, false)
+            .unwrap()
+            .expect("format 2 is rebuilt");
+
+        let (index, s) = searcher(&dirs.envelope_dir);
+        assert_eq!(hits(&index, &s, f.f_subject, "灯泡"), 1);
+        assert_eq!(hits(&index, &s, f.f_subject, "洗澡间灯泡更换"), 1);
+    }
+
     #[test]
     fn a_current_index_is_only_rebuilt_when_forced() {
         let (_tmp, paths) = seed_legacy_root();
@@ -1298,6 +1365,59 @@ mod tests {
         assert_ne!(forced.backup_dir, first.backup_dir);
         assert!(first.backup_dir.is_dir());
         assert!(forced.backup_dir.is_dir());
+    }
+
+    /// What a mailboxd before format 3 does with an index it accepts: commit
+    /// without the writer stamp.
+    fn commit_like_an_older_version(dir: &Path) {
+        let index = Index::open_in_dir(dir).unwrap();
+        let mut writer: IndexWriter = index.writer_with_num_threads(1, 15_000_000).unwrap();
+        writer.commit().unwrap();
+        writer.wait_merging_threads().unwrap();
+    }
+
+    #[test]
+    fn an_index_an_older_version_wrote_to_is_rebuilt() {
+        let (_tmp, paths) = seed_legacy_root();
+        let dirs = resolve(&paths);
+        reindex(&paths, false).unwrap().unwrap();
+        assert_eq!(reindex(&paths, false).unwrap(), None);
+
+        commit_like_an_older_version(&dirs.envelope_dir);
+
+        assert!(reindex_required(&paths));
+        let outcome = reindex(&paths, false)
+            .unwrap()
+            .expect("rebuilt after an older version wrote to it");
+        assert_eq!(outcome.emails, 2);
+        assert_eq!(outcome.attachments, 2);
+        assert!(!reindex_required(&paths));
+    }
+
+    /// Installs that run the earlier CJK build hold format 3 indexes without
+    /// stamps. They move to the current format without a rebuild.
+    #[test]
+    fn a_version_3_index_is_adopted_without_a_rebuild() {
+        let (_tmp, paths) = seed_legacy_root();
+        let dirs = resolve(&paths);
+        reindex(&paths, false).unwrap().unwrap();
+        for dir in [&dirs.envelope_dir, &dirs.attachment_dir] {
+            commit_like_an_older_version(dir);
+            std::fs::write(dir.join("INDEX_FORMAT"), "3\n").unwrap();
+        }
+        assert!(reindex_required(&paths), "not adopted yet");
+
+        assert_eq!(reindex(&paths, false).unwrap(), None);
+
+        for dir in [&dirs.envelope_dir, &dirs.attachment_dir] {
+            assert_eq!(check_index_format(dir), IndexFormatStatus::Current);
+            assert_eq!(
+                read_index_format_version(dir),
+                Some(CURRENT_INDEX_FORMAT_VERSION)
+            );
+        }
+        let (_, s) = searcher(&dirs.envelope_dir);
+        assert_eq!(s.num_docs(), 2, "documents kept");
     }
 
     #[test]
@@ -1792,7 +1912,12 @@ mod tests {
 
         let message = format!("{error:?}");
         assert!(message.contains("validation of the rebuilt email index"));
-        assert!(message.contains("not marked as format v2"), "{message}");
+        assert!(
+            message.contains(&format!(
+                "not marked as format v{CURRENT_INDEX_FORMAT_VERSION}"
+            )),
+            "{message}"
+        );
     }
 
     #[test]
