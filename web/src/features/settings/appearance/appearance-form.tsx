@@ -185,6 +185,64 @@ export function AppearanceForm() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 w-full">
                     <FormField
                         control={form.control}
+                        name='theme'
+                        render={({ field }) => (
+                            <FormItem className="space-y-4">
+                                <div>
+                                    <FormLabel className="text-base">{t('settings.appearance.field.theme')}</FormLabel>
+                                    <FormDescription>{t('settings.appearance.description.theme')}</FormDescription>
+                                </div>
+                                <RadioGroup
+                                    onValueChange={(v) => {
+                                        setTheme(v as Theme);
+                                        field.onChange(v)
+                                    }}
+                                    defaultValue={field.value}
+                                    className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-2'
+                                >
+                                    {[...LIGHT_THEMES, ...DARK_THEMES].map((item) => {
+                                        const selected = field.value === item.value
+
+                                        return (
+                                            <Card
+                                                key={item.value}
+                                                onClick={() => {
+                                                    setTheme(item.value as Theme)
+                                                    field.onChange(item.value)
+                                                }}
+                                                className={cn(
+                                                    "cursor-pointer overflow-hidden border-2 transition-all hover:shadow-md",
+                                                    selected ? "border-primary shadow-md" : "border-muted opacity-80"
+                                                )}
+                                            >
+                                                <div className="p-2">
+                                                    <ThemePreview
+                                                        background={item.background}
+                                                        primary={item.color}
+                                                        muted={item.muted}
+                                                    />
+
+                                                    <div className="mt-2 flex items-center justify-between">
+                                                        <span className="text-[11px] font-medium uppercase truncate">
+                                                            {t(item.labelKey)}
+                                                        </span>
+
+                                                        {selected && (
+                                                            <CheckIcon className="h-3.5 w-3.5 text-primary" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        )
+                                    })}
+                                </RadioGroup>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
                         name='language'
                         render={({ field }) => (
                             <FormItem className='flex flex-col'>
@@ -305,64 +363,6 @@ export function AppearanceForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name='theme'
-                        render={({ field }) => (
-                            <FormItem className="space-y-4">
-                                <div>
-                                    <FormLabel className="text-base">{t('settings.appearance.field.theme')}</FormLabel>
-                                    <FormDescription>{t('settings.appearance.description.theme')}</FormDescription>
-                                </div>
-                                <RadioGroup
-                                    onValueChange={(v) => {
-                                        setTheme(v as Theme);
-                                        field.onChange(v)
-                                    }}
-                                    defaultValue={field.value}
-                                    className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-2'
-                                >
-                                    {[...LIGHT_THEMES, ...DARK_THEMES].map((item) => {
-                                        const selected = field.value === item.value
-
-                                        return (
-                                            <Card
-                                                key={item.value}
-                                                onClick={() => {
-                                                    setTheme(item.value as Theme)
-                                                    field.onChange(item.value)
-                                                }}
-                                                className={cn(
-                                                    "cursor-pointer overflow-hidden border-2 transition-all hover:shadow-md",
-                                                    selected ? "border-primary shadow-md" : "border-muted opacity-80"
-                                                )}
-                                            >
-                                                <div className="p-2">
-                                                    <ThemePreview
-                                                        background={item.background}
-                                                        primary={item.color}
-                                                        muted={item.muted}
-                                                    />
-
-                                                    <div className="mt-2 flex items-center justify-between">
-                                                        <span className="text-[11px] font-medium uppercase truncate">
-                                                            {t(item.labelKey)}
-                                                        </span>
-
-                                                        {selected && (
-                                                            <CheckIcon className="h-3.5 w-3.5 text-primary" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        )
-                                    })}
-                                </RadioGroup>
                                 <FormMessage />
                             </FormItem>
                         )}
