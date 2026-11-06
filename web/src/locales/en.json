@@ -1479,6 +1479,19 @@
       "button": {
         "update": "Update preferences"
       },
+      "columns": {
+        "always_visible": "Always shown",
+        "dnd": {
+          "cancel": "Moving {{column}} was cancelled.",
+          "end": "{{column}} dropped at position {{position}}.",
+          "instructions": "To pick up a column, press space or enter. Use the arrow keys to move it, space or enter to drop it, and escape to cancel.",
+          "over": "{{column}} moved to position {{position}}.",
+          "start": "Picked up {{column}} at position {{position}}."
+        },
+        "move": "Move {{column}}",
+        "reset": "Restore default columns",
+        "show": "Show {{column}}"
+      },
       "command": {
         "no_results": "No language found.",
         "search": "Search language..."
@@ -1489,7 +1502,7 @@
         "migration_failed": "Your date format could not be saved to your profile. It will be tried again on the next page load."
       },
       "description": {
-        "account_columns": "Choose which columns the accounts table shows. Your choice is saved to your profile.",
+        "account_columns": "Drag the columns into the order you want and switch off the ones you do not need. Your choice is saved to your profile.",
         "date_format": "Use Moment.js tokens such as DD, MM, YYYY, HH and mm. Text in [brackets] is shown as written. Leave a field empty to use the language default.",
         "language": "Select the language used in the Web UI.",
         "theme": "Choose between light or dark mode for the interface."

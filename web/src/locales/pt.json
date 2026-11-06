@@ -1443,6 +1443,19 @@
       "button": {
         "update": "Atualizar preferências"
       },
+      "columns": {
+        "always_visible": "Sempre visível",
+        "dnd": {
+          "cancel": "A movimentação de {{column}} foi cancelada.",
+          "end": "{{column}} largada na posição {{position}}.",
+          "instructions": "Para pegar numa coluna, prima espaço ou enter. Mova-a com as setas, largue-a com espaço ou enter e cancele com escape.",
+          "over": "{{column}} movida para a posição {{position}}.",
+          "start": "{{column}} pegada na posição {{position}}."
+        },
+        "move": "Mover {{column}}",
+        "reset": "Repor colunas predefinidas",
+        "show": "Mostrar {{column}}"
+      },
       "command": {
         "no_results": "Nenhum idioma encontrado.",
         "search": "Pesquisar idioma..."
@@ -1453,7 +1466,7 @@
         "migration_failed": "Não foi possível guardar o seu formato de data no seu perfil. Será tentado novamente no próximo carregamento da página."
       },
       "description": {
-        "account_columns": "Escolha quais colunas a tabela de contas mostra. A sua escolha é guardada no seu perfil.",
+        "account_columns": "Arraste as colunas para a ordem pretendida e desative as que não precisa. A sua escolha é guardada no seu perfil.",
         "date_format": "Use tokens do Moment.js como DD, MM, YYYY, HH e mm. O texto entre [colchetes] é exibido como está. Deixe um campo vazio para usar o padrão do idioma.",
         "language": "Selecione o idioma da interface web.",
         "theme": "Escolha entre o modo claro ou escuro."

@@ -1443,6 +1443,19 @@
       "button": {
         "update": "Aktualizuj preferencje"
       },
+      "columns": {
+        "always_visible": "Zawsze widoczna",
+        "dnd": {
+          "cancel": "Anulowano przenoszenie {{column}}.",
+          "end": "Upuszczono {{column}} na pozycji {{position}}.",
+          "instructions": "Aby podnieść kolumnę, naciśnij spację lub enter. Przesuwaj ją strzałkami, upuść spacją lub enterem, a anuluj klawiszem escape.",
+          "over": "Przeniesiono {{column}} na pozycję {{position}}.",
+          "start": "Podniesiono {{column}} na pozycji {{position}}."
+        },
+        "move": "Przenieś {{column}}",
+        "reset": "Przywróć domyślne kolumny",
+        "show": "Pokaż {{column}}"
+      },
       "command": {
         "no_results": "Nie znaleziono języka.",
         "search": "Szukaj języka..."
@@ -1453,7 +1466,7 @@
         "migration_failed": "Nie udało się zapisać formatu daty w Twoim profilu. Ponowna próba nastąpi przy następnym wczytaniu strony."
       },
       "description": {
-        "account_columns": "Wybierz, które kolumny pokazuje tabela kont. Wybór jest zapisywany w Twoim profilu.",
+        "account_columns": "Przeciągnij kolumny w wybranej kolejności i wyłącz te, których nie potrzebujesz. Wybór jest zapisywany w Twoim profilu.",
         "date_format": "Użyj tokenów Moment.js, takich jak DD, MM, YYYY, HH i mm. Tekst w [nawiasach kwadratowych] jest wyświetlany bez zmian. Pozostaw pole puste, aby użyć formatu języka.",
         "language": "Wybierz język interfejsu webowego.",
         "theme": "Wybierz tryb jasny lub ciemny."

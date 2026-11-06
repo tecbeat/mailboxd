@@ -1443,6 +1443,19 @@
       "button": {
         "update": "Päivitä asetukset"
       },
+      "columns": {
+        "always_visible": "Näytetään aina",
+        "dnd": {
+          "cancel": "Sarakkeen {{column}} siirto peruttiin.",
+          "end": "{{column}} pudotettu kohtaan {{position}}.",
+          "instructions": "Poimi sarake painamalla välilyöntiä tai enteriä. Siirrä sitä nuolinäppäimillä, pudota välilyönnillä tai enterillä ja peru escapella.",
+          "over": "{{column}} siirretty kohtaan {{position}}.",
+          "start": "{{column}} poimittu kohdasta {{position}}."
+        },
+        "move": "Siirrä {{column}}",
+        "reset": "Palauta oletussarakkeet",
+        "show": "Näytä {{column}}"
+      },
       "command": {
         "no_results": "Kieltä ei löytynyt.",
         "search": "Hae kieltä..."
@@ -1453,7 +1466,7 @@
         "migration_failed": "Päivämäärämuotoa ei voitu tallentaa profiiliisi. Yritetään uudelleen, kun sivu ladataan seuraavan kerran."
       },
       "description": {
-        "account_columns": "Valitse, mitkä sarakkeet tilitaulukossa näytetään. Valintasi tallennetaan profiiliisi.",
+        "account_columns": "Vedä sarakkeet haluamaasi järjestykseen ja kytke pois ne, joita et tarvitse. Valintasi tallennetaan profiiliisi.",
         "date_format": "Käytä Moment.js-merkkejä, kuten DD, MM, YYYY, HH ja mm. [Hakasulkeissa] oleva teksti näytetään sellaisenaan. Jätä kenttä tyhjäksi käyttääksesi kielen oletusta.",
         "language": "Valitse Web-käyttöliittymässä käytettävä kieli.",
         "theme": "Valitse käyttöliittymän vaalea tai tumma tila."

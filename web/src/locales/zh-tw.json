@@ -1443,6 +1443,19 @@
       "button": {
         "update": "更新偏好設置"
       },
+      "columns": {
+        "always_visible": "一律顯示",
+        "dnd": {
+          "cancel": "已取消移動 {{column}}。",
+          "end": "{{column}} 已放置在位置 {{position}}。",
+          "instructions": "按空白鍵或 Enter 鍵拿起欄位。用方向鍵移動，按空白鍵或 Enter 鍵放下，按 Esc 鍵取消。",
+          "over": "{{column}} 已移動到位置 {{position}}。",
+          "start": "已在位置 {{position}} 拿起 {{column}}。"
+        },
+        "move": "移動 {{column}}",
+        "reset": "還原預設欄位",
+        "show": "顯示 {{column}}"
+      },
       "command": {
         "no_results": "未找到相關語言。",
         "search": "搜尋語言..."
@@ -1453,7 +1466,7 @@
         "migration_failed": "無法將日期格式儲存到您的個人資料。下次載入頁面時將重試。"
       },
       "description": {
-        "account_columns": "選擇帳戶表格中顯示的欄位。您的選擇會儲存到個人資料中。",
+        "account_columns": "拖曳欄位以調整為您想要的順序，並關閉不需要的欄位。您的選擇會儲存到個人資料中。",
         "date_format": "使用 Moment.js 格式符，例如 DD、MM、YYYY、HH 和 mm。[方括號] 中的文字按原樣顯示。留空則使用語言預設格式。",
         "language": "選擇網頁介面顯示的语言。",
         "theme": "為介面選擇淺色或深色顯示模式。"

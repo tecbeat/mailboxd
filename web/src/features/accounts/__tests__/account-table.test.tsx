@@ -18,7 +18,7 @@
 
 import { QueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
-import { act, screen } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import type { AccountModel } from '@/api/account/api'
@@ -31,13 +31,20 @@ const columns: ColumnDef<DataTableFeatures, AccountModel>[] = [
   { accessorKey: 'id', header: 'ID column' },
   { accessorKey: 'account_name', header: 'Name column' },
   { accessorKey: 'email', header: 'Email column' },
+  { id: 'actions', header: 'Actions column' },
 ]
+
+const headers = () => screen.getAllByRole('columnheader').map((header) => header.textContent)
 
 const account = { id: 7, account_name: 'Work', email: 'work@example.com' } as AccountModel
 
-function renderTable(hidden?: string[]) {
+function renderTable(hidden?: string[], order?: string[]) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  queryClient.setQueryData(['current-user'], { id: 1, hidden_columns: hidden ? { accounts: hidden } : undefined })
+  queryClient.setQueryData(['current-user'], {
+    id: 1,
+    hidden_columns: hidden ? { accounts: hidden } : undefined,
+    column_order: order ? { accounts: order } : undefined,
+  })
   renderWithProviders(<AccountTable columns={columns} data={[account]} />, { queryClient })
   return queryClient
 }
@@ -56,6 +63,29 @@ describe('AccountTable', () => {
     expect(screen.getByRole('columnheader', { name: 'Name column' })).toBeInTheDocument()
     // Email is not hideable, so a stale entry for it is ignored.
     expect(screen.getByRole('columnheader', { name: 'Email column' })).toBeInTheDocument()
+  })
+
+  it('shows the columns in definition order by default', () => {
+    renderTable()
+    expect(headers()).toEqual(['ID column', 'Name column', 'Email column', 'Actions column'])
+  })
+
+  it('shows the columns in the order of the profile, with actions last', () => {
+    renderTable(undefined, ['email', 'id'])
+    expect(headers()).toEqual(['Email column', 'ID column', 'Name column', 'Actions column'])
+  })
+
+  it('combines the stored order with hidden columns', () => {
+    renderTable(['id'], ['email', 'id', 'account_name'])
+    expect(headers()).toEqual(['Email column', 'Name column', 'Actions column'])
+  })
+
+  it('follows a new order without a reload', async () => {
+    const queryClient = renderTable()
+    act(() => {
+      queryClient.setQueryData(['current-user'], { id: 1, column_order: { accounts: ['account_name'] } })
+    })
+    await waitFor(() => expect(headers()[0]).toBe('Name column'))
   })
 
   it('follows profile updates without a reload', async () => {

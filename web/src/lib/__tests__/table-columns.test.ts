@@ -18,7 +18,29 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { HIDEABLE_COLUMNS, toColumnVisibility } from '../table-columns'
+import {
+  TABLE_COLUMNS,
+  defaultColumnSettings,
+  fromColumnSettings,
+  moveColumn,
+  toColumnOrder,
+  toColumnSettings,
+  toColumnVisibility,
+} from '../table-columns'
+
+const DEFAULT_ORDER = [
+  'id',
+  'account_name',
+  'email',
+  'enabled',
+  'auth_type',
+  'account_type',
+  'sync_interval_sec',
+  'running_state',
+  'created_by',
+  'created_at',
+  'updated_at',
+]
 
 describe('toColumnVisibility', () => {
   it('shows every column when nothing is hidden', () => {
@@ -37,10 +59,90 @@ describe('toColumnVisibility', () => {
     expect(toColumnVisibility('accounts', ['email', 'auth_type', 'enabled', 'nope'])).toEqual({})
   })
 
-  it('keeps email, auth and enabled out of the optional accounts columns', () => {
-    const ids = HIDEABLE_COLUMNS.accounts.map((column) => column.id as string)
+  it('never lets email, auth or enabled be hidden', () => {
+    const hideable = TABLE_COLUMNS.accounts.filter((c) => c.hideable).map((c) => c.id as string)
     for (const mandatory of ['email', 'auth_type', 'enabled', 'actions']) {
-      expect(ids).not.toContain(mandatory)
+      expect(hideable).not.toContain(mandatory)
     }
+  })
+})
+
+describe('toColumnOrder', () => {
+  it('uses the default order without a stored order', () => {
+    expect(toColumnOrder('accounts', undefined)).toEqual(DEFAULT_ORDER)
+    expect(toColumnOrder('accounts', [])).toEqual(DEFAULT_ORDER)
+  })
+
+  it('puts the stored columns first and the rest in default order', () => {
+    expect(toColumnOrder('accounts', ['updated_at', 'email'])).toEqual([
+      'updated_at',
+      'email',
+      ...DEFAULT_ORDER.filter((id) => id !== 'updated_at' && id !== 'email'),
+    ])
+  })
+
+  it('drops unknown, repeated and fixed columns from a stored order', () => {
+    expect(toColumnOrder('accounts', ['actions', 'nope', 'email', 'email'])).toEqual([
+      'email',
+      ...DEFAULT_ORDER.filter((id) => id !== 'email'),
+    ])
+  })
+})
+
+describe('column settings', () => {
+  it('shows every column in default order by default', () => {
+    expect(defaultColumnSettings('accounts')).toEqual(
+      DEFAULT_ORDER.map((id) => ({ id, visible: true })),
+    )
+  })
+
+  it('combines the stored order and hidden columns', () => {
+    const settings = toColumnSettings('accounts', { order: ['created_at', 'id'], hidden: ['id', 'email'] })
+    expect(settings.slice(0, 3)).toEqual([
+      { id: 'created_at', visible: true },
+      { id: 'id', visible: false },
+      { id: 'account_name', visible: true },
+    ])
+    expect(settings.find((s) => s.id === 'email')).toEqual({ id: 'email', visible: true })
+  })
+
+  it('round-trips through the profile values', () => {
+    const stored = { order: ['updated_at', 'email', 'id'], hidden: ['id', 'running_state'] }
+    const values = fromColumnSettings('accounts', toColumnSettings('accounts', stored))
+    expect(values.hidden.sort()).toEqual(['id', 'running_state'])
+    expect(values.order.slice(0, 3)).toEqual(['updated_at', 'email', 'id'])
+    expect(values.order).toHaveLength(DEFAULT_ORDER.length)
+  })
+
+  it('sends the default order as an empty list', () => {
+    expect(fromColumnSettings('accounts', defaultColumnSettings('accounts'))).toEqual({
+      order: [],
+      hidden: [],
+    })
+  })
+
+  it('never sends a mandatory column as hidden', () => {
+    const settings = defaultColumnSettings('accounts').map((s) => ({ ...s, visible: false }))
+    expect(fromColumnSettings('accounts', settings).hidden).not.toContain('email')
+  })
+})
+
+describe('moveColumn', () => {
+  const settings = ['a', 'b', 'c', 'd'].map((id) => ({ id, visible: id !== 'b' }))
+  const ids = (list: { id: string }[]) => list.map((s) => s.id)
+
+  it('moves a column down and up', () => {
+    expect(ids(moveColumn(settings, 'a', 'c'))).toEqual(['b', 'c', 'a', 'd'])
+    expect(ids(moveColumn(settings, 'd', 'b'))).toEqual(['a', 'd', 'b', 'c'])
+  })
+
+  it('keeps the visibility of the moved column', () => {
+    expect(moveColumn(settings, 'b', 'd')[3]).toEqual({ id: 'b', visible: false })
+  })
+
+  it('returns the same list when nothing moves', () => {
+    expect(moveColumn(settings, 'a', 'a')).toBe(settings)
+    expect(moveColumn(settings, 'a', undefined)).toBe(settings)
+    expect(moveColumn(settings, 'x', 'a')).toBe(settings)
   })
 })

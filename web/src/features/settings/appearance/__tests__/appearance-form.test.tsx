@@ -20,9 +20,10 @@
 import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/server'
+import { mockListLayout, rowOrder } from '@/test/list-layout'
 import { renderWithProviders } from '@/test/utils'
 import {
   LEGACY_DATE_PATTERN_STORAGE_KEYS,
@@ -103,32 +104,71 @@ describe('AppearanceForm date format', () => {
 })
 
 describe('AppearanceForm account table columns', () => {
-  it('shows the stored selection once the profile has loaded', async () => {
-    const { queryClient } = renderWithProviders(<AppearanceForm />)
-    queryClient.setQueryData(['current-user'], { id: 1, hidden_columns: { accounts: ['id'] } })
-
-    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ID' })).not.toBeChecked())
-    expect(screen.getByRole('checkbox', { name: 'Name' })).toBeChecked()
-    expect(screen.queryByRole('checkbox', { name: 'Email' })).not.toBeInTheDocument()
+  let restoreLayout: () => void
+  beforeEach(() => {
+    restoreLayout = mockListLayout()
   })
+  afterEach(() => restoreLayout())
 
-  it('saves the unchecked columns as hidden on the profile', async () => {
-    let body: { hidden_columns?: unknown } | undefined
+  function captureUpdate() {
+    const request: { body?: { hidden_columns?: unknown; column_order?: unknown } } = {}
     server.use(
-      http.post(`${BASE}/api/v1/users/1`, async ({ request }) => {
-        body = (await request.json()) as typeof body
+      http.post(`${BASE}/api/v1/users/1`, async ({ request: req }) => {
+        request.body = (await req.json()) as typeof request.body
         return HttpResponse.json(null)
       }),
     )
+    return request
+  }
+
+  it('shows the stored order and columns once the profile has loaded', async () => {
+    const { queryClient } = renderWithProviders(<AppearanceForm />)
+    queryClient.setQueryData(['current-user'], {
+      id: 1,
+      hidden_columns: { accounts: ['id'] },
+      column_order: { accounts: ['updated_at', 'email'] },
+    })
+
+    await waitFor(() => expect(rowOrder().slice(0, 2)).toEqual(['updated_at', 'email']))
+    expect(rowOrder()).toHaveLength(11)
+    expect(screen.getByRole('switch', { name: 'Show ID' })).not.toBeChecked()
+    expect(screen.getByRole('switch', { name: 'Show Name' })).toBeChecked()
+  })
+
+  it('saves the switched off columns and the new order to the profile', async () => {
+    const update = captureUpdate()
     const { queryClient } = renderWithProviders(<AppearanceForm />)
     queryClient.setQueryData(['current-user'], { id: 1, hidden_columns: { accounts: ['id'] } })
-    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ID' })).not.toBeChecked())
+    await waitFor(() => expect(screen.getByRole('switch', { name: 'Show ID' })).not.toBeChecked())
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'ID' }))
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Name' }))
+    await userEvent.click(screen.getByRole('switch', { name: 'Show ID' }))
+    await userEvent.click(screen.getByRole('switch', { name: 'Show Name' }))
+    screen.getByRole('button', { name: 'Move Updated At' }).focus()
+    await userEvent.keyboard('[Space]')
+    for (let i = 0; i < 10; i++) await userEvent.keyboard('[ArrowUp]')
+    await userEvent.keyboard('[Space]')
     await userEvent.click(screen.getByRole('button', { name: 'Update preferences' }))
 
-    await waitFor(() => expect(body).toBeDefined())
-    expect(body?.hidden_columns).toEqual({ accounts: ['account_name'] })
+    await waitFor(() => expect(update.body).toBeDefined())
+    expect(update.body?.hidden_columns).toEqual({ accounts: ['account_name'] })
+    expect((update.body?.column_order as { accounts: string[] }).accounts.slice(0, 2)).toEqual(['updated_at', 'id'])
+  })
+
+  it('saves the default columns after a reset', async () => {
+    const update = captureUpdate()
+    const { queryClient } = renderWithProviders(<AppearanceForm />)
+    queryClient.setQueryData(['current-user'], {
+      id: 1,
+      hidden_columns: { accounts: ['id', 'created_by'] },
+      column_order: { accounts: ['updated_at'] },
+    })
+    await waitFor(() => expect(rowOrder()[0]).toBe('updated_at'))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Restore default columns' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Update preferences' }))
+
+    await waitFor(() => expect(update.body).toBeDefined())
+    expect(update.body?.hidden_columns).toEqual({ accounts: [] })
+    expect(update.body?.column_order).toEqual({ accounts: [] })
   })
 })

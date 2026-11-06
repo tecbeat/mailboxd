@@ -1443,6 +1443,19 @@
       "button": {
         "update": "Uppdatera inställningar"
       },
+      "columns": {
+        "always_visible": "Visas alltid",
+        "dnd": {
+          "cancel": "Flytten av {{column}} avbröts.",
+          "end": "{{column}} släpptes på position {{position}}.",
+          "instructions": "Tryck på blanksteg eller enter för att plocka upp en kolumn. Flytta den med piltangenterna, släpp den med blanksteg eller enter och avbryt med escape.",
+          "over": "{{column}} flyttades till position {{position}}.",
+          "start": "{{column}} plockades upp på position {{position}}."
+        },
+        "move": "Flytta {{column}}",
+        "reset": "Återställ standardkolumner",
+        "show": "Visa {{column}}"
+      },
       "command": {
         "no_results": "Inget språk hittades.",
         "search": "Sök språk..."
@@ -1453,7 +1466,7 @@
         "migration_failed": "Ditt datumformat kunde inte sparas i din profil. Det försöks igen nästa gång sidan läses in."
       },
       "description": {
-        "account_columns": "Välj vilka kolumner kontotabellen visar. Ditt val sparas i din profil.",
+        "account_columns": "Dra kolumnerna i den ordning du vill och stäng av dem du inte behöver. Ditt val sparas i din profil.",
         "date_format": "Använd Moment.js-koder som DD, MM, YYYY, HH och mm. Text inom [hakparenteser] visas som den är. Lämna ett fält tomt för att använda språkets standard.",
         "language": "Välj språk för webbanvändargränssnittet.",
         "theme": "Välj mellan ljust eller mörkt läge för gränssnittet."

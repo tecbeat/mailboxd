@@ -1443,6 +1443,19 @@
       "button": {
         "update": "Mettre à jour les préférences"
       },
+      "columns": {
+        "always_visible": "Toujours affichée",
+        "dnd": {
+          "cancel": "Le déplacement de {{column}} a été annulé.",
+          "end": "{{column}} déposée à la position {{position}}.",
+          "instructions": "Pour saisir une colonne, appuyez sur espace ou entrée. Déplacez-la avec les flèches, déposez-la avec espace ou entrée, et annulez avec échap.",
+          "over": "{{column}} déplacée à la position {{position}}.",
+          "start": "{{column}} saisie à la position {{position}}."
+        },
+        "move": "Déplacer {{column}}",
+        "reset": "Rétablir les colonnes par défaut",
+        "show": "Afficher {{column}}"
+      },
       "command": {
         "no_results": "Aucune langue trouvée.",
         "search": "Rechercher une langue..."
@@ -1453,7 +1466,7 @@
         "migration_failed": "Votre format de date n'a pas pu être enregistré dans votre profil. Une nouvelle tentative aura lieu au prochain chargement de la page."
       },
       "description": {
-        "account_columns": "Choisissez les colonnes affichées dans le tableau des comptes. Votre choix est enregistré dans votre profil.",
+        "account_columns": "Faites glisser les colonnes dans l'ordre souhaité et désactivez celles dont vous n'avez pas besoin. Votre choix est enregistré dans votre profil.",
         "date_format": "Utilisez les jetons Moment.js comme DD, MM, YYYY, HH et mm. Le texte entre [crochets] est affiché tel quel. Laissez un champ vide pour utiliser le format de la langue.",
         "language": "Choisissez la langue de l'interface web.",
         "theme": "Choisissez entre le mode clair ou sombre."
