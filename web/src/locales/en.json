@@ -1485,7 +1485,8 @@
       },
       "date_pattern": {
         "default_example": "Language default: {{example}}",
-        "example": "Example: {{example}}"
+        "example": "Example: {{example}}",
+        "migration_failed": "Your date format could not be saved to your profile. It will be tried again on the next page load."
       },
       "description": {
         "account_columns": "Choose which columns the accounts table shows. Your choice is saved to your profile.",

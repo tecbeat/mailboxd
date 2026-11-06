@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "Kielen oletus: {{example}}",
-        "example": "Esimerkki: {{example}}"
+        "example": "Esimerkki: {{example}}",
+        "migration_failed": "Päivämäärämuotoa ei voitu tallentaa profiiliisi. Yritetään uudelleen, kun sivu ladataan seuraavan kerran."
       },
       "description": {
         "account_columns": "Valitse, mitkä sarakkeet tilitaulukossa näytetään. Valintasi tallennetaan profiiliisi.",

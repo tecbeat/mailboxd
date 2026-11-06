@@ -144,12 +144,19 @@ export function AppearanceForm() {
         form.resetField('hiddenAccountColumns', { defaultValue: storedHiddenAccountColumns ?? [] })
     }, [form, storedHiddenAccountColumns])
 
+    useEffect(() => {
+        if (!form.getFieldState('datePattern').isDirty) form.resetField('datePattern', { defaultValue: datePattern })
+        if (!form.getFieldState('dateTimePattern').isDirty) form.resetField('dateTimePattern', { defaultValue: dateTimePattern })
+    }, [form, datePattern, dateTimePattern])
+
     const mutation = useMutation({
-        mutationFn: async ({ theme, language, hiddenAccountColumns }: AppearanceFormValues) => {
+        mutationFn: async ({ theme, language, hiddenAccountColumns, datePattern, dateTimePattern }: AppearanceFormValues) => {
             return update_user(user!.id, {
                 theme,
                 language,
                 hidden_columns: { accounts: hiddenAccountColumns },
+                date_pattern: datePattern.trim(),
+                date_time_pattern: dateTimePattern.trim(),
             })
         },
         onSuccess: () => {

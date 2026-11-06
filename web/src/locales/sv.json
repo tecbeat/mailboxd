@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "Språkets standard: {{example}}",
-        "example": "Exempel: {{example}}"
+        "example": "Exempel: {{example}}",
+        "migration_failed": "Ditt datumformat kunde inte sparas i din profil. Det försöks igen nästa gång sidan läses in."
       },
       "description": {
         "account_columns": "Välj vilka kolumner kontotabellen visar. Ditt val sparas i din profil.",

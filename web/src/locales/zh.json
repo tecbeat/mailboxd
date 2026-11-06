@@ -1459,7 +1459,8 @@
       },
       "date_pattern": {
         "default_example": "语言默认：{{example}}",
-        "example": "示例：{{example}}"
+        "example": "示例：{{example}}",
+        "migration_failed": "无法将日期格式保存到您的个人资料。下次加载页面时将重试。"
       },
       "description": {
         "account_columns": "选择账户表格中显示的列。您的选择会保存到个人资料中。",

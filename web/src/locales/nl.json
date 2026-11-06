@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "Standaard van de taal: {{example}}",
-        "example": "Voorbeeld: {{example}}"
+        "example": "Voorbeeld: {{example}}",
+        "migration_failed": "Je datumnotatie kon niet in je profiel worden opgeslagen. Dit wordt opnieuw geprobeerd bij het volgende laden van de pagina."
       },
       "description": {
         "account_columns": "Kies welke kolommen de accounttabel toont. Je keuze wordt in je profiel opgeslagen.",

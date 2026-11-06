@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "Format der Sprache: {{example}}",
-        "example": "Beispiel: {{example}}"
+        "example": "Beispiel: {{example}}",
+        "migration_failed": "Ihr Datumsformat konnte nicht in Ihrem Profil gespeichert werden. Beim nächsten Laden der Seite wird es erneut versucht."
       },
       "description": {
         "account_columns": "Wählen Sie, welche Spalten die Kontentabelle anzeigt. Die Auswahl wird in Ihrem Profil gespeichert.",

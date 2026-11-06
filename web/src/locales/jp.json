@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "言語の既定: {{example}}",
-        "example": "例: {{example}}"
+        "example": "例: {{example}}",
+        "migration_failed": "日付形式をプロフィールに保存できませんでした。次回ページを読み込むときに再試行します。"
       },
       "description": {
         "account_columns": "アカウント一覧に表示する列を選択します。選択内容はプロフィールに保存されます。",

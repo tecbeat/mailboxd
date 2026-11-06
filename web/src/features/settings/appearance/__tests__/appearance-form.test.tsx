@@ -17,14 +17,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/test/server'
 import { renderWithProviders } from '@/test/utils'
-import { DATE_PATTERN_STORAGE_KEYS } from '@/hooks/use-date-format'
+import {
+  LEGACY_DATE_PATTERN_STORAGE_KEYS,
+  readDatePattern,
+  setDatePatterns,
+} from '@/hooks/use-date-format'
 
 import { AppearanceForm } from '../appearance-form'
 
@@ -41,9 +45,9 @@ vi.stubGlobal(
 const BASE = 'http://localhost:15630'
 
 describe('AppearanceForm date format', () => {
-  afterEach(() => localStorage.clear())
+  afterEach(() => setDatePatterns({ date: '', dateTime: '' }))
 
-  it('stores the typed patterns locally and sends no patterns to the server', async () => {
+  it('saves the typed patterns to the profile', async () => {
     let body: unknown
     server.use(
       http.post(`${BASE}/api/v1/users/1`, async ({ request }) => {
@@ -61,9 +65,11 @@ describe('AppearanceForm date format', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Update preferences' }))
 
     await waitFor(() => expect(body).toBeDefined())
-    expect(localStorage.getItem(DATE_PATTERN_STORAGE_KEYS.date)).toBe('MM.YY')
-    expect(localStorage.getItem(DATE_PATTERN_STORAGE_KEYS.dateTime)).toBe('MM.DD.YYYY HH:mm')
-    expect(Object.keys(body as object).sort()).toEqual(['hidden_columns', 'language', 'theme'])
+    expect(body).toMatchObject({ date_pattern: 'MM.YY', date_time_pattern: 'MM.DD.YYYY HH:mm' })
+    expect(readDatePattern('date')).toBe('MM.YY')
+    expect(readDatePattern('dateTime')).toBe('MM.DD.YYYY HH:mm')
+    expect(localStorage.getItem(LEGACY_DATE_PATTERN_STORAGE_KEYS.date)).toBeNull()
+    expect(localStorage.getItem(LEGACY_DATE_PATTERN_STORAGE_KEYS.dateTime)).toBeNull()
   })
 
   it('cannot be saved while a pattern is invalid', async () => {
@@ -79,13 +85,20 @@ describe('AppearanceForm date format', () => {
     expect(screen.getAllByText(/^Language default: /)).toHaveLength(2)
   })
 
-  it('fills in the stored patterns', () => {
-    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.date, 'YYYY-MM-DD')
+  it('fills in the patterns of the profile', () => {
+    setDatePatterns({ date: 'YYYY-MM-DD', dateTime: '' })
     renderWithProviders(<AppearanceForm />)
 
     expect(screen.getByRole('textbox', { name: 'Date' })).toHaveValue('YYYY-MM-DD')
     expect(screen.getByRole('textbox', { name: 'Date and time' })).toHaveValue('')
     expect(screen.getByText('Example: 2026-01-31')).toBeInTheDocument()
+  })
+
+  it('takes over patterns that arrive after the form opened', () => {
+    renderWithProviders(<AppearanceForm />)
+    act(() => setDatePatterns({ date: 'YYYY-MM-DD', dateTime: '' }))
+
+    expect(screen.getByRole('textbox', { name: 'Date' })).toHaveValue('YYYY-MM-DD')
   })
 })
 

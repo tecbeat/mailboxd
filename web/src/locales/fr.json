@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "Format de la langue : {{example}}",
-        "example": "Exemple : {{example}}"
+        "example": "Exemple : {{example}}",
+        "migration_failed": "Votre format de date n'a pas pu être enregistré dans votre profil. Une nouvelle tentative aura lieu au prochain chargement de la page."
       },
       "description": {
         "account_columns": "Choisissez les colonnes affichées dans le tableau des comptes. Votre choix est enregistré dans votre profil.",

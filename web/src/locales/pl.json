@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "Format języka: {{example}}",
-        "example": "Przykład: {{example}}"
+        "example": "Przykład: {{example}}",
+        "migration_failed": "Nie udało się zapisać formatu daty w Twoim profilu. Ponowna próba nastąpi przy następnym wczytaniu strony."
       },
       "description": {
         "account_columns": "Wybierz, które kolumny pokazuje tabela kont. Wybór jest zapisywany w Twoim profilu.",

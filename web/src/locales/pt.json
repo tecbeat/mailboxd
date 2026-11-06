@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "Padrão do idioma: {{example}}",
-        "example": "Exemplo: {{example}}"
+        "example": "Exemplo: {{example}}",
+        "migration_failed": "Não foi possível guardar o seu formato de data no seu perfil. Será tentado novamente no próximo carregamento da página."
       },
       "description": {
         "account_columns": "Escolha quais colunas a tabela de contas mostra. A sua escolha é guardada no seu perfil.",

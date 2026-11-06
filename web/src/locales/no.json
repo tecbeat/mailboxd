@@ -1449,7 +1449,8 @@
       },
       "date_pattern": {
         "default_example": "Språkets standard: {{example}}",
-        "example": "Eksempel: {{example}}"
+        "example": "Eksempel: {{example}}",
+        "migration_failed": "Datoformatet ditt kunne ikke lagres i profilen din. Det prøves på nytt neste gang siden lastes inn."
       },
       "description": {
         "account_columns": "Velg hvilke kolonner kontotabellen viser. Valget lagres i profilen din.",
