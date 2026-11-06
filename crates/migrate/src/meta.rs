@@ -579,6 +579,7 @@ impl From<MailboxdUserV2> for mailboxd_core::users::MailboxdUserV2 {
             sso_id: None,
             sso_provider: None,
             mfa: Default::default(),
+            hidden_columns: Default::default(),
         }
     }
 }

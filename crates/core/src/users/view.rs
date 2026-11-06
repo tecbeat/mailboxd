@@ -23,7 +23,7 @@ use std::collections::BTreeMap;
 //use poem_openapi::Object;
 use serde::{Deserialize, Serialize};
 
-use crate::users::acl::AccessControl;
+use crate::users::{acl::AccessControl, preferences::HiddenColumns};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
@@ -63,4 +63,7 @@ pub struct UserView {
     /// recovery codes never leave the server.
     #[serde(default)]
     pub totp_enabled: bool,
+    /// Hidden Web UI table columns, per table.
+    #[serde(default)]
+    pub hidden_columns: HiddenColumns,
 }

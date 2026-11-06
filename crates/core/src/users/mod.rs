@@ -32,6 +32,7 @@ use crate::{
         mfa::{MfaChallenge, MfaState},
         payload::{UserCreateRequest, UserUpdateRequest},
         permissions::Permission,
+        preferences::{merge_hidden_columns, HiddenColumns},
         role::{UserRole, DEFAULT_ADMIN_ROLE_ID},
         view::UserView,
     },
@@ -52,6 +53,7 @@ pub mod mfa;
 pub mod minimal;
 pub mod payload;
 pub mod permissions;
+pub mod preferences;
 pub mod role;
 pub mod view;
 
@@ -173,6 +175,10 @@ pub struct MailboxdUserV2 {
     /// Two-factor authentication; absent in records from before #76.
     #[serde(default)]
     pub mfa: MfaState,
+
+    /// Hidden Web UI table columns, per table.
+    #[serde(default)]
+    pub hidden_columns: HiddenColumns,
 }
 
 impl MemDbModel for MailboxdUserV2 {
@@ -235,6 +241,9 @@ fn apply_user_update(current: &UserModel, request: UserUpdateRequest) -> Mailbox
     }
     if let Some(language) = request.language {
         updated.language = Some(language);
+    }
+    if let Some(hidden_columns) = request.hidden_columns {
+        merge_hidden_columns(&mut updated.hidden_columns, hidden_columns);
     }
 
     updated.updated_at = utc_now!();
@@ -339,6 +348,7 @@ impl MailboxdUserV2 {
             sso_id: self.sso_id,
             sso_provider: self.sso_provider,
             totp_enabled: self.mfa.totp_enabled,
+            hidden_columns: self.hidden_columns,
         }
     }
 
@@ -376,6 +386,7 @@ impl MailboxdUserV2 {
                 sso_id: None,
                 sso_provider: None,
                 mfa: MfaState::default(),
+                hidden_columns: HiddenColumns::default(),
             };
 
             // 3. Generate and insert an initial access token for the first-time setup
@@ -568,6 +579,7 @@ impl MailboxdUserV2 {
             sso_id: Some(subject.to_string()),
             sso_provider: Some(provider.to_string()),
             mfa: MfaState::default(),
+            hidden_columns: HiddenColumns::default(),
         };
 
         let user_clone = new_user.clone();
@@ -632,6 +644,7 @@ impl MailboxdUserV2 {
             sso_id: None,
             sso_provider: None,
             mfa: MfaState::default(),
+            hidden_columns: HiddenColumns::default(),
         };
 
         let user_clone = user.clone();
@@ -1009,6 +1022,47 @@ mod tests {
                 needs_upgrade: false
             }
         );
+    }
+
+    #[test]
+    fn apply_user_update_replaces_the_hidden_columns_of_a_table() {
+        let current = UserModel {
+            hidden_columns: [("accounts".to_string(), ["id".to_string()].into())].into(),
+            ..Default::default()
+        };
+        let request = UserUpdateRequest {
+            hidden_columns: Some(
+                [("accounts".to_string(), ["created_at".to_string()].into())].into(),
+            ),
+            ..Default::default()
+        };
+        let updated = apply_user_update(&current, request).unwrap();
+        assert_eq!(
+            updated.hidden_columns,
+            [("accounts".to_string(), ["created_at".to_string()].into())].into()
+        );
+    }
+
+    #[test]
+    fn apply_user_update_keeps_hidden_columns_when_not_sent() {
+        let current = UserModel {
+            hidden_columns: [("accounts".to_string(), ["id".to_string()].into())].into(),
+            ..Default::default()
+        };
+        let request = UserUpdateRequest {
+            theme: Some("dark".to_string()),
+            ..Default::default()
+        };
+        let updated = apply_user_update(&current, request).unwrap();
+        assert_eq!(updated.hidden_columns, current.hidden_columns);
+    }
+
+    #[test]
+    fn users_stored_before_hidden_columns_load_with_every_column_shown() {
+        let mut stored = serde_json::to_value(UserModel::default()).unwrap();
+        stored.as_object_mut().unwrap().remove("hidden_columns");
+        let user: UserModel = serde_json::from_value(stored).unwrap();
+        assert!(user.hidden_columns.is_empty());
     }
 
     #[test]

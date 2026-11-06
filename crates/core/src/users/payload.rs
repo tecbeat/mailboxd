@@ -26,6 +26,7 @@ use crate::{
         users::{
             acl::AccessControl,
             permissions::{Permission, VALID_PERMISSION_SET},
+            preferences::{validate_hidden_columns, HiddenColumns},
             role::{RoleType, UserRole},
         },
         utils::decode_avatar_bytes,
@@ -372,6 +373,8 @@ pub struct UserUpdateRequest {
     pub description: Option<String>,
     pub theme: Option<String>,
     pub language: Option<String>,
+    /// Hidden columns of the listed tables; tables left out keep theirs.
+    pub hidden_columns: Option<HiddenColumns>,
 }
 
 impl UserUpdateRequest {
@@ -398,6 +401,9 @@ impl UserUpdateRequest {
 
         validate_theme(&self.theme)?;
         validate_language(&self.language)?;
+        if let Some(hidden_columns) = &self.hidden_columns {
+            validate_hidden_columns(hidden_columns)?;
+        }
 
         let all_roles = UserRole::list_all()?;
         let role_type_map: HashMap<u64, RoleType> =

@@ -420,6 +420,7 @@ impl Account {
                 description: None,
                 theme: None,
                 language: None,
+                hidden_columns: None,
             },
         )?;
 
