@@ -1452,11 +1452,13 @@
         "example": "Ejemplo: {{example}}"
       },
       "description": {
+        "account_columns": "Elige qué columnas muestra la tabla de cuentas. Tu elección se guarda en tu perfil.",
         "date_format": "Usa tokens de Moment.js como DD, MM, YYYY, HH y mm. El texto entre [corchetes] se muestra tal cual. Deja un campo vacío para usar el formato del idioma.",
         "language": "Seleccione el idioma de la interfaz web.",
         "theme": "Elija entre el modo claro u oscuro."
       },
       "field": {
+        "account_columns": "Columnas de la tabla de cuentas",
         "date_format": "Formato de fecha",
         "date_pattern": "Fecha",
         "date_time_pattern": "Fecha y hora",

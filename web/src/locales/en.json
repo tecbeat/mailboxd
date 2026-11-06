@@ -1488,11 +1488,13 @@
         "example": "Example: {{example}}"
       },
       "description": {
+        "account_columns": "Choose which columns the accounts table shows. Your choice is saved to your profile.",
         "date_format": "Use Moment.js tokens such as DD, MM, YYYY, HH and mm. Text in [brackets] is shown as written. Leave a field empty to use the language default.",
         "language": "Select the language used in the Web UI.",
         "theme": "Choose between light or dark mode for the interface."
       },
       "field": {
+        "account_columns": "Accounts table columns",
         "date_format": "Date format",
         "date_pattern": "Date",
         "date_time_pattern": "Date and time",

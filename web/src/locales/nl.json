@@ -1452,11 +1452,13 @@
         "example": "Voorbeeld: {{example}}"
       },
       "description": {
+        "account_columns": "Kies welke kolommen de accounttabel toont. Je keuze wordt in je profiel opgeslagen.",
         "date_format": "Gebruik Moment.js-tokens zoals DD, MM, YYYY, HH en mm. Tekst tussen [vierkante haken] wordt letterlijk getoond. Laat een veld leeg voor de standaard van de taal.",
         "language": "Selecteer de taal voor de webinterface.",
         "theme": "Kies tussen de lichte of donkere modus voor de interface."
       },
       "field": {
+        "account_columns": "Kolommen van de accounttabel",
         "date_format": "Datumnotatie",
         "date_pattern": "Datum",
         "date_time_pattern": "Datum en tijd",

@@ -1452,11 +1452,13 @@
         "example": "範例：{{example}}"
       },
       "description": {
+        "account_columns": "選擇帳戶表格中顯示的欄位。您的選擇會儲存到個人資料中。",
         "date_format": "使用 Moment.js 格式符，例如 DD、MM、YYYY、HH 和 mm。[方括號] 中的文字按原樣顯示。留空則使用語言預設格式。",
         "language": "選擇網頁介面顯示的语言。",
         "theme": "為介面選擇淺色或深色顯示模式。"
       },
       "field": {
+        "account_columns": "帳戶表格欄位",
         "date_format": "日期格式",
         "date_pattern": "日期",
         "date_time_pattern": "日期和時間",

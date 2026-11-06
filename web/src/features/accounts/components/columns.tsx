@@ -38,19 +38,18 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
     {
       accessorKey: "id",
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.id')} />
+        <DataTableColumnHeader longText column={column} title={t('accounts.id')} />
       ),
       cell: ({ row }) => {
         return <LongText>{row.original.id}</LongText>
       },
       enableSorting: false,
-      enableHiding: false,
       meta: { className: 'max-w-[100px]' },
     },
     {
       accessorKey: "account_name",
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.name')} className="justify-center" />
+        <DataTableColumnHeader longText column={column} title={t('accounts.name')} className="justify-center" />
       ),
       cell: ({ row }) => {
         return <LongText>{row.original.account_name ?? "n/a"}</LongText>
@@ -60,7 +59,7 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
     {
       accessorKey: "email",
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.email')} className="justify-center" />
+        <DataTableColumnHeader longText column={column} title={t('accounts.email')} className="justify-center" />
       ),
       cell: ({ row }) => {
         return <LongText>{row.original.email}</LongText>
@@ -71,7 +70,7 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
     {
       accessorKey: "enabled",
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn className="justify-center" column={column} title={t('accounts.enabled')} />
+        <DataTableColumnHeader longText className="justify-center" column={column} title={t('accounts.enabled')} />
       ),
       cell: EnableAction,
       meta: { className: 'max-w-[86px] text-center' },
@@ -80,7 +79,7 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
     {
       id: 'auth_type',
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.auth')} />
+        <DataTableColumnHeader longText column={column} title={t('accounts.auth')} />
       ),
       cell: OAuth2Action,
       meta: { className: 'text-center max-w-[86px]' },
@@ -90,19 +89,18 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
     {
       id: 'account_type',
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.type')} />
+        <DataTableColumnHeader longText column={column} title={t('accounts.type')} />
       ),
       cell: ({ row }) => {
         return <LongText>{row.original.account_type}</LongText>
       },
       meta: { className: 'text-center max-w-[60px]' },
-      enableHiding: false,
       enableSorting: false
     },
     {
       accessorKey: "sync_interval_sec",
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.scheduleMode')} className="justify-center" />
+        <DataTableColumnHeader longText column={column} title={t('accounts.scheduleMode')} className="justify-center" />
       ),
       cell: ({ row }) => {
         const account_type = row.original.account_type;
@@ -115,21 +113,19 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
         return <LongText className="text-center">{row.original.download_interval_min} min</LongText>
       },
       meta: { className: 'text-center max-w-[160px]' },
-      enableHiding: false,
     },
     {
       id: 'running_state',
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.state')} />
+        <DataTableColumnHeader longText column={column} title={t('accounts.state')} />
       ),
       cell: RunningStateCellAction,
       meta: { className: 'text-center' },
-      enableHiding: false,
     },
     {
       accessorKey: 'created_by',
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.owner')} className="justify-center" />
+        <DataTableColumnHeader longText column={column} title={t('accounts.owner')} className="justify-center" />
       ),
       cell: ({ row }) => {
         const { created_user_name, created_user_email } = row.original;
@@ -145,12 +141,11 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
         );
       },
       meta: { className: 'w-60 text-center' },
-      enableHiding: false,
     },
     {
       accessorKey: 'created_at',
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.createdAt')} />
+        <DataTableColumnHeader longText column={column} title={t('accounts.createdAt')} />
       ),
       cell: ({ row }) => {
         const created_at = row.original.created_at;
@@ -158,12 +153,11 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
         return <LongText className='max-w-36'>{date}</LongText>;
       },
       meta: { className: 'w-36' },
-      enableHiding: false,
     },
     {
       accessorKey: 'updated_at',
       header: ({ column }) => (
-        <DataTableColumnHeader longText showHideColumn column={column} title={t('accounts.updatedAt')} />
+        <DataTableColumnHeader longText column={column} title={t('accounts.updatedAt')} />
       ),
       cell: ({ row }) => {
         const updated_at = row.original.updated_at;
@@ -171,7 +165,6 @@ export function useColumns(): ColumnDef<DataTableFeatures, AccountModel>[] {
         return <LongText className='max-w-36'>{date}</LongText>;
       },
       meta: { className: 'w-36' },
-      enableHiding: false,
     },
     {
       id: 'actions',

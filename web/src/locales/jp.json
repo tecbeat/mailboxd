@@ -1452,11 +1452,13 @@
         "example": "例: {{example}}"
       },
       "description": {
+        "account_columns": "アカウント一覧に表示する列を選択します。選択内容はプロフィールに保存されます。",
         "date_format": "DD、MM、YYYY、HH、mm などの Moment.js トークンを使用します。[角かっこ] 内の文字はそのまま表示されます。空欄にすると言語の既定の形式を使用します。",
         "language": "Web UIで使用する言語を選択します。",
         "theme": "ライトモードまたはダークモードを選択します。"
       },
       "field": {
+        "account_columns": "アカウント一覧の列",
         "date_format": "日付の形式",
         "date_pattern": "日付",
         "date_time_pattern": "日付と時刻",

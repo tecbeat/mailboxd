@@ -1452,11 +1452,13 @@
         "example": "Beispiel: {{example}}"
       },
       "description": {
+        "account_columns": "Wählen Sie, welche Spalten die Kontentabelle anzeigt. Die Auswahl wird in Ihrem Profil gespeichert.",
         "date_format": "Verwende Moment.js-Platzhalter wie DD, MM, YYYY, HH und mm. Text in [eckigen Klammern] wird unverändert angezeigt. Lass ein Feld leer, um das Format der Sprache zu verwenden.",
         "language": "Wählen Sie die Sprache für die Web-Oberfläche.",
         "theme": "Wählen Sie zwischen hellem oder dunklem Modus."
       },
       "field": {
+        "account_columns": "Spalten der Kontentabelle",
         "date_format": "Datumsformat",
         "date_pattern": "Datum",
         "date_time_pattern": "Datum und Uhrzeit",

@@ -45,7 +45,7 @@ interface DataTableColumnHeaderProps<TData extends RowData, TValue>
   title: string
   // Truncate the title with LongText instead of a plain span (accounts).
   longText?: boolean
-  // Offer a "hide column" menu item (accounts, oauth2).
+  // Offer a "hide column" menu item (oauth2).
   showHideColumn?: boolean
 }
 

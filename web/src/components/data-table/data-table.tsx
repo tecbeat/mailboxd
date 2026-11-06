@@ -68,6 +68,8 @@ interface DataTableProps<TData extends RowData> {
   // Render the pagination footer (proxy hides it for a single page of rows).
   showPagination?: boolean
   globalFilterFn?: TableOptions<DataTableFeatures, TData>['globalFilterFn']
+  // Controlled column visibility (accounts reads it from the user profile).
+  columnVisibility?: ColumnVisibilityState
 }
 
 export function DataTable<TData extends RowData>({
@@ -83,6 +85,7 @@ export function DataTable<TData extends RowData>({
   cellClassName,
   showPagination = true,
   globalFilterFn,
+  columnVisibility: controlledColumnVisibility,
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
   const sortingStorageKey = `mailboxd_${storageKey}_sorting`
@@ -112,7 +115,7 @@ export function DataTable<TData extends RowData>({
     columns,
     state: {
       sorting,
-      columnVisibility,
+      columnVisibility: controlledColumnVisibility ?? columnVisibility,
       rowSelection,
       columnFilters,
     },

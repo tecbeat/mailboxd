@@ -1462,11 +1462,13 @@
         "example": "示例：{{example}}"
       },
       "description": {
+        "account_columns": "选择账户表格中显示的列。您的选择会保存到个人资料中。",
         "date_format": "使用 Moment.js 格式符，例如 DD、MM、YYYY、HH 和 mm。[方括号] 中的文字按原样显示。留空则使用语言默认格式。",
         "language": "选择 Web 界面显示的语言。",
         "theme": "为界面选择浅色或深色显示模式。"
       },
       "field": {
+        "account_columns": "账户表格列",
         "date_format": "日期格式",
         "date_pattern": "日期",
         "date_time_pattern": "日期和时间",

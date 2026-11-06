@@ -1452,11 +1452,13 @@
         "example": "Eksempel: {{example}}"
       },
       "description": {
+        "account_columns": "Velg hvilke kolonner kontotabellen viser. Valget lagres i profilen din.",
         "date_format": "Bruk Moment.js-koder som DD, MM, YYYY, HH og mm. Tekst i [hakeparenteser] vises som skrevet. La et felt stå tomt for å bruke språkets standard.",
         "language": "Velg språket som skal brukes i webgrensesnittet.",
         "theme": "Velg mellom lys eller mørk modus for grensesnittet."
       },
       "field": {
+        "account_columns": "Kolonner i kontotabellen",
         "date_format": "Datoformat",
         "date_pattern": "Dato",
         "date_time_pattern": "Dato og klokkeslett",

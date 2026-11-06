@@ -19,11 +19,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import { useMemo } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { type DataTableFeatures } from '@/lib/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from './data-table-toolbar'
 import { AccountModel } from '@/api/account/api'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { toColumnVisibility } from '@/lib/table-columns'
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, AccountModel>[]
@@ -31,10 +34,16 @@ interface DataTableProps {
 }
 
 export function AccountTable({ columns, data }: DataTableProps) {
+  const { data: user } = useCurrentUser()
+  const columnVisibility = useMemo(
+    () => toColumnVisibility('accounts', user?.hidden_columns?.accounts),
+    [user?.hidden_columns?.accounts],
+  )
   return (
     <DataTable
       columns={columns}
       data={data}
+      columnVisibility={columnVisibility}
       storageKey='accounts'
       persistSorting
       rowClassName={(row) => (row.original.deleting ? 'opacity-50' : 'group/row')}

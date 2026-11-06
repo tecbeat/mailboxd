@@ -28,6 +28,9 @@ import { AxiosError } from 'axios'
 import { Card } from '@/components/ui/card'
 import { useDateFormat } from '@/hooks/use-date-format'
 import { isValidDatePattern, toDateFnsPattern } from '@/lib/date-pattern'
+import { Checkbox } from '@/components/ui/checkbox'
+import { HIDEABLE_COLUMNS } from '@/lib/table-columns'
+import { useEffect } from 'react'
 
 const languages = [
     { value: 'ar', label: 'العربية' },
@@ -96,6 +99,7 @@ const appearanceSchema = (t: (key: string) => string) => z.object({
     dateTimePattern: z.string().refine(isValidDatePattern, {
         message: t('settings.appearance.validation.date_pattern.invalid'),
     }),
+    hiddenAccountColumns: z.array(z.string()),
 })
 
 type AppearanceFormValues = z.infer<ReturnType<typeof appearanceSchema>>
@@ -128,12 +132,25 @@ export function AppearanceForm() {
             language: i18n.language || 'en',
             datePattern,
             dateTimePattern,
+            hiddenAccountColumns: user?.hidden_columns?.accounts ?? [],
         },
     })
 
+    // The profile may arrive after the first render; take it over unless
+    // the user already changed the selection.
+    const storedHiddenAccountColumns = user?.hidden_columns?.accounts
+    useEffect(() => {
+        if (form.getFieldState('hiddenAccountColumns').isDirty) return
+        form.resetField('hiddenAccountColumns', { defaultValue: storedHiddenAccountColumns ?? [] })
+    }, [form, storedHiddenAccountColumns])
+
     const mutation = useMutation({
-        mutationFn: async ({ theme, language }: AppearanceFormValues) => {
-            return update_user(user!.id, { theme, language })
+        mutationFn: async ({ theme, language, hiddenAccountColumns }: AppearanceFormValues) => {
+            return update_user(user!.id, {
+                theme,
+                language,
+                hidden_columns: { accounts: hiddenAccountColumns },
+            })
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['current-user'] })
@@ -257,6 +274,34 @@ export function AppearanceForm() {
                             />
                         ))}
                     </div>
+
+                    <FormField
+                        control={form.control}
+                        name='hiddenAccountColumns'
+                        render={({ field }) => (
+                            <FormItem className='flex flex-col gap-3'>
+                                <div>
+                                    <FormLabel className='text-base'>{t('settings.appearance.field.account_columns')}</FormLabel>
+                                    <FormDescription>{t('settings.appearance.description.account_columns')}</FormDescription>
+                                </div>
+                                <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
+                                    {HIDEABLE_COLUMNS.accounts.map((column) => (
+                                        <label key={column.id} className='flex items-center gap-2 text-sm'>
+                                            <Checkbox
+                                                checked={!field.value.includes(column.id)}
+                                                onCheckedChange={(checked) => {
+                                                    const others = field.value.filter((id) => id !== column.id)
+                                                    field.onChange(checked === true ? others : [...others, column.id])
+                                                }}
+                                            />
+                                            {t(column.labelKey)}
+                                        </label>
+                                    ))}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
                     <FormField
                         control={form.control}

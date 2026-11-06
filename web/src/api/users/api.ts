@@ -110,6 +110,8 @@ export interface User {
     theme?: string | null;
     language?: string | null;
     totp_enabled: boolean;
+    // Hidden Web UI table columns, per table.
+    hidden_columns?: Record<string, string[]>;
 }
 
 

@@ -43,7 +43,7 @@ const BASE = 'http://localhost:15630'
 describe('AppearanceForm date format', () => {
   afterEach(() => localStorage.clear())
 
-  it('stores the typed patterns locally and sends only theme and language', async () => {
+  it('stores the typed patterns locally and sends no patterns to the server', async () => {
     let body: unknown
     server.use(
       http.post(`${BASE}/api/v1/users/1`, async ({ request }) => {
@@ -63,7 +63,7 @@ describe('AppearanceForm date format', () => {
     await waitFor(() => expect(body).toBeDefined())
     expect(localStorage.getItem(DATE_PATTERN_STORAGE_KEYS.date)).toBe('MM.YY')
     expect(localStorage.getItem(DATE_PATTERN_STORAGE_KEYS.dateTime)).toBe('MM.DD.YYYY HH:mm')
-    expect(Object.keys(body as object).sort()).toEqual(['language', 'theme'])
+    expect(Object.keys(body as object).sort()).toEqual(['hidden_columns', 'language', 'theme'])
   })
 
   it('cannot be saved while a pattern is invalid', async () => {
@@ -86,5 +86,36 @@ describe('AppearanceForm date format', () => {
     expect(screen.getByRole('textbox', { name: 'Date' })).toHaveValue('YYYY-MM-DD')
     expect(screen.getByRole('textbox', { name: 'Date and time' })).toHaveValue('')
     expect(screen.getByText('Example: 2026-01-31')).toBeInTheDocument()
+  })
+})
+
+describe('AppearanceForm account table columns', () => {
+  it('shows the stored selection once the profile has loaded', async () => {
+    const { queryClient } = renderWithProviders(<AppearanceForm />)
+    queryClient.setQueryData(['current-user'], { id: 1, hidden_columns: { accounts: ['id'] } })
+
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ID' })).not.toBeChecked())
+    expect(screen.getByRole('checkbox', { name: 'Name' })).toBeChecked()
+    expect(screen.queryByRole('checkbox', { name: 'Email' })).not.toBeInTheDocument()
+  })
+
+  it('saves the unchecked columns as hidden on the profile', async () => {
+    let body: { hidden_columns?: unknown } | undefined
+    server.use(
+      http.post(`${BASE}/api/v1/users/1`, async ({ request }) => {
+        body = (await request.json()) as typeof body
+        return HttpResponse.json(null)
+      }),
+    )
+    const { queryClient } = renderWithProviders(<AppearanceForm />)
+    queryClient.setQueryData(['current-user'], { id: 1, hidden_columns: { accounts: ['id'] } })
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ID' })).not.toBeChecked())
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'ID' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Name' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Update preferences' }))
+
+    await waitFor(() => expect(body).toBeDefined())
+    expect(body?.hidden_columns).toEqual({ accounts: ['account_name'] })
   })
 })
