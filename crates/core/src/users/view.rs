@@ -66,4 +66,7 @@ pub struct UserView {
     /// Hidden Web UI table columns, per table.
     #[serde(default)]
     pub hidden_columns: HiddenColumns,
+    /// Web UI date patterns (Moment.js tokens); `None` is the language default.
+    pub date_pattern: Option<String>,
+    pub date_time_pattern: Option<String>,
 }

@@ -22,6 +22,9 @@
 //! Hidden table columns are stored per table as the set of hidden column
 //! ids. A user who never changes anything sees every column, and columns
 //! added later show up by default.
+//!
+//! Date patterns are Moment.js-style format strings the Web UI interprets;
+//! the server only bounds their size.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -71,6 +74,32 @@ pub fn validate_hidden_columns(hidden: &HiddenColumns) -> MailboxdResult<()> {
         }
     }
     Ok(())
+}
+
+/// Longest date pattern accepted, in characters; matches the Web UI.
+const MAX_DATE_PATTERN_CHARS: usize = 64;
+
+pub fn validate_date_pattern(pattern: &str) -> MailboxdResult<()> {
+    if pattern.chars().count() > MAX_DATE_PATTERN_CHARS {
+        return Err(raise_error!(
+            format!("date pattern must be at most {MAX_DATE_PATTERN_CHARS} characters"),
+            ErrorCode::InvalidParameter
+        ));
+    }
+    if pattern.chars().any(char::is_control) {
+        return Err(raise_error!(
+            "date pattern must not contain control characters".into(),
+            ErrorCode::InvalidParameter
+        ));
+    }
+    Ok(())
+}
+
+/// The stored form of a date pattern sent by the Web UI: trimmed, and
+/// `None` (language default) when empty.
+pub fn normalize_date_pattern(pattern: &str) -> Option<String> {
+    let trimmed = pattern.trim();
+    (!trimmed.is_empty()).then(|| trimmed.to_string())
 }
 
 /// Replace the hidden columns of every table in `update`; other tables keep
@@ -135,6 +164,29 @@ mod tests {
         assert_eq!(
             current,
             hidden(&[("accounts", &["created_at"]), ("other", &["x"])])
+        );
+    }
+
+    #[test]
+    fn date_patterns_up_to_64_characters_are_valid() {
+        assert!(validate_date_pattern("").is_ok());
+        assert!(validate_date_pattern("DD.MM.YYYY [um] HH:mm").is_ok());
+        assert!(validate_date_pattern(&"Ä".repeat(64)).is_ok());
+        assert!(validate_date_pattern(&"D".repeat(65)).is_err());
+    }
+
+    #[test]
+    fn date_patterns_with_control_characters_are_rejected() {
+        assert!(validate_date_pattern("DD\nMM").is_err());
+        assert!(validate_date_pattern("DD\u{0}").is_err());
+    }
+
+    #[test]
+    fn an_empty_date_pattern_means_the_language_default() {
+        assert_eq!(normalize_date_pattern("  "), None);
+        assert_eq!(
+            normalize_date_pattern(" YYYY-MM-DD "),
+            Some("YYYY-MM-DD".into())
         );
     }
 

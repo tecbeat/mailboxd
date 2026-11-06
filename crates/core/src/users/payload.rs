@@ -26,7 +26,7 @@ use crate::{
         users::{
             acl::AccessControl,
             permissions::{Permission, VALID_PERMISSION_SET},
-            preferences::{validate_hidden_columns, HiddenColumns},
+            preferences::{validate_date_pattern, validate_hidden_columns, HiddenColumns},
             role::{RoleType, UserRole},
         },
         utils::decode_avatar_bytes,
@@ -375,6 +375,9 @@ pub struct UserUpdateRequest {
     pub language: Option<String>,
     /// Hidden columns of the listed tables; tables left out keep theirs.
     pub hidden_columns: Option<HiddenColumns>,
+    /// Web UI date patterns; an empty string restores the language default.
+    pub date_pattern: Option<String>,
+    pub date_time_pattern: Option<String>,
 }
 
 impl UserUpdateRequest {
@@ -403,6 +406,12 @@ impl UserUpdateRequest {
         validate_language(&self.language)?;
         if let Some(hidden_columns) = &self.hidden_columns {
             validate_hidden_columns(hidden_columns)?;
+        }
+        for pattern in [&self.date_pattern, &self.date_time_pattern]
+            .into_iter()
+            .flatten()
+        {
+            validate_date_pattern(pattern)?;
         }
 
         let all_roles = UserRole::list_all()?;

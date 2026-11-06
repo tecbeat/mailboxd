@@ -32,7 +32,7 @@ use crate::{
         mfa::{MfaChallenge, MfaState},
         payload::{UserCreateRequest, UserUpdateRequest},
         permissions::Permission,
-        preferences::{merge_hidden_columns, HiddenColumns},
+        preferences::{merge_hidden_columns, normalize_date_pattern, HiddenColumns},
         role::{UserRole, DEFAULT_ADMIN_ROLE_ID},
         view::UserView,
     },
@@ -179,6 +179,12 @@ pub struct MailboxdUserV2 {
     /// Hidden Web UI table columns, per table.
     #[serde(default)]
     pub hidden_columns: HiddenColumns,
+
+    /// Web UI date patterns (Moment.js tokens); `None` is the language default.
+    #[serde(default)]
+    pub date_pattern: Option<String>,
+    #[serde(default)]
+    pub date_time_pattern: Option<String>,
 }
 
 impl MemDbModel for MailboxdUserV2 {
@@ -244,6 +250,12 @@ fn apply_user_update(current: &UserModel, request: UserUpdateRequest) -> Mailbox
     }
     if let Some(hidden_columns) = request.hidden_columns {
         merge_hidden_columns(&mut updated.hidden_columns, hidden_columns);
+    }
+    if let Some(pattern) = request.date_pattern {
+        updated.date_pattern = normalize_date_pattern(&pattern);
+    }
+    if let Some(pattern) = request.date_time_pattern {
+        updated.date_time_pattern = normalize_date_pattern(&pattern);
     }
 
     updated.updated_at = utc_now!();
@@ -349,6 +361,8 @@ impl MailboxdUserV2 {
             sso_provider: self.sso_provider,
             totp_enabled: self.mfa.totp_enabled,
             hidden_columns: self.hidden_columns,
+            date_pattern: self.date_pattern,
+            date_time_pattern: self.date_time_pattern,
         }
     }
 
@@ -387,6 +401,8 @@ impl MailboxdUserV2 {
                 sso_provider: None,
                 mfa: MfaState::default(),
                 hidden_columns: HiddenColumns::default(),
+                date_pattern: None,
+                date_time_pattern: None,
             };
 
             // 3. Generate and insert an initial access token for the first-time setup
@@ -580,6 +596,8 @@ impl MailboxdUserV2 {
             sso_provider: Some(provider.to_string()),
             mfa: MfaState::default(),
             hidden_columns: HiddenColumns::default(),
+            date_pattern: None,
+            date_time_pattern: None,
         };
 
         let user_clone = new_user.clone();
@@ -645,6 +663,8 @@ impl MailboxdUserV2 {
             sso_provider: None,
             mfa: MfaState::default(),
             hidden_columns: HiddenColumns::default(),
+            date_pattern: None,
+            date_time_pattern: None,
         };
 
         let user_clone = user.clone();
@@ -1058,11 +1078,46 @@ mod tests {
     }
 
     #[test]
+    fn apply_user_update_stores_trimmed_date_patterns() {
+        let request = UserUpdateRequest {
+            date_pattern: Some(" YYYY-MM-DD ".to_string()),
+            date_time_pattern: Some("YYYY-MM-DD HH:mm".to_string()),
+            ..Default::default()
+        };
+        let updated = apply_user_update(&UserModel::default(), request).unwrap();
+        assert_eq!(updated.date_pattern.as_deref(), Some("YYYY-MM-DD"));
+        assert_eq!(
+            updated.date_time_pattern.as_deref(),
+            Some("YYYY-MM-DD HH:mm")
+        );
+    }
+
+    #[test]
+    fn apply_user_update_clears_a_date_pattern_sent_empty() {
+        let current = UserModel {
+            date_pattern: Some("YYYY".to_string()),
+            date_time_pattern: Some("YYYY HH".to_string()),
+            ..Default::default()
+        };
+        let request = UserUpdateRequest {
+            date_pattern: Some(String::new()),
+            ..Default::default()
+        };
+        let updated = apply_user_update(&current, request).unwrap();
+        assert_eq!(updated.date_pattern, None);
+        assert_eq!(updated.date_time_pattern.as_deref(), Some("YYYY HH"));
+    }
+
+    #[test]
     fn users_stored_before_hidden_columns_load_with_every_column_shown() {
         let mut stored = serde_json::to_value(UserModel::default()).unwrap();
-        stored.as_object_mut().unwrap().remove("hidden_columns");
+        let fields = stored.as_object_mut().unwrap();
+        for field in ["hidden_columns", "date_pattern", "date_time_pattern"] {
+            fields.remove(field);
+        }
         let user: UserModel = serde_json::from_value(stored).unwrap();
         assert!(user.hidden_columns.is_empty());
+        assert_eq!(user.date_pattern, None);
     }
 
     #[test]

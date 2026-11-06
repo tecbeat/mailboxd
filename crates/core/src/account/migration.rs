@@ -421,6 +421,8 @@ impl Account {
                 theme: None,
                 language: None,
                 hidden_columns: None,
+                date_pattern: None,
+                date_time_pattern: None,
             },
         )?;
 
