@@ -32,7 +32,10 @@ use crate::{
         mfa::{MfaChallenge, MfaState},
         payload::{UserCreateRequest, UserUpdateRequest},
         permissions::Permission,
-        preferences::{merge_hidden_columns, normalize_date_pattern, HiddenColumns},
+        preferences::{
+            merge_column_order, merge_hidden_columns, normalize_date_pattern, ColumnOrder,
+            HiddenColumns,
+        },
         role::{UserRole, DEFAULT_ADMIN_ROLE_ID},
         view::UserView,
     },
@@ -180,6 +183,10 @@ pub struct MailboxdUserV2 {
     #[serde(default)]
     pub hidden_columns: HiddenColumns,
 
+    /// Web UI table column order, per table.
+    #[serde(default)]
+    pub column_order: ColumnOrder,
+
     /// Web UI date patterns (Moment.js tokens); `None` is the language default.
     #[serde(default)]
     pub date_pattern: Option<String>,
@@ -250,6 +257,9 @@ fn apply_user_update(current: &UserModel, request: UserUpdateRequest) -> Mailbox
     }
     if let Some(hidden_columns) = request.hidden_columns {
         merge_hidden_columns(&mut updated.hidden_columns, hidden_columns);
+    }
+    if let Some(column_order) = request.column_order {
+        merge_column_order(&mut updated.column_order, column_order);
     }
     if let Some(pattern) = request.date_pattern {
         updated.date_pattern = normalize_date_pattern(&pattern);
@@ -361,6 +371,7 @@ impl MailboxdUserV2 {
             sso_provider: self.sso_provider,
             totp_enabled: self.mfa.totp_enabled,
             hidden_columns: self.hidden_columns,
+            column_order: self.column_order,
             date_pattern: self.date_pattern,
             date_time_pattern: self.date_time_pattern,
         }
@@ -401,6 +412,7 @@ impl MailboxdUserV2 {
                 sso_provider: None,
                 mfa: MfaState::default(),
                 hidden_columns: HiddenColumns::default(),
+                column_order: ColumnOrder::default(),
                 date_pattern: None,
                 date_time_pattern: None,
             };
@@ -596,6 +608,7 @@ impl MailboxdUserV2 {
             sso_provider: Some(provider.to_string()),
             mfa: MfaState::default(),
             hidden_columns: HiddenColumns::default(),
+            column_order: ColumnOrder::default(),
             date_pattern: None,
             date_time_pattern: None,
         };
@@ -663,6 +676,7 @@ impl MailboxdUserV2 {
             sso_provider: None,
             mfa: MfaState::default(),
             hidden_columns: HiddenColumns::default(),
+            column_order: ColumnOrder::default(),
             date_pattern: None,
             date_time_pattern: None,
         };
@@ -1064,6 +1078,32 @@ mod tests {
     }
 
     #[test]
+    fn apply_user_update_replaces_the_column_order_of_a_table() {
+        let current = UserModel {
+            column_order: [("accounts".to_string(), vec!["email".to_string()])].into(),
+            ..Default::default()
+        };
+        let request = UserUpdateRequest {
+            column_order: Some(
+                [(
+                    "accounts".to_string(),
+                    vec!["updated_at".to_string(), "id".to_string()],
+                )]
+                .into(),
+            ),
+            ..Default::default()
+        };
+        let updated = apply_user_update(&current, request).unwrap();
+        assert_eq!(
+            updated.column_order["accounts"],
+            vec!["updated_at".to_string(), "id".to_string()]
+        );
+
+        let unchanged = apply_user_update(&updated, UserUpdateRequest::default()).unwrap();
+        assert_eq!(unchanged.column_order, updated.column_order);
+    }
+
+    #[test]
     fn apply_user_update_keeps_hidden_columns_when_not_sent() {
         let current = UserModel {
             hidden_columns: [("accounts".to_string(), ["id".to_string()].into())].into(),
@@ -1112,11 +1152,17 @@ mod tests {
     fn users_stored_before_hidden_columns_load_with_every_column_shown() {
         let mut stored = serde_json::to_value(UserModel::default()).unwrap();
         let fields = stored.as_object_mut().unwrap();
-        for field in ["hidden_columns", "date_pattern", "date_time_pattern"] {
+        for field in [
+            "hidden_columns",
+            "column_order",
+            "date_pattern",
+            "date_time_pattern",
+        ] {
             fields.remove(field);
         }
         let user: UserModel = serde_json::from_value(stored).unwrap();
         assert!(user.hidden_columns.is_empty());
+        assert!(user.column_order.is_empty());
         assert_eq!(user.date_pattern, None);
     }
 
