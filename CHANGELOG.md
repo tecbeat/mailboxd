@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.13.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.13.0) - 2026-11-07
+
+### ⛰️  Features
+
+- *(users)* Keep the table column order on the user profile - ([26ac1fb](https://git.teccave.de/tecbeat/mailboxd/commit/26ac1fb33a632425e402c1dc5929496843b1b081))
+- *(users)* Keep date patterns on the user profile - ([2be5b61](https://git.teccave.de/tecbeat/mailboxd/commit/2be5b6195ce546fbea51500923638e8fcfe9a4a4))
+- *(users)* Keep hidden table columns on the user profile - ([756e54d](https://git.teccave.de/tecbeat/mailboxd/commit/756e54df8b49c69501262972f96eaf0e9163c6ed))
+- *(web)* Reorder account table columns by drag and drop under appearance - ([97d8fef](https://git.teccave.de/tecbeat/mailboxd/commit/97d8fefdb12c3d5f15ec2dd92938ee5ac478c901))
+- *(web)* Show the theme picker first under appearance - ([23941ca](https://git.teccave.de/tecbeat/mailboxd/commit/23941ca5242d0f0d081ad54a3f83a75a0494db4b))
+- *(web)* Keep date patterns on the user profile - ([3949004](https://git.teccave.de/tecbeat/mailboxd/commit/3949004e74bdd28a324a61385e07088b3abf71ed))
+- *(web)* Choose visible account table columns under appearance - ([7e24d08](https://git.teccave.de/tecbeat/mailboxd/commit/7e24d087222f9e62469572b2f231fe7304e9e7d8))
+
 ## [1.12.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.12.0) - 2026-11-05
 
 ### ⛰️  Features
