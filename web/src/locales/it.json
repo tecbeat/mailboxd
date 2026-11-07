@@ -1443,20 +1443,36 @@
       "button": {
         "update": "Aggiorna preferenze"
       },
+      "columns": {
+        "always_visible": "Sempre visibile",
+        "dnd": {
+          "cancel": "Spostamento di {{column}} annullato.",
+          "end": "{{column}} rilasciata alla posizione {{position}}.",
+          "instructions": "Per prendere una colonna premi spazio o invio. Spostala con le frecce, rilasciala con spazio o invio e annulla con esc.",
+          "over": "{{column}} spostata alla posizione {{position}}.",
+          "start": "{{column}} presa alla posizione {{position}}."
+        },
+        "move": "Sposta {{column}}",
+        "reset": "Ripristina colonne predefinite",
+        "show": "Mostra {{column}}"
+      },
       "command": {
         "no_results": "Nessuna lingua trovata.",
         "search": "Cerca lingua..."
       },
       "date_pattern": {
         "default_example": "Formato della lingua: {{example}}",
-        "example": "Esempio: {{example}}"
+        "example": "Esempio: {{example}}",
+        "migration_failed": "Non è stato possibile salvare il formato data nel tuo profilo. Verrà ritentato al prossimo caricamento della pagina."
       },
       "description": {
+        "account_columns": "Trascina le colonne nell'ordine che preferisci e disattiva quelle che non ti servono. La scelta viene salvata nel tuo profilo.",
         "date_format": "Usa i token di Moment.js come DD, MM, YYYY, HH e mm. Il testo tra [parentesi quadre] viene mostrato così com'è. Lascia un campo vuoto per usare il formato della lingua.",
         "language": "Seleziona la lingua per l'interfaccia web.",
         "theme": "Scegli tra la modalità chiara o scura."
       },
       "field": {
+        "account_columns": "Colonne della tabella account",
         "date_format": "Formato data",
         "date_pattern": "Data",
         "date_time_pattern": "Data e ora",

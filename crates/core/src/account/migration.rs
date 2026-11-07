@@ -420,6 +420,10 @@ impl Account {
                 description: None,
                 theme: None,
                 language: None,
+                hidden_columns: None,
+                column_order: None,
+                date_pattern: None,
+                date_time_pattern: None,
             },
         )?;
 

@@ -1443,20 +1443,36 @@
       "button": {
         "update": "Voorkeuren bijwerken"
       },
+      "columns": {
+        "always_visible": "Altijd zichtbaar",
+        "dnd": {
+          "cancel": "Verplaatsen van {{column}} is geannuleerd.",
+          "end": "{{column}} neergezet op positie {{position}}.",
+          "instructions": "Druk op spatie of enter om een kolom op te pakken. Verplaats hem met de pijltjestoetsen, zet hem neer met spatie of enter en annuleer met escape.",
+          "over": "{{column}} verplaatst naar positie {{position}}.",
+          "start": "{{column}} opgepakt op positie {{position}}."
+        },
+        "move": "{{column}} verplaatsen",
+        "reset": "Standaardkolommen herstellen",
+        "show": "{{column}} tonen"
+      },
       "command": {
         "no_results": "Geen taal gevonden.",
         "search": "Taal zoeken..."
       },
       "date_pattern": {
         "default_example": "Standaard van de taal: {{example}}",
-        "example": "Voorbeeld: {{example}}"
+        "example": "Voorbeeld: {{example}}",
+        "migration_failed": "Je datumnotatie kon niet in je profiel worden opgeslagen. Dit wordt opnieuw geprobeerd bij het volgende laden van de pagina."
       },
       "description": {
+        "account_columns": "Sleep de kolommen in de gewenste volgorde en zet de kolommen uit die je niet nodig hebt. Je keuze wordt in je profiel opgeslagen.",
         "date_format": "Gebruik Moment.js-tokens zoals DD, MM, YYYY, HH en mm. Tekst tussen [vierkante haken] wordt letterlijk getoond. Laat een veld leeg voor de standaard van de taal.",
         "language": "Selecteer de taal voor de webinterface.",
         "theme": "Kies tussen de lichte of donkere modus voor de interface."
       },
       "field": {
+        "account_columns": "Kolommen van de accounttabel",
         "date_format": "Datumnotatie",
         "date_pattern": "Datum",
         "date_time_pattern": "Datum en tijd",

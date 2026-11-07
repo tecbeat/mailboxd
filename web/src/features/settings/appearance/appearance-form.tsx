@@ -28,6 +28,9 @@ import { AxiosError } from 'axios'
 import { Card } from '@/components/ui/card'
 import { useDateFormat } from '@/hooks/use-date-format'
 import { isValidDatePattern, toDateFnsPattern } from '@/lib/date-pattern'
+import { fromColumnSettings, toColumnSettings } from '@/lib/table-columns'
+import { useEffect, useMemo } from 'react'
+import { ColumnSettings } from './column-settings'
 
 const languages = [
     { value: 'ar', label: 'العربية' },
@@ -96,6 +99,7 @@ const appearanceSchema = (t: (key: string) => string) => z.object({
     dateTimePattern: z.string().refine(isValidDatePattern, {
         message: t('settings.appearance.validation.date_pattern.invalid'),
     }),
+    accountColumns: z.array(z.object({ id: z.string(), visible: z.boolean() })),
 })
 
 type AppearanceFormValues = z.infer<ReturnType<typeof appearanceSchema>>
@@ -120,6 +124,13 @@ export function AppearanceForm() {
     const { theme, setTheme } = useTheme()
     const { datePattern, dateTimePattern, setDatePatterns } = useDateFormat()
 
+    const storedHiddenAccountColumns = user?.hidden_columns?.accounts
+    const storedAccountColumnOrder = user?.column_order?.accounts
+    const storedAccountColumns = useMemo(
+        () => toColumnSettings('accounts', { order: storedAccountColumnOrder, hidden: storedHiddenAccountColumns }),
+        [storedAccountColumnOrder, storedHiddenAccountColumns],
+    )
+
     const form = useForm<AppearanceFormValues>({
         resolver: zodResolver(appearanceSchema(t)),
         mode: 'onChange',
@@ -128,12 +139,33 @@ export function AppearanceForm() {
             language: i18n.language || 'en',
             datePattern,
             dateTimePattern,
+            accountColumns: storedAccountColumns,
         },
     })
 
+    // The profile may arrive after the first render; take it over unless
+    // the user already changed the columns.
+    useEffect(() => {
+        if (form.getFieldState('accountColumns').isDirty) return
+        form.resetField('accountColumns', { defaultValue: storedAccountColumns })
+    }, [form, storedAccountColumns])
+
+    useEffect(() => {
+        if (!form.getFieldState('datePattern').isDirty) form.resetField('datePattern', { defaultValue: datePattern })
+        if (!form.getFieldState('dateTimePattern').isDirty) form.resetField('dateTimePattern', { defaultValue: dateTimePattern })
+    }, [form, datePattern, dateTimePattern])
+
     const mutation = useMutation({
-        mutationFn: async ({ theme, language }: AppearanceFormValues) => {
-            return update_user(user!.id, { theme, language })
+        mutationFn: async ({ theme, language, accountColumns, datePattern, dateTimePattern }: AppearanceFormValues) => {
+            const columns = fromColumnSettings('accounts', accountColumns)
+            return update_user(user!.id, {
+                theme,
+                language,
+                hidden_columns: { accounts: columns.hidden },
+                column_order: { accounts: columns.order },
+                date_pattern: datePattern.trim(),
+                date_time_pattern: dateTimePattern.trim(),
+            })
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['current-user'] })
@@ -159,6 +191,64 @@ export function AppearanceForm() {
         <div className="w-full">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 w-full">
+                    <FormField
+                        control={form.control}
+                        name='theme'
+                        render={({ field }) => (
+                            <FormItem className="space-y-4">
+                                <div>
+                                    <FormLabel className="text-base">{t('settings.appearance.field.theme')}</FormLabel>
+                                    <FormDescription>{t('settings.appearance.description.theme')}</FormDescription>
+                                </div>
+                                <RadioGroup
+                                    onValueChange={(v) => {
+                                        setTheme(v as Theme);
+                                        field.onChange(v)
+                                    }}
+                                    defaultValue={field.value}
+                                    className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-2'
+                                >
+                                    {[...LIGHT_THEMES, ...DARK_THEMES].map((item) => {
+                                        const selected = field.value === item.value
+
+                                        return (
+                                            <Card
+                                                key={item.value}
+                                                onClick={() => {
+                                                    setTheme(item.value as Theme)
+                                                    field.onChange(item.value)
+                                                }}
+                                                className={cn(
+                                                    "cursor-pointer overflow-hidden border-2 transition-all hover:shadow-md",
+                                                    selected ? "border-primary shadow-md" : "border-muted opacity-80"
+                                                )}
+                                            >
+                                                <div className="p-2">
+                                                    <ThemePreview
+                                                        background={item.background}
+                                                        primary={item.color}
+                                                        muted={item.muted}
+                                                    />
+
+                                                    <div className="mt-2 flex items-center justify-between">
+                                                        <span className="text-[11px] font-medium uppercase truncate">
+                                                            {t(item.labelKey)}
+                                                        </span>
+
+                                                        {selected && (
+                                                            <CheckIcon className="h-3.5 w-3.5 text-primary" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        )
+                                    })}
+                                </RadioGroup>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
                     <FormField
                         control={form.control}
                         name='language'
@@ -260,57 +350,14 @@ export function AppearanceForm() {
 
                     <FormField
                         control={form.control}
-                        name='theme'
+                        name='accountColumns'
                         render={({ field }) => (
-                            <FormItem className="space-y-4">
+                            <FormItem className='flex flex-col gap-3'>
                                 <div>
-                                    <FormLabel className="text-base">{t('settings.appearance.field.theme')}</FormLabel>
-                                    <FormDescription>{t('settings.appearance.description.theme')}</FormDescription>
+                                    <FormLabel className='text-base'>{t('settings.appearance.field.account_columns')}</FormLabel>
+                                    <FormDescription>{t('settings.appearance.description.account_columns')}</FormDescription>
                                 </div>
-                                <RadioGroup
-                                    onValueChange={(v) => {
-                                        setTheme(v as Theme);
-                                        field.onChange(v)
-                                    }}
-                                    defaultValue={field.value}
-                                    className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-2'
-                                >
-                                    {[...LIGHT_THEMES, ...DARK_THEMES].map((item) => {
-                                        const selected = field.value === item.value
-
-                                        return (
-                                            <Card
-                                                key={item.value}
-                                                onClick={() => {
-                                                    setTheme(item.value as Theme)
-                                                    field.onChange(item.value)
-                                                }}
-                                                className={cn(
-                                                    "cursor-pointer overflow-hidden border-2 transition-all hover:shadow-md",
-                                                    selected ? "border-primary shadow-md" : "border-muted opacity-80"
-                                                )}
-                                            >
-                                                <div className="p-2">
-                                                    <ThemePreview
-                                                        background={item.background}
-                                                        primary={item.color}
-                                                        muted={item.muted}
-                                                    />
-
-                                                    <div className="mt-2 flex items-center justify-between">
-                                                        <span className="text-[11px] font-medium uppercase truncate">
-                                                            {t(item.labelKey)}
-                                                        </span>
-
-                                                        {selected && (
-                                                            <CheckIcon className="h-3.5 w-3.5 text-primary" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        )
-                                    })}
-                                </RadioGroup>
+                                <ColumnSettings table='accounts' value={field.value} onChange={field.onChange} />
                                 <FormMessage />
                             </FormItem>
                         )}

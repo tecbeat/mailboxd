@@ -23,7 +23,10 @@ use std::collections::BTreeMap;
 //use poem_openapi::Object;
 use serde::{Deserialize, Serialize};
 
-use crate::users::acl::AccessControl;
+use crate::users::{
+    acl::AccessControl,
+    preferences::{ColumnOrder, HiddenColumns},
+};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
@@ -63,4 +66,13 @@ pub struct UserView {
     /// recovery codes never leave the server.
     #[serde(default)]
     pub totp_enabled: bool,
+    /// Hidden Web UI table columns, per table.
+    #[serde(default)]
+    pub hidden_columns: HiddenColumns,
+    /// Web UI table column order, per table.
+    #[serde(default)]
+    pub column_order: ColumnOrder,
+    /// Web UI date patterns (Moment.js tokens); `None` is the language default.
+    pub date_pattern: Option<String>,
+    pub date_time_pattern: Option<String>,
 }

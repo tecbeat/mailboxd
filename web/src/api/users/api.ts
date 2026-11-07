@@ -110,6 +110,13 @@ export interface User {
     theme?: string | null;
     language?: string | null;
     totp_enabled: boolean;
+    // Hidden Web UI table columns, per table.
+    hidden_columns?: Record<string, string[]>;
+    // Web UI table column order, per table.
+    column_order?: Record<string, string[]>;
+    // Web UI date patterns (Moment.js tokens); null is the language default.
+    date_pattern?: string | null;
+    date_time_pattern?: string | null;
 }
 
 

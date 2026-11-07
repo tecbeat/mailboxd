@@ -1443,20 +1443,36 @@
       "button": {
         "update": "Opdater indstillinger"
       },
+      "columns": {
+        "always_visible": "Vises altid",
+        "dnd": {
+          "cancel": "Flytning af {{column}} blev annulleret.",
+          "end": "{{column}} sluppet på position {{position}}.",
+          "instructions": "Tryk på mellemrum eller enter for at samle en kolonne op. Brug piletasterne til at flytte den, mellemrum eller enter for at slippe den og escape for at annullere.",
+          "over": "{{column}} flyttet til position {{position}}.",
+          "start": "{{column}} samlet op på position {{position}}."
+        },
+        "move": "Flyt {{column}}",
+        "reset": "Gendan standardkolonner",
+        "show": "Vis {{column}}"
+      },
       "command": {
         "no_results": "Intet sprog fundet.",
         "search": "Søg efter sprog..."
       },
       "date_pattern": {
         "default_example": "Sprogets standard: {{example}}",
-        "example": "Eksempel: {{example}}"
+        "example": "Eksempel: {{example}}",
+        "migration_failed": "Dit datoformat kunne ikke gemmes i din profil. Det forsøges igen, næste gang siden indlæses."
       },
       "description": {
+        "account_columns": "Træk kolonnerne i den rækkefølge, du ønsker, og slå dem fra, du ikke har brug for. Dit valg gemmes i din profil.",
         "date_format": "Brug Moment.js-koder som DD, MM, YYYY, HH og mm. Tekst i [kantede parenteser] vises som skrevet. Lad et felt stå tomt for at bruge sprogets standard.",
         "language": "Vælg det sprog, der skal bruges i webbrugerfladen.",
         "theme": "Vælg mellem lys eller mørk tilstand for brugerfladen."
       },
       "field": {
+        "account_columns": "Kolonner i kontotabellen",
         "date_format": "Datoformat",
         "date_pattern": "Dato",
         "date_time_pattern": "Dato og klokkeslæt",

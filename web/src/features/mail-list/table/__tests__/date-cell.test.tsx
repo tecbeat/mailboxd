@@ -23,7 +23,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { DATE_DISPLAY_STORAGE_KEY, useDateDisplay } from '@/hooks/use-date-display'
-import { useDateFormat } from '@/hooks/use-date-format'
+import { setDatePatterns, useDateFormat } from '@/hooks/use-date-format'
 import { formatDateTime, formatRelativeTime } from '@/lib/utils'
 
 import { DateCell } from '../date-cell'
@@ -39,7 +39,10 @@ function renderCell() {
 }
 
 describe('DateCell', () => {
-  afterEach(() => localStorage.clear())
+  afterEach(() => {
+    localStorage.clear()
+    setDatePatterns({ date: '', dateTime: '' })
+  })
 
   it('shows the relative date by default', () => {
     renderCell()

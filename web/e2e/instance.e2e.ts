@@ -227,3 +227,114 @@ test('an account can be picked in the OAuth2 authorize dialog', async ({ page })
   await expect(byKeyboard.trigger).toHaveText(`first-${suffix}@example.test`)
   await expect(byKeyboard.dialog.getByRole('button', { name: 'Authorize' })).toBeEnabled()
 })
+
+// GitHub #13: the accounts table columns can be reordered by drag and drop
+// and switched off under Appearance; the choice lives on the user profile.
+test('the accounts table columns can be reordered and switched off', async ({ page, browser }) => {
+  const problems = watchForProblems(page)
+  await signIn(page)
+  await apiPost(page, '/api/v1/account', {
+    email: `columns-${Date.now()}@example.test`,
+    enabled: false,
+    account_type: 'NoSync',
+    use_dangerous: false,
+  })
+
+  const columnRows = () => page.locator('li[data-column-id]')
+  const save = async () => {
+    const saved = page.waitForResponse(
+      (response) => /\/api\/v1\/users\/\d+$/.test(new URL(response.url()).pathname) && response.request().method() === 'POST',
+    )
+    await page.getByRole('button', { name: 'Update preferences' }).click()
+    expect((await saved).ok()).toBe(true)
+  }
+  const accountHeaders = async (target: Page) => {
+    await target.goto('/accounts')
+    await expect(target.getByRole('columnheader', { name: 'Email' })).toBeVisible()
+    return (await target.getByRole('columnheader').allInnerTexts()).map((text) => text.trim()).filter(Boolean)
+  }
+
+  try {
+    await page.goto('/settings/appearance')
+    await expect(columnRows()).toHaveCount(11)
+    // Only the settings content scrolls; the app shell must not get a second
+    // scrollbar from the hidden inputs of the switches.
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const shell = document.getElementById('content')!
+          return shell.scrollHeight - shell.clientHeight
+        }),
+      )
+      .toBe(0)
+
+    // Drag "Updated At" with the mouse onto the first row. The mouse works
+    // in viewport coordinates, so the whole list has to be on screen.
+    await page.getByRole('button', { name: 'Restore default columns' }).scrollIntoViewIfNeeded()
+    const handle = page.getByRole('button', { name: 'Move Updated At' })
+    const target = page.getByRole('button', { name: 'Move ID' })
+    const from = (await handle.boundingBox())!
+    const to = (await target.boundingBox())!
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(from.x + from.width / 2, from.y - 10, { steps: 5 })
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2 - 4, { steps: 20 })
+    await page.mouse.up()
+    await expect(columnRows().first()).toHaveAttribute('data-column-id', 'updated_at')
+
+    // Move "Email" one row up with the keyboard: ID, Name, Email -> ID, Email, Name.
+    // dnd-kit measures the list once a column is picked up, so each key waits
+    // for the previous step; a user is never faster than that.
+    const emailHandle = page.getByRole('button', { name: 'Move Email' })
+    await emailHandle.focus()
+    await page.keyboard.press('Space')
+    await expect(emailHandle).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByText('Picked up Email at position 4.')).toBeAttached()
+    await page.keyboard.press('ArrowUp')
+    await expect(page.getByText('Email moved to position 3.')).toBeAttached()
+    await page.keyboard.press('Space')
+    await expect(columnRows().nth(2)).toHaveAttribute('data-column-id', 'email')
+
+    await page.getByRole('switch', { name: 'Show Name' }).click()
+    await expect(page.getByRole('switch', { name: 'Show Email' })).toBeDisabled()
+    await save()
+
+    const expected = ['Updated At', 'ID', 'Email', 'Enabled', 'Auth', 'Type']
+    expect((await accountHeaders(page)).slice(0, expected.length)).toEqual(expected)
+    expect(await accountHeaders(page)).not.toContain('Name')
+
+    // A fresh browser context, like a private window, gets the same table.
+    const fresh = await browser.newContext()
+    try {
+      const other = await fresh.newPage()
+      await signIn(other)
+      expect((await accountHeaders(other)).slice(0, expected.length)).toEqual(expected)
+    } finally {
+      await fresh.close()
+    }
+
+    // Each login replaces the Web UI token of the user, so the first page
+    // signs in again. The settings page shows the saved order.
+    await signIn(page)
+    await page.goto('/settings/appearance')
+    await expect(columnRows().first()).toHaveAttribute('data-column-id', 'updated_at')
+    await expect(page.getByRole('switch', { name: 'Show Name' })).not.toBeChecked()
+  } finally {
+    // Leave the shared admin profile as the other tests expect it.
+    await page.goto('/settings/appearance')
+    const login = page.getByRole('button', { name: 'Login' })
+    await expect(columnRows().first().or(login)).toBeVisible()
+    if (await login.isVisible()) {
+      await signIn(page)
+      await page.goto('/settings/appearance')
+    }
+    await expect(columnRows()).toHaveCount(11)
+    await page.getByRole('button', { name: 'Restore default columns' }).click()
+    await save()
+  }
+
+  const defaults = ['ID', 'Name', 'Email', 'Enabled', 'Auth', 'Type']
+  expect((await accountHeaders(page)).slice(0, defaults.length)).toEqual(defaults)
+  expect(problems.pageErrors).toEqual([])
+  expect(problems.serverErrors).toEqual([])
+})

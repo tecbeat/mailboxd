@@ -24,8 +24,12 @@ import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useTheme, Theme } from '@/context/theme-context'
+import { applyProfileDatePatterns } from '@/hooks/use-date-format'
+import { update_user } from '@/api/users/api'
+import { toast } from '@/hooks/use-toast'
 
 export const Route = createFileRoute('/_authenticated')({
   component: RouteComponent,
@@ -35,11 +39,12 @@ function RouteComponent() {
   const defaultOpen = localStorage.getItem('sidebar_state') === 'true';
   const { user } = useCurrentUser()
   const { setTheme } = useTheme()
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const queryClient = useQueryClient()
   const prefsApplied = useRef(false)
 
-  // On first load of the authenticated shell, initialise theme and language
-  // from the user profile (authoritative), overriding the localStorage
+  // On first load of the authenticated shell, initialise theme, language
+  // and date patterns from the user profile (authoritative), overriding the localStorage
   // fallback the ThemeProvider used to avoid a flash. Runs once, so it never
   // clobbers an in-session change made via the header switch or the
   // Appearance form (both of which persist to the same profile).
@@ -50,7 +55,13 @@ function RouteComponent() {
     if (user.language && user.language !== i18n.language) {
       i18n.changeLanguage(user.language)
     }
-  }, [user, setTheme, i18n])
+    applyProfileDatePatterns(user, async (legacy) => {
+      await update_user(user.id, { date_pattern: legacy.date, date_time_pattern: legacy.dateTime })
+      await queryClient.invalidateQueries({ queryKey: ['current-user'] })
+    }).catch(() => {
+      toast({ variant: 'destructive', title: t('settings.appearance.date_pattern.migration_failed') })
+    })
+  }, [user, setTheme, t, i18n, queryClient])
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />

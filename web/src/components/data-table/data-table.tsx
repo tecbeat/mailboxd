@@ -21,6 +21,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
+  ColumnOrderState,
   ColumnVisibilityState,
   ReactTable,
   Row,
@@ -68,6 +69,11 @@ interface DataTableProps<TData extends RowData> {
   // Render the pagination footer (proxy hides it for a single page of rows).
   showPagination?: boolean
   globalFilterFn?: TableOptions<DataTableFeatures, TData>['globalFilterFn']
+  // Controlled column visibility (accounts reads it from the user profile).
+  columnVisibility?: ColumnVisibilityState
+  // Column order (accounts reads it from the user profile); columns not
+  // listed follow in definition order.
+  columnOrder?: ColumnOrderState
 }
 
 export function DataTable<TData extends RowData>({
@@ -83,6 +89,8 @@ export function DataTable<TData extends RowData>({
   cellClassName,
   showPagination = true,
   globalFilterFn,
+  columnVisibility: controlledColumnVisibility,
+  columnOrder,
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
   const sortingStorageKey = `mailboxd_${storageKey}_sorting`
@@ -112,7 +120,8 @@ export function DataTable<TData extends RowData>({
     columns,
     state: {
       sorting,
-      columnVisibility,
+      columnVisibility: controlledColumnVisibility ?? columnVisibility,
+      ...(columnOrder ? { columnOrder } : {}),
       rowSelection,
       columnFilters,
     },

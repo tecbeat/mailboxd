@@ -19,6 +19,7 @@
 import {
   columnFacetingFeature,
   columnFilteringFeature,
+  columnOrderingFeature,
   columnSizingFeature,
   columnVisibilityFeature,
   createFacetedRowModel,
@@ -47,7 +48,7 @@ type AppColumnMeta = { className: string }
 /**
  * Feature set for the CRUD data tables (accounts, users, roles, API tokens,
  * OAuth2 clients, proxies): sorting, column + global filtering, pagination,
- * faceting, column visibility and row selection.
+ * faceting, column visibility and order, and row selection.
  */
 export const dataTableFeatures = tableFeatures({
   rowSortingFeature,
@@ -60,6 +61,7 @@ export const dataTableFeatures = tableFeatures({
   rowPaginationFeature,
   paginatedRowModel: createPaginatedRowModel(),
   columnVisibilityFeature,
+  columnOrderingFeature,
   columnSizingFeature,
   rowSelectionFeature,
   columnFacetingFeature,

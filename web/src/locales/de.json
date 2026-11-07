@@ -1443,20 +1443,36 @@
       "button": {
         "update": "Einstellungen aktualisieren"
       },
+      "columns": {
+        "always_visible": "Immer sichtbar",
+        "dnd": {
+          "cancel": "Verschieben von {{column}} abgebrochen.",
+          "end": "{{column}} an Position {{position}} abgelegt.",
+          "instructions": "Drücken Sie Leertaste oder Eingabe, um eine Spalte aufzunehmen. Verschieben Sie sie mit den Pfeiltasten, legen Sie sie mit Leertaste oder Eingabe ab, oder brechen Sie mit Escape ab.",
+          "over": "{{column}} auf Position {{position}} verschoben.",
+          "start": "{{column}} an Position {{position}} aufgenommen."
+        },
+        "move": "{{column}} verschieben",
+        "reset": "Standardspalten wiederherstellen",
+        "show": "{{column}} anzeigen"
+      },
       "command": {
         "no_results": "Keine Sprache gefunden.",
         "search": "Sprache suchen..."
       },
       "date_pattern": {
         "default_example": "Format der Sprache: {{example}}",
-        "example": "Beispiel: {{example}}"
+        "example": "Beispiel: {{example}}",
+        "migration_failed": "Ihr Datumsformat konnte nicht in Ihrem Profil gespeichert werden. Beim nächsten Laden der Seite wird es erneut versucht."
       },
       "description": {
+        "account_columns": "Ziehen Sie die Spalten in die gewünschte Reihenfolge und schalten Sie nicht benötigte aus. Die Auswahl wird in Ihrem Profil gespeichert.",
         "date_format": "Verwende Moment.js-Platzhalter wie DD, MM, YYYY, HH und mm. Text in [eckigen Klammern] wird unverändert angezeigt. Lass ein Feld leer, um das Format der Sprache zu verwenden.",
         "language": "Wählen Sie die Sprache für die Web-Oberfläche.",
         "theme": "Wählen Sie zwischen hellem oder dunklem Modus."
       },
       "field": {
+        "account_columns": "Spalten der Kontentabelle",
         "date_format": "Datumsformat",
         "date_pattern": "Datum",
         "date_time_pattern": "Datum und Uhrzeit",

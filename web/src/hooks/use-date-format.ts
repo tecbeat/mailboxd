@@ -17,45 +17,38 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 
-import { useCallback, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 
 import { toDateFnsPattern } from '@/lib/date-pattern'
 
 /** `date` is used for plain dates, `dateTime` for dates with a time. */
 export type DatePatternKind = 'date' | 'dateTime'
 
-export const DATE_PATTERN_STORAGE_KEYS: Record<DatePatternKind, string> = {
+export type DatePatterns = Record<DatePatternKind, string>
+
+/** Where patterns were kept before they moved to the user profile. */
+export const LEGACY_DATE_PATTERN_STORAGE_KEYS: Record<DatePatternKind, string> = {
   date: 'mailboxd_date_pattern',
   dateTime: 'mailboxd_date_time_pattern',
 }
 
 const listeners = new Set<() => void>()
 
-const memoryPatterns: Record<DatePatternKind, string> = { date: '', dateTime: '' }
+let patterns: DatePatterns = { date: '', dateTime: '' }
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener)
-  const keys = Object.values(DATE_PATTERN_STORAGE_KEYS)
-  const onStorage = (event: StorageEvent) => {
-    if (event.key !== null && keys.includes(event.key)) listener()
-  }
-  window.addEventListener('storage', onStorage)
   return () => {
     listeners.delete(listener)
-    window.removeEventListener('storage', onStorage)
   }
 }
 
 /**
- * The pattern the user entered for `kind`, in Moment.js tokens, or an empty
+ * The pattern the user chose for `kind`, in Moment.js tokens, or an empty
  * string for the language default.
  */
 export function readDatePattern(kind: DatePatternKind): string {
-  try {
-    return localStorage.getItem(DATE_PATTERN_STORAGE_KEYS[kind]) ?? ''
-  } catch {
-    return memoryPatterns[kind]
-  }
+  return patterns[kind]
 }
 
 /** The date-fns pattern for `kind`, or `null` for the language default. */
@@ -64,18 +57,54 @@ export function readDateFnsPattern(kind: DatePatternKind): string | null {
   return pattern.trim() === '' ? null : toDateFnsPattern(pattern)
 }
 
-function store(kind: DatePatternKind, pattern: string): void {
-  const value = pattern.trim()
-  memoryPatterns[kind] = value
+/** Use `next` for every date in the UI; it is not saved anywhere. */
+export function setDatePatterns(next: DatePatterns): void {
+  patterns = { date: next.date.trim(), dateTime: next.dateTime.trim() }
+  listeners.forEach((listener) => listener())
+}
+
+/** The date patterns of the user profile, as sent by the server. */
+export interface ProfileDatePatterns {
+  date_pattern?: string | null
+  date_time_pattern?: string | null
+}
+
+function readLegacyPatterns(): DatePatterns | null {
   try {
-    if (value === '') {
-      localStorage.removeItem(DATE_PATTERN_STORAGE_KEYS[kind])
-    } else {
-      localStorage.setItem(DATE_PATTERN_STORAGE_KEYS[kind], value)
-    }
+    const date = localStorage.getItem(LEGACY_DATE_PATTERN_STORAGE_KEYS.date)?.trim() ?? ''
+    const dateTime = localStorage.getItem(LEGACY_DATE_PATTERN_STORAGE_KEYS.dateTime)?.trim() ?? ''
+    return date || dateTime ? { date, dateTime } : null
   } catch {
-    // localStorage unavailable; the choice lasts until the page is reloaded.
+    return null
   }
+}
+
+function removeLegacyPatterns(): void {
+  try {
+    Object.values(LEGACY_DATE_PATTERN_STORAGE_KEYS).forEach((key) => localStorage.removeItem(key))
+  } catch {
+    // localStorage unavailable; there is nothing to remove.
+  }
+}
+
+/**
+ * Use the patterns of the user profile. Patterns this browser kept locally
+ * before they moved to the profile are taken over once, when the profile
+ * has none, and saved with `save`. They stay in localStorage until `save`
+ * succeeds, so a failed upload is retried on the next load.
+ */
+export async function applyProfileDatePatterns(
+  profile: ProfileDatePatterns,
+  save: (legacy: DatePatterns) => Promise<unknown>,
+): Promise<void> {
+  const legacy = readLegacyPatterns()
+  if (legacy && !profile.date_pattern && !profile.date_time_pattern) {
+    setDatePatterns(legacy)
+    await save(legacy)
+  } else {
+    setDatePatterns({ date: profile.date_pattern ?? '', dateTime: profile.date_time_pattern ?? '' })
+  }
+  removeLegacyPatterns()
 }
 
 /**
@@ -85,12 +114,5 @@ function store(kind: DatePatternKind, pattern: string): void {
 export function useDateFormat() {
   const datePattern = useSyncExternalStore(subscribe, () => readDatePattern('date'), () => '')
   const dateTimePattern = useSyncExternalStore(subscribe, () => readDatePattern('dateTime'), () => '')
-
-  const setDatePatterns = useCallback((patterns: Record<DatePatternKind, string>) => {
-    store('date', patterns.date)
-    store('dateTime', patterns.dateTime)
-    listeners.forEach((listener) => listener())
-  }, [])
-
   return { datePattern, dateTimePattern, setDatePatterns }
 }

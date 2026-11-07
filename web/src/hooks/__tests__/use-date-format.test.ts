@@ -18,15 +18,24 @@
 // You should have received a copy of the GNU Affero General Public License
 
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { DATE_PATTERN_STORAGE_KEYS, readDateFnsPattern, useDateFormat } from '../use-date-format'
+import {
+  LEGACY_DATE_PATTERN_STORAGE_KEYS as LEGACY,
+  applyProfileDatePatterns,
+  readDateFnsPattern,
+  setDatePatterns,
+  useDateFormat,
+} from '../use-date-format'
 
 describe('useDateFormat', () => {
-  beforeEach(() => localStorage.clear())
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    localStorage.clear()
+    setDatePatterns({ date: '', dateTime: '' })
+    vi.restoreAllMocks()
+  })
 
-  it('defaults to the language format and persists a change', () => {
+  it('defaults to the language format and applies a change', () => {
     const { result } = renderHook(() => useDateFormat())
     expect(result.current.datePattern).toBe('')
     expect(result.current.dateTimePattern).toBe('')
@@ -36,23 +45,13 @@ describe('useDateFormat', () => {
 
     expect(result.current.datePattern).toBe('MM.YY')
     expect(result.current.dateTimePattern).toBe('DD.MM.YYYY HH:mm')
-    expect(localStorage.getItem(DATE_PATTERN_STORAGE_KEYS.date)).toBe('MM.YY')
     expect(readDateFnsPattern('date')).toBe('MM.yy')
     expect(readDateFnsPattern('dateTime')).toBe('dd.MM.yyyy HH:mm')
+    expect(localStorage.length).toBe(0)
   })
 
-  it('removes a pattern that is cleared', () => {
-    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.date, 'MM.YY')
-    const { result } = renderHook(() => useDateFormat())
-
-    act(() => result.current.setDatePatterns({ date: '', dateTime: '' }))
-
-    expect(localStorage.getItem(DATE_PATTERN_STORAGE_KEYS.date)).toBeNull()
-    expect(result.current.datePattern).toBe('')
-  })
-
-  it('falls back to the language format for an invalid stored pattern', () => {
-    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.date, 'JJ.MM')
+  it('falls back to the language format for an invalid pattern', () => {
+    setDatePatterns({ date: 'JJ.MM', dateTime: '' })
     expect(readDateFnsPattern('date')).toBeNull()
   })
 
@@ -64,39 +63,71 @@ describe('useDateFormat', () => {
 
     expect(second.result.current.datePattern).toBe('YYYY-MM-DD')
   })
+})
 
-  it('follows a change made in another tab', () => {
-    const { result } = renderHook(() => useDateFormat())
-
-    localStorage.setItem(DATE_PATTERN_STORAGE_KEYS.dateTime, 'YYYY-MM-DD HH:mm')
-    act(() => {
-      window.dispatchEvent(new StorageEvent('storage', { key: 'unrelated' }))
-    })
-    expect(result.current.dateTimePattern).toBe('')
-
-    act(() => {
-      window.dispatchEvent(new StorageEvent('storage', { key: DATE_PATTERN_STORAGE_KEYS.dateTime }))
-    })
-    expect(result.current.dateTimePattern).toBe('YYYY-MM-DD HH:mm')
+describe('applyProfileDatePatterns', () => {
+  afterEach(() => {
+    localStorage.clear()
+    setDatePatterns({ date: '', dateTime: '' })
+    vi.restoreAllMocks()
   })
 
-  it('keeps the choice in memory when localStorage is unavailable', () => {
-    const blocked = () => {
-      throw new DOMException('blocked', 'SecurityError')
-    }
-    // Spy on the prototype: jsdom stores properties set on localStorage itself.
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(blocked)
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(blocked)
-    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(blocked)
+  it('uses the patterns of the profile', async () => {
+    const save = vi.fn()
     const { result } = renderHook(() => useDateFormat())
 
-    act(() => result.current.setDatePatterns({ date: 'MM.YY', dateTime: '' }))
-    expect(result.current.datePattern).toBe('MM.YY')
+    await act(() => applyProfileDatePatterns({ date_pattern: 'YYYY', date_time_pattern: null }, save))
 
-    act(() => result.current.setDatePatterns({ date: '', dateTime: '' }))
-    expect(result.current.datePattern).toBe('')
+    expect(result.current.datePattern).toBe('YYYY')
+    expect(result.current.dateTimePattern).toBe('')
+    expect(save).not.toHaveBeenCalled()
+  })
 
-    vi.restoreAllMocks()
-    expect(localStorage.length).toBe(0)
+  it('moves locally kept patterns to a profile without patterns', async () => {
+    localStorage.setItem(LEGACY.date, 'MM.YY')
+    localStorage.setItem(LEGACY.dateTime, 'DD.MM.YYYY HH:mm')
+    const save = vi.fn().mockResolvedValue(undefined)
+
+    await applyProfileDatePatterns({}, save)
+
+    expect(save).toHaveBeenCalledWith({ date: 'MM.YY', dateTime: 'DD.MM.YYYY HH:mm' })
+    expect(readDateFnsPattern('date')).toBe('MM.yy')
+    expect(localStorage.getItem(LEGACY.date)).toBeNull()
+    expect(localStorage.getItem(LEGACY.dateTime)).toBeNull()
+  })
+
+  it('keeps the local patterns for a retry when saving fails', async () => {
+    localStorage.setItem(LEGACY.date, 'MM.YY')
+    const save = vi.fn().mockRejectedValue(new Error('offline'))
+
+    await expect(applyProfileDatePatterns({ date_pattern: null }, save)).rejects.toThrow('offline')
+
+    expect(localStorage.getItem(LEGACY.date)).toBe('MM.YY')
+    expect(readDateFnsPattern('date')).toBe('MM.yy')
+  })
+
+  it('prefers the profile and drops stale local patterns', async () => {
+    localStorage.setItem(LEGACY.date, 'MM.YY')
+    const save = vi.fn()
+
+    await applyProfileDatePatterns({ date_time_pattern: 'YYYY HH:mm' }, save)
+
+    expect(save).not.toHaveBeenCalled()
+    expect(readDateFnsPattern('date')).toBeNull()
+    expect(readDateFnsPattern('dateTime')).toBe('yyyy HH:mm')
+    expect(localStorage.getItem(LEGACY.date)).toBeNull()
+  })
+
+  it('uses the profile when localStorage is unavailable', async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('blocked', 'SecurityError')
+    })
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new DOMException('blocked', 'SecurityError')
+    })
+
+    await applyProfileDatePatterns({ date_pattern: 'YYYY' }, vi.fn())
+
+    expect(readDateFnsPattern('date')).toBe('yyyy')
   })
 })
