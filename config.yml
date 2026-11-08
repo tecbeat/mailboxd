@@ -202,6 +202,9 @@ repo:
       MAILBOXD_OIDC_AUTO_REDIRECT:
         default: false
         description: "When OIDC is configured, `/sign-in` redirects to the IdP immediately. The local login form remains reachable via `/sign-in?local=1`."
+      MAILBOXD_LOCAL_LOGIN_ENABLED:
+        default: true
+        description: "Allow sign-in with username and password, including the default `admin`. Set to `false` to allow OIDC only: the sign-in page shows just the SSO button, `/api/login` is rejected, and WebUI sessions of users without an SSO identity are revoked at startup (API tokens stay valid). Requires OIDC to be fully configured, or the server refuses to start. Grant an SSO user the admin role first."
 
   development: >-
     Prerequisites: Rust (latest stable), Node.js 20+, pnpm.
