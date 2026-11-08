@@ -225,6 +225,7 @@ Every setting is available as a CLI flag and as the environment variable shown b
 | `MAILBOXD_OIDC_REDIRECT_URI` | — | — | Redirect URI registered with the IdP. Must resolve to `<public-url>/api/auth/oidc/callback`. |
 | `MAILBOXD_OIDC_DEFAULT_ROLE_ID` | — | `100200000000000` | Global role ID assigned to auto-provisioned OIDC users (built-in `Member`). |
 | `MAILBOXD_OIDC_AUTO_REDIRECT` | — | `false` | When OIDC is configured, `/sign-in` redirects to the IdP immediately. The local login form remains reachable via `/sign-in?local=1`. |
+| `MAILBOXD_LOCAL_LOGIN_ENABLED` | — | `true` | Allow sign-in with username and password, including the default `admin`. Set to `false` to allow OIDC only: the sign-in page shows just the SSO button, `/api/login` is rejected, and WebUI sessions of users without an SSO identity are revoked at startup (API tokens stay valid). Requires OIDC to be fully configured, or the server refuses to start. Grant an SSO user the admin role first. |
 
 </details>
 
