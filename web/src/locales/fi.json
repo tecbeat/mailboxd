@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Oletko varma, että haluat kirjautua ulos?",
     "invalidPassword": "Virheellinen salasana. Yritä uudelleen.",
+    "localLoginDisabled": "Kirjautuminen käyttäjänimellä ja salasanalla on poistettu käytöstä tällä palvelimella. Käytä kertakirjautumista (SSO).",
     "login": "Kirjaudu sisään",
     "loginFailed": "Kirjautuminen epäonnistui",
     "logout": "Kirjaudu ulos",

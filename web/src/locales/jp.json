@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "ログアウトしてもよろしいですか？",
     "invalidPassword": "パスワードが無効です。もう一度お試しください。",
+    "localLoginDisabled": "このサーバーではユーザー名とパスワードによるサインインは無効になっています。シングルサインオンをご利用ください。",
     "login": "ログイン",
     "loginFailed": "ログインに失敗しました",
     "logout": "ログアウト",

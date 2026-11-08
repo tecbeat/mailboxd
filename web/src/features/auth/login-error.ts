@@ -15,6 +15,9 @@ export function describeLoginError(
   if (status === 401) {
     return { title: t('auth.loginFailed'), description: t('auth.invalidPassword') }
   }
+  if (status === 403) {
+    return { title: t('auth.loginFailed'), description: t('auth.localLoginDisabled') }
+  }
   if (status === 429) {
     return { title: t('auth.loginFailed'), description: t('auth.tooManyAttempts') }
   }

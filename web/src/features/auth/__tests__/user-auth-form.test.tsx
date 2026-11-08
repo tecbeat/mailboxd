@@ -25,7 +25,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { server } from '@/test/server'
 import { renderWithProviders } from '@/test/utils'
 
-const { navigate, toast } = vi.hoisted(() => ({ navigate: vi.fn(), toast: vi.fn() }))
+const { navigate, toast, oidcConfig } = vi.hoisted(() => ({
+  navigate: vi.fn(),
+  toast: vi.fn(),
+  oidcConfig: { oidcEnabled: false, oidcAutoRedirect: false, localLogin: true },
+}))
 
 vi.mock('@tanstack/react-router', () => ({
   useLocation: () => ({ search: {} }),
@@ -34,7 +38,7 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('@/hooks/use-toast', () => ({ toast }))
 vi.mock('@/context/theme-context', () => ({ useTheme: () => ({ setTheme: vi.fn() }) }))
 vi.mock('@/hooks/use-oidc-config', () => ({
-  useOidcConfig: () => ({ oidcEnabled: false, oidcAutoRedirect: false }),
+  useOidcConfig: () => oidcConfig,
 }))
 
 import { getToken } from '@/stores/authStore'
@@ -74,6 +78,7 @@ describe('UserAuthForm', () => {
     toast.mockReset()
     navigate.mockReset()
     localStorage.clear()
+    Object.assign(oidcConfig, { oidcEnabled: false, oidcAutoRedirect: false, localLogin: true })
   })
 
   it('signs in directly when no second factor is required', async () => {
@@ -275,5 +280,47 @@ describe('UserAuthForm', () => {
     expect(navigate).not.toHaveBeenCalled()
     // The form is usable again for the next attempt.
     expect(screen.getByRole('button', { name: 'Login' })).toBeEnabled()
+  })
+
+  it('offers the password form next to SSO while local login is enabled', () => {
+    oidcConfig.oidcEnabled = true
+    renderWithProviders(<UserAuthForm />)
+
+    expect(screen.getByLabelText('Username')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sign in with SSO' })).toBeInTheDocument()
+  })
+
+  it('offers only SSO when local login is disabled', () => {
+    Object.assign(oidcConfig, { oidcEnabled: true, localLogin: false })
+    renderWithProviders(<UserAuthForm />)
+
+    expect(screen.getByRole('button', { name: 'Sign in with SSO' })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Username')).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('********')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Login' })).not.toBeInTheDocument()
+  })
+
+  it('explains a rejected password login when local login is disabled', async () => {
+    server.use(
+      http.post(LOGIN_URL, () =>
+        HttpResponse.json(
+          { success: false, error_code: 'local_login_disabled' },
+          { status: 403 }
+        )
+      )
+    )
+    await logIn()
+
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'destructive',
+          title: 'Login Failed',
+          description:
+            'Sign-in with username and password is disabled on this server. Please use single sign-on.',
+        })
+      )
+    )
+    expect(navigate).not.toHaveBeenCalled()
   })
 })

@@ -554,6 +554,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "您确定要退出登录吗？",
     "invalidPassword": "密码无效，请重试。",
+    "localLoginDisabled": "此服务器已禁用用户名和密码登录，请使用单点登录（SSO）。",
     "login": "登录",
     "loginFailed": "登录失败",
     "logout": "退出登录",

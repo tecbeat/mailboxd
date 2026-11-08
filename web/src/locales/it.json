@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Sei sicuro di voler uscire?",
     "invalidPassword": "Password non valida. Riprova.",
+    "localLoginDisabled": "L'accesso con nome utente e password è disattivato su questo server. Usa il single sign-on.",
     "login": "Accedi",
     "loginFailed": "Accesso Fallito",
     "logout": "Esci",

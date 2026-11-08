@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Sind Sie sicher, dass Sie sich abmelden möchten?",
     "invalidPassword": "Ungültiges Passwort. Bitte versuchen Sie es erneut.",
+    "localLoginDisabled": "Die Anmeldung mit Benutzername und Passwort ist auf diesem Server deaktiviert. Bitte melden Sie sich per Single Sign-On an.",
     "login": "Anmelden",
     "loginFailed": "Anmeldung fehlgeschlagen",
     "logout": "Abmelden",

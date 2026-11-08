@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Tem certeza que deseja sair?",
     "invalidPassword": "Senha inválida, por favor, tente novamente.",
+    "localLoginDisabled": "O início de sessão com nome de utilizador e palavra-passe está desativado neste servidor. Utilize o início de sessão único (SSO).",
     "login": "Login",
     "loginFailed": "Falha no Login",
     "logout": "Sair",
