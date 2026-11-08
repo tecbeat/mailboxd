@@ -18,11 +18,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::database::manager::DB_MANAGER;
 use crate::database::{
-    MemDbModel, delete_impl, filter_impl, find_impl, insert_impl, list_all_impl, update_impl, with_transaction
+    MemDbModel, batch_delete_impl, delete_impl, filter_impl, find_impl, insert_impl, list_all_impl, update_impl, with_transaction
 };
 use crate::error::code::ErrorCode;
 use crate::raise_error;
@@ -228,6 +228,19 @@ impl AccessTokenModel {
         })
     }
 
+    /// Deletes the WebUI tokens of every user without an SSO identity, so
+    /// sessions opened with a password end once local login is disabled.
+    /// API tokens are kept. Returns the number of deleted tokens.
+    pub fn revoke_local_webui_tokens() -> MailboxdResult<usize> {
+        let users = UserModel::list_all()?;
+        let tokens = list_all_impl::<AccessTokenModel>(DB_MANAGER.db())?;
+        let keys = local_webui_token_keys(&tokens, &users);
+        if keys.is_empty() {
+            return Ok(0);
+        }
+        batch_delete_impl::<AccessTokenModel>(DB_MANAGER.db(), keys)
+    }
+
     pub fn list_all_api_tokens() -> MailboxdResult<Vec<AccessTokenResp>> {
         let users = UserModel::list_all()?;
         let all = list_all_impl::<AccessTokenModel>(DB_MANAGER.db())?;
@@ -259,5 +272,61 @@ impl AccessTokenModel {
             .collect();
 
         Ok(resp)
+    }
+}
+
+/// Keys of the WebUI tokens whose owner has no SSO identity. Tokens of
+/// users that no longer exist count as local.
+fn local_webui_token_keys(tokens: &[AccessTokenModel], users: &[UserModel]) -> Vec<String> {
+    let sso_users: HashSet<u64> = users
+        .iter()
+        .filter(|u| u.sso_provider.is_some())
+        .map(|u| u.id)
+        .collect();
+    tokens
+        .iter()
+        .filter(|t| t.token_type == TokenType::WebUI && !sso_users.contains(&t.user_id))
+        .map(|t| t.token.clone())
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn user(id: u64, sso: bool) -> UserModel {
+        UserModel {
+            id,
+            sso_provider: sso.then(|| "oidc".into()),
+            sso_id: sso.then(|| format!("subject-{id}")),
+            ..Default::default()
+        }
+    }
+
+    fn token(name: &str, user_id: u64, token_type: TokenType) -> AccessTokenModel {
+        AccessTokenModel {
+            token: name.into(),
+            token_type,
+            ..AccessTokenModel::new_webui_token(user_id)
+        }
+    }
+
+    #[test]
+    fn only_webui_tokens_of_users_without_sso_are_revoked() {
+        let users = [user(1, false), user(2, true)];
+        let tokens = [
+            token("local-webui", 1, TokenType::WebUI),
+            token("local-api", 1, TokenType::Api),
+            token("sso-webui", 2, TokenType::WebUI),
+            token("sso-api", 2, TokenType::Api),
+            token("orphan-webui", 3, TokenType::WebUI),
+        ];
+
+        let keys = local_webui_token_keys(&tokens, &users);
+
+        assert_eq!(
+            keys,
+            vec!["local-webui".to_string(), "orphan-webui".to_string()]
+        );
     }
 }
