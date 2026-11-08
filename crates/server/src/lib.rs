@@ -65,6 +65,11 @@ pub async fn run() -> MailboxdResult<()> {
     info!("Version:  {}", mailboxd_version!());
     info!("Git:      [{}]", env!("GIT_HASH"));
 
+    if let Err(message) = SETTINGS.check_login_methods() {
+        error!("{message}");
+        return Err(raise_error!(message, ErrorCode::InvalidParameter));
+    }
+
     // Restore, migrate, check and reindex the data volume before any
     // database, blob or index handle is opened. When a step fails, stay up
     // with a maintenance page instead of exiting into a restart loop.

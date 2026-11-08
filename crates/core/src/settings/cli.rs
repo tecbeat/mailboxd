@@ -430,6 +430,18 @@ pub struct Settings {
     )]
     pub mailboxd_oidc_auto_redirect: bool,
 
+    /// When disabled, `/api/login` rejects every username/password sign-in,
+    /// including the default administrator, and WebUI sessions of users
+    /// without an SSO identity are revoked at startup. Requires OIDC to be
+    /// fully configured.
+    #[clap(
+        long,
+        default_value = "true",
+        env,
+        help = "Allow sign-in with username and password (disable to allow OIDC only)"
+    )]
+    pub mailboxd_local_login_enabled: bool,
+
     /// Maximum HTTP request body size in MB for file uploads (default: 1100 MB).
     /// Requests exceeding this limit are rejected at the framework level before
     /// the application reads the body, preventing memory exhaustion attacks.
@@ -519,6 +531,27 @@ impl Settings {
         }
         s
     }
+
+    /// Whether OIDC is enabled and every setting the sign-in flow needs is set.
+    pub fn oidc_configured(&self) -> bool {
+        self.mailboxd_oidc_enabled
+            && self.mailboxd_oidc_issuer_url.is_some()
+            && self.mailboxd_oidc_client_id.is_some()
+            && self.mailboxd_oidc_client_secret.is_some()
+            && self.mailboxd_oidc_redirect_uri.is_some()
+    }
+
+    /// Rejects a configuration that leaves no way to sign in to the Web UI.
+    pub fn check_login_methods(&self) -> Result<(), String> {
+        if self.mailboxd_local_login_enabled || self.oidc_configured() {
+            return Ok(());
+        }
+        Err(String::from(
+            "MAILBOXD_LOCAL_LOGIN_ENABLED=false requires OIDC single sign-on: set \
+             MAILBOXD_OIDC_ENABLED=true, MAILBOXD_OIDC_ISSUER_URL, MAILBOXD_OIDC_CLIENT_ID, \
+             MAILBOXD_OIDC_CLIENT_SECRET and MAILBOXD_OIDC_REDIRECT_URI, or enable local login again",
+        ))
+    }
 }
 
 fn validate_base_url(s: &str) -> Result<String, String> {
@@ -576,5 +609,64 @@ impl fmt::Display for EncryptionMode {
             EncryptionMode::Starttls => write!(f, "starttls"),
             EncryptionMode::Tls => write!(f, "tls"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn settings(local_login: bool, oidc: bool) -> Settings {
+        let mut s = Settings::try_parse_from([
+            "mailboxd",
+            "--mailboxd-root-dir",
+            SETTINGS.mailboxd_root_dir.as_str(),
+        ])
+        .expect("settings parse");
+        s.mailboxd_local_login_enabled = local_login;
+        s.mailboxd_oidc_enabled = oidc;
+        s.mailboxd_oidc_issuer_url = oidc.then(|| "https://idp.example.test".into());
+        s.mailboxd_oidc_client_id = oidc.then(|| "mailboxd".into());
+        s.mailboxd_oidc_client_secret = oidc.then(|| "secret".into());
+        s.mailboxd_oidc_redirect_uri =
+            oidc.then(|| "https://mailboxd.example.test/api/auth/oidc/callback".into());
+        s
+    }
+
+    #[test]
+    fn local_login_is_enabled_by_default() {
+        let s = Settings::try_parse_from([
+            "mailboxd",
+            "--mailboxd-root-dir",
+            SETTINGS.mailboxd_root_dir.as_str(),
+        ])
+        .unwrap();
+        if env::var_os("MAILBOXD_LOCAL_LOGIN_ENABLED").is_none() {
+            assert!(s.mailboxd_local_login_enabled);
+        }
+    }
+
+    #[test]
+    fn local_login_alone_is_a_valid_login_configuration() {
+        assert!(settings(true, false).check_login_methods().is_ok());
+    }
+
+    #[test]
+    fn oidc_alone_is_a_valid_login_configuration() {
+        assert!(settings(false, true).check_login_methods().is_ok());
+    }
+
+    #[test]
+    fn disabling_local_login_without_oidc_is_rejected() {
+        let error = settings(false, false).check_login_methods().unwrap_err();
+        assert!(error.contains("MAILBOXD_LOCAL_LOGIN_ENABLED=false requires OIDC"));
+    }
+
+    #[test]
+    fn disabling_local_login_with_incomplete_oidc_is_rejected() {
+        let mut s = settings(false, true);
+        s.mailboxd_oidc_client_secret = None;
+        assert!(!s.oidc_configured());
+        assert!(s.check_login_methods().is_err());
     }
 }

@@ -21,7 +21,7 @@
 //use poem_openapi::Object;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::MailboxdResult, users::UserModel};
+use crate::{error::MailboxdResult, settings::cli::SETTINGS, users::UserModel};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web-api", derive(poem_openapi::Object))]
@@ -66,8 +66,10 @@ pub async fn fetch_notifications(may_manage_users: bool) -> MailboxdResult<Notif
         is_newer: false,
         error_message: None,
     };
+    // The default password cannot be used while local login is disabled.
     // argon2 verification is blocking work; keep it off the async workers.
     let default_admin_password = may_manage_users
+        && SETTINGS.mailboxd_local_login_enabled
         && tokio::task::spawn_blocking(UserModel::default_admin_password_in_use)
             .await
             .unwrap_or(false);
