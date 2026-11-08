@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Weet u zeker dat u wilt uitloggen?",
     "invalidPassword": "Ongeldig wachtwoord. Probeer het opnieuw.",
+    "localLoginDisabled": "Inloggen met gebruikersnaam en wachtwoord is uitgeschakeld op deze server. Gebruik single sign-on.",
     "login": "Inloggen",
     "loginFailed": "Inloggen Mislukt",
     "logout": "Uitloggen",

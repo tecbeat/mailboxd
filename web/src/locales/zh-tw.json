@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "確定要登出嗎？",
     "invalidPassword": "密碼無效，請再試一次。",
+    "localLoginDisabled": "此伺服器已停用使用者名稱與密碼登入，請使用單一登入（SSO）。",
     "login": "登入",
     "loginFailed": "登入失敗",
     "logout": "登出",

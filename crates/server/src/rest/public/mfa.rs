@@ -18,8 +18,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::rest::public::login::{rate_limit_rejection, run_authentication};
+use crate::rest::public::login::{local_login_rejection, rate_limit_rejection, run_authentication};
 use mailboxd_core::ext::event_bus::{emit, Event};
+use mailboxd_core::settings::cli::SETTINGS;
 use mailboxd_core::users::mfa::{
     MfaChallenge, MfaVerification, MFA_ERROR_CHALLENGE_INVALID, MFA_ERROR_INVALID_CODE,
     MFA_ERROR_TOO_MANY_ATTEMPTS,
@@ -47,6 +48,9 @@ pub async fn mfa_verify(payload: Json<MfaVerifyPayload>, req: &Request) -> Respo
         .await
         .ok()
         .and_then(|real_ip| real_ip.0);
+    if let Some(rejection) = local_login_rejection(SETTINGS.mailboxd_local_login_enabled) {
+        return rejection;
+    }
     if let Some(rejection) = rate_limit_rejection(&MFA_RATE_LIMITER, ip) {
         return rejection;
     }

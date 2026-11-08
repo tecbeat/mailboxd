@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "¿Estás seguro de que quieres cerrar sesión?",
     "invalidPassword": "Contraseña inválida. Inténtalo de nuevo.",
+    "localLoginDisabled": "El inicio de sesión con usuario y contraseña está desactivado en este servidor. Utilice el inicio de sesión único (SSO).",
     "login": "Iniciar sesión",
     "loginFailed": "Error al iniciar sesión",
     "logout": "Cerrar sesión",

@@ -28,20 +28,19 @@ struct OidcClientConfig {
     /// When true and enabled=true, the sign-in page should redirect to the
     /// OIDC provider automatically. Users can bypass with ?local=1.
     auto_redirect: bool,
+    /// Whether the username/password form is offered at all.
+    local_login: bool,
 }
 
 /// Public, no-auth endpoint. Returns just enough information for the
 /// sign-in screen to decide how to render itself; nothing sensitive.
 #[handler]
 pub async fn get_oidc_config() -> impl IntoResponse {
-    let enabled = SETTINGS.mailboxd_oidc_enabled
-        && SETTINGS.mailboxd_oidc_issuer_url.is_some()
-        && SETTINGS.mailboxd_oidc_client_id.is_some()
-        && SETTINGS.mailboxd_oidc_client_secret.is_some()
-        && SETTINGS.mailboxd_oidc_redirect_uri.is_some();
+    let enabled = SETTINGS.oidc_configured();
 
     Json(OidcClientConfig {
         enabled,
         auto_redirect: enabled && SETTINGS.mailboxd_oidc_auto_redirect,
+        local_login: SETTINGS.mailboxd_local_login_enabled,
     })
 }

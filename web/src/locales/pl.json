@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Czy na pewno chcesz się wylogować?",
     "invalidPassword": "Nieprawidłowe hasło, spróbuj ponownie",
+    "localLoginDisabled": "Logowanie za pomocą nazwy użytkownika i hasła jest wyłączone na tym serwerze. Użyj logowania jednokrotnego (SSO).",
     "login": "Login",
     "loginFailed": "Błędny login",
     "logout": "Wyloguj",

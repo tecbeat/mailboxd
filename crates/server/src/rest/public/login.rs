@@ -20,6 +20,7 @@
 
 use mailboxd_core::error::MailboxdResult;
 use mailboxd_core::ext::event_bus::{emit, Event};
+use mailboxd_core::settings::cli::SETTINGS;
 use mailboxd_core::users::{LoginResult, UserModel};
 use mailboxd_core::utils::rate_limit::{LoginRateLimiter, LOGIN_RATE_LIMITER};
 use poem::web::{Json, RealIp};
@@ -27,6 +28,10 @@ use poem::{handler, FromRequest, IntoResponse, Request, Response};
 use serde::Deserialize;
 use std::net::IpAddr;
 use tracing::{error, warn};
+
+/// `error_code` of a password sign-in step rejected because local login is
+/// disabled.
+pub const LOGIN_ERROR_LOCAL_LOGIN_DISABLED: &str = "local_login_disabled";
 
 #[derive(Deserialize)]
 pub struct LoginPayload {
@@ -44,6 +49,9 @@ pub async fn login(payload: Json<LoginPayload>, req: &Request) -> Response {
         .await
         .ok()
         .and_then(|real_ip| real_ip.0);
+    if let Some(rejection) = local_login_rejection(SETTINGS.mailboxd_local_login_enabled) {
+        return rejection;
+    }
     if let Some(rejection) = rate_limit_rejection(&LOGIN_RATE_LIMITER, ip) {
         return rejection;
     }
@@ -118,6 +126,29 @@ where
                     .into_response(),
             )
         })
+}
+
+/// Reject every password sign-in step with 403 while local login is
+/// disabled (`MAILBOXD_LOCAL_LOGIN_ENABLED=false`).
+pub(super) fn local_login_rejection(local_login_enabled: bool) -> Option<Response> {
+    if local_login_enabled {
+        return None;
+    }
+    let body = LoginResult {
+        error_message: Some(
+            "Sign-in with username and password is disabled on this server. Use single sign-on."
+                .to_string(),
+        ),
+        error_code: Some(LOGIN_ERROR_LOCAL_LOGIN_DISABLED.to_string()),
+        ..Default::default()
+    };
+    Some(
+        Response::builder()
+            .status(http::StatusCode::FORBIDDEN)
+            .content_type("application/json")
+            .body(serde_json::to_string(&body).unwrap_or_default())
+            .into_response(),
+    )
 }
 
 /// Reject the request with 429 when `ip` has used up its login attempts.
@@ -237,6 +268,22 @@ mod tests {
             body["error_message"],
             "Too many login attempts. Please try again later."
         );
+    }
+
+    #[test]
+    fn enabled_local_login_is_not_rejected() {
+        assert!(local_login_rejection(true).is_none());
+    }
+
+    #[tokio::test]
+    async fn disabled_local_login_is_rejected_with_403_login_result() {
+        let response = local_login_rejection(false).expect("password sign-in is rejected");
+        assert_eq!(response.status(), http::StatusCode::FORBIDDEN);
+        let body = response.into_body().into_string().await.unwrap();
+        let result: serde_json::Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(result["success"], false);
+        assert_eq!(result["error_code"], LOGIN_ERROR_LOCAL_LOGIN_DISABLED);
+        assert!(result["access_token"].is_null());
     }
 
     #[test]

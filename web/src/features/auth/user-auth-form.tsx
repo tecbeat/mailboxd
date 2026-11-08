@@ -69,12 +69,13 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const { setTheme } = useTheme();
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { oidcEnabled, oidcAutoRedirect } = useOidcConfig()
+  const { oidcEnabled, oidcAutoRedirect, localLogin } = useOidcConfig()
 
   const { search } = useLocation();
   const searchParams = toSearchParams(search);
   const redirect = safeAppRedirect(searchParams.get('redirect'));
-  const localOnly = searchParams.get('local') === '1';
+  // `?local=1` skips the auto-redirect only while the form is offered.
+  const localOnly = localLogin && searchParams.get('local') === '1';
   const ssoError = searchParams.get('sso_error');
 
   useEffect(() => {
@@ -170,6 +171,23 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     )
   }
 
+  function startSsoLogin() {
+    window.location.href = buildOidcLoginUrl(redirect)
+  }
+
+  if (!localLogin) {
+    return (
+      <div className={cn('grid gap-6', className)} {...props}>
+        {oidcEnabled && (
+          <Button type='button' onClick={startSsoLogin}>
+            <Shield className='mr-2' />
+            {t('auth.ssoLogin')}
+          </Button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className={cn('grid gap-6', className)} {...props}>
       <Form {...form}>
@@ -213,9 +231,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                 variant='outline'
                 className='mt-2'
                 type='button'
-                onClick={() => {
-                  window.location.href = buildOidcLoginUrl(redirect)
-                }}
+                onClick={startSsoLogin}
               >
                 <Shield className='mr-2' />
                 {t('auth.ssoLogin')}

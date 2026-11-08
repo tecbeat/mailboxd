@@ -23,6 +23,7 @@ import { useQuery } from '@tanstack/react-query'
 interface OidcConfigResponse {
   enabled: boolean
   auto_redirect: boolean
+  local_login: boolean
 }
 
 async function fetchOidcConfig(): Promise<OidcConfigResponse> {
@@ -35,7 +36,8 @@ async function fetchOidcConfig(): Promise<OidcConfigResponse> {
 /**
  * Reads the public OIDC client config from the server.
  * Used by the sign-in page to decide whether to render the "Sign in
- * with SSO" button and whether to auto-redirect to the IdP.
+ * with SSO" button, the username/password form, and whether to
+ * auto-redirect to the IdP.
  */
 export function useOidcConfig() {
   const { data } = useQuery({
@@ -48,5 +50,6 @@ export function useOidcConfig() {
   return {
     oidcEnabled: data?.enabled ?? false,
     oidcAutoRedirect: data?.auto_redirect ?? false,
+    localLogin: data?.local_login ?? true,
   } as const
 }

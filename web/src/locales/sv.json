@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Är du säker på att du vill logga ut?",
     "invalidPassword": "Ogiltigt lösenord. Var god försök igen.",
+    "localLoginDisabled": "Inloggning med användarnamn och lösenord är inaktiverad på den här servern. Använd enkel inloggning (SSO).",
     "login": "Logga in",
     "loginFailed": "Inloggning misslyckades",
     "logout": "Logga ut",

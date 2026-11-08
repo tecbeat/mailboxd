@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Êtes-vous sûr de vouloir vous déconnecter ?",
     "invalidPassword": "Mot de passe non valide. Veuillez réessayer.",
+    "localLoginDisabled": "La connexion par nom d'utilisateur et mot de passe est désactivée sur ce serveur. Veuillez utiliser l'authentification unique (SSO).",
     "login": "Se connecter",
     "loginFailed": "Échec de la Connexion",
     "logout": "Se déconnecter",

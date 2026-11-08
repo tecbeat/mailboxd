@@ -22,6 +22,13 @@ describe('describeLoginError', () => {
     })
   })
 
+  it('maps 403 to the local login disabled message', () => {
+    expect(describeLoginError(httpError(403), t)).toEqual({
+      title: 'auth.loginFailed',
+      description: 'auth.localLoginDisabled',
+    })
+  })
+
   it('maps 429 to the rate limit message', () => {
     expect(describeLoginError(httpError(429), t)).toEqual({
       title: 'auth.loginFailed',

@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Er du sikker på, du vil logge ud?",
     "invalidPassword": "Ugyldig adgangskode. Prøv venligst igen.",
+    "localLoginDisabled": "Login med brugernavn og adgangskode er deaktiveret på denne server. Brug venligst single sign-on.",
     "login": "Log ind",
     "loginFailed": "Login mislykkedes",
     "logout": "Log ud",

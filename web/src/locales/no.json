@@ -544,6 +544,7 @@
   "auth": {
     "areYouSureYouWantToLogOut": "Er du sikker på at du vil logge ut?",
     "invalidPassword": "Ugyldig passord. Vennligst prøv igjen.",
+    "localLoginDisabled": "Pålogging med brukernavn og passord er deaktivert på denne serveren. Bruk enkel pålogging (SSO).",
     "login": "Logg inn",
     "loginFailed": "Innlogging mislyktes",
     "logout": "Logg ut",
