@@ -97,19 +97,27 @@ fn refresh_blocking() -> MailboxdResult<()> {
     Ok(())
 }
 
+/// Every `type` label of `mailboxd_accounts`, exported even when zero.
+const ACCOUNT_KINDS: [&str; 3] = ["imap", "jmap", "nosync"];
+
+fn account_kind(account_type: &AccountType) -> &'static str {
+    match account_type {
+        AccountType::IMAP => "imap",
+        AccountType::JMAP => "jmap",
+        AccountType::NoSync => "nosync",
+    }
+}
+
 fn refresh_account_counts(accounts: &[AccountModel]) {
     let mut counts: HashMap<(&str, &str), i64> = HashMap::new();
     for account in accounts {
-        let kind = match account.account_type {
-            AccountType::IMAP => "imap",
-            AccountType::NoSync => "nosync",
-        };
+        let kind = account_kind(&account.account_type);
         let enabled = if account.enabled { "true" } else { "false" };
         *counts.entry((kind, enabled)).or_default() += 1;
     }
     let gauge = &METRICS.accounts;
     gauge.reset();
-    for kind in ["imap", "nosync"] {
+    for kind in ACCOUNT_KINDS {
         for enabled in ["true", "false"] {
             gauge
                 .with_label_values(&[kind, enabled])
@@ -229,5 +237,17 @@ fn refresh_backup() {
     match std::fs::metadata(&path) {
         Ok(meta) => m.backup_size.set(meta.len() as i64),
         Err(e) => warn!("Failed to read size of backup {}: {e}", path.display()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_account_type_is_an_exported_kind() {
+        for account_type in [AccountType::IMAP, AccountType::JMAP, AccountType::NoSync] {
+            assert!(ACCOUNT_KINDS.contains(&account_kind(&account_type)));
+        }
     }
 }
