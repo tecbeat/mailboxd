@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
+import type { TFunction } from 'i18next'
 import { getFormSchema, getMfaCodeSchema } from '../schema'
 
 // Simple mock t function that returns the key
-const t = (key: string) => key
+const t = ((key: string) => key) as unknown as TFunction
 
 describe('Login Form Schema', () => {
   const schema = getFormSchema(t)
