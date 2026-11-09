@@ -19,8 +19,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::account::entity::AuthType;
+use crate::account::migration::AccountType;
 use crate::account::state::{DownloadState, TriggerType};
+use crate::archive::engine::run_sync;
+use crate::archive::imap::download::download_type::is_download_due;
 use crate::archive::imap::download::process_imap_download;
+use crate::archive::jmap::source::JmapSource;
 use crate::common::periodic::{PeriodicTask, TaskHandle};
 use crate::error::code::ErrorCode;
 use crate::oauth2::token::OAuth2AccessToken;
@@ -39,6 +43,39 @@ const TASK_INTERVAL: Duration = Duration::from_secs(10);
 pub static SYNC_TASKS: LazyLock<AccountDownTask> = LazyLock::new(AccountDownTask::new);
 static LAST_WARN_TIME: AtomicI64 = AtomicI64::new(0);
 const WARN_INTERVAL_MS: i64 = 600_000;
+
+/// Route an account to the right sync implementation by `account_type`.
+///
+/// IMAP keeps its battle-tested dedicated flow unchanged; JMAP runs through the
+/// source-generic engine (`archive::engine`). `NoSync` accounts never schedule a
+/// download, so they are a no-op here.
+///
+/// This is deliberately *not* driven by
+/// [`mail_source_for`](crate::archive::source::mail_source_for): archival sync
+/// is the one documented exception where IMAP bypasses the `MailSource` seam to
+/// keep its dedicated flow (see #49). All other source-generic consumers (e.g.
+/// restore) go through the factory.
+async fn dispatch_download(
+    account: &AccountModel,
+    token: CancellationToken,
+    trigger_type: TriggerType,
+    run_gap_fill: bool,
+) -> MailboxdResult<()> {
+    match account.account_type {
+        AccountType::IMAP => {
+            process_imap_download(account, token, trigger_type, run_gap_fill).await
+        }
+        AccountType::JMAP => {
+            let state = DownloadState::get(account.id)?;
+            if !is_download_due(account, &trigger_type, state.as_ref(), utc_now!()) {
+                DownloadState::finalize_stale_session(account.id)?;
+                return Ok(());
+            }
+            run_sync(account, &JmapSource, token, trigger_type).await.map(|_| ())
+        }
+        AccountType::NoSync => Ok(()),
+    }
+}
 
 pub struct AccountDownTask {
     tasks: Mutex<Option<HashMap<u64, (TaskHandle, CancellationToken)>>>,
@@ -139,7 +176,7 @@ impl AccountDownTask {
                                     }
                                 }
                             }
-                            if let Err(e) = process_imap_download(
+                            if let Err(e) = dispatch_download(
                                 &account,
                                 internal_token,
                                 TriggerType::Scheduled,
@@ -257,7 +294,7 @@ impl AccountDownTask {
             }
 
             if let Err(e) =
-                process_imap_download(&account, token_clone, TriggerType::Manual, run_gap_fill)
+                dispatch_download(&account, token_clone, TriggerType::Manual, run_gap_fill)
                     .await
             {
                 error!("Manual download failed for {}: {:?}", account_id, e);

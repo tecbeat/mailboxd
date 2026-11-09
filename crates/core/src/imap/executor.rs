@@ -939,6 +939,53 @@ impl ImapExecutor {
         ImapConnectionManager::build(account_id).await
     }
 
+    /// Enumerate the UIDs present in a mailbox at or above `start_uid`, without
+    /// downloading any bodies.
+    ///
+    /// This is the enumeration half of [`fetch_new_mail`], exposed on its own so
+    /// the source-agnostic sync engine (via the `MailSource` abstraction) can
+    /// separate "which messages changed" from "download this message". It uses a
+    /// ranged `UID FETCH {start}:* (UID)` for the same RFC 3501 §6.4.4
+    /// closed-interval guarantee that makes `fetch_new_mail` drift-safe, and
+    /// applies the same clamp against non-compliant servers (e.g. Zoho) that
+    /// return UIDs below `start_uid`. The returned list is sorted ascending.
+    pub async fn enumerate_uids_from(
+        session: &mut Session<Box<dyn SessionStream>>,
+        encoded_mailbox_name: &str,
+        start_uid: u32,
+    ) -> MailboxdResult<Vec<u32>> {
+        assert!(start_uid > 0, "start_uid must be greater than 0");
+
+        session
+            .examine(encoded_mailbox_name)
+            .await
+            .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
+
+        let uid_range = format!("{start_uid}:*");
+        let mut stream = session
+            .uid_fetch(&uid_range, "(UID)")
+            .await
+            .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?;
+
+        let mut uids: Vec<u32> = Vec::new();
+        while let Some(fetch) = stream
+            .try_next()
+            .await
+            .map_err(|e| raise_error!(format!("{:#?}", e), classify_imap_error(&e)))?
+        {
+            if let Some(uid) = fetch.uid {
+                // Non-compliant servers may clamp `{start}:*` and return the last
+                // message even when start_uid exceeds the highest UID; drop the
+                // out-of-range results so callers never re-see stored mail.
+                if uid >= start_uid {
+                    uids.push(uid);
+                }
+            }
+        }
+        uids.sort_unstable();
+        Ok(uids)
+    }
+
     /// Fetch UID → Message-ID mapping without downloading bodies.
     /// `uid_set` is an IMAP sequence-set string (e.g. "1:100" or "1,3,5").
     pub async fn fetch_uid_metadata(
@@ -1249,6 +1296,7 @@ fn parse_message_id_header(header_bytes: &[u8]) -> Option<String> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::account::state::TriggerType;
     use crate::imap::session::SessionStream;
     use tokio_io_timeout::TimeoutStream;
 
@@ -1256,7 +1304,9 @@ mod test {
     async fn purged_tail_marks_folder_successful_without_session_error() {
         // Account id used by no other test.
         let account_id = 59_342_001;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
 
         record_purged_tail(account_id, "INBOX").unwrap();
 
@@ -1693,7 +1743,9 @@ To: recipient@example.com\r\n\r\n";
     #[tokio::test]
     async fn batch_download_skips_unparseable_email_and_stores_the_rest() {
         let account_id = 59_342_101;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let first = minimal_eml("first", "first@batch.test");
         let third = minimal_eml("third", "third@batch.test");
         // An empty body is the input mail-parser refuses to parse.
@@ -1764,7 +1816,9 @@ To: recipient@example.com\r\n\r\n";
         // UIDNEXT 10 claims mail at or above start_uid 5, but the ranged
         // enumeration returns nothing: the newest messages were purged.
         let account_id = 59_342_103;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let handle = download_server(examine_response("INBOX", 4, 42, 10), &[])
             .start()
             .await;
@@ -1793,7 +1847,9 @@ To: recipient@example.com\r\n\r\n";
     #[tokio::test]
     async fn empty_tail_fetch_with_date_filter_is_recorded_as_purged_mail() {
         let account_id = 59_342_104;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let handle = download_server(examine_response("INBOX", 4, 42, 10), &[])
             .start()
             .await;
@@ -1822,7 +1878,9 @@ To: recipient@example.com\r\n\r\n";
     #[tokio::test]
     async fn incremental_fetch_counts_only_stored_messages() {
         let account_id = 59_342_105;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let five = minimal_eml("five", "five@range.test");
         let seven = minimal_eml("seven", "seven@range.test");
         let bodies: [(u32, &[u8]); 3] = [(5, &five), (6, b""), (7, &seven)];
@@ -1856,7 +1914,9 @@ To: recipient@example.com\r\n\r\n";
     #[tokio::test]
     async fn date_filtered_incremental_fetch_counts_only_stored_messages() {
         let account_id = 59_342_106;
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         let five = minimal_eml("five", "five@before.test");
         let seven = minimal_eml("seven", "seven@before.test");
         let bodies: [(u32, &[u8]); 3] = [(5, &five), (6, b""), (7, &seven)];

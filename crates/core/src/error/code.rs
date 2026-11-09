@@ -36,6 +36,13 @@ pub enum ErrorCode {
     /// "skip this one, keep going" instead of a batch-level abort.
     EmailParseError = 50030,
     AutoconfigFetchFailed = 50060,
+    // JMAP (RFC 8620/8621) errors (50100–50199)
+    JmapRequestFailed = 50100,
+    JmapAuthenticationFailed = 50110,
+    JmapUnexpectedResult = 50120,
+    JmapCapabilityUnsupported = 50130,
+    JmapMethodError = 50140,
+    JmapCannotCalculateChanges = 50150,
     // Internal system errors (70000–70999)
     InternalError = 70000,
     UnhandledPoemError = 70010,

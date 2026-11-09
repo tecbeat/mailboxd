@@ -479,6 +479,7 @@ pub async fn gap_fill_mailbox(
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::account::state::TriggerType;
 
     fn rh(uid: u32, message_id: Option<&str>, size: u64, internal_date: i64) -> RemoteHeader {
         RemoteHeader {
@@ -584,7 +585,9 @@ mod test {
     async fn fixture(account_id: u64, server: MockImapServer) -> Fixture {
         let handle = server.start().await;
         let account = register_mock_account(&handle, account_id);
-        DownloadState::init(account_id).await.unwrap();
+        DownloadState::init(account_id, TriggerType::Scheduled)
+            .await
+            .unwrap();
         GapFillState::start_run(account_id).unwrap();
         let mailbox = MailBox {
             id: 1_000_000 + (uuid::Uuid::new_v4().as_u128() % 1_000_000_000) as u64,

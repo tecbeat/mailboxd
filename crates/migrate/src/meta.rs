@@ -239,6 +239,8 @@ impl From<AccountV3> for AccountModel {
         Self {
             id: value.id,
             imap: value.imap,
+            // Legacy accounts predate JMAP support; no JMAP config exists.
+            jmap: None,
             enabled: value.enabled,
             email: value.email,
             account_name: None,
@@ -672,6 +674,7 @@ impl From<MailBox> for mailboxd_core::archive::imap::mailbox::MailBox {
             uid_next: value.uid_next,
             uid_validity: value.uid_validity,
             highest_uid: None,
+            sync_cursor: None,
         }
     }
 }

@@ -245,6 +245,44 @@ pub async fn fetch(domain: &str) -> MailboxdResult<MailConfig> {
     ))
 }
 
+/// Discover a domain's JMAP Session URL via `/.well-known/jmap` (RFC 8620 §2.2).
+///
+/// Per the spec a client fetches `https://{domain}/.well-known/jmap`, which the
+/// server redirects to (or serves directly as) the JMAP Session resource. We
+/// follow redirects and return the *final* URL as the session URL — that is the
+/// canonical `apiUrl` base the account should store. Returns `None` when the
+/// domain publishes no JMAP endpoint.
+pub async fn fetch_jmap_session_url(domain: &str) -> Option<String> {
+    probe_jmap_well_known(&format!("https://{domain}/.well-known/jmap")).await
+}
+
+/// Probe a concrete `.well-known/jmap` URL, following redirects to the real
+/// Session resource and returning the final URL when the body is a valid JMAP
+/// Session object (has `apiUrl`). Split out from [`fetch_jmap_session_url`] so
+/// tests can target a mock server by full URL.
+pub(crate) async fn probe_jmap_well_known(url: &str) -> Option<String> {
+    let client = Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        // Follow the well-known redirect to the real session resource.
+        .redirect(reqwest::redirect::Policy::limited(5))
+        .build()
+        .ok()?;
+
+    let resp = client.get(url).send().await.ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    // The body must be a JSON object carrying at least `apiUrl` to be a valid
+    // Session resource; otherwise this is not a JMAP endpoint.
+    let final_url = resp.url().to_string();
+    let json: serde_json::Value = resp.json().await.ok()?;
+    if json.get("apiUrl").and_then(|v| v.as_str()).is_some() {
+        Some(final_url)
+    } else {
+        None
+    }
+}
+
 /// DNS MX lookup → retry ISPDB and ISP autoconfig for the MX domain.
 ///
 /// Many self-hosted domains have their MX pointed at Google, Microsoft, etc.
