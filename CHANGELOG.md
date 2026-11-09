@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.14.1) - 2026-11-09
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update tailwindcss monorepo to v4.3.5 - ([102666e](https://git.teccave.de/tecbeat/mailboxd/commit/102666e0ab4cb053b59dd0562ae79027114f0f67))
+
+## [1.14.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.14.0) - 2026-11-08
+
+### ⛰️  Features
+
+- *(auth)* Revoke password sessions when local login is disabled - ([81a89ff](https://git.teccave.de/tecbeat/mailboxd/commit/81a89ff46efd4fcef3d1dfdfc661028c7cb0f6c6))
+- *(auth)* Add MAILBOXD_LOCAL_LOGIN_ENABLED to turn off password sign-in - ([564cf74](https://git.teccave.de/tecbeat/mailboxd/commit/564cf748e9dadbacc6b744735dbc3ebc0cde962f))
+- *(web)* Offer only SSO on the sign-in page when local login is disabled - ([013f43b](https://git.teccave.de/tecbeat/mailboxd/commit/013f43b109890214d160ec5488212d405f459023))
+
+### 📚 Documentation
+
+- Document MAILBOXD_LOCAL_LOGIN_ENABLED - ([64d3da1](https://git.teccave.de/tecbeat/mailboxd/commit/64d3da1008face16a85d7b6e616a279641d2bcfd))
+
 ## [1.13.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.13.0) - 2026-11-07
 
 ### ⛰️  Features
