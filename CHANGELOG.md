@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.14.2) - 2026-11-09
+
+### 🐛 Bug Fixes
+
+- *(deps)* Type the login schema translator as i18next TFunction - ([d25e0c3](https://git.teccave.de/tecbeat/mailboxd/commit/d25e0c3fb6216dace959ab9756b0ea3556f53a47))
+- *(deps)* Update dependency react-i18next to v18 - ([b115cc9](https://git.teccave.de/tecbeat/mailboxd/commit/b115cc9e6a04898f6cdb571d8b2c47a69f0303f9))
+- *(deps)* Update dependency jsdom to v31 - ([37ba024](https://git.teccave.de/tecbeat/mailboxd/commit/37ba0241ac9ae0b1ccdd72b47f8d0c1db56bbc3f))
+- *(deps)* Update dependency i18next to v27 - ([bc80b07](https://git.teccave.de/tecbeat/mailboxd/commit/bc80b07aa61d33b1b5d39a1aaf88cb389b08220d))
+- *(deps)* Update vitest monorepo to v5.1.0 - ([fd91ab5](https://git.teccave.de/tecbeat/mailboxd/commit/fd91ab535ba8a18280fb7b1b104e73488bc98232))
+- *(deps)* Update tanstack-query monorepo to v5.107.1 - ([808e9b8](https://git.teccave.de/tecbeat/mailboxd/commit/808e9b832d66916e24b88b96090f74ecef24217d))
+- *(deps)* Update playwright to v1.65.0 - ([c5dfd3a](https://git.teccave.de/tecbeat/mailboxd/commit/c5dfd3ae0d8e98ddd8ee056614122fa0a6a15af6))
+- *(deps)* Update all non-major dependencies - ([717f649](https://git.teccave.de/tecbeat/mailboxd/commit/717f64922f0da663df306a988df4b7ca92c3d955))
+
 ## [1.14.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.14.1) - 2026-11-09
 
 ### 🐛 Bug Fixes
