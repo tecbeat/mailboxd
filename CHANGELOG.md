@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.0) - 2026-11-09
+
+### ⛰️  Features
+
+- *(account)* Add JMAP account type and JmapConfig - ([7ef8ed5](https://git.teccave.de/tecbeat/mailboxd/commit/7ef8ed5dbfa5d83d3d901bf3803ae357696985d1))
+- *(archive)* Introduce MailSource abstraction with IMAP adapter - ([cb3f4f7](https://git.teccave.de/tecbeat/mailboxd/commit/cb3f4f7a0eee1cddacf88938185c052482db1852))
+- *(deps)* Upgrade workspace to reqwest 0.13 - ([3705c90](https://git.teccave.de/tecbeat/mailboxd/commit/3705c9090d6ba7c675d62a4cea8f9b02178fd464))
+- *(jmap)* Restore archived mail into JMAP accounts - ([4b3d66a](https://git.teccave.de/tecbeat/mailboxd/commit/4b3d66a66a27c3b57657e58ae635137aeef33da6))
+- *(jmap)* Autodiscovery via /.well-known/jmap - ([3fcf128](https://git.teccave.de/tecbeat/mailboxd/commit/3fcf12868116c3343c9d7946c6dac2d115c08caf))
+- *(jmap)* JmapSource and source-generic sync engine - ([206d5b7](https://git.teccave.de/tecbeat/mailboxd/commit/206d5b75c9cc9a81b0e30096ca22457945e3c99a))
+- *(jmap)* Add JMAP protocol client (RFC 8620/8621) - ([7482982](https://git.teccave.de/tecbeat/mailboxd/commit/748298249bc7461110b3e2a22c07745ebca4bf91))
+- *(ui)* JMAP account create/edit in web frontend - ([2becebf](https://git.teccave.de/tecbeat/mailboxd/commit/2becebf0b3683d59985b98d0355171edecef5beb))
+
+### 🐛 Bug Fixes
+
+- *(jmap)* Count JMAP accounts in the mailboxd_accounts metric - ([60cc46d](https://git.teccave.de/tecbeat/mailboxd/commit/60cc46dce23de36b21e6fff6f18571ffc74c8b0d))
+- *(jmap)* Keep only this mailbox's changes in incremental syncs - ([cb3db15](https://git.teccave.de/tecbeat/mailboxd/commit/cb3db15edc89078a14590b2f6aef3b95c7534758))
+- *(jmap)* Snapshot the Email state via Email/get - ([a0dc658](https://git.teccave.de/tecbeat/mailboxd/commit/a0dc6589b3e85bcdad59cb82649ed4c3c017a0ec))
+- *(jmap)* Create the download state on the first sync - ([0301842](https://git.teccave.de/tecbeat/mailboxd/commit/0301842982d8199f1030c10dc1caf0e2f19623b2))
+- *(jmap)* Resume incremental sync from the stored mailbox cursor - ([9666522](https://git.teccave.de/tecbeat/mailboxd/commit/9666522269e8329f077786cc9769c5735396f546))
+- *(jmap)* Honour the download interval and cooldown for scheduled syncs - ([e66753a](https://git.teccave.de/tecbeat/mailboxd/commit/e66753ad7dc3586695ea8ec5e14dba560c6acfde))
+- *(jmap)* Correct JMAP account edit flow - ([ee98a6b](https://git.teccave.de/tecbeat/mailboxd/commit/ee98a6bef7acb0299fce8bf0d3f62113bf4426cf))
+
 ## [1.14.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.14.2) - 2026-11-09
 
 ### 🐛 Bug Fixes
