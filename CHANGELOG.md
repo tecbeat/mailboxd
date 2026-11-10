@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.1](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.1) - 2026-11-10
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update tanstack-router monorepo - ([ff2b503](https://git.teccave.de/tecbeat/mailboxd/commit/ff2b5037359bf730048ff093024c6fdce00123c4))
+
 ## [1.15.0](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.0) - 2026-11-09
 
 ### ⛰️  Features
