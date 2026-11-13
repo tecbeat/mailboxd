@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.3](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.3) - 2026-11-13
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies - ([3c64c86](https://git.teccave.de/tecbeat/mailboxd/commit/3c64c861d0c5c0c31c6deff08a1df3be12b97d95))
+- *(deps)* Update mcr.microsoft.com/playwright:v1.65.0-noble docker digest to 9beb546 - ([f075d16](https://git.teccave.de/tecbeat/mailboxd/commit/f075d169ebc11f73cc0164575fc3e4da806fc69e))
+
 ## [1.15.2](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.2) - 2026-11-12
 
 ### 🐛 Bug Fixes
