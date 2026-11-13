@@ -90,7 +90,7 @@ hex.workspace = true
 pdf-extract = "0.12.0"
 calamine = "0.38.0"
 zip = { version = "9.0.0", default-features = false, features = ["deflate-flate2"] }
-rtf-parser = { version = "0.4.3", default-features = false }
+rtf-parser = { version = "0.5.0", default-features = false }
 # Instance backup archives (issue #42): a tar container wrapped in zstd. zstd is
 # already vendored via crates/blob (same 0.14 line, so zstd-sys is shared), and
 # tar is pure-Rust (filetime + libc, no new -sys crates), keeping the slim
