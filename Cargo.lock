@@ -4484,9 +4484,9 @@ dependencies = [
 
 [[package]]
 name = "rtf-parser"
-version = "0.4.3"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c3147b4eb521eae5e29b781bdc30ab98bbaed784bfcb8376cda60ba4b2e0e3d"
+checksum = "024f9813c86273865f43e521807c9d1d3352297067884764374ebc81cfbc5c95"
 dependencies = [
  "serde",
 ]
