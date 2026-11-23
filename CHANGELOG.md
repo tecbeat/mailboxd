@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.5](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.5) - 2026-11-23
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency typescript-eslint to v8.73.0 - ([737c7fe](https://git.teccave.de/tecbeat/mailboxd/commit/737c7fee091eaa6ea44754949393a51e6ec7351d))
+
 ## [1.15.4](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.4) - 2026-11-21
 
 ### 🐛 Bug Fixes
