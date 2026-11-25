@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.6](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.6) - 2026-11-25
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency @testing-library/user-event to v14.6.13 - ([acc5f1b](https://git.teccave.de/tecbeat/mailboxd/commit/acc5f1bb86fd6c5510c20ec0733ec5da9e2f5d6d))
+
 ## [1.15.5](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.5) - 2026-11-23
 
 ### 🐛 Bug Fixes
