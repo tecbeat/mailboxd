@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.7](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.7) - 2026-11-26
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update tanstack-query monorepo to v5.108.4 - ([f95ac75](https://git.teccave.de/tecbeat/mailboxd/commit/f95ac752749386e0b0f34ede26457d83d22c845b))
+
 ## [1.15.6](https://git.teccave.de/tecbeat/mailboxd/-/releases/v1.15.6) - 2026-11-25
 
 ### 🐛 Bug Fixes
