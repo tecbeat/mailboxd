@@ -13,7 +13,7 @@ serde_json = "1"
 bincode = { package = "bincode_reloaded", version = "3.1.10", default-features = false, features = ["serde", "alloc"] }
 tracing = "0.1"
 thiserror = "2"
-redb = "4.2.0"
+redb = "5.0.0"
 fs2 = "0.4.3"
 
 [dev-dependencies]
