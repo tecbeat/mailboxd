@@ -22,7 +22,7 @@ include:
 .rust_job:
   extends: .skip_on_default_branch
   stage: unittest
-  image: rust:1.100.0-slim-bookworm@sha256:7c7d4eb4d05b7781187a327809466cfddf29753f6defdc3d19a0e291951b7a37
+  image: rust:1.100.0-slim-bookworm@sha256:bb875b0f8ce726053e259034848c471840e96bfe591fd52556178ae9a05e6126
   variables:
     CARGO_HOME: ${CI_PROJECT_DIR}/.cargo
     CARGO_TERM_COLOR: always
@@ -404,7 +404,7 @@ mirror_image:
 # letting the release API create one.
 mirror_release:
   extends: .github_mirror
-  image: hub.teccave.de/images/core:v1.4.52@sha256:3780f4d7654d14d5e81afeaadf76cacf28c8ac6e4876a33c0c3beb39dfc5b92f
+  image: hub.teccave.de/images/core:v1.5.0@sha256:5dcd710d6be6f18a0a2ee846c16caf365737d0dd816125fa51b4e839a109a6ab
   needs:
     - job: versioner
       artifacts: true
